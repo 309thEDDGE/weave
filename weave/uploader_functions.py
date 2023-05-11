@@ -245,7 +245,7 @@ class BasketClass():
 
     def setup_temp_dir_for_staging_prior_to_s3fs(self):
         """Sets up a temporary directory to hold stuff before upload to S3FS"""
-        self.upload_path = f"s3://{self.upload_directory}"
+        self.upload_path = f"{self.upload_directory}"
         self.temp_dir = tempfile.TemporaryDirectory()
         self.fs.mkdir(self.upload_path)
         self.temp_dir_path = self.temp_dir.name
@@ -276,6 +276,9 @@ class BasketClass():
                             fid['upload_path'] = str(
                                 file_upload_path
                             )
+                            base_path = os.path.split(file_upload_path)[0]
+                            if not self.fs.exists(base_path):
+                                self.fs.mkdir(base_path)
                             self.fs.upload(local_path, file_upload_path)
                         else:
                             fid['stub'] = True
@@ -289,6 +292,9 @@ class BasketClass():
                         self.upload_path,os.path.basename(upload_item_path)
                     )
                     fid['upload_path'] = str(file_upload_path)
+                    base_path = os.path.split(file_upload_path)[0]
+                    if not self.fs.exists(base_path):
+                        self.fs.mkdir(base_path)
                     self.fs.upload(str(upload_item_path),
                                           file_upload_path)
                 else:
