@@ -3,7 +3,6 @@ USAGE:
 python create_index.py <root_dir> 
     root_dir: the root directory of s3 you wish to build your index off of
 '''
-
 import json
 import argparse
 import os

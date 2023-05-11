@@ -1,10 +1,12 @@
 import pytest
-import s3fs
 import tempfile
 import os
 import json
 import pandas as pd
 from weave.create_index import create_index_from_s3
+from fsspec.implementations.local import LocalFileSystem
+from unittest.mock import patch
+
 from weave.uploader import upload_basket
 
 class TestCreateIndex():
@@ -15,15 +17,13 @@ class TestCreateIndex():
         '''
         create file locally, upload basket, delete file locally
         '''
-        self.opal_s3fs = s3fs.S3FileSystem(client_kwargs=
-                                          {"endpoint_url": os.environ["S3_ENDPOINT"]})
-
+        self.fs = LocalFileSystem()
         self.basket_type = 'test_basket_type'
         self.test_bucket = 'index-testing-bucket'
 
         #make sure minio bucket doesn't exist. if it does, delete it.
-        if self.opal_s3fs.exists(f's3://{self.test_bucket}'):
-            self.opal_s3fs.rm(f's3://{self.test_bucket}', recursive = True)
+        if self.fs.exists(f'{self.test_bucket}'):
+            self.fs.rm(f'{self.test_bucket}', recursive = True)
 
         self.temp_dir = tempfile.TemporaryDirectory()
         self.local_dir_path = self.temp_dir.name
@@ -33,33 +33,35 @@ class TestCreateIndex():
         with open(file_path, "w") as f:
             f.write('this is a test file')
 
-        #upload basket 2 levels deep
-        upload_basket([{"path": self.local_dir_path, "stub": False}],
-                      f'{self.test_bucket}/{self.basket_type}/1234', "1234",
-                      self.basket_type, ["1111","2222"], label = 'my label')
-        
-        #upload basket 3 levels deeps
-        upload_basket([{"path": self.local_dir_path, "stub": False}],
-                      f'{self.test_bucket}/{self.basket_type}/one_deeper/4321', "4321",
-                      self.basket_type, ["333","444"], label = 'my label')
-
 
     def teardown_class(self):
         '''
         remove baskets from s3
         '''
-        self.opal_s3fs.rm(f's3://{self.test_bucket}', recursive = True)
+        self.fs.rm(f'{self.test_bucket}', recursive = True)
         self.temp_dir.cleanup()
         
-    def test_root_dir_is_string(self):
+    @patch('weave.config.get_file_system', return_value=LocalFileSystem())
+    def test_root_dir_is_string(self, patch):
         with pytest.raises(TypeError, match =
                            f"'root_dir' must be a string"):
             create_index_from_s3(765)
 
-    def test_correct_index(self):
+    @patch('weave.config.get_file_system', return_value=LocalFileSystem())
+    def test_correct_index(self, patch):
         '''
         just use the data uploaded and create and index and check that it's right
         '''
+        #upload basket 2 levels deep
+        upload_basket([{"path": self.local_dir_path, "stub": False}],
+                      f'{self.test_bucket}/{self.basket_type}/1234', "1234",
+                      self.basket_type, ["1111","2222"], label = 'my label')
+        
+        #upload basket 3 levels deep
+        upload_basket([{"path": self.local_dir_path, "stub": False}],
+                      f'{self.test_bucket}/{self.basket_type}/one_deeper/4321', "4321",
+                      self.basket_type, ["333","444"], label = 'my label')
+
         truth_index_dict = {'uuid': ['1234', '4321'],
                  'upload_time': ["1679335295759652", "1234567890"],
                  'parent_uuids': [["1111", "2222"], ["333","444"]],
@@ -76,7 +78,8 @@ class TestCreateIndex():
         assert (truth_index == minio_index).drop(columns = ['upload_time']).all().all()
 
 
-    def test_create_index_with_wrong_keys(self):
+    @patch('weave.config.get_file_system', return_value=LocalFileSystem())
+    def test_create_index_with_wrong_keys(self, patch):
         '''
         upload a basket with a basket_details.json with incorrect keys.
         check that correct error is thrown. delete said basket from s3
@@ -92,17 +95,18 @@ class TestCreateIndex():
 
         #change a key in this basket_manifest.json
         basket_dict = {}
-        with self.opal_s3fs.open(f'{self.test_bucket}/{self.basket_type}/5678/basket_manifest.json', 'rb') as f:
+        with self.fs.open(f'{self.test_bucket}/{self.basket_type}/5678/basket_manifest.json', 'rb') as f:
             basket_dict = json.load(f)
             basket_dict.pop('uuid')
         basket_path = os.path.join(self.local_dir_path, 'basket_manifest.json')
         with open(basket_path, 'w') as f:
             json.dump(basket_dict, f)
-        self.opal_s3fs.upload(basket_path, f'{self.test_bucket}/{self.basket_type}/5678/basket_manifest.json')
+        self.fs.upload(basket_path, f'{self.test_bucket}/{self.basket_type}/5678/basket_manifest.json')
 
         with pytest.raises(ValueError, match = 'basket found at'):
             minio_index = create_index_from_s3(f'{self.test_bucket}')
 
+    @patch('weave.config.get_file_system', return_value=LocalFileSystem())
     def test_root_dir_does_not_exist(self):
         '''
         try to create an index in a bucket that doesn't exist, check that it throws an error

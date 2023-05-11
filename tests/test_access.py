@@ -3,6 +3,8 @@ import os
 import tempfile
 import pytest
 import uuid
+from fsspec.implementations.local import LocalFileSystem
+from unittest.mock import patch
 
 from weave.access import upload
 

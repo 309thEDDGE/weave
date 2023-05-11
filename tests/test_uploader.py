@@ -545,7 +545,8 @@ class TestUploadBasket():
 
         assert not self.fs.exists(f'{self.basket_path}')
 
-    def test_upload_basket_no_metadata(self):
+    @patch('weave.config.get_file_system', return_value=LocalFileSystem())
+    def test_upload_basket_no_metadata(self, patch):
         # Create basket
         local_dir_path = self.temp_dir_path
         json_path = os.path.join(local_dir_path, "sample.json")
@@ -621,7 +622,8 @@ class TestUploadBasket():
 
         assert not self.fs.exists(f'{self.basket_path}')
 
-    def test_upload_basket_invalid_upload_path(self):
+    @patch('weave.config.get_file_system', return_value=LocalFileSystem())
+    def test_upload_basket_invalid_upload_path(self, patch):
         local_dir_path = self.temp_dir_path
         json_path = os.path.join(local_dir_path, "sample.json")
         json_data = {'t': [1,2,3]}
@@ -642,7 +644,8 @@ class TestUploadBasket():
 
         assert not self.fs.exists(f'{self.basket_path}')
 
-    def test_upload_basket_clean_up_on_error(self):
+    @patch('weave.config.get_file_system', return_value=LocalFileSystem())
+    def test_upload_basket_clean_up_on_error(self, patch):
         local_dir_path = self.temp_dir_path
         json_path = os.path.join(local_dir_path, "sample.json")
         json_data = {'t': [1,2,3]}
