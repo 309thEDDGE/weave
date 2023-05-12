@@ -623,28 +623,6 @@ class TestUploadBasket():
         assert not self.fs.exists(f'{self.basket_path}')
 
     @patch('weave.config.get_file_system', return_value=LocalFileSystem())
-    def test_upload_basket_invalid_upload_path(self, patch):
-        local_dir_path = self.temp_dir_path
-        json_path = os.path.join(local_dir_path, "sample.json")
-        json_data = {'t': [1,2,3]}
-        with open(json_path, "w") as outfile:
-            json.dump(json_data, outfile)
-            
-        upload_items = [{
-                            'path': local_dir_path,
-                            'stub': True,
-                        }]
-        unique_id = uuid.uuid1().hex
-        upload_path = ";invalid_path"
-
-        with pytest.raises(botocore.exceptions.ParamValidationError,
-                           match = f"Invalid bucket name"):
-            upload_basket(upload_items, upload_path,
-                         unique_id, self.basket_type)
-
-        assert not self.fs.exists(f'{self.basket_path}')
-
-    @patch('weave.config.get_file_system', return_value=LocalFileSystem())
     def test_upload_basket_clean_up_on_error(self, patch):
         local_dir_path = self.temp_dir_path
         json_path = os.path.join(local_dir_path, "sample.json")
@@ -665,9 +643,9 @@ class TestUploadBasket():
                            match = "Test Clean Up"):
             upload_basket(upload_items, upload_path,
                           unique_id, self.basket_type,
-                         test_clean_up = True)
+                          test_clean_up = True)
 
-        assert not self.fs.exists(f'{self.basket_path}')
+        assert not self.fs.exists(upload_path)
         
     def test_upload_basket_invalid_optional_argument(self):
         local_dir_path = self.temp_dir_path

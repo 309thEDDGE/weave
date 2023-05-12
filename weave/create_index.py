@@ -46,6 +46,9 @@ def create_index_from_s3(root_dir):
     
     fs = config.get_file_system()
 
+    if not fs.exists(root_dir):
+        raise FileNotFoundError(f"'root_dir' does not exist '{root_dir}'")
+
     basket_jsons = [x for x in fs.find(root_dir) if x.endswith('basket_manifest.json')]
 
     schema = config.index_schema()
