@@ -6,7 +6,7 @@ import math
 import tempfile
 from datetime import datetime
 from pathlib import Path
-import s3fs
+from weave import config
 
 def validate_upload_item(upload_item):
     """ Validates an upload_item """
@@ -231,9 +231,7 @@ class BasketClass():
 
     def establish_s3fs(self):
         """Establishes the S3FS connection"""
-        self.opal_s3fs = s3fs.S3FileSystem(
-            client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-        )
+        self.fs = config.get_file_system()
 
     def check_that_upload_dir_does_not_exist(self):
         """Ensure that upload directory does not previously exist
@@ -241,15 +239,15 @@ class BasketClass():
         This averts some errors with uploading to a directory that already
         exists
         """
-        if self.opal_s3fs.isdir(self.upload_directory):
+        if self.fs.isdir(self.upload_directory):
             raise FileExistsError("'upload_directory' already exists: "
                                   f"'{self.upload_directory}''")
 
     def setup_temp_dir_for_staging_prior_to_s3fs(self):
         """Sets up a temporary directory to hold stuff before upload to S3FS"""
-        self.upload_path = f"s3://{self.upload_directory}"
+        self.upload_path = f"{self.upload_directory}"
         self.temp_dir = tempfile.TemporaryDirectory()
-        self.opal_s3fs.mkdir(self.upload_path)
+        self.fs.mkdir(self.upload_path)
         self.temp_dir_path = self.temp_dir.name
 
     def upload_files_and_stubs_to_s3fs(self):
@@ -278,7 +276,10 @@ class BasketClass():
                             fid['upload_path'] = str(
                                 file_upload_path
                             )
-                            self.opal_s3fs.upload(local_path, file_upload_path)
+                            base_path = os.path.split(file_upload_path)[0]
+                            if not self.fs.exists(base_path):
+                                self.fs.mkdir(base_path)
+                            self.fs.upload(local_path, file_upload_path)
                         else:
                             fid['stub'] = True
                             fid['upload_path'] = 'stub'
@@ -291,7 +292,10 @@ class BasketClass():
                         self.upload_path,os.path.basename(upload_item_path)
                     )
                     fid['upload_path'] = str(file_upload_path)
-                    self.opal_s3fs.upload(str(upload_item_path),
+                    base_path = os.path.split(file_upload_path)[0]
+                    if not self.fs.exists(base_path):
+                        self.fs.mkdir(base_path)
+                    self.fs.upload(str(upload_item_path),
                                           file_upload_path)
                 else:
                     fid['stub'] = True
@@ -314,7 +318,7 @@ class BasketClass():
 
         with open(basket_json_path, "w") as outfile:
             json.dump(basket_json, outfile)
-        self.opal_s3fs.upload(
+        self.fs.upload(
             basket_json_path,
             os.path.join(self.upload_path,'basket_manifest.json')
         )
@@ -325,7 +329,7 @@ class BasketClass():
         if self.metadata != {}:
             with open(metadata_path, "w") as outfile:
                 json.dump(self.metadata, outfile, default=str)
-            self.opal_s3fs.upload(
+            self.fs.upload(
                 metadata_path,
                 os.path.join(self.upload_path,'basket_metadata.json')
             )
@@ -335,18 +339,18 @@ class BasketClass():
                                             'basket_supplement.json')
         with open(supplement_json_path, "w") as outfile:
             json.dump(self.supplement_data, outfile)
-        self.opal_s3fs.upload(
+        self.fs.upload(
             supplement_json_path,
             os.path.join(self.upload_path, 'basket_supplement.json')
         )
 
-    def opal_s3fs_upload_path_exists(self):
-        """Returns True if opal_s3fs upload_path has been created, else False"""
-        return self.opal_s3fs.exists(self.upload_path)
+    def s3fs_upload_path_exists(self):
+        """Returns True if fs upload_path has been created, else False"""
+        return self.fs.exists(self.upload_path)
 
     def clean_out_s3fs_upload_dir(self):
-        """Removes everything from upload_path inside opal_s3fs"""
-        self.opal_s3fs.rm(self.upload_path, recursive = True)
+        """Removes everything from upload_path inside fs"""
+        self.fs.rm(self.upload_path, recursive = True)
 
     def tear_down_temp_dir(self):
         """For use at death of class. Cleans up temp_dir."""

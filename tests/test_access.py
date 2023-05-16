@@ -3,19 +3,24 @@ import os
 import tempfile
 import pytest
 import uuid
+from fsspec.implementations.local import LocalFileSystem
+from unittest.mock import patch
 
 from weave.access import upload
 
 class TestUpload():
+
     def setup_class(self):
-        self.opal_s3fs = s3fs.S3FileSystem(client_kwargs=
-                                          {"endpoint_url": os.environ["S3_ENDPOINT"]})
+        self.fs = LocalFileSystem()
         self.basket_type = 'test_basket_type'
         self.bucket_name = 'weave-test-bucket'
+
+        self.file_system_dir = tempfile.TemporaryDirectory()
+        self.file_system_dir_path = self.file_system_dir.name
         
         #make sure minio bucket doesn't exist. if it does, delete it.
-        if self.opal_s3fs.exists(f's3://{self.bucket_name}'):
-            self.opal_s3fs.rm(f's3://{self.bucket_name}', recursive = True)
+        if self.fs.exists(f'{self.bucket_name}'):
+            self.fs.rm(f'{self.bucket_name}', recursive = True)
         
         self.temp_dir = tempfile.TemporaryDirectory()
         self.local_dir_path = self.temp_dir.name
@@ -30,11 +35,14 @@ class TestUpload():
         
     def teardown_class(self):
         self.temp_dir.cleanup()
-        if self.opal_s3fs.exists(f's3://{self.bucket_name}'):
-            self.opal_s3fs.rm(f's3://{self.bucket_name}', recursive = True)
+        if self.fs.exists(f'{self.bucket_name}'):
+            self.fs.rm(f'{self.bucket_name}', recursive = True)
+
+        self.file_system_dir.cleanup()
             
     @pytest.fixture
-    def run_uploader(self):
+    @patch('weave.config.get_file_system', return_value=LocalFileSystem())
+    def run_uploader(self, patch):
         parent_ids = [uuid.uuid1().hex]
         metadata = {
                     'oh': "i don't know",
@@ -42,9 +50,9 @@ class TestUpload():
         }
         label = 'my label'
         self.upload_path = upload(self.upload_items, self.basket_type, self.bucket_name,
-              parent_ids, metadata, label)
+              parent_ids, metadata, label, test_prefix = self.file_system_dir_path)
         
-        uploaded_files = self.opal_s3fs.ls(self.upload_path)
+        uploaded_files = self.fs.ls(self.upload_path)
         return uploaded_files
         
     def test_upload_test_txt_in_uploaded_files(self, run_uploader):

@@ -3,12 +3,10 @@ USAGE:
 python create_index.py <root_dir> 
     root_dir: the root directory of s3 you wish to build your index off of
 '''
-
 import json
 import argparse
 import os
 import pandas as pd
-import s3fs
 from weave import config
 
 #validate basket keys and value data types on read in
@@ -46,10 +44,12 @@ def create_index_from_s3(root_dir):
     if not isinstance(root_dir, str):
         raise TypeError(f"'root_dir' must be a string: '{root_dir}'")
     
-    opal_s3fs = s3fs.S3FileSystem(client_kwargs=
-                                 {"endpoint_url": os.environ["S3_ENDPOINT"]})
+    fs = config.get_file_system()
 
-    basket_jsons = [x for x in opal_s3fs.find(root_dir) if x.endswith('basket_manifest.json')]
+    if not fs.exists(root_dir):
+        raise FileNotFoundError(f"'root_dir' does not exist '{root_dir}'")
+
+    basket_jsons = [x for x in fs.find(root_dir) if x.endswith('basket_manifest.json')]
 
     schema = config.index_schema()
     
@@ -61,7 +61,7 @@ def create_index_from_s3(root_dir):
     index_dict['storage_type'] = []
 
     for basket_json_address in basket_jsons:
-        with opal_s3fs.open(basket_json_address, 'rb') as file:
+        with fs.open(basket_json_address, 'rb') as file:
             basket_dict = json.load(file)
             validate_basket_dict(basket_dict, basket_json_address)
             for field in basket_dict.keys():

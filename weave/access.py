@@ -8,7 +8,8 @@ def upload(upload_items,
            bucket_name = 'basket-data',
            parent_ids = [],
            metadata = {},
-           label = ''):
+           label = '',
+           **kwargs):
     """
     Upload a basket of data to specified bucket in minio.
     
@@ -52,9 +53,13 @@ def upload(upload_items,
     #generate unique id
     unique_id = uuid.uuid1().hex
     
+    prefix = ''
+    if 'test_prefix' in kwargs.keys():
+        prefix = kwargs['test_prefix']
+
     #build upload directory of the form
     # bucket_name/basket_type/unique_id
-    upload_directory = os.path.join(bucket_name, basket_type, unique_id)
+    upload_directory = os.path.join(prefix, bucket_name, basket_type, unique_id)
     
     upload_basket(upload_items,
                  upload_directory,

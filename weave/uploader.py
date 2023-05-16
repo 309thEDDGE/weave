@@ -81,7 +81,7 @@ def upload_basket(upload_items, upload_directory, unique_id, basket_type,
             raise Exception('Test Clean Up')
 
     except Exception as e:
-        if basket_class.opal_s3fs_upload_path_exists():
+        if basket_class.s3fs_upload_path_exists():
             basket_class.clean_out_s3fs_upload_dir()
         raise e
 
