@@ -35,6 +35,7 @@ class TestBasket():
             self.fs.rm(self.test_bucket, recursive = True)
         self.file_system_dir.cleanup()
         
+    @patch('weave.config.get_file_system', return_value=LocalFileSystem())
     def test_basket_address_does_not_exist(self):
         basket_path = 'i n v a l i d p a t h'
         with pytest.raises(
