@@ -110,7 +110,7 @@ def derive_integrity_data(file_path, byte_count=10**8):
             'byte_count': byte_count}
 
 
-class BasketClass():
+class UploadBasket():
     """This class abstracts functionality used by upload_basket."""
 
     def __init__(self, upload_items, upload_directory, unique_id, basket_type,
