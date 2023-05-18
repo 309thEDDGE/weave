@@ -4,7 +4,15 @@ import os
 from weave import config
 
 class Basket():
+    """This class provides convenience functions for accessing basket contents."""
     def __init__(self, basket_address):
+        """Initializes the Basket_Class.
+
+        Parameters
+        ----------
+        basket_address: [string] 
+            Path to the Basket directory
+        """
         self.basket_address = basket_address
         self.manifest_path = f'{self.basket_address}/basket_manifest.json'
         self.supplement_path = f'{self.basket_address}/basket_supplement.json'
@@ -16,6 +24,7 @@ class Basket():
         self.validate()
         
     def validate(self):
+        """Validates basket health"""
         if not isinstance(self.basket_address, str):
             raise TypeError(f"Basket address must be a string: {str(self.basket_address)}")
         
@@ -31,6 +40,7 @@ class Basket():
                                     f"does not exist: {self.supplement_path}")
             
     def get_manifest(self):
+        """Return basket_manifest.json as a python dictionary"""
         if self.manifest != None:
             return self.manifest
         
@@ -39,6 +49,7 @@ class Basket():
             return self.manifest
     
     def get_supplement(self):
+        """Return basket_supplement.json as a python dictionary"""
         if self.supplement != None:
             return self.supplement
         
@@ -47,6 +58,7 @@ class Basket():
             return self.supplement
     
     def get_metadata(self):
+        """Return basket_metadata.json as a python dictionary"""
         if self.metadata != None:
             return self.metadata
         
@@ -57,7 +69,27 @@ class Basket():
         else:
             return None
 
-    def ls(self, relative_path = None):        
+    def ls(self, relative_path = None):
+        """List directories and files in the basket.
+
+           Call filesystem.ls relative to the basket directory.
+           When relative_path = None, filesystem.ls is invoked
+           from the base directory of the basket. If there are folders
+           within the basket, relative path can be used to observe contents
+           within folders. Example: if there exists a folder with the
+           name 'folder1' within the basket, 'folder1' can be passed
+           as the relative path to get back the filesystem.ls results 
+           of 'folder1'.
+           
+        Parameters
+        ----------
+        relative_path: [string]
+            relative path in the basket to pass to filesystem.ls.
+            
+        Returns
+        ---------
+        filesystem.ls results of the basket.
+        """
         ls_path = self.basket_address
         if relative_path != None:
             if not isinstance(relative_path, str):
