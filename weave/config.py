@@ -4,6 +4,8 @@ config.py provides configuration settings used by weave.
 import s3fs
 import os
 
+# Filenames not allowed to be added to the basket.
+# These files are taken for specific weave purposes. 
 prohibited_filenames = ['basket_manifest.json', 'basket_metadata.json',
                         'basket_supplement.json']
 
@@ -15,6 +17,7 @@ def index_schema():
     '''
     return ["uuid", "upload_time", "parent_uuids", "basket_type", "label"]
 
+# Get the filesystem to be used for storing baskets
 def get_file_system():
     return s3fs.S3FileSystem(client_kwargs=
                             {"endpoint_url": os.environ["S3_ENDPOINT"]})
