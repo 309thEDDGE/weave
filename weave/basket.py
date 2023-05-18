@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+import os
 from weave import config
 
 class Basket():
@@ -12,9 +13,12 @@ class Basket():
         self.supplement = None
         self.metadata = None
         self.fs = config.get_file_system()
-        self.validate()        
+        self.validate()
         
-    def validate(self):     
+    def validate(self):
+        if not isinstance(self.basket_address, str):
+            raise TypeError(f"Basket address must be a string: {str(self.basket_address)}")
+        
         if not self.fs.exists(self.basket_address):
             raise ValueError(f'Basket does not exist: {self.basket_address}')
             
@@ -53,5 +57,15 @@ class Basket():
         else:
             return None
 
-    def ls(self):
-        pass
+    def ls(self, relative_path = ''):
+        if not isinstance(relative_path, str):
+            raise TypeError(f"Invalid type for relative_path: "
+                            f"got {type(relative_path)} expected str")
+        
+        ls_path = self.basket_address
+        if relative_path != '':
+            ls_path = os.path.join(ls_path, relative_path)
+        ls_results = self.fs.ls(ls_path)
+        ls_results = [x for x in ls_results if os.path.basename(Path(x))
+                      not in config.prohibited_filenames]
+        return ls_results

@@ -46,7 +46,7 @@ class TestBasket():
             basket = Basket(basket_path)
             
     @patch('weave.config.get_file_system', return_value=LocalFileSystem())
-    def test_validate_basket_no_manifest_file(self, patch):
+    def test_basket_no_manifest_file(self, patch):
         #upload basket
         upload_basket([{"path": self.temp_dir_path, "stub": False}],
                         self.basket_path, self.uuid, self.basket_type)
@@ -61,7 +61,20 @@ class TestBasket():
             basket = Basket(self.basket_path)
             
     @patch('weave.config.get_file_system', return_value=LocalFileSystem())
-    def test_validate_basket_no_suppl_file(self, patch):
+    def test_basket_basket_path_is_string(self, patch):
+        #upload basket
+        upload_basket([{"path": self.temp_dir_path, "stub": False}],
+                        self.basket_path, self.uuid, self.basket_type)
+        
+        basket_path = 1
+        with pytest.raises(
+            TypeError,
+            match = f"Basket address must be a string: {str(basket_path)}"
+        ):
+            basket = Basket(basket_path)
+    
+    @patch('weave.config.get_file_system', return_value=LocalFileSystem())
+    def test_basket_no_suppl_file(self, patch):
         #upload basket
         upload_basket([{"path": self.temp_dir_path, "stub": False}],
                         self.basket_path, self.uuid, self.basket_type)
@@ -74,10 +87,6 @@ class TestBasket():
             match = f"Invalid Basket, basket_supplement.json does not exist: {supplement_path}"
         ):
             basket = Basket(self.basket_path)
-            
-    # Test init function takes in a string
-    # Test caching reads once for each file
-    # Test LS
     
     @patch('weave.config.get_file_system', return_value=LocalFileSystem())
     def test_basket_get_manifest(self, patch):
@@ -204,3 +213,52 @@ class TestBasket():
         basket = Basket(self.basket_path)
         metadata = basket.get_metadata()
         assert metadata == None
+        
+    @patch('weave.config.get_file_system', return_value=LocalFileSystem())
+    def test_basket_ls(self, patch):
+        #upload basket
+        data_path = os.path.join(self.temp_dir_path, 'data.json')
+        with self.fs.open(data_path, "w") as outfile:
+            json.dump({'junk': 'b'}, outfile)
+            
+        upload_items = [{"path": self.temp_dir_path, "stub": False}]
+        upload_basket(upload_items,
+                      self.basket_path, self.uuid, self.basket_type)
+        
+        source_dir_name = os.path.basename(self.temp_dir_path)
+        uploaded_dir_path = f'{self.basket_path}/{source_dir_name}'
+        basket = Basket(self.basket_path)
+        assert basket.ls() == [uploaded_dir_path]
+        
+    @patch('weave.config.get_file_system', return_value=LocalFileSystem())
+    def test_basket_ls_relpath(self, patch):
+        #upload basket
+        data_path = os.path.join(self.temp_dir_path, 'data.json')
+        with self.fs.open(data_path, "w") as outfile:
+            json.dump({'junk': 'b'}, outfile)
+            
+        upload_items = [{"path": self.temp_dir_path, "stub": False}]
+        upload_basket(upload_items,
+                      self.basket_path, self.uuid, self.basket_type)
+        
+        source_dir_name = os.path.basename(self.temp_dir_path)
+        uploaded_json_path = f'{self.basket_path}/{source_dir_name}/data.json'
+        basket = Basket(self.basket_path)
+        assert basket.ls(source_dir_name) == [uploaded_json_path]
+        
+    @patch('weave.config.get_file_system', return_value=LocalFileSystem())
+    def test_basket_ls_is_string(self, patch):
+        upload_items = [{"path": self.temp_dir_path, "stub": False}]
+        upload_basket(upload_items,
+                      self.basket_path, self.uuid, self.basket_type)
+        basket = Basket(self.basket_path)
+        
+        with pytest.raises(
+            TypeError,
+            match = f"Invalid type for relative_path: got <class 'int'> expected str"
+        ):
+            basket.ls(1)
+            
+    # --
+    # Write comments
+    # Figure out how to patch the setup function
