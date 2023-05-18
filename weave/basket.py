@@ -58,7 +58,11 @@ class Basket():
             return self.supplement
     
     def get_metadata(self):
-        """Return basket_metadata.json as a python dictionary"""
+        """
+        Return basket_metadata.json as a python dictionary
+        
+        Return None if metadata doesn't exist
+        """
         if self.metadata != None:
             return self.metadata
         
@@ -97,6 +101,10 @@ class Basket():
                                 f"got {type(relative_path)} expected str")
             ls_path = os.path.join(ls_path, relative_path)
         ls_results = self.fs.ls(ls_path)
-        ls_results = [x for x in ls_results if os.path.basename(Path(x))
-                      not in config.prohibited_filenames]
+        
+        # remove any prohibited files from the list if they exist 
+        # in the root directory
+        if relative_path == None:
+            ls_results = [x for x in ls_results if os.path.basename(Path(x))
+                          not in config.prohibited_filenames]
         return ls_results
