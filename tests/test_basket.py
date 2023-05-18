@@ -1,6 +1,7 @@
 import tempfile
 import pytest
 import os
+import json
 from unittest.mock import patch
 from fsspec.implementations.local import LocalFileSystem
 from weave.basket import Basket
@@ -91,6 +92,33 @@ class TestBasket():
         assert manifest == {'uuid': '1234', 'parent_uuids': [], 'basket_type': 'test_basket_type', 'label': ''}
         
     @patch('weave.config.get_file_system', return_value=LocalFileSystem())
+    def test_basket_get_manifest_cached(self, patch):
+        #upload basket
+        upload_items = [{"path": self.temp_dir_path, "stub": False}]
+        upload_basket(upload_items,
+                      self.basket_path, self.uuid, self.basket_type)
+        
+        basket = Basket(self.basket_path)
+        
+        # manifest should be stored in the 
+        # object at this step
+        manifest = basket.get_manifest()
+        
+        manifest_path = f'{self.basket_path}/basket_manifest.json'
+        
+        # Manually replace the manifest file
+        self.fs.rm(manifest_path)
+        with self.fs.open(manifest_path, "w") as outfile:
+            json.dump({'junk': 'b'}, outfile)
+        
+        # manifest should already be cached 
+        # and the new file shouldn't be read
+        manifest = basket.get_manifest()
+        assert 'upload_time' in manifest.keys()
+        manifest.pop('upload_time')
+        assert manifest == {'uuid': '1234', 'parent_uuids': [], 'basket_type': 'test_basket_type', 'label': ''}
+        
+    @patch('weave.config.get_file_system', return_value=LocalFileSystem())
     def test_basket_get_supplement(self, patch):
         #upload basket
         upload_items = [{"path": self.temp_dir_path, "stub": False}]
@@ -98,6 +126,31 @@ class TestBasket():
                       self.basket_path, self.uuid, self.basket_type)
         
         basket = Basket(self.basket_path)
+        supplement = basket.get_supplement()
+        assert supplement == {'upload_items': upload_items, 'integrity_data': []}
+        
+    @patch('weave.config.get_file_system', return_value=LocalFileSystem())
+    def test_basket_get_supplement_cached(self, patch):
+        #upload basket
+        upload_items = [{"path": self.temp_dir_path, "stub": False}]
+        upload_basket(upload_items,
+                      self.basket_path, self.uuid, self.basket_type)
+        
+        basket = Basket(self.basket_path)
+        
+        # Supplement should be stored in the 
+        # object at this step
+        supplement = basket.get_supplement()
+        
+        supplement_path = f'{self.basket_path}/basket_supplement.json'
+        
+        # Manually replace the Supplement file
+        self.fs.rm(supplement_path)
+        with self.fs.open(supplement_path, "w") as outfile:
+            json.dump({'junk': 'b'}, outfile)
+        
+        # Supplement should already be cached 
+        # and the new file shouldn't be read
         supplement = basket.get_supplement()
         assert supplement == {'upload_items': upload_items, 'integrity_data': []}
         
@@ -115,6 +168,33 @@ class TestBasket():
         assert metadata_in == metadata
         
     @patch('weave.config.get_file_system', return_value=LocalFileSystem())
+    def test_basket_get_metadata_cached(self, patch):
+        #upload basket
+        metadata_in = {'test': 1}
+        upload_items = [{"path": self.temp_dir_path, "stub": False}]
+        upload_basket(upload_items,
+                      self.basket_path, self.uuid, self.basket_type,
+                     metadata = metadata_in)
+        
+        basket = Basket(self.basket_path)
+        
+        # Metadata should be stored in the 
+        # object at this step
+        metadata = basket.get_metadata()
+        
+        metadata_path = f'{self.basket_path}/basket_metadata.json'
+        
+        # Manually replace the metadata file
+        self.fs.rm(metadata_path)
+        with self.fs.open(metadata_path, "w") as outfile:
+            json.dump({'junk': 'b'}, outfile)
+        
+        # Metadata should already be cached 
+        # and the new file shouldn't be read
+        metadata = basket.get_metadata()
+        assert metadata_in == metadata
+        
+    @patch('weave.config.get_file_system', return_value=LocalFileSystem())
     def test_basket_get_metadata_none(self, patch):
         #upload basket
         upload_items = [{"path": self.temp_dir_path, "stub": False}]
@@ -124,4 +204,3 @@ class TestBasket():
         basket = Basket(self.basket_path)
         metadata = basket.get_metadata()
         assert metadata == None
-        
