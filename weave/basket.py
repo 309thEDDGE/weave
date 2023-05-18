@@ -57,13 +57,12 @@ class Basket():
         else:
             return None
 
-    def ls(self, relative_path = ''):
-        if not isinstance(relative_path, str):
-            raise TypeError(f"Invalid type for relative_path: "
-                            f"got {type(relative_path)} expected str")
-        
+    def ls(self, relative_path = None):        
         ls_path = self.basket_address
-        if relative_path != '':
+        if relative_path != None:
+            if not isinstance(relative_path, str):
+                raise TypeError(f"Invalid type for relative_path: "
+                                f"got {type(relative_path)} expected str")
             ls_path = os.path.join(ls_path, relative_path)
         ls_results = self.fs.ls(ls_path)
         ls_results = [x for x in ls_results if os.path.basename(Path(x))
