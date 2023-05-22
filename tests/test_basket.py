@@ -2,6 +2,7 @@ import tempfile
 import pytest
 import os
 import json
+from pathlib import Path
 from unittest.mock import patch
 from fsspec.implementations.local import LocalFileSystem
 from weave.basket import Basket
@@ -38,12 +39,12 @@ class TestBasket():
         
     @patch('weave.config.get_file_system', return_value=LocalFileSystem())
     def test_basket_address_does_not_exist(self, patch):
-        basket_path = 'i n v a l i d p a t h'
+        basket_path = Path('i n v a l i d p a t h')
         with pytest.raises(
             ValueError,
             match = f"Basket does not exist: {basket_path}"
         ):
-            basket = Basket(basket_path)
+            basket = Basket(Path(basket_path))
             
     @patch('weave.config.get_file_system', return_value=LocalFileSystem())
     def test_basket_no_manifest_file(self, patch):
@@ -58,10 +59,10 @@ class TestBasket():
             FileNotFoundError,
             match = f"Invalid Basket, basket_manifest.json does not exist: {manifest_path}"
         ):
-            basket = Basket(self.basket_path)
+            basket = Basket(Path(self.basket_path))
             
     @patch('weave.config.get_file_system', return_value=LocalFileSystem())
-    def test_basket_basket_path_is_string(self, patch):
+    def test_basket_basket_path_is_pathlike(self, patch):
         #upload basket
         upload_basket([{"path": self.temp_dir_path, "stub": False}],
                         self.basket_path, self.uuid, self.basket_type)
@@ -69,7 +70,7 @@ class TestBasket():
         basket_path = 1
         with pytest.raises(
             TypeError,
-            match = f"Basket address must be a string: {str(basket_path)}"
+            match = f"Basket address must be PathLike: {str(basket_path)}"
         ):
             basket = Basket(basket_path)
     
@@ -86,7 +87,7 @@ class TestBasket():
             FileNotFoundError,
             match = f"Invalid Basket, basket_supplement.json does not exist: {supplement_path}"
         ):
-            basket = Basket(self.basket_path)
+            basket = Basket(Path(self.basket_path))
     
     @patch('weave.config.get_file_system', return_value=LocalFileSystem())
     def test_basket_get_manifest(self, patch):
@@ -94,11 +95,10 @@ class TestBasket():
         upload_basket([{"path": self.temp_dir_path, "stub": False}],
                         self.basket_path, self.uuid, self.basket_type)
         
-        basket = Basket(self.basket_path)
+        basket = Basket(Path(self.basket_path))
         manifest = basket.get_manifest()
-        assert 'upload_time' in manifest.keys()
-        manifest.pop('upload_time')
-        assert manifest == {'uuid': '1234', 'parent_uuids': [], 'basket_type': 'test_basket_type', 'label': ''}
+        assert manifest == {'uuid': '1234', 'parent_uuids': [], 'basket_type': 
+                            'test_basket_type', 'label': '', 'upload_time': manifest['upload_time']}
         
     @patch('weave.config.get_file_system', return_value=LocalFileSystem())
     def test_basket_get_manifest_cached(self, patch):
@@ -107,25 +107,25 @@ class TestBasket():
         upload_basket(upload_items,
                       self.basket_path, self.uuid, self.basket_type)
         
-        basket = Basket(self.basket_path)
+        basket = Basket(Path(self.basket_path))
         
-        # manifest should be stored in the 
-        # object at this step
+        # Read the basket_manifest.json file and store as a dictionary
+        # in the object for later access.
         manifest = basket.get_manifest()
         
-        manifest_path = f'{self.basket_path}/basket_manifest.json'
+        manifest_path = basket.manifest_path
         
         # Manually replace the manifest file
         self.fs.rm(manifest_path)
         with self.fs.open(manifest_path, "w") as outfile:
             json.dump({'junk': 'b'}, outfile)
         
-        # manifest should already be cached 
+        # Manifest should already be stored 
         # and the new file shouldn't be read
         manifest = basket.get_manifest()
-        assert 'upload_time' in manifest.keys()
-        manifest.pop('upload_time')
-        assert manifest == {'uuid': '1234', 'parent_uuids': [], 'basket_type': 'test_basket_type', 'label': ''}
+        assert manifest == {'uuid': '1234', 'parent_uuids': [], 
+                            'basket_type': 'test_basket_type', 'label': '',
+                           'upload_time': manifest['upload_time']}
         
     @patch('weave.config.get_file_system', return_value=LocalFileSystem())
     def test_basket_get_supplement(self, patch):
@@ -134,7 +134,7 @@ class TestBasket():
         upload_basket(upload_items,
                       self.basket_path, self.uuid, self.basket_type)
         
-        basket = Basket(self.basket_path)
+        basket = Basket(Path(self.basket_path))
         supplement = basket.get_supplement()
         assert supplement == {'upload_items': upload_items, 'integrity_data': []}
         
@@ -145,13 +145,13 @@ class TestBasket():
         upload_basket(upload_items,
                       self.basket_path, self.uuid, self.basket_type)
         
-        basket = Basket(self.basket_path)
+        basket = Basket(Path(self.basket_path))
         
-        # Supplement should be stored in the 
-        # object at this step
+        # Read the basket_supplement.json file and store as a dictionary
+        # in the object for later access.
         supplement = basket.get_supplement()
         
-        supplement_path = f'{self.basket_path}/basket_supplement.json'
+        supplement_path = basket.supplement_path
         
         # Manually replace the Supplement file
         self.fs.rm(supplement_path)
@@ -172,7 +172,7 @@ class TestBasket():
                       self.basket_path, self.uuid, self.basket_type,
                      metadata = metadata_in)
         
-        basket = Basket(self.basket_path)
+        basket = Basket(Path(self.basket_path))
         metadata = basket.get_metadata()
         assert metadata_in == metadata
         
@@ -185,13 +185,13 @@ class TestBasket():
                       self.basket_path, self.uuid, self.basket_type,
                      metadata = metadata_in)
         
-        basket = Basket(self.basket_path)
+        basket = Basket(Path(self.basket_path))
         
-        # Metadata should be stored in the 
-        # object at this step
+        # Read the basket_metadata.json file and store as a dictionary
+        # in the object for later access.
         metadata = basket.get_metadata()
         
-        metadata_path = f'{self.basket_path}/basket_metadata.json'
+        metadata_path = basket.metadata_path
         
         # Manually replace the metadata file
         self.fs.rm(metadata_path)
@@ -210,7 +210,7 @@ class TestBasket():
         upload_basket(upload_items,
                       self.basket_path, self.uuid, self.basket_type)
         
-        basket = Basket(self.basket_path)
+        basket = Basket(Path(self.basket_path))
         metadata = basket.get_metadata()
         assert metadata == None
         
@@ -227,7 +227,7 @@ class TestBasket():
         
         source_dir_name = os.path.basename(self.temp_dir_path)
         uploaded_dir_path = f'{self.basket_path}/{source_dir_name}'
-        basket = Basket(self.basket_path)
+        basket = Basket(Path(self.basket_path))
         assert basket.ls() == [uploaded_dir_path]
         
     @patch('weave.config.get_file_system', return_value=LocalFileSystem())
@@ -243,22 +243,18 @@ class TestBasket():
         
         source_dir_name = os.path.basename(self.temp_dir_path)
         uploaded_json_path = f'{self.basket_path}/{source_dir_name}/data.json'
-        basket = Basket(self.basket_path)
-        assert basket.ls(source_dir_name) == [uploaded_json_path]
+        basket = Basket(Path(self.basket_path))
+        assert basket.ls(Path(source_dir_name)) == [uploaded_json_path]
         
     @patch('weave.config.get_file_system', return_value=LocalFileSystem())
-    def test_basket_ls_is_string(self, patch):
+    def test_basket_ls_is_pathlike(self, patch):
         upload_items = [{"path": self.temp_dir_path, "stub": False}]
         upload_basket(upload_items,
                       self.basket_path, self.uuid, self.basket_type)
-        basket = Basket(self.basket_path)
+        basket = Basket(Path(self.basket_path))
         
         with pytest.raises(
             TypeError,
-            match = f"Invalid type for relative_path: got <class 'int'> expected str"
+            match = f"Invalid type for relative_path: got <class 'int'> expected PathLike"
         ):
             basket.ls(1)
-            
-    # --
-    # Write comments
-    # Figure out how to patch the setup function

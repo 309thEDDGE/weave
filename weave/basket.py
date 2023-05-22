@@ -25,8 +25,8 @@ class Basket():
         
     def validate(self):
         """Validates basket health"""
-        if not isinstance(self.basket_address, str):
-            raise TypeError(f"Basket address must be a string: {str(self.basket_address)}")
+        if not isinstance(self.basket_address, os.PathLike):
+            raise TypeError(f"Basket address must be PathLike: {str(self.basket_address)}")
         
         if not self.fs.exists(self.basket_address):
             raise ValueError(f'Basket does not exist: {self.basket_address}')
@@ -58,8 +58,7 @@ class Basket():
             return self.supplement
     
     def get_metadata(self):
-        """
-        Return basket_metadata.json as a python dictionary
+        """Return basket_metadata.json as a python dictionary
         
         Return None if metadata doesn't exist
         """
@@ -96,9 +95,9 @@ class Basket():
         """
         ls_path = self.basket_address
         if relative_path != None:
-            if not isinstance(relative_path, str):
+            if not isinstance(relative_path, os.PathLike):
                 raise TypeError(f"Invalid type for relative_path: "
-                                f"got {type(relative_path)} expected str")
+                                f"got {type(relative_path)} expected PathLike")
             ls_path = os.path.join(ls_path, relative_path)
         ls_results = self.fs.ls(ls_path)
         
