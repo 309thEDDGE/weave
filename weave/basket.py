@@ -13,7 +13,7 @@ class Basket():
         basket_address: [string] 
             Path to the Basket directory
         """
-        self.basket_address = basket_address
+        self.basket_address = os.fspath(basket_address)
         self.manifest_path = f'{self.basket_address}/basket_manifest.json'
         self.supplement_path = f'{self.basket_address}/basket_supplement.json'
         self.metadata_path = f'{self.basket_address}/basket_metadata.json'
@@ -24,10 +24,7 @@ class Basket():
         self.validate()
         
     def validate(self):
-        """Validates basket health"""
-        if not isinstance(self.basket_address, os.PathLike):
-            raise TypeError(f"Basket address must be PathLike: {str(self.basket_address)}")
-        
+        """Validates basket health"""        
         if not self.fs.exists(self.basket_address):
             raise ValueError(f'Basket does not exist: {self.basket_address}')
             
@@ -94,16 +91,13 @@ class Basket():
         filesystem.ls results of the basket.
         """
         ls_path = self.basket_address
-        if relative_path != None:
-            if not isinstance(relative_path, os.PathLike):
-                raise TypeError(f"Invalid type for relative_path: "
-                                f"got {type(relative_path)} expected PathLike")
+        if relative_path == None: 
+            # remove any prohibited files from the list if they exist 
+            # in the root directory
+            ls_results = self.fs.ls(ls_path)
+            return [x for x in ls_results if os.path.basename(Path(x))
+                 not in config.prohibited_filenames]
+        else:
+            relative_path = os.fspath(relative_path)
             ls_path = os.path.join(ls_path, relative_path)
-        ls_results = self.fs.ls(ls_path)
-        
-        # remove any prohibited files from the list if they exist 
-        # in the root directory
-        if relative_path == None:
-            ls_results = [x for x in ls_results if os.path.basename(Path(x))
-                          not in config.prohibited_filenames]
-        return ls_results
+            return self.fs.ls(ls_path)

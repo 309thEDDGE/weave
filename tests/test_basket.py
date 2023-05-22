@@ -70,7 +70,7 @@ class TestBasket():
         basket_path = 1
         with pytest.raises(
             TypeError,
-            match = f"Basket address must be PathLike: {str(basket_path)}"
+            match = f"expected str, bytes or os.PathLike object, not int"
         ):
             basket = Basket(basket_path)
     
@@ -255,6 +255,6 @@ class TestBasket():
         
         with pytest.raises(
             TypeError,
-            match = f"Invalid type for relative_path: got <class 'int'> expected PathLike"
+            match = f"expected str, bytes or os.PathLike object, not int"
         ):
             basket.ls(1)
