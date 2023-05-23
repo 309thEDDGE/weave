@@ -4,9 +4,9 @@ name: pytest_and_ruff
 
 on:
   push:
-    branches: [ "main", "OPAL-1071-Fix-Ruff-Issues" ]
+    branches: [ "main"]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main"]
 
 permissions:
   contents: read
