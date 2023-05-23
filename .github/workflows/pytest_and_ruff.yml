@@ -1,6 +1,6 @@
 # This workflow will install Python dependencies, and run tests.
 
-name: Pytest
+name: pytest_and_ruff
 
 on:
   push:
