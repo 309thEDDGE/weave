@@ -1,6 +1,7 @@
-from pathlib import Path
-import json
 import os
+import json
+from pathlib import Path
+
 from weave import config
 
 class Basket():
@@ -91,13 +92,16 @@ class Basket():
         filesystem.ls results of the basket.
         """
         ls_path = self.basket_address
-        if relative_path == None: 
+        
+        if relative_path != None:
+            relative_path = os.fspath(relative_path)
+            ls_path = os.path.abspath(os.path.join(self.basket_address, relative_path))
+            
+        if ls_path == os.path.abspath(self.basket_address): 
             # remove any prohibited files from the list if they exist 
             # in the root directory
             ls_results = self.fs.ls(ls_path)
             return [x for x in ls_results if os.path.basename(Path(x))
                  not in config.prohibited_filenames]
         else:
-            relative_path = os.fspath(relative_path)
-            ls_path = os.path.join(ls_path, relative_path)
             return self.fs.ls(ls_path)

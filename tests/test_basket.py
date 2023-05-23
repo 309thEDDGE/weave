@@ -1,13 +1,14 @@
 import tempfile
-import pytest
 import os
 import json
 from pathlib import Path
 from unittest.mock import patch
+
 from fsspec.implementations.local import LocalFileSystem
+import pytest
+
 from weave.basket import Basket
 from weave.access import upload
-
 from weave.uploader import upload_basket
 
 class TestBasket():
@@ -245,6 +246,22 @@ class TestBasket():
         uploaded_json_path = f'{self.basket_path}/{source_dir_name}/data.json'
         basket = Basket(Path(self.basket_path))
         assert basket.ls(Path(source_dir_name)) == [uploaded_json_path]
+        
+    @patch('weave.config.get_file_system', return_value=LocalFileSystem())
+    def test_basket_ls_relpath_period(self, patch):
+        #upload basket
+        data_path = os.path.join(self.temp_dir_path, 'data.json')
+        with self.fs.open(data_path, "w") as outfile:
+            json.dump({'junk': 'b'}, outfile)
+            
+        upload_items = [{"path": self.temp_dir_path, "stub": False}]
+        upload_basket(upload_items,
+                      self.basket_path, self.uuid, self.basket_type)
+        
+        source_dir_name = os.path.basename(self.temp_dir_path)
+        uploaded_dir_path = f'{self.basket_path}/{source_dir_name}'
+        basket = Basket(Path(self.basket_path))
+        assert basket.ls('.') == [uploaded_dir_path]
         
     @patch('weave.config.get_file_system', return_value=LocalFileSystem())
     def test_basket_ls_is_pathlike(self, patch):
