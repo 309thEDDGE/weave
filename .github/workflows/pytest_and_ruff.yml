@@ -4,7 +4,7 @@ name: pytest_and_ruff
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "OPAL-1071-Fix-Ruff-Issues" ]
   pull_request:
     branches: [ "main" ]
 
