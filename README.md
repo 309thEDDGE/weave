@@ -10,7 +10,7 @@ the data using pythonic API calls, as well as giving the user easy access to dat
 ## Usage
 
 Weave can be installed by running `pip install .` from the root directory. Useful functions are imported from
-`weave.access`, `weave.create_index`, and `weave.uploader`. Weave was built with the intention of connecting to
+`weave.access` and `weave.create_index`. Weave was built with the intention of connecting to
 an S3 bucket with an `s3fs.S3FileSystem` object. Any filesystem that uses an `fsspec.implementations` 
 API should be possible to implement. For now, Weave has only been tested using an S3 bucket filesystem. 
 
@@ -47,7 +47,7 @@ upload(upload_items, basket_type = 'item', bucket_name = 'basket-data')
 ```
 
 Running `help(weave.access.upload)` will print the docstring that provides more information
-on each of these upload options.
+on each of these upload parameters.
 
 ### Creating an Index
 

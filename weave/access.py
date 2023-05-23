@@ -25,10 +25,10 @@ def upload(upload_items,
         will be included without uploading the actual file or folder. Stubs are 
         useful when original file source information is desired without uploading
         the data itself. This is especially useful when dealing with large files.
-    bucket_name : str
-        Name of the bucket that the basket will be uploaded to.
     basket_type: str
         Type of basket being uploaded.
+    bucket_name : str
+        Name of the bucket that the basket will be uploaded to.
     parent_ids: optional [str]
         List of unique ids associated with the parent baskets
         used to derive the new basket being uploaded.
