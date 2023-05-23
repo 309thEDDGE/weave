@@ -62,28 +62,28 @@ def upload_basket(upload_items, upload_directory, unique_id, basket_type,
     label: optional str,
         Optional user friendly label associated with the basket.
     """
-    basket_class = BasketClass(upload_items, upload_directory,
-                                unique_id, basket_type, parent_ids,
-                                metadata, label, **kwargs)
+    upload_basket_obj = UploadBasket(upload_items, upload_directory,
+                                     unique_id, basket_type, parent_ids,
+                                     metadata, label, **kwargs)
 
-    basket_class.sanitize_args()
-    basket_class.establish_s3fs()
-    basket_class.check_that_upload_dir_does_not_exist()
+    upload_basket_obj.sanitize_args()
+    upload_basket_obj.establish_s3fs()
+    upload_basket_obj.check_that_upload_dir_does_not_exist()
 
     try:
-        basket_class.setup_temp_dir_for_staging_prior_to_s3fs()
-        basket_class.upload_files_and_stubs_to_s3fs()
-        basket_class.create_and_upload_basket_json_to_s3fs()
-        basket_class.upload_basket_metadata_to_s3fs()
-        basket_class.upload_basket_supplement_to_s3fs()
+        upload_basket_obj.setup_temp_dir_for_staging_prior_to_s3fs()
+        upload_basket_obj.upload_files_and_stubs_to_s3fs()
+        upload_basket_obj.create_and_upload_basket_json_to_s3fs()
+        upload_basket_obj.upload_basket_metadata_to_s3fs()
+        upload_basket_obj.upload_basket_supplement_to_s3fs()
 
-        if basket_class.test_clean_up:
+        if upload_basket_obj.test_clean_up:
             raise Exception('Test Clean Up')
 
     except Exception as e:
-        if basket_class.s3fs_upload_path_exists():
-            basket_class.clean_out_s3fs_upload_dir()
+        if upload_basket_obj.s3fs_upload_path_exists():
+            upload_basket_obj.clean_out_s3fs_upload_dir()
         raise e
 
     finally:
-        basket_class.tear_down_temp_dir()
+        upload_basket_obj.tear_down_temp_dir()

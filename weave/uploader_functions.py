@@ -110,7 +110,7 @@ def derive_integrity_data(file_path, byte_count=10**8):
             'byte_count': byte_count}
 
 
-class BasketClass():
+class UploadBasket():
     """This class abstracts functionality used by upload_basket."""
 
     def __init__(self, upload_items, upload_directory, unique_id, basket_type,
@@ -181,12 +181,10 @@ class BasketClass():
 
         # Validate self.upload_items
         local_path_basenames = []
-        unallowed_filenames = ['basket_manifest.json', 'basket_metadata.json',
-                               'basket_supplement.json']
         for upload_item in self.upload_items:
             validate_upload_item(upload_item)
             local_path_basename = os.path.basename(Path(upload_item['path']))
-            if local_path_basename in unallowed_filenames:
+            if local_path_basename in config.prohibited_filenames:
                 raise ValueError(f"'{local_path_basename}' "
                                  "filename not allowed")
             # Check for duplicate file/folder names
