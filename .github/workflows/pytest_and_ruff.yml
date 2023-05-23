@@ -12,10 +12,8 @@ permissions:
   contents: read
 
 jobs:
-  build:
-
+  pytest:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.10
@@ -30,3 +28,9 @@ jobs:
     - name: Test with pytest
       run: |
         pytest -vv tests/
+
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: chartboost/ruff-action@v1
