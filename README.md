@@ -10,14 +10,11 @@ the data using pythonic API calls, as well as giving the user easy access to dat
 ## Usage
 
 Weave can be installed by running `pip install .` from the root directory. Useful functions are imported from
-`weave.access`, `weave.create_index`, and `weave.uploader`. Weave is built off an `fsspec` filesystem structure, so it
-should be compatible with fsspec compatible filesystem objects. It was built with the intention of connecting to
-an S3 bucket with an `s3fs.S3FileSystem` object. Currently, most functions require passing in a filesystem object
-the user has created. This is in process of being handled by Weave so the user only needs to create the filesystem
-object once.
+`weave.access`, `weave.create_index`, and `weave.uploader`. Weave was built with the intention of connecting to
+an S3 bucket with an `s3fs.S3FileSystem` object. Any filesystem that uses an `fsspec.implementations` 
+API should be possible to implement. For now, Weave has only been tested using an S3 bucket filesystem. 
 
-
-#### Baskets 
+### Baskets 
 
 Weave handles much of its data provenance tracking through the creation of Baskets. A Basket is meant to
 represent an atomic data product. It can contain whatever a user wishes to put in the basket, but it's
@@ -26,9 +23,44 @@ training set. A Basket in its entirety contains the actual data files specified 
 files that Weave creates. Baskets are created at their time of upload and uploaded in an organized state to 
 the data store.
 
-#### Creating and Uploading Baskets
+### Creating and Uploading Baskets
 
-#### Creating an Index
+Weave automatically creates baskets during the upload process. However, the user must specify what information
+they want contained in the basket. 
+
+Required basket information:
+- upload items
+- basket type
+- bucket name
+
+Optional basket information:
+- parent ids
+- metadata
+- label
+
+Example code to upload a basket:
+
+```
+from weave.access import upload
+upload_items = [{'path':'Path_to_file_or_dir', 'stub': False}]
+upload(upload_items, basket_type = 'item', bucket_name = 'basket-data')
+```
+
+Running `help(weave.access.upload)` will print the docstring that provides more information
+on each of these upload options.
+
+### Creating an Index
+
+Weave can scrape a datastore of baskets and create an index of all the baskets in that datastore.
+This index provides information about each basket, including its uuid, upload time, parent uuids, 
+basket type, label, address and storage type. 
+Example code to create this index: 
+```
+from weave.create_index import create_index_from_s3
+index = create_index_from_s3(name_of_s3_bucket)
+```
+`create_index_from_s3` returns a pandas dataframe with each row corresponding to a basket
+in the datastore. 
 
 ## Contribution
 
