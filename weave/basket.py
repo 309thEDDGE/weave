@@ -91,13 +91,13 @@ class Basket():
         ---------
         filesystem.ls results of the basket.
         """
-        ls_path = self.basket_address
+        ls_path = os.fspath(Path(self.basket_address))
         
         if relative_path != None:
             relative_path = os.fspath(relative_path)
-            ls_path = os.path.abspath(os.path.join(self.basket_address, relative_path))
+            ls_path = os.fspath(Path(os.path.join(self.basket_address, relative_path)))
             
-        if ls_path == os.path.abspath(self.basket_address): 
+        if ls_path == os.fspath(Path(self.basket_address)): 
             # remove any prohibited files from the list if they exist 
             # in the root directory
             ls_results = self.fs.ls(ls_path)
