@@ -101,7 +101,7 @@ class Basket:
 
         ls_path = os.fspath(Path(self.basket_address))
         
-        if relative_path != None:
+        if relative_path is not None:
             relative_path = os.fspath(relative_path)
             ls_path = os.fspath(
               Path(os.path.join(self.basket_address, relative_path))
