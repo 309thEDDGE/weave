@@ -3,16 +3,16 @@ import tempfile
 import os
 import json
 import pandas as pd
-from weave.create_index import create_index_from_s3
+from weave.index import Index
 from fsspec.implementations.local import LocalFileSystem
 from unittest.mock import patch
 
 from weave.uploader import upload_basket
 
 
-class TestCreateIndex:
+class TestIndex:
     """
-    A class for to test functions in create_index.py
+    A class for to test functions in index.py
     """
 
     def setup_class(self):
@@ -51,12 +51,12 @@ class TestCreateIndex:
         self.file_system_dir.cleanup()
 
     @patch("weave.config.get_file_system", return_value=LocalFileSystem())
-    def test_root_dir_is_string(self, patch):
+    def test_create_index_root_dir_is_string(self, patch):
         with pytest.raises(TypeError, match="'root_dir' must be a string"):
             create_index_from_s3(765)
 
     @patch("weave.config.get_file_system", return_value=LocalFileSystem())
-    def test_correct_index(self, patch):
+    def test_create_index_correct_index(self, patch):
         # just use the data uploaded and create and
         # index and check that it's right
 
@@ -145,7 +145,7 @@ class TestCreateIndex:
             create_index_from_s3(f"{self.bucket_path}")
 
     @patch("weave.config.get_file_system", return_value=LocalFileSystem())
-    def test_root_dir_does_not_exist(self, patch):
+    def test_create_index_root_dir_does_not_exist(self, patch):
         """try to create an index in a bucket that doesn't exist,
         check that it throws an error
         """
@@ -155,3 +155,23 @@ class TestCreateIndex:
             create_index_from_s3(
                 os.path.join(self.file_system_dir_path, "NOT-A-BUCKET")
             )
+
+    @patch("weave.config.get_file_system", return_value=LocalFileSystem())
+    def test_index_bucket_name_is_pathlike(self, patch):
+        bucket_name = 27
+        with pytest.raises(
+            TypeError,
+            match="expected str, bytes or os.PathLike object, not int",
+        ):
+            Index(basket_path)
+
+    @patch("weave.config.get_file_system", return_value=LocalFileSystem())
+    def test_index_bucket_name_exists(self, patch):
+        bucket_name = 'Not A BUCKET
+        with pytest.raises(
+            TypeError,
+            match=f"Specified bucket does not exist: {bucket_name}",
+        ):
+            Index(basket_path)
+
+#

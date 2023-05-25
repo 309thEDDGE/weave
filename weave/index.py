@@ -1,16 +1,9 @@
-"""
-USAGE:
-python create_index.py <root_dir> 
-    root_dir: the root directory of s3 you wish to build your index off of
-"""
 import json
-import argparse
 import os
+import tempfile
 import pandas as pd
 from weave import config
 
-
-# validate basket keys and value data types on read in
 def validate_basket_dict(basket_dict, basket_address):
     """
     validate the basket_manifest.json has the correct structure
@@ -30,8 +23,7 @@ def validate_basket_dict(basket_dict, basket_address):
 
     # TODO: validate types for each key
 
-
-def create_index_from_s3(root_dir):
+def create_index_from_s3(root_dir, fs):
     """Recursively parse an s3 bucket and create an index
 
     Parameters:
@@ -48,8 +40,6 @@ def create_index_from_s3(root_dir):
     # check parameter data types
     if not isinstance(root_dir, str):
         raise TypeError(f"'root_dir' must be a string: '{root_dir}'")
-
-    fs = config.get_file_system()
 
     if not fs.exists(root_dir):
         raise FileNotFoundError(f"'root_dir' does not exist '{root_dir}'")
@@ -80,19 +70,38 @@ def create_index_from_s3(root_dir):
     index["uuid"] = index["uuid"].astype(str)
     return index
 
+class Index():
+    '''Facilitate user interaction with the index of a Weave data warehouse.
+    '''
 
-if __name__ == "__main__":
-    argparser = argparse.ArgumentParser(
-        description="""Save a local index of an s3 bucket built off of 
-                        basket_details.json found within said bucket."""
-    )
-    argparser.add_argument(
-        "root_dir",
-        metavar="<root_dir>",
-        type=str,
-        help="the root directory of s3 you wish to build your index off of",
-    )
+    def __init__(self, bucket_name):
+        '''Initializes the Index class.
 
-    args = argparser.parse_args()
+        Parameters
+        ----------
+        bucket_name: [string]
+            Name of the bucket to be indexed.
+        '''
+        self.bucket_name = bucket_name
+        self.index_path = os.path.join(bucket_name, 'index', 'index.json')
+        self.index = None
+        self.fs = config.get_file_system()
 
-    create_index_from_s3(args.root_dir).to_parquet("index.parquet")
+        self.validate()
+
+    def validate():
+        '''Validates index initialization.
+        '''
+
+    def update_index(self):
+        '''Create a new index and upload it to the data warehouse.
+        '''
+        #delete an existing index
+        if self.fs.exists(
+
+        tempdir = tempfile.TemporaryDirectory()
+        local_index_path = os.path.join(tempdir.name, 'index.json')
+
+        #create the index, and save it to a .json in the tempdir
+        create_index_from_s3(self.bucket_name, self.fs)
+            .to_json(local_index_path)
