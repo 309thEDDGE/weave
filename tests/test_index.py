@@ -3,7 +3,7 @@ import tempfile
 import os
 import json
 import pandas as pd
-from weave.index import Index
+from weave.index import Index, create_index_from_s3
 from fsspec.implementations.local import LocalFileSystem
 from unittest.mock import patch
 
@@ -42,6 +42,15 @@ class TestIndex:
         with open(file_path, "w") as f:
             f.write("this is a test file")
 
+        upload_basket(
+            [{"path": self.local_dir_path, "stub": False}],
+            f"{self.bucket_path}/{self.basket_type}/1234",
+            "1234",
+            self.basket_type,
+            ["1111", "2222"],
+            label="my label",
+        )
+
     def teardown_class(self):
         """
         remove baskets from s3
@@ -59,16 +68,6 @@ class TestIndex:
     def test_create_index_correct_index(self, patch):
         # just use the data uploaded and create and
         # index and check that it's right
-
-        # upload basket 2 levels deep
-        upload_basket(
-            [{"path": self.local_dir_path, "stub": False}],
-            f"{self.bucket_path}/{self.basket_type}/1234",
-            "1234",
-            self.basket_type,
-            ["1111", "2222"],
-            label="my label",
-        )
 
         # upload basket 3 levels deep
         upload_basket(
@@ -110,20 +109,6 @@ class TestIndex:
         upload a basket with a basket_details.json with incorrect keys.
         check that correct error is thrown. delete said basket from s3
         """
-
-        # make something to put in basket
-        file_path = os.path.join(self.local_dir_path, "sample.txt")
-        with open(file_path, "w") as f:
-            f.write("this is another test file")
-
-        upload_basket(
-            [{"path": self.local_dir_path, "stub": False}],
-            f"{self.bucket_path}/{self.basket_type}/5678",
-            "5678",
-            self.basket_type,
-            ["3333"],
-            label="my label",
-        )
 
         # change a key in this basket_manifest.json
         basket_dict = {}
@@ -167,11 +152,83 @@ class TestIndex:
 
     @patch("weave.config.get_file_system", return_value=LocalFileSystem())
     def test_index_bucket_name_exists(self, patch):
-        bucket_name = 'Not A BUCKET
+        bucket_name = 'Not A BUCKET'
         with pytest.raises(
             TypeError,
             match=f"Specified bucket does not exist: {bucket_name}",
         ):
             Index(basket_path)
 
-#
+    @patch("weave.config.get_file_system", return_value=LocalFileSystem())
+    def test_update_index__with_no_prior_index(self, patch):
+
+        my_index = Index(self.bucket_path)
+        my_index.update_index()
+
+        index_path = os.path.join(self.bucket_path, 'index', 'index.json')
+        pd.read_json(self.fs.open(index_path))
+
+        truth_index_dict = {
+            "uuid": "1234",
+            "upload_time": "1679335295759652",
+            "parent_uuids": ["1111", "2222"],
+            "basket_type": "test_basket_type",
+            "label": "my label",
+            "address": [
+                f"{self.bucket_path}/{self.basket_type}/1234",
+                f"{self.bucket_path}/{self.basket_type}/one_deeper/4321",
+            ],
+            "storage_type": "s3",
+        }
+        truth_index = pd.DataFrame(truth_index_dict)
+
+        # check that the indexes match, ignoring 'upload_time'
+        assert (
+            (truth_index == minio_index)
+            .drop(columns=["upload_time"])
+            .all()
+            .all()
+        )
+
+    @patch("weave.config.get_file_system", return_value=LocalFileSystem())
+    def test_update_index__with_prior_index(self, patch):
+        my_index = Index(self.bucket_path)
+        my_index.update_index()
+
+        #upload another basket and update the index again
+        upload_basket(
+            [{"path": self.local_dir_path, "stub": False}],
+            f"{self.bucket_path}/{self.basket_type}/4321",
+            "4321",
+            self.basket_type,
+            ["333", "444"],
+            label="my label",
+        )
+
+        my_index.update_index()
+
+        truth_index_dict = {
+            "uuid": ["1234", "4321"],
+            "upload_time": ["1679335295759652", "1234567890"],
+            "parent_uuids": [["1111", "2222"], ["333", "444"]],
+            "basket_type": "test_basket_type",
+            "label": "my label",
+            "address": [
+                f"{self.bucket_path}/{self.basket_type}/1234",
+                f"{self.bucket_path}/{self.basket_type}/4321",
+            ],
+            "storage_type": "s3",
+        }
+        truth_index = pd.DataFrame(truth_index_dict)
+
+        # check that the indexes match, ignoring 'upload_time'
+        assert (
+            (truth_index == minio_index)
+            .drop(columns=["upload_time"])
+            .all()
+            .all()
+        )
+
+#test get index
+
+#test sync index

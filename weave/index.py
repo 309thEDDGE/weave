@@ -97,11 +97,13 @@ class Index():
         '''Create a new index and upload it to the data warehouse.
         '''
         #delete an existing index
-        if self.fs.exists(
+        if self.fs.exists():
+            return
 
         tempdir = tempfile.TemporaryDirectory()
         local_index_path = os.path.join(tempdir.name, 'index.json')
 
         #create the index, and save it to a .json in the tempdir
-        create_index_from_s3(self.bucket_name, self.fs)
-            .to_json(local_index_path)
+        create_index_from_s3(self.bucket_name, self.fs).to_json(
+            local_index_path
+        )
