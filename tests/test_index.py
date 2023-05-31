@@ -154,12 +154,12 @@ class TestIndex:
 
     @patch("weave.config.get_file_system", return_value=LocalFileSystem())
     def test_index_bucket_name_is_pathlike(self, patch):
-        basket_path = 27
+        bucket_path = 27
         with pytest.raises(
             TypeError,
             match="expected str, bytes or os.PathLike object, not int",
         ):
-            Index(basket_path)
+            Index(bucket_path)
 
     @patch("weave.config.get_file_system", return_value=LocalFileSystem())
     def test_index_bucket_name_exists(self, patch):
@@ -168,7 +168,7 @@ class TestIndex:
             TypeError,
             match=f"Specified bucket does not exist: {bucket_name}",
         ):
-            Index(basket_path)
+            Index(bucket_path)
 
     @patch("weave.config.get_file_system", return_value=LocalFileSystem())
     def test_index_df_is_none_with_no_existing_index_file(self):
