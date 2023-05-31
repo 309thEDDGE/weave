@@ -71,8 +71,7 @@ def create_index_from_s3(root_dir, fs):
     return index
 
 class Index():
-    '''Facilitate user interaction with the index of a Weave data warehouse.
-    '''
+    '''Facilitate user interaction with the index of a Weave data warehouse.'''
 
     def __init__(self, bucket_name):
         '''Initializes the Index class.
@@ -84,14 +83,15 @@ class Index():
         '''
         self.bucket_name = bucket_name
         self.index_path = os.path.join(bucket_name, 'index', 'index.json')
-        self.index = None
+        self.index_df = None
         self.fs = config.get_file_system()
 
         self.validate()
 
-    def validate():
+    def validate(self):
         '''Validates index initialization.
         '''
+        return
 
     def update_index(self):
         '''Create a new index and upload it to the data warehouse.
