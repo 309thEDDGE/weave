@@ -3,6 +3,7 @@ import os
 import tempfile
 import pandas as pd
 from weave import config
+from weave.uploader import upload_basket
 
 def validate_basket_dict(basket_dict, basket_address):
     """
@@ -83,27 +84,39 @@ class Index():
         '''
         self.bucket_name = bucket_name
         self.index_path = os.path.join(bucket_name, 'index', 'index.json')
-        self.index_df = None
         self.fs = config.get_file_system()
 
-        self.validate()
+        if not self.fs.exists(self.bucket_name):
+            raise ValueError(
+                f"Specified bucket does not exist: {self.bucket_name}"
+            )
 
-    def validate(self):
-        '''Validates index initialization.
-        '''
-        return
+        if self.fs.exists(self.index_path):
+            self.index_df = pd.read_json(
+                self.fs.open(self.index_path),
+                dtype = {'uuid': str}
+            )
+        else: self.index_df = None
 
     def update_index(self):
         '''Create a new index and upload it to the data warehouse.
         '''
         #delete an existing index
-        if self.fs.exists():
-            return
+        if self.fs.exists(self.index_path):
+            self.fs.rm(self.index_path)
 
         tempdir = tempfile.TemporaryDirectory()
         local_index_path = os.path.join(tempdir.name, 'index.json')
 
         #create the index, and save it to a .json in the tempdir
-        create_index_from_s3(self.bucket_name, self.fs).to_json(
-            local_index_path
+        self.index_df = create_index_from_s3(self.bucket_name, self.fs)
+        self.index_df.to_json(local_index_path)
+
+        upload_basket(
+            [{"path": local_index_path, "stub": False}],
+            f"{self.bucket_name}/index",
+            "0",
+            "index",
         )
+
+        tempdir.cleanup()

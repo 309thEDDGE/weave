@@ -163,32 +163,33 @@ class TestIndex:
 
     @patch("weave.config.get_file_system", return_value=LocalFileSystem())
     def test_index_bucket_name_exists(self, patch):
-        basket_path = 'Not A CORRECT path'
+        bucket_path = 'Not A CORRECT path'
         with pytest.raises(
-            TypeError,
-            match=f"Specified bucket does not exist: {bucket_name}",
+            ValueError,
+            match=f"Specified bucket does not exist: {bucket_path}",
         ):
             Index(bucket_path)
 
     @patch("weave.config.get_file_system", return_value=LocalFileSystem())
-    def test_index_df_is_none_with_no_existing_index_file(self):
+    def test_index_df_is_none_with_no_existing_index_file(self, patch):
         '''when index.json does not exist remotely, index_df should be None'''
         my_index = Index(self.bucket_path)
         assert my_index.index_df == None
 
     @patch("weave.config.get_file_system", return_value=LocalFileSystem())
-    def test_index_df_exists_with_existing_index_file(self):
+    def test_index_df_exists_with_existing_index_file(self, patch):
         '''When index.json does exist remotely, index_df is created'''
         truth_index_dict = {
             "uuid": "1234",
             "upload_time": "1679335295759652",
-            "parent_uuids": ["1111", "2222"],
+            "parent_uuids": [["1111", "2222"]],
             "basket_type": "test_basket_type",
             "label": "my label",
             "address": f"{self.bucket_path}/{self.basket_type}/1234",
             "storage_type": "s3",
         }
         truth_index = pd.DataFrame(truth_index_dict)
+        self.fs.mkdir(os.path.join(self.bucket_path, 'index'))
         truth_index.to_json(self.index_path)
 
         my_index = Index(self.bucket_path)
@@ -202,23 +203,34 @@ class TestIndex:
         )
 
     @patch("weave.config.get_file_system", return_value=LocalFileSystem())
-    def test_update_index_creates_index_json(self, patch):
+    def test_update_index_creates_remote_index_json(self, patch):
         '''run update index, check remote file is correct'''
         my_index = Index(self.bucket_path)
         my_index.update_index()
 
-        minio_index = pd.read_json(self.fs.open(self.index_path))
+        minio_index = pd.read_json(
+            self.fs.open(self.index_path),
+            dtype = {'uuid': str}
+        )
 
         truth_index_dict = {
             "uuid": "1234",
             "upload_time": "1679335295759652",
-            "parent_uuids": ["1111", "2222"],
+            "parent_uuids": [["1111", "2222"]],
             "basket_type": "test_basket_type",
             "label": "my label",
             "address": f"{self.bucket_path}/{self.basket_type}/1234",
             "storage_type": "s3",
         }
         truth_index = pd.DataFrame(truth_index_dict)
+        
+        print(truth_index)
+        print(minio_index)
+        
+        print(
+            (truth_index == minio_index)
+            .drop(columns=["upload_time"])
+        )
 
         # check that the indexes match, ignoring 'upload_time'
         assert (
@@ -229,7 +241,7 @@ class TestIndex:
         )
 
     @patch("weave.config.get_file_system", return_value=LocalFileSystem())
-    def test_update_index_updates_index_json(self, patch):
+    def test_update_index_updates_remote_index_json(self, patch):
         '''run update index when a remote index already exists'''
         my_index = Index(self.bucket_path)
         my_index.update_index()
@@ -246,8 +258,11 @@ class TestIndex:
 
         my_index.update_index()
 
-        minio_index = pd.read_json(self.fs.open(self.index_path))
-
+        minio_index = pd.read_json(
+            self.fs.open(self.index_path),
+            dtype = {'uuid': str}
+        )
+        
         truth_index_dict = {
             "uuid": ["1234", "4321"],
             "upload_time": ["1679335295759652", "1234567890"],
@@ -261,6 +276,8 @@ class TestIndex:
             "storage_type": "s3",
         }
         truth_index = pd.DataFrame(truth_index_dict)
+        
+        
 
         # check that the indexes match, ignoring 'upload_time'
         assert (
@@ -346,7 +363,7 @@ class TestIndex:
         truth_index_dict = {
             "uuid": "1234",
             "upload_time": "1679335295759652",
-            "parent_uuids": ["1111", "2222"],
+            "parent_uuids": [["1111", "2222"]],
             "basket_type": "test_basket_type",
             "label": "my label",
             "address": f"{self.bucket_path}/{self.basket_type}/1234",
@@ -371,7 +388,7 @@ class TestIndex:
         truth_index_dict = {
             "uuid": "1234",
             "upload_time": "1679335295759652",
-            "parent_uuids": ["1111", "2222"],
+            "parent_uuids": [["1111", "2222"]],
             "basket_type": "test_basket_type",
             "label": "my label",
             "address": f"{self.bucket_path}/{self.basket_type}/1234",
