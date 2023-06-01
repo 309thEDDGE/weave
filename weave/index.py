@@ -99,11 +99,10 @@ class Index():
         else: self.index_df = None
 
     def update_index(self):
-        '''Create a new index and upload it to the data warehouse.
-        '''
+        '''Create a new index and upload it to the data warehouse.'''
         #delete an existing index
         if self.fs.exists(self.index_path):
-            self.fs.rm(self.index_path)
+            self.fs.rm(os.path.dirname(self.index_path), recursive = True)
 
         tempdir = tempfile.TemporaryDirectory()
         local_index_path = os.path.join(tempdir.name, 'index.json')
@@ -120,3 +119,21 @@ class Index():
         )
 
         tempdir.cleanup()
+
+    def get_index(self):
+        '''Return index_df. If it is None, then sync the index.'''
+        if self.index_df is None:
+            self.sync_index()
+
+        return self.index_df
+
+    def sync_index(self):
+        '''Read in index json if it exists. if not, then create the index'''
+        if self.fs.exists(self.index_path):
+            self.index_df = pd.read_json(
+                self.fs.open(self.index_path),
+                dtype = {'uuid': str}
+            )
+        else:
+            self.update_index()
+

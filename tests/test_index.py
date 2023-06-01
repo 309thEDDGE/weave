@@ -31,6 +31,15 @@ class TestIndex:
         )
         self.index_path = os.path.join(self.bucket_path, 'index', 'index.json')
 
+
+
+
+    def teardown_class(self):
+        """remove baskets from s3"""
+        self.file_system_dir.cleanup()
+
+    @patch("weave.config.get_file_system", return_value=LocalFileSystem())
+    def upload_basket_for_setup(self, patch):
         # make sure minio bucket doesn't exist. if it does, delete it.
         if self.fs.exists(f"{self.bucket_path}"):
             self.fs.rm(f"{self.bucket_path}", recursive=True)
@@ -43,17 +52,6 @@ class TestIndex:
         with open(file_path, "w") as f:
             f.write("this is a test file")
 
-
-
-    def teardown_class(self):
-        """
-        remove baskets from s3
-        """
-        self.temp_dir.cleanup()
-        self.file_system_dir.cleanup()
-
-    @patch("weave.config.get_file_system", return_value=LocalFileSystem())
-    def upload_basket_for_setup(self, patch):
         upload_basket(
             [{"path": self.local_dir_path, "stub": False}],
             f"{self.bucket_path}/{self.basket_type}/1234",
@@ -68,6 +66,7 @@ class TestIndex:
 
     def teardown_method(self):
         self.fs.rm(f"{self.bucket_path}", recursive=True)
+        self.temp_dir.cleanup()
 
     @patch("weave.config.get_file_system", return_value=LocalFileSystem())
     def test_create_index_root_dir_is_string(self, patch):
@@ -115,8 +114,7 @@ class TestIndex:
 
     @patch("weave.config.get_file_system", return_value=LocalFileSystem())
     def test_create_index_with_wrong_keys(self, patch):
-        """
-        upload a basket with a basket_details.json with incorrect keys.
+        """upload a basket with a basket_details.json with incorrect keys.
         check that correct error is thrown. delete said basket from s3
         """
 
@@ -223,14 +221,6 @@ class TestIndex:
             "storage_type": "s3",
         }
         truth_index = pd.DataFrame(truth_index_dict)
-        
-        print(truth_index)
-        print(minio_index)
-        
-        print(
-            (truth_index == minio_index)
-            .drop(columns=["upload_time"])
-        )
 
         # check that the indexes match, ignoring 'upload_time'
         assert (
@@ -262,7 +252,7 @@ class TestIndex:
             self.fs.open(self.index_path),
             dtype = {'uuid': str}
         )
-        
+
         truth_index_dict = {
             "uuid": ["1234", "4321"],
             "upload_time": ["1679335295759652", "1234567890"],
@@ -276,8 +266,7 @@ class TestIndex:
             "storage_type": "s3",
         }
         truth_index = pd.DataFrame(truth_index_dict)
-        
-        
+
 
         # check that the indexes match, ignoring 'upload_time'
         assert (
@@ -296,7 +285,7 @@ class TestIndex:
         truth_index_dict = {
             "uuid": "1234",
             "upload_time": "1679335295759652",
-            "parent_uuids": ["1111", "2222"],
+            "parent_uuids": [["1111", "2222"]],
             "basket_type": "test_basket_type",
             "label": "my label",
             "address": f"{self.bucket_path}/{self.basket_type}/1234",
@@ -420,7 +409,7 @@ class TestIndex:
             "label": "my label",
             "address": [
                 f"{self.bucket_path}/{self.basket_type}/1234",
-                f"{self.bucket_path}/{self.basket_type}/one_deeper/4321",
+                f"{self.bucket_path}/{self.basket_type}/4321",
             ],
             "storage_type": "s3",
         }
@@ -428,6 +417,11 @@ class TestIndex:
         truth_index.to_json(self.index_path)
 
         my_index.sync_index()
+
+        print(
+            (truth_index == my_index.index_df)
+            .drop(columns=["upload_time"])
+        )
 
         # check that the indexes match, ignoring 'upload_time'
         assert (
