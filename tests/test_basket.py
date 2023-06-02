@@ -4,11 +4,12 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
+import boto3
 from fsspec.implementations.local import LocalFileSystem
 import pytest
+import s3fs
 
-from weave.basket import Basket
-from weave.uploader import upload_basket
+from weave import Basket, create_index_from_s3, upload_basket
 
 
 class TestBasket:
@@ -333,3 +334,88 @@ class TestBasket:
             match="expected str, bytes or os.PathLike object, not int",
         ):
             basket.ls(1)
+
+# The following code is for testing in an environment with MinIO:
+
+
+class MinioBucketAndTempBasket():
+    def __init__(self, tmpdir):
+        self.tmpdir = tmpdir
+        self.basket_list = []
+        ck={"endpoint_url": os.environ["S3_ENDPOINT"]}
+        self.s3fs_client = s3fs.S3FileSystem(client_kwargs=ck)
+        self._set_up_bucket()
+
+    def _set_up_bucket(self):
+        self.s3_client = boto3.client(
+            's3', endpoint_url=os.environ["S3_ENDPOINT"]
+        )
+        self.s3_bucket_name = 'pytest-temp-bucket'
+        try:
+            self.s3_client.create_bucket(Bucket=self.s3_bucket_name)
+        except:
+            pass
+
+    def set_up_basket(self, tmp_dir_name):
+        tmp_basket_dir = self.tmpdir.mkdir(tmp_dir_name)
+        tmp_basket_dir.join("test.txt")
+        tmp_basket_dir.write("This is a text file for testing purposes.")
+        return tmp_basket_dir
+
+    def add_lower_dir_to_temp_basket(self, tmp_basket_dir):
+        nd = tmp_basket_dir.mkdir("nested_dir")
+        nd.join("another_test.txt").write("more test text")
+        return tmp_basket_dir
+
+    def upload_basket(self, tmp_basket_dir):
+        return upload_basket(
+            upload_items=[{path:tmp_basket_dir.realpath(),
+                           stub:false}],
+            upload_directory=self.s3_bucket_name,
+            basket_type="test_basket",
+            bucket_name=self.s3_bucket_name
+        )
+
+    def cleanup_bucket(self):
+        self.s3fs_client.rm(self.s3_bucket_name, recursive=True)
+
+
+"""Pytest Fixtures Documentation:
+https://docs.pytest.org/en/7.3.x/how-to/fixtures.html
+
+https://docs.pytest.org/en/7.3.x/how-to
+/fixtures.html#teardown-cleanup-aka-fixture-finalization"""
+
+@pytest.fixture
+def set_up_MBATB(tmpdir):
+    mbatb = MinioBucketAndTempBasket(tmpdir)
+    yield mbatb
+    mbatb.cleanup_bucket()
+
+def test_basket_ls_after_find(set_up_MBATB):
+    """The s3fs.S3FileSystem.ls() func is broken after running {}.find()
+
+    s3fs.S3FileSystem.find() function is called during index creation, which
+    means that s3fs.S3FileSystem.ls() is not a good tool to use for the basket
+    class to ls something. That needs to change. This test will make sure that
+    once basket.ls() fixed, it stays fixed.
+    """
+    # set_up_MBATB is at this point a class object, but it's a weird name
+    # because it looks like a function name (because it was before pytest
+    # did weird stuff to it) so I just rename it to mbatb for reading purposes
+    mbatb = set_up_MBATB
+    tmp_basket_dir_name = "test_basket_temp_dir"
+    tmp_basket_dir = mbatb.set_up_basket(tmp_basket_dir_name)
+    tmp_basket_dir = mbatb.add_lower_dir_to_temp_basket(tmp_basket_dir)
+    s3_basket_path = mbatb.upload_basket(temp_basket_dir_path=tmp_basket_dir)
+
+    # create index on bucket
+    create_index_from_s3(mbatb.s3_bucket_name)
+
+    # run find in case index creation changes
+    mbatb.s3fs_client.find(mbatb.s3_bucket_name)
+
+    # set up basket
+    test = Basket(s3_basket_path)
+    what_should_be_in_base_dir_path = ["test.txt", "nested_dir"]
+    assert test.ls() == what_should_be_in_base_dir_path
