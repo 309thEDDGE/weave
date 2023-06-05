@@ -34,14 +34,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest
         pip install .
-    - name: Test s3fs.ls
+    - name: Test with pytest
       run: |
         export AWS_ACCESS_KEY_ID=minioadmin
         export AWS_SECRET_ACCESS_KEY=minioadmin
         export S3_ENDPOINT=http://172.17.0.1:9000/
-        python -c "import s3fs;test=s3fs.S3FileSystem(client_kwargs = {'endpoint_url':'http://172.17.0.1:9000/'});print(test.ls('s3://'))"
-    - name: Test with pytest
-      run: |
         pytest -vv tests/
 
   ruff:
