@@ -1,5 +1,3 @@
-import pymongo
-import pandas
 from weave import config
 from weave.basket import Basket
 

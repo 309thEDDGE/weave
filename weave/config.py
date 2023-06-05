@@ -3,6 +3,7 @@ config.py provides configuration settings used by weave.
 """
 import s3fs
 import os
+import pymongo
 
 # Filenames not allowed to be added to the basket.
 # These files are taken for specific weave purposes.
@@ -28,6 +29,9 @@ def get_file_system():
         client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
     )
 
+# Get the mongodb object
 def get_mongo_db():
-    client = pymongo.MongoClient("mongodb", username="root", password="example")
+    client = pymongo.MongoClient("mongodb", 
+                                 username="root", 
+                                 password="example")
     return client.mongo_database

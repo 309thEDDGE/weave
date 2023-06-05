@@ -1,7 +1,5 @@
-import pytest
 import tempfile
 import os
-from pymongo import MongoClient
 import mongomock
 from weave.metadata_db import load_mongo
 from weave.create_index import create_index_from_s3
@@ -58,8 +56,10 @@ class TestMongo():
     def test_load_mongo(self, patch1, patch2):
         index_table = create_index_from_s3(self.bucket_path)
         load_mongo(index_table)
-        truth_db = [{'uuid': '1234', 'basket_type': 'test_basket_type', 'key1': 'value1'}, 
-                    {'uuid': '4321', 'basket_type': 'test_basket_type', 'key2': 'value2'}]
+        truth_db = [{'uuid': '1234', 'basket_type': 'test_basket_type', 
+                     'key1': 'value1'}, 
+                    {'uuid': '4321', 'basket_type': 'test_basket_type', 
+                     'key2': 'value2'}]
         db_data = list(mock_db.metadata.find({}))
         compared_data = []
         for item in db_data:
