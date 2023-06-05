@@ -27,3 +27,7 @@ def get_file_system():
     return s3fs.S3FileSystem(
         client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
     )
+
+def get_mongo_db():
+    client = pymongo.MongoClient("mongodb", username="root", password="example")
+    return client.mongo_database
