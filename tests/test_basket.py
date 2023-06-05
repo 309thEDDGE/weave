@@ -358,8 +358,8 @@ class MinioBucketAndTempBasket():
 
     def set_up_basket(self, tmp_dir_name):
         tmp_basket_dir = self.tmpdir.mkdir(tmp_dir_name)
-        tmp_basket_dir.join("test.txt")
-        tmp_basket_dir.write("This is a text file for testing purposes.")
+        tmp_basket_txt_file = tmp_basket_dir.join("test.txt")
+        tmp_basket_txt_file.write("This is a text file for testing purposes.")
         return tmp_basket_dir
 
     def add_lower_dir_to_temp_basket(self, tmp_basket_dir):
@@ -367,14 +367,17 @@ class MinioBucketAndTempBasket():
         nd.join("another_test.txt").write("more test text")
         return tmp_basket_dir
 
-    def upload_basket(self, tmp_basket_dir):
-        return upload_basket(
-            upload_items=[{path:tmp_basket_dir.realpath(),
-                           stub:false}],
-            upload_directory=self.s3_bucket_name,
-            basket_type="test_basket",
-            bucket_name=self.s3_bucket_name
+    def upload_basket(self, tmp_basket_dir, uid='0000'):
+        b_type = "test_basket"
+        up_dir = os.path.join(self.s3_bucket_name, b_type, uid)
+        upload_basket(
+            upload_items=[{'path':str(tmp_basket_dir.realpath()),
+                           'stub':False}],
+            upload_directory=up_dir,
+            unique_id=uid,
+            basket_type=b_type
         )
+        return up_dir
 
     def cleanup_bucket(self):
         self.s3fs_client.rm(self.s3_bucket_name, recursive=True)
@@ -407,15 +410,18 @@ def test_basket_ls_after_find(set_up_MBATB):
     tmp_basket_dir_name = "test_basket_temp_dir"
     tmp_basket_dir = mbatb.set_up_basket(tmp_basket_dir_name)
     tmp_basket_dir = mbatb.add_lower_dir_to_temp_basket(tmp_basket_dir)
-    s3_basket_path = mbatb.upload_basket(temp_basket_dir_path=tmp_basket_dir)
+    s3_basket_path = mbatb.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
     # create index on bucket
-    create_index_from_s3(mbatb.s3_bucket_name)
+    # create_index_from_s3(mbatb.s3_bucket_name)
 
     # run find in case index creation changes
-    mbatb.s3fs_client.find(mbatb.s3_bucket_name)
+    # mbatb.s3fs_client.find(mbatb.s3_bucket_name)
 
     # set up basket
     test = Basket(s3_basket_path)
-    what_should_be_in_base_dir_path = ["test.txt", "nested_dir"]
-    assert test.ls() == what_should_be_in_base_dir_path
+    what_should_be_in_base_dir_path = [
+        os.path.join(s3_basket_path, tmp_basket_dir_name, i)
+        for i in ["nested_dir", "test.txt"]
+    ]
+    assert test.ls(tmp_basket_dir_name) == what_should_be_in_base_dir_path
