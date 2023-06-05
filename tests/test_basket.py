@@ -9,7 +9,7 @@ from fsspec.implementations.local import LocalFileSystem
 import pytest
 import s3fs
 
-from weave import Basket, create_index_from_s3, upload_basket
+from weave import Basket, upload_basket
 
 
 class TestBasket:
@@ -351,10 +351,7 @@ class MinioBucketAndTempBasket():
             's3', endpoint_url=os.environ["S3_ENDPOINT"]
         )
         self.s3_bucket_name = 'pytest-temp-bucket'
-        try:
-            self.s3_client.create_bucket(Bucket=self.s3_bucket_name)
-        except:
-            pass
+        self.s3_client.create_bucket(Bucket=self.s3_bucket_name)
 
     def set_up_basket(self, tmp_dir_name):
         tmp_basket_dir = self.tmpdir.mkdir(tmp_dir_name)
