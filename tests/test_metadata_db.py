@@ -30,6 +30,14 @@ class TestMongo():
             self.basket_type,
             metadata={'key2': 'value2'}
         )
+            
+        # No Metadata
+        upload_basket(
+            [{"path": self.local_dir_path, "stub": False}],
+            f"{self.bucket_path}/{self.basket_type}/nometadata",
+            "nometadata",
+            self.basket_type,
+        )
     
     def setup_class(self):
         self.fs = LocalFileSystem()
@@ -85,18 +93,21 @@ class TestMongo():
             ValueError, match="Invalid index_table: "
                               "missing uuid column"
         ):
-            load_mongo(pd.DataFrame({'basket_type': ['type'], 'address': ['path']}))
+            load_mongo(pd.DataFrame({'basket_type': ['type'], 
+                                     'address': ['path']}))
                        
     def test_load_mongo_check_dataframe_for_address(self):
         with pytest.raises(
             ValueError, match="Invalid index_table: "
                               "missing address column"
         ):
-            load_mongo(pd.DataFrame({'uuid': ['1234'], 'basket_type': ['type']}))
+            load_mongo(pd.DataFrame({'uuid': ['1234'], 
+                                     'basket_type': ['type']}))
                        
     def test_load_mongo_check_dataframe_for_basket_type(self):
         with pytest.raises(
             ValueError, match="Invalid index_table: "
                               "missing basket_type column"
         ):
-            load_mongo(pd.DataFrame({'uuid': ['1234'], 'address': ['path']}))
+            load_mongo(pd.DataFrame({'uuid': ['1234'], 
+                                     'address': ['path']}))
