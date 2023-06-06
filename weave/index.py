@@ -3,7 +3,7 @@ import os
 import tempfile
 import pandas as pd
 from weave import config
-from weave.uploader import upload_basket
+from weave import uploader
 
 def validate_basket_dict(basket_dict, basket_address):
     """
@@ -83,7 +83,8 @@ class Index():
             Name of the bucket to be indexed.
         '''
         self.bucket_name = bucket_name
-        self.index_path = os.path.join(bucket_name, 'index', 'index.json')
+        self.index_dir = os.path.join(bucket_name, 'index')
+        self.index_path = os.path.join(self.index_dir, 'index.json')
         self.fs = config.get_file_system()
 
         if not self.fs.exists(self.bucket_name):
@@ -96,29 +97,44 @@ class Index():
                 self.fs.open(self.index_path),
                 dtype = {'uuid': str}
             )
-        else: self.index_df = None
+        else:
+            self.index_df = None
 
     def update_index(self):
         '''Create a new index and upload it to the data warehouse.'''
-        #delete an existing index
-        if self.fs.exists(self.index_path):
-            self.fs.rm(os.path.dirname(self.index_path), recursive = True)
-
         tempdir = tempfile.TemporaryDirectory()
         local_index_path = os.path.join(tempdir.name, 'index.json')
 
-        #create the index, and save it to a .json in the tempdir
-        self.index_df = create_index_from_s3(self.bucket_name, self.fs)
-        self.index_df.to_json(local_index_path)
+        try:
+            #save remote index locally for posterity
+            old_index_path = os.path.join(tempdir.name, 'old_index')
+            os.mkdir(old_index_path)
+            if self.fs.exists(self.index_path):
+                self.fs.get(self.index_dir, old_index_path, recursive = True)
+                self.fs.rm(self.index_dir, recursive = True)
 
-        upload_basket(
-            [{"path": local_index_path, "stub": False}],
-            f"{self.bucket_name}/index",
-            "0",
-            "index",
-        )
+            #create the index, and save it to a .json in the tempdir
+            self.index_df = create_index_from_s3(self.bucket_name, self.fs)
+            self.index_df.to_json(local_index_path)
 
-        tempdir.cleanup()
+            uploader.upload_basket(
+                [{"path": local_index_path, "stub": False}],
+                f"{self.bucket_name}/index",
+                "0",
+                "index",
+            )
+
+        except Exception as e:
+            if not self.fs.exists(self.index_path):
+                if os.path.exists(old_index_path):
+                    self.fs.put(
+                        old_index_path,
+                        self.index_dir,
+                        recursive = True
+                    )
+            raise e
+        finally:
+            tempdir.cleanup()
 
     def get_index(self):
         '''Return index_df. If it is None, then sync the index.'''

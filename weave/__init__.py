@@ -12,4 +12,5 @@ __all__ = [
     "get_file_system",
     "prohibited_filenames",
     "Basket",
+    "Index"
 ]

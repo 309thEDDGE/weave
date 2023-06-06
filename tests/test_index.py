@@ -9,7 +9,6 @@ from unittest.mock import patch
 
 from weave.uploader import upload_basket
 
-
 class TestIndex:
     """
     A class for to test functions in index.py
@@ -172,7 +171,7 @@ class TestIndex:
     def test_index_df_is_none_with_no_existing_index_file(self, patch):
         '''when index.json does not exist remotely, index_df should be None'''
         my_index = Index(self.bucket_path)
-        assert my_index.index_df == None
+        assert my_index.index_df is None
 
     @patch("weave.config.get_file_system", return_value=LocalFileSystem())
     def test_index_df_exists_with_existing_index_file(self, patch):
@@ -275,6 +274,33 @@ class TestIndex:
             .all()
             .all()
         )
+
+    @patch("weave.uploader.upload_basket",side_effect=Exception('test'))
+    @patch("weave.config.get_file_system", return_value=LocalFileSystem())
+    def test_update_index_works_after_error(self, fs_patch, e_patch):
+        '''throw error during update, make sure remote index still exists.'''
+        my_index = Index(self.bucket_path)
+
+        truth_index = create_index_from_s3(f"{self.bucket_path}", self.fs)
+        self.fs.mkdir(os.path.join(self.bucket_path, 'index'))
+        truth_index.to_json(self.index_path)
+
+        try:
+            my_index.update_index()
+        except Exception:
+            assert self.fs.exists(self.index_path)
+            minio_index = pd.read_json(
+                self.fs.open(self.index_path),
+                dtype = {'uuid': str}
+            )
+            assert (
+                (truth_index == minio_index)
+                .drop(columns=["upload_time"])
+                .all()
+                .all()
+            )
+        else:
+            pytest.fail()
 
     @patch("weave.config.get_file_system", return_value=LocalFileSystem())
     def test_update_index_creates_local_index(self, patch):
