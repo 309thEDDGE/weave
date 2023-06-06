@@ -126,7 +126,9 @@ class Index():
 
         except Exception as e:
             if not self.fs.exists(self.index_path):
+                print('made it once :)')
                 if os.path.exists(old_index_path):
+                    print('made it twice :)')
                     self.fs.put(
                         old_index_path,
                         self.index_dir,
