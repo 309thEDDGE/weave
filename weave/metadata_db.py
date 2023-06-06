@@ -1,7 +1,19 @@
-from weave import config
-from weave.basket import Basket
+import pandas as pd
+from weave import config, Basket
 
-def load_mongo(index_table):    
+def load_mongo(index_table):
+    
+    if not isinstance(index_table, pd.DataFrame):
+        raise TypeError("Invalid datatype for index_table: "
+                        "must be Pandas DataFrame")
+    
+    required_columns = ['uuid', 'basket_type', 'address']
+    
+    for required_column in required_columns:
+        if required_column not in index_table.columns.values.tolist():
+            raise ValueError("Invalid index_table: missing "
+                             f"{required_column} column")
+    
     db = config.get_mongo_db()
     
     for index, row in index_table.iterrows():
