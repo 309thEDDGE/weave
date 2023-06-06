@@ -406,7 +406,7 @@ def test_basket_ls_after_find(set_up_MBATB):
     mbatb = set_up_MBATB
     tmp_basket_dir_name = "test_basket_temp_dir"
     tmp_basket_dir = mbatb.set_up_basket(tmp_basket_dir_name)
-    tmp_basket_dir = mbatb.add_lower_dir_to_temp_basket(tmp_basket_dir)
+    # tmp_basket_dir = mbatb.add_lower_dir_to_temp_basket(tmp_basket_dir)
     s3_basket_path = mbatb.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
     # create index on bucket
