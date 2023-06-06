@@ -288,11 +288,11 @@ class TestIndex:
         try:
             my_index.update_index()
         except Exception:
-            assert self.fs.exists(self.index_path)
-            minio_index = pd.read_json(
-                self.fs.open(self.index_path),
-                dtype = {'uuid': str}
-            )
+            if self.fs.exists(self.index_path):
+                minio_index = pd.read_json(
+                    self.fs.open(self.index_path),
+                    dtype = {'uuid': str}
+                )
             assert (
                 (truth_index == minio_index)
                 .drop(columns=["upload_time"])

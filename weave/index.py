@@ -107,9 +107,9 @@ class Index():
 
         try:
             #save remote index locally for posterity
-            old_index_path = os.path.join(tempdir.name, 'old_index')
-            os.mkdir(old_index_path)
             if self.fs.exists(self.index_path):
+                old_index_path = os.path.join(tempdir.name, 'old_index')
+                os.mkdir(old_index_path)
                 self.fs.get(self.index_dir, old_index_path, recursive = True)
                 self.fs.rm(self.index_dir, recursive = True)
 
