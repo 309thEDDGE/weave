@@ -4,12 +4,11 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
-import boto3
 from fsspec.implementations.local import LocalFileSystem
 import pytest
 import s3fs
 
-from weave import Basket, upload_basket
+from weave import Basket, create_index_from_s3, upload_basket
 
 
 class TestBasket:
@@ -347,11 +346,8 @@ class MinioBucketAndTempBasket():
         self._set_up_bucket()
 
     def _set_up_bucket(self):
-        self.s3_client = boto3.client(
-            's3', endpoint_url=os.environ["S3_ENDPOINT"]
-        )
         self.s3_bucket_name = 'pytest-temp-bucket'
-        self.s3_client.create_bucket(Bucket=self.s3_bucket_name)
+        self.s3fs_client.mkdir(self.s3_bucket_name)
 
     def set_up_basket(self, tmp_dir_name):
         tmp_basket_dir = self.tmpdir.mkdir(tmp_dir_name)
@@ -410,15 +406,16 @@ def test_basket_ls_after_find(set_up_MBATB):
     s3_basket_path = mbatb.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
     # create index on bucket
-    # create_index_from_s3(mbatb.s3_bucket_name)
+    create_index_from_s3(mbatb.s3_bucket_name)
 
     # run find in case index creation changes
-    # mbatb.s3fs_client.find(mbatb.s3_bucket_name)
+    mbatb.s3fs_client.find(mbatb.s3_bucket_name)
 
     # set up basket
-    test = Basket(s3_basket_path)
-    what_should_be_in_base_dir_path = [
+    test_b = Basket(s3_basket_path)
+    what_should_be_in_base_dir_path = {
         os.path.join(s3_basket_path, tmp_basket_dir_name, i)
         for i in ["nested_dir", "test.txt"]
-    ]
-    assert test.ls(tmp_basket_dir_name) == what_should_be_in_base_dir_path
+    }
+    ls = test_b.ls(tmp_basket_dir_name)
+    assert set(ls) == what_should_be_in_base_dir_path
