@@ -108,9 +108,10 @@ class Index():
         try:
             #save remote index locally for posterity
             if self.fs.exists(self.index_path):
-                old_index_path = os.path.join(tempdir.name, 'old_index')
-                os.mkdir(old_index_path)
-                self.fs.get(self.index_dir, old_index_path, recursive = True)
+                old_index_dir = os.path.join(tempdir.name, 'old_index')
+                old_index_path = os.path.join(old_index_dir, 'index.json')
+                os.mkdir(old_index_dir)
+                self.fs.get(self.index_path, old_index_path, recursive = True)
                 self.fs.rm(self.index_dir, recursive = True)
 
             #create the index, and save it to a .json in the tempdir
@@ -128,7 +129,7 @@ class Index():
             if not self.fs.exists(self.index_path):
                 if os.path.exists(old_index_path):
                     self.fs.put(
-                        old_index_path,
+                        old_index_dir,
                         self.index_dir,
                         recursive = True
                     )
