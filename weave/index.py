@@ -5,8 +5,6 @@ import pandas as pd
 from weave import config
 from weave import uploader
 
-import inspect
-
 def validate_basket_dict(basket_dict, basket_address):
     """
     validate the basket_manifest.json has the correct structure
