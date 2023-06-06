@@ -9,6 +9,8 @@ from unittest.mock import patch
 
 from weave.uploader import upload_basket
 
+import inspect
+
 class TestIndex:
     """
     A class for to test functions in index.py
@@ -284,6 +286,11 @@ class TestIndex:
         truth_index = create_index_from_s3(self.bucket_path, self.fs)
         self.fs.mkdir(os.path.join(self.bucket_path, 'index'))
         truth_index.to_json(self.index_path)
+        
+        # print(locals())
+        # stuff = inspect.getmembers(self)
+        # for thing in stuff:
+        #     print(thing[0])
 
         try:
             my_index.update_index()

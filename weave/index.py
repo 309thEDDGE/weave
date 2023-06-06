@@ -114,6 +114,8 @@ class Index():
                 os.mkdir(old_index_path)
                 self.fs.get(self.index_dir, old_index_path, recursive = True)
                 self.fs.rm(self.index_dir, recursive = True)
+                print(self.index_dir)
+                print(old_index_path)
                 print(os.listdir(old_index_path))
 
 
