@@ -134,6 +134,8 @@ class Index():
                         self.index_dir,
                         recursive = True
                     )
+                    print('put worked :)')
+                    print(self.fs.exists(self.index_path))
             raise e
         finally:
             tempdir.cleanup()
