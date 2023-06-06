@@ -39,7 +39,7 @@ jobs:
         export AWS_ACCESS_KEY_ID=minioadmin
         export AWS_SECRET_ACCESS_KEY=minioadmin
         export S3_ENDPOINT=http://172.17.0.1:9000/
-        python -c "import s3fs;import os;import boto3;test=s3fs.S3FileSystem(client_kwargs = {'endpoint_url':os.environ['S3_ENDPOINT']});print(test.ls('s3://'));boto3.client('s3', endpoint_url=os.environ['S3_ENDPOINT']).create_bucket(Bucket='pytest-tmp-bucket');print(test.ls('s3://'));"
+        python -c "import s3fs;import os;test=s3fs.S3FileSystem(client_kwargs = {'endpoint_url':os.environ['S3_ENDPOINT']});print(test.ls('s3://'));test.mkdir('pytest-tmp-bucket');print(test.ls('s3://'));"
 
   ruff:
     runs-on: ubuntu-latest
