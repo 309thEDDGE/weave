@@ -9,8 +9,6 @@ from unittest.mock import patch
 
 from weave.uploader import upload_basket
 
-import inspect
-
 class TestIndex:
     """
     A class for to test functions in index.py
