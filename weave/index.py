@@ -112,7 +112,7 @@ class Index():
             if self.fs.exists(self.index_path):
                 old_index_path = os.path.join(tempdir.name, 'old_index')
                 os.mkdir(old_index_path)
-                self.fs.get(self.index_dir, old_index_path, recursive = True)
+                self.fs.download(self.index_dir, old_index_path, recursive = True)
                 self.fs.rm(self.index_dir, recursive = True)
                 print(self.index_dir)
                 print(old_index_path)
