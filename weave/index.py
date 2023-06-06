@@ -135,6 +135,7 @@ class Index():
                         recursive = True
                     )
                     print('put worked :)')
+                    print(self.fs.ls(self.index_dir))
                     print(self.fs.exists(self.index_path))
             raise e
         finally:
