@@ -5,6 +5,8 @@ import pandas as pd
 from weave import config
 from weave import uploader
 
+import inspect
+
 def validate_basket_dict(basket_dict, basket_address):
     """
     validate the basket_manifest.json has the correct structure
@@ -110,6 +112,7 @@ class Index():
             if self.fs.exists(self.index_path):
                 old_index_path = os.path.join(tempdir.name, 'old_index')
                 os.mkdir(old_index_path)
+                print(old_index_path)
                 self.fs.get(self.index_dir, old_index_path, recursive = True)
                 self.fs.rm(self.index_dir, recursive = True)
 
@@ -129,6 +132,8 @@ class Index():
                 print('made it once :)')
                 if os.path.exists(old_index_path):
                     print('made it twice :)')
+                    print(locals())
+                    print(inspect.getmembers(self)[2])
                     self.fs.put(
                         old_index_path,
                         self.index_dir,
