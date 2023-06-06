@@ -282,13 +282,11 @@ class TestIndex:
         my_index = Index(self.bucket_path)
 
         truth_index = create_index_from_s3(self.bucket_path, self.fs)
-        self.fs.mkdir(os.path.join(self.bucket_path, 'index'))
+        index_dir = os.path.join(self.bucket_path, 'index')
+        self.fs.mkdir(index_dir)
         truth_index.to_json(self.index_path)
-        
-        # print(locals())
-        # stuff = inspect.getmembers(self)
-        # for thing in stuff:
-        #     print(thing[0])
+        self.fs.touch(os.path.join(index_dir, 'basket_manifest.json'))
+        self.fs.touch(os.path.join(index_dir, 'basket_supplement.json'))
 
         try:
             my_index.update_index()
@@ -448,11 +446,6 @@ class TestIndex:
         truth_index.to_json(self.index_path)
 
         my_index.sync_index()
-
-        print(
-            (truth_index == my_index.index_df)
-            .drop(columns=["upload_time"])
-        )
 
         # check that the indexes match, ignoring 'upload_time'
         assert (
