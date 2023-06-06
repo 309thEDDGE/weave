@@ -19,7 +19,7 @@ def load_mongo(index_table):
     for index, row in index_table.iterrows():
         basket = Basket(row['address'])
         metadata = basket.get_metadata()
-        if metadata == None:
+        if metadata is None:
             continue
         manifest = basket.get_manifest()
         mongo_metadata = {}
