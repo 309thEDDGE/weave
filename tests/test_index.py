@@ -281,7 +281,7 @@ class TestIndex:
         '''throw error during update, make sure remote index still exists.'''
         my_index = Index(self.bucket_path)
 
-        truth_index = create_index_from_s3(f"{self.bucket_path}", self.fs)
+        truth_index = create_index_from_s3(self.bucket_path, self.fs)
         self.fs.mkdir(os.path.join(self.bucket_path, 'index'))
         truth_index.to_json(self.index_path)
 

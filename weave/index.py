@@ -112,9 +112,10 @@ class Index():
             if self.fs.exists(self.index_path):
                 old_index_path = os.path.join(tempdir.name, 'old_index')
                 os.mkdir(old_index_path)
-                print(old_index_path)
                 self.fs.get(self.index_dir, old_index_path, recursive = True)
                 self.fs.rm(self.index_dir, recursive = True)
+                print(os.listdir(old_index_path))
+
 
             #create the index, and save it to a .json in the tempdir
             self.index_df = create_index_from_s3(self.bucket_name, self.fs)
