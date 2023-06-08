@@ -4,7 +4,7 @@ name: pytest_and_ruff
 
 on:
   push:
-    branches: [ "main", "o1089FixLsTwo"]
+    branches: [ "main"]
   pull_request:
     branches: [ "main"]
 
