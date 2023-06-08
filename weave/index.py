@@ -4,10 +4,12 @@ python create_index.py <root_dir>
     root_dir: the root directory of s3 you wish to build your index off of
 """
 import json
-import argparse
 import os
+import tempfile
+
 import pandas as pd
-from weave import config
+
+from weave import config, upload
 
 
 # validate basket keys and value data types on read in
@@ -81,18 +83,60 @@ def create_index_from_s3(root_dir):
     return index
 
 
-if __name__ == "__main__":
-    argparser = argparse.ArgumentParser(
-        description="""Save a local index of an s3 bucket built off of 
-                        basket_details.json found within said bucket."""
-    )
-    argparser.add_argument(
-        "root_dir",
-        metavar="<root_dir>",
-        type=str,
-        help="the root directory of s3 you wish to build your index off of",
-    )
+class Index():
+    '''Facilitate user interaction with the index of a Weave data warehouse.'''
 
-    args = argparser.parse_args()
+    def __init__(self, bucket_name="basket-data", sync=True):
+        '''Initializes the Index class.
 
-    create_index_from_s3(args.root_dir).to_parquet("index.parquet")
+        Parameters
+        ----------
+        bucket_name: [string]
+            Name of the bucket which the desired index is associated with.
+        sync: [bool]
+            Whether or not to check the index on disk to ensure this Index
+            object stays current. If True, then some operations may take
+            slightly longer, as they will check to see if the current Index
+            object has the same information as the index on the disk. If False,
+            then the Index object may be stale, but operations will perform
+            at a higher speed.
+        '''
+        self.bucket_name = str(bucket_name)
+        self.index_basket_dir_name = 'index'
+        self.index_basket_dir = os.path.join(
+            self.bucket_name, self.index_basket_dir_name
+        )
+        self.sync = bool(sync)
+        pass
+    
+    def _get_indexjson(self):
+        '''Gets index from latest index basket'''
+        pass
+    
+    def to_pandas_df(self):
+        '''Returns the Pandas DataFrame representation of the index.'''
+        pass
+    
+    def is_index_current(self):
+        '''Checks to see if the index in memory is up to date with disk index.
+        '''
+        pass
+    
+    def regenerate_index(self):
+        '''Deletes current index information from disk and remakes/stores index.
+        '''
+        pass
+    
+    def refresh_index(self):
+        '''Gets index.json from disk, regardless of sync status.'''
+        pass
+    
+    def _generate_index(self):
+        '''Generates index and stores it in a basket'''
+        index = create_index_from_s3(self.bucket_name)
+        #TODO: flesh out the with. tempfile probably isn't 100% working yet.
+        with tempfile.TemporaryFile() as out:
+            index.to_json(out)
+            upload(upload_items=[{'path':out, 'stub':False}],
+                   basket_type=self.index_basket_dir_name,
+                   bucket_name=self.bucket_name,)
