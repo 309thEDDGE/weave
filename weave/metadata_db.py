@@ -13,8 +13,8 @@ def load_mongo(index_table):
         Parameters
         ----------
         index_table: [Pandas Dataframe]
-            Weave index object. This object can be fetched using index.py.
-            The dataframe must have the following fields.
+            Weave index dataframe fetched using the Index class. 
+            The dataframe must include the following columns.
                uuid
                basket_type
                address
