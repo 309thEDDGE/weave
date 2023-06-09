@@ -395,10 +395,12 @@ def set_up_MBATB(tmpdir):
 def test_basket_ls_after_find(set_up_MBATB):
     """The s3fs.S3FileSystem.ls() func is broken after running {}.find()
 
-    s3fs.S3FileSystem.find() function is called during index creation, which
-    means that s3fs.S3FileSystem.ls() is not a good tool to use for the basket
-    class to ls something. That needs to change. This test will make sure that
-    once basket.ls() fixed, it stays fixed.
+    s3fs.S3FileSystem.find() function is called during index creation. The
+    solution to this problem is to ensure Basket.ls() uses the argument
+    refresh=True when calling s3fs.ls(). This ensures that cached results
+    from s3fs.find() (which is called during create_index_from_s3() and do not
+    include directories) do not affect the s3fs.ls() function used to enable
+    the Basket.ls() function.
     """
     # set_up_MBATB is at this point a class object, but it's a weird name
     # because it looks like a function name (because it was before pytest
