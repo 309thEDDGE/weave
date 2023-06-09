@@ -23,15 +23,15 @@ def index_schema():
     return ["uuid", "upload_time", "parent_uuids", "basket_type", "label"]
 
 
-# Get the filesystem to be used for storing baskets
 def get_file_system():
+    """Get the filesystem to be used for storing baskets"""
     return s3fs.S3FileSystem(
         client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
     )
 
-# Get the mongodb object
 def get_mongo_db():
+    """Get the mongodb client to be used for metadata search"""
     client = pymongo.MongoClient("mongodb", 
                                  username="root", 
                                  password="example")
-    return client.mongo_database
+    return client

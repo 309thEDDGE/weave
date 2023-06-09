@@ -1,15 +1,15 @@
-import tempfile
 import os
-import mongomock
+import tempfile
+from fsspec.implementations.local import LocalFileSystem
+from unittest.mock import patch
 import pytest
 import pandas as pd
+import mongomock
 from weave.metadata_db import load_mongo
 from weave.create_index import create_index_from_s3
 from weave.uploader import upload_basket
-from fsspec.implementations.local import LocalFileSystem
-from unittest.mock import patch
 
-mock_db = mongomock.MongoClient().db
+mock_db = mongomock.MongoClient()
 
 class TestMongo():
     
@@ -73,7 +73,7 @@ class TestMongo():
                      'key1': 'value1'}, 
                     {'uuid': '4321', 'basket_type': 'test_basket_type', 
                      'key2': 'value2'}]
-        db_data = list(mock_db.metadata.find({}))
+        db_data = list(mock_db.mongo_metadata.metadata.find({}))
         compared_data = []
         for item in db_data:
             item.pop('_id')
