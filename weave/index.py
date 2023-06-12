@@ -7,6 +7,7 @@ import json
 import os
 import tempfile
 from time import time_ns
+from warnings import warn
 
 import pandas as pd
 
@@ -57,9 +58,7 @@ def create_index_from_s3(root_dir):
     if not fs.exists(root_dir):
         raise FileNotFoundError(f"'root_dir' does not exist '{root_dir}'")
 
-    basket_jsons = [
-        x for x in fs.find(root_dir) if x.endswith("basket_manifest.json")
-    ]
+    basket_jsons = _get_list_of_basket_jsons(root_dir)
 
     schema = config.index_schema()
 
@@ -83,6 +82,10 @@ def create_index_from_s3(root_dir):
     index["uuid"] = index["uuid"].astype(str)
     return index
 
+def _get_list_of_basket_jsons(root_dir):
+    fs = config.get_file_system()
+    return [x for x in fs.find(root_dir) if x.endswith("basket_manifest.json")]
+
 
 class Index():
     '''Facilitate user interaction with the index of a Weave data warehouse.'''
@@ -104,38 +107,92 @@ class Index():
         '''
         self.bucket_name = str(bucket_name)
         self.index_basket_dir_name = 'index' # AKA basket type
-        self.index_basket_dir = os.path.join(
+        self.index_basket_dir_path = os.path.join(
             self.bucket_name, self.index_basket_dir_name
         )
         self.sync = bool(sync)
+        self.index_json_time = 0 # 0 is essentially same as None in this case
+        self.index_df = None
         pass
     
-    def _get_indexjson(self):
+    def sync_index(self):
         '''Gets index from latest index basket'''
-        pass
-    
+        fs = config.get_file_system()
+        index_paths = fs.glob(f"{self.index_basket_dir_path}/**/*-index.json")
+        if len(index_paths) == 0:
+            return self._generate_index()
+        if len(index_paths) > 20:
+            warn(f"The index basket count is {len(index_paths)}. " +
+                 "Consider running weave.Index.clean_up_indices")
+        latest_index_path = ""
+        for path in index_paths:
+            path_time = self._get_index_time_from_path(path)
+            if path_time >= self.index_json_time:
+                self.index_json_time = path_time
+                latest_index_path = path
+        with tempfile.TemporaryDirectory() as temp:
+            temp_path = os.path.join(temp, "temp.json")
+            fs.download(latest_index_path, temp_path)
+            self.index_df = pd.read_json(temp_path)
+
+    def _get_index_time_from_path(self, path):
+        '''Returns time as int from index_json path.'''
+        path = str(path)
+        return int(os.path.basename(path).replace("-index.json",""))
+
     def to_pandas_df(self):
         '''Returns the Pandas DataFrame representation of the index.'''
-        pass
-    
+        if self.sync:
+            if not self.is_index_current():
+                self.sync_index()
+        elif self.index_df is None:
+            self.sync_index()
+        return self.index_df
+
+    def clean_up_indices(self, n):
+        '''Deletes any index basket except the latest n index baskets.
+        
+        Parameters
+        ----------
+        n: [int]
+            n is the number of latest index baskets to retain.
+        '''
+        n = int(n)
+        index_paths = fs.glob(f"{self.index_basket_dir_path}/**/*-index.json")
+        if not len(index_paths) > n:
+            return
+        index_list = [self._get_index_time_from_path(i) for i in index_paths]
+        indices_to_keep = sorted(index_list)[:n]
+        for index in index_list:
+            if index not in indices_to_keep:
+                try:
+                    self.delete_basket(basket_uuid=index)
+                except ValueError as e:
+                    warn(e.ErrorText)
+
     def is_index_current(self):
         '''Checks to see if the index in memory is up to date with disk index.
+
+        Returns True if index in memory is up to date, else False.
         '''
-        pass
-    
+        fs = config.get_file_system()
+        index_paths = fs.glob(f"{self.index_basket_dir_path}/**/*-index.json")
+        index_times = [self._get_index_time_from_path(i)
+                      for i in index_paths]
+        return all([self.index_json_time >= i for i in index_times])
+
     def regenerate_index(self):
-        '''Deletes current index information from disk and remakes/stores index.
-        '''
-        pass
-    
-    def refresh_index(self):
-        '''Gets index.json from disk, regardless of sync status.'''
-        pass
-    
+        '''Remakes/stores index.'''
+        if self.index_df is not None:
+            if (
+                len(self.index_df) <
+                len(_get_list_of_basket_jsons(self.bucket_name))
+            ):
+                self._generate_index()
+
     def _generate_index(self):
         '''Generates index and stores it in a basket'''
         index = create_index_from_s3(self.bucket_name)
-        #TODO: flesh out the with. tempfile probably isn't 100% working yet.
         with tempfile.TemporaryDirectory() as out:
             ns = time_ns()
             temp_json_path = os.path.join(out, f"{ns}-index.json")
@@ -143,4 +200,40 @@ class Index():
             upload(upload_items=[{'path':temp_json_path, 'stub':False}],
                    basket_type=self.index_basket_dir_name,
                    bucket_name=self.bucket_name)
-        self.df = index
+        self.index_df = index
+        self.index_json_time = ns
+
+    def delete_basket(self, basket_uuid):
+        '''Deletes basket of given UUID.
+
+        Note that the given basket will not be deleted if the basket is listed
+        as the parent uuid for any of the baskets in the index.
+
+        Parameters:
+        -----------
+        basket_uuid: [int]
+            The uuid of the basket to delete.
+        '''
+        fs = config.get_file_system()
+        basket_uuid = str(basket_uuid)
+        if self.index_df is None:
+            self.sync_index()
+        if basket_uuid not in self.index_df["uuid"].to_list():
+            raise ValueError(
+                f"The provided value for basket_uuid {basket_uuid} " +
+                "does not exist."
+            )
+        parent_uuids = [
+            j
+            for i in self.index_df["parent_uuids"].to_list()
+            for j  in i
+        ]
+        if basket_uuid in parent_uuids:
+            raise ValueError(
+                f"The provided value for basket_uuid {basket_uuid} " +
+                "is listed as a parent UUID for another basket. Please " +
+                "delete that basket before deleting it's parent basket."
+            )
+        else:
+            adr = self.index[self.index_df["uuid"] == basket_uuid]["address"]
+            fs.rm(adr, recursive=True)
