@@ -6,6 +6,7 @@ python create_index.py <root_dir>
 import json
 import os
 import tempfile
+from time import time_ns
 
 import pandas as pd
 
@@ -102,7 +103,7 @@ class Index():
             at a higher speed.
         '''
         self.bucket_name = str(bucket_name)
-        self.index_basket_dir_name = 'index'
+        self.index_basket_dir_name = 'index' # AKA basket type
         self.index_basket_dir = os.path.join(
             self.bucket_name, self.index_basket_dir_name
         )
@@ -135,8 +136,11 @@ class Index():
         '''Generates index and stores it in a basket'''
         index = create_index_from_s3(self.bucket_name)
         #TODO: flesh out the with. tempfile probably isn't 100% working yet.
-        with tempfile.TemporaryFile() as out:
-            index.to_json(out)
-            upload(upload_items=[{'path':out, 'stub':False}],
+        with tempfile.TemporaryDirectory() as out:
+            ns = time_ns()
+            temp_json_path = os.path.join(out, f"{ns}-index.json")
+            index.to_json(temp_json_path)
+            upload(upload_items=[{'path':temp_json_path, 'stub':False}],
                    basket_type=self.index_basket_dir_name,
-                   bucket_name=self.bucket_name,)
+                   bucket_name=self.bucket_name)
+        self.df = index
