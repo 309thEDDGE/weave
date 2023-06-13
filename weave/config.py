@@ -13,6 +13,59 @@ prohibited_filenames = [
     "basket_supplement.json",
 ]
 
+#basket_manifest must follow this schema
+manifest_schema = {
+    "properties": {
+        "uuid": {"type" : "string" },
+        "upload_time":{"type" : "string" },
+        
+        "parent_uuids": {
+            "type": "array",
+            "items": {
+                "type" : "string"
+            }
+        },
+        
+        "basket_type": {"type" : "string" },
+        "label": {"type" : "string" },
+    }
+}
+
+#basket_supplement must follow this schema 
+supplement_schema = {
+    "properties": {
+        
+        "upload_items": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "path": {"type": "string"},
+                    "stub": {"type": "boolean"}
+                }
+                                
+            }
+        },
+        
+         "integrity_data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "file_size": {"type" : "number" },
+                    "hash": {"type" : "string" },
+                    "access_date":{"type" : "string" },
+                    "source_path": {"type" : "string" },
+                    "byte_count": {"type" : "number" },
+                    "stub":{"type" : "boolean" }, 
+                    "upload_path":{"type" : "string" }
+                }                      
+            }
+        }
+    }
+}
+
+
 
 # As schema change, a parameter can be passed to index_schema
 # to determine which schema to return.
