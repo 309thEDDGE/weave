@@ -155,3 +155,36 @@ class TestCreateIndex:
             create_index_from_s3(
                 os.path.join(self.file_system_dir_path, "NOT-A-BUCKET")
             )
+
+def test_sync_index_gets_latest_index():
+    pass
+
+def test_sync_index_calls_generate_index_if_no_index():
+    pass
+
+def test_get_index_time_from_path():
+    pass
+
+def test_to_pandas_df():
+    pass
+
+def test_clean_up_indices_n_not_int():
+    pass
+
+def test_clean_up_indices_leaves_n_indices():
+    pass
+
+def test_clean_up_indices_with_n_greater_than_num_of_indices():
+    pass
+
+def test_is_index_current():
+    pass
+
+def test_regenerate_index():
+    pass
+
+def test_delete_basket_deletes_basket():
+    pass
+
+def test_delete_basket_fails_if_basket_is_parent():
+    pass

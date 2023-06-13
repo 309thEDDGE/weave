@@ -149,7 +149,7 @@ class Index():
             self.sync_index()
         return self.index_df
 
-    def clean_up_indices(self, n):
+    def clean_up_indices(self, n=20):
         '''Deletes any index basket except the latest n index baskets.
         
         Parameters
@@ -162,13 +162,13 @@ class Index():
         if not len(index_paths) > n:
             return
         index_list = [self._get_index_time_from_path(i) for i in index_paths]
-        indices_to_keep = sorted(index_list)[:n]
+        indices_to_keep = sorted(index_list, reverse=True)[:n]
         for index in index_list:
             if index not in indices_to_keep:
                 try:
                     self.delete_basket(basket_uuid=index)
                 except ValueError as e:
-                    warn(e.ErrorText)
+                    warn(e)
 
     def is_index_current(self):
         '''Checks to see if the index in memory is up to date with disk index.
@@ -183,12 +183,7 @@ class Index():
 
     def regenerate_index(self):
         '''Remakes/stores index.'''
-        if self.index_df is not None:
-            if (
-                len(self.index_df) <
-                len(_get_list_of_basket_jsons(self.bucket_name))
-            ):
-                self._generate_index()
+        self._generate_index()
 
     def _generate_index(self):
         '''Generates index and stores it in a basket'''
