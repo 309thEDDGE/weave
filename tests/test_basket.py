@@ -8,7 +8,9 @@ from fsspec.implementations.local import LocalFileSystem
 import pytest
 import s3fs
 
-from weave import Basket, create_index_from_s3, upload_basket
+from weave.basket import Basket
+from weave.create_index import create_index_from_s3
+from weave.uploader import upload_basket
 
 
 class TestBasket:
