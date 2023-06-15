@@ -4,12 +4,22 @@
 
 import os
 import json
+import jsonschema
 from jsonschema import validate
 
 from weave import config
 from fsspec.implementations.local import LocalFileSystem
 import s3fs
 
+
+
+def isValid(data, schema):
+    try:
+        validate(instance=data, schema=schema)
+    except jsonschema.exceptions.ValidationError as err:
+        return False
+    return True
+        
 
 
 def validate_bucket(bucket_name):
@@ -27,41 +37,46 @@ def validate_bucket(bucket_name):
     metadata_path = f"{basket_address}/basket_metadata.json"
     
     
+    output = {"manifest": False, "supplement": False, "metadata": False}
     
     
     if os.path.isfile(manifest_path):
-        print('manifest is a real file')
         f = open(manifest_path)
         
         data = json.load(f)
-        # print(data)
         
-        validate(instance=data, schema=config.manifest_schema)
+        output['manifest'] = isValid(data, config.manifest_schema)
+    else:
+        output['manifest'] = 'No manifest found'
         
     
-    if os.path.isfile(supplement_path):
-        print('supplement is a real file')        
+    if os.path.isfile(supplement_path):        
         f = open(supplement_path)
         
         data = json.load(f)
-        # print(data)
         
-        validate(instance=data, schema=config.supplement_schema)
-        
-        
-              
-    if os.path.isfile(metadata_path):
-        print('metadata is a real file')        
-        f = open(metadata_path)
-        
-        data = json.load(f)
-        # print(data)
+        output['supplement'] =  isValid(data, config.supplement_schema)
+    else:
+        output['supplement'] = 'No supplement found'
+    
         
         
+    if os.path.isfile(metadata_path):       
+        try:
+            f = open(metadata_path)
+            data = json.load(f)
+            output['metadata'] =  True
+        except Exception as err:
+            output['metadata'] =  False
+            
+    else:
+        output['metadata'] = 'No metadata found'
+            
+    return output
         
 
         
-tempPath = './TestingValidation/'
-validate_bucket(tempPath)
+# tempPath = './TestingValidation/'
+# print("\n",validate_bucket(tempPath))
    
     
