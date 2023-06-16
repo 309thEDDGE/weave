@@ -33,6 +33,7 @@ jobs:
       uses: supercharge/mongodb-github-action@1.8.0
       with:
         mongodb-version: 6.0.5
+        mongodb-host: mongodb
         mongodb-username: root
         mongodb-password: example
     - name: Install dependencies
