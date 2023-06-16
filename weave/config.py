@@ -29,13 +29,12 @@ def get_file_system():
         client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
     )
 
-def get_mongo_db(host="mongodb"):
+def get_mongo_db(default=False):
     """Get the mongodb client to be used for metadata search"""
-    if host == "localhost":
-        client = pymongo.MongoClient(username="root", 
-                                     password="example")
+    if default:
+        client = pymongo.MongoClient()
     else:
-        client = pymongo.MongoClient(host,
+        client = pymongo.MongoClient(mongodb,
                                      username="root", 
                                      password="example")
     return client

@@ -33,8 +33,6 @@ jobs:
       uses: supercharge/mongodb-github-action@1.8.0
       with:
         mongodb-version: 6.0.5
-        mongodb-username: root
-        mongodb-password: example
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
