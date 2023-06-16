@@ -2,6 +2,7 @@ import os
 import tempfile
 from fsspec.implementations.local import LocalFileSystem
 from unittest.mock import patch
+import pymongo
 import pytest
 import pandas as pd
 import weave
@@ -36,7 +37,7 @@ class TestMongo():
     
     def setup_class(self):
         self.test_collection = 'test_collection'
-        self.mongodb = weave.config.get_mongo_db().mongo_metadata
+        self.mongodb = pymongo.MongoClient()
         
         self.fs = LocalFileSystem()
         self.basket_type = "test_basket_type"
@@ -65,6 +66,7 @@ class TestMongo():
         self.mongodb[self.test_collection].drop()
     
     @patch("weave.config.get_file_system", return_value=LocalFileSystem())
+    @patch("weave.config.get_mongo_db", return_value=pymongo.MongoClient())
     def test_load_mongo(self, patch1):
         index_table = weave.create_index_from_s3(self.bucket_path)
         weave.load_mongo(index_table, self.test_collection)
