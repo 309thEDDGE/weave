@@ -31,10 +31,7 @@ def get_file_system():
 
 def get_mongo_db(default=False):
     """Get the mongodb client to be used for metadata search"""
-    if default:
-        client = pymongo.MongoClient()
-    else:
-        client = pymongo.MongoClient("mongodb",
-                                     username="root", 
-                                     password="example")
+    client = pymongo.MongoClient("mongodb",
+                                 username="root", 
+                                 password="example")
     return client

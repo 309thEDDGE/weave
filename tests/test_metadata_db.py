@@ -36,7 +36,7 @@ class TestMongo():
     
     def setup_class(self):
         self.test_collection = 'test_collection'
-        self.mongodb = weave.config.get_mongo_db(default = True).mongo_metadata
+        self.mongodb = weave.config.get_mongo_db().mongo_metadata
         
         self.fs = LocalFileSystem()
         self.basket_type = "test_basket_type"
