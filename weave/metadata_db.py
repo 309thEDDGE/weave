@@ -1,7 +1,7 @@
 import pandas as pd
 from weave import config, Basket
 
-def load_mongo(index_table):
+def load_mongo(index_table, collection = 'metadata'):
     """Load metadata from baskets into the mongo database.
 
        A metadata.json is created in Baskets when the metadata
@@ -43,4 +43,4 @@ def load_mongo(index_table):
         mongo_metadata['uuid'] = manifest['uuid']
         mongo_metadata['basket_type'] = manifest['basket_type']
         mongo_metadata.update(metadata)
-        db['metadata'].insert_one(mongo_metadata)
+        db[collection].insert_one(mongo_metadata)
