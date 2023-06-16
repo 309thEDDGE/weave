@@ -34,7 +34,7 @@ def get_mongo_db(default=False):
     if default:
         client = pymongo.MongoClient()
     else:
-        client = pymongo.MongoClient(mongodb,
+        client = pymongo.MongoClient("mongodb",
                                      username="root", 
                                      password="example")
     return client
