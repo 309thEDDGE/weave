@@ -18,6 +18,10 @@ def load_mongo(index_table, collection = 'metadata'):
                uuid
                basket_type
                address
+               
+        collection: [string]
+            Metadata wil be added to the Mongo collection specified.
+            default: 'metadata'
         """
     
     if not isinstance(index_table, pd.DataFrame):
