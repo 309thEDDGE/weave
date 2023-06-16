@@ -6,6 +6,7 @@ import os
 import json
 import jsonschema
 from jsonschema import validate
+from pathlib import Path
 
 from weave import config
 from fsspec.implementations.local import LocalFileSystem
@@ -19,6 +20,8 @@ def isValid(data, schema):
     except jsonschema.exceptions.ValidationError as err:
         return False
     return True
+
+
         
 
 
@@ -31,7 +34,18 @@ def validate_bucket(bucket_name):
     # my current working notes too:
     # bucket_name/basket_type/unique_id
     
+    fs = config.get_file_system()
+    # print('this is the fs: ', fs)
+    # print('fs tell: ', fs.tell())
+    
+    
     basket_address = os.fspath(bucket_name)
+
+    #valide the bucket exists
+    # if not fs.exists(basket_address):
+    #     raise FileNotFoundError(f"Invalid Basket Path, cannot find file")
+    
+    
     manifest_path = f"{basket_address}/basket_manifest.json"
     supplement_path = f"{basket_address}/basket_supplement.json"
     metadata_path = f"{basket_address}/basket_metadata.json"
@@ -76,7 +90,8 @@ def validate_bucket(bucket_name):
         
 
         
-# tempPath = './TestingValidation/'
-# print("\n",validate_bucket(tempPath))
+tempPath = './TestingValidation/'
+# tempPath = 'TERRIBLE'
+print("\n",validate_bucket(tempPath))
    
     
