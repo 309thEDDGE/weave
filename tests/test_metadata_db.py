@@ -5,7 +5,6 @@ from unittest.mock import patch
 import pytest
 import pandas as pd
 import weave
-from weave import config
 
 class TestMongo():
     
