@@ -16,11 +16,78 @@ from weave import validate, Basket, upload_basket, create_index_from_s3
 
 
 correct_out = {"manifest": True, "supplement": True, "metadata": True}
-    
 
+
+
+# stuff for the temp directories/basksets
+fs = LocalFileSystem()
+print('\n-----------------------------\n\n\nfs: ', fs)
+basket_type = "test_basket_type"
+print("basket type: ", basket_type)
+file_system_dir = tempfile.TemporaryDirectory()
+print('file system dir: ', file_system_dir)
+file_system_dir_path = file_system_dir.name
+print('file system dir path: ', file_system_dir_path)
+test_bucket = os.path.join(file_system_dir_path, "pytest-bucket")
+print('test bucket: ', test_bucket)
+fs.mkdir(test_bucket)
+uuid = "1234"
+basket_path = os.path.join(test_bucket, basket_type, uuid)
+print('basket path: ', basket_path)
+temp_dir = tempfile.TemporaryDirectory()
+print('temp dir: ', temp_dir)
+temp_dir_path = temp_dir.name
+print('temp dir path: ', temp_dir_path)
+print('\n\n\n--------------------------------------')
+
+
+
+def setup_function():
+    # fs = LocalFileSystem()
+    # basket_type = "test_basket_type"
+    # file_system_dir = tempfile.TemporaryDirectory()
+    # file_system_dir_path = file_system_dir.name
+    # test_bucket = os.path.join(file_system_dir_path, "pytest-bucket")
+    # fs.mkdir(test_bucket)
+    # uuid = "1234"
+    # basket_path = os.path.join(test_bucket, basket_type, uuid)
+    # temp_dir = tempfile.TemporaryDirectory()
+    # temp_dir_path = temp_dir.name
+    
+    
+    temp_dir = tempfile.TemporaryDirectory()
+    temp_dir_path = temp_dir.name
+    print('\n-------------\nbasket path in setup: ', basket_path)
+    if fs.exists(basket_path):
+        fs.rm(basket_path, recursive=True)
+    print('\n\n - - -- - - - -we made it in setup - - - - - - - - -\n')
+
+    
+def teardown_function():
+    print('\n-------------\nbasket path in teardown: ', basket_path)
+    if (fs.exists(basket_path)):
+        fs.rm(basket_path, recursive=True)
+    temp_dir.cleanup()
+    print('\n - - -- - - - -we made it in teardown - - - - - - - - \n')
+    
+# def teardown_class():
+#     if fs.exists(test_bucket):
+#         fs.rm(test_bucket, recursive=True)
+#     file_system_dir.cleanup()
+    
+    
 @patch("weave.config.get_file_system", return_value=LocalFileSystem())
-def test_bucket_does_not_exist(patch):
-    basket_path = Path("THISisNOTaPROPERbucketNAME")
+def test_one(patch):
+    assert 1 == 1
+    
+@patch("weave.config.get_file_system", return_value=LocalFileSystem())
+def test_two(patch):
+    assert 2 == 2
+
+    
+@patch("weave.config.get_file_system", return_value=LocalFileSystem())
+def test_validate_bucket_does_not_exist(patch):
+    basket_path = Path("THISisNOTaPROPERbucketNAMEorPATH")
     
     with pytest.raises(
         ValueError, match=f"Invalid basket path: {basket_path}"
@@ -29,36 +96,63 @@ def test_bucket_does_not_exist(patch):
 
         
 @patch("weave.config.get_file_system", return_value=LocalFileSystem())
-def test_no_manifest(patch):
-    with pytest.raises(
-        FileNotFoundError, match=f"No Manifest Found at: {basket_path}"
-    ):
-        validate.validate_bucket(basket_path)
-    
-    
-    
-@patch("weave.config.get_file_system", return_value=LocalFileSystem())
-def test_no_supplement(patch): 
-    with pytest.raises(
-        FileNotFoundError, match=f"No Supplement Found at: {basket_path}"
-    ):
-        validate.validate_bucket(basket_path)
-    
-    
-    
-@patch("weave.config.get_file_system", return_value=LocalFileSystem())
-def test_no_metadata(patch):
-    print('no metadata')
-    
-    
-    
-@patch("weave.config.get_file_system", return_value=LocalFileSystem())
-def test_basket_get_metadata(path):
-    # upload basket
-    upload_items = [{"path": temp_dir_path, "stub": False}]
+def test_validate_no_manifest_file(patch):
+    print(f"tempdirpath: {temp_dir_path}. basketpath: {basket_path}. uuid: {uuid}. baskettype: {basket_type}")
     upload_basket(
-        upload_items, basket_path, uuid, basket_type
+        [{"path": temp_dir_path, "stub": False}],
+        basket_path,
+        uuid,
+        basket_type,
+    
     )
+    
+    manifest_path = os.path.join(basket_path, "basket_manifest.json")
+    print('\nmanifest path: ', manifest_path)
+    os.remove(manifest_path)
+    
+    with pytest.raises(
+        FileNotFoundError, 
+        match=f"Invalid Basket, basket_manifest.json doest not exist at: {basket_path}"
+    ):
+        validate.validate_bucket(basket_path)
+    
+    
+@patch("weave.config.get_file_system", return_value=LocalFileSystem())
+def test_validate_no_supplement_file(patch):
+    print(f"tempdirpath: {temp_dir_path}. basketpath: {basket_path}. uuid: {uuid}, baskettype: {basket_type}")
+    upload_basket(
+        [{"path": temp_dir_path, "stub": False}],
+        basket_path,
+        uuid,
+        basket_type,
+    
+    )
+    
+    supplement_path = os.path.join(basket_path, "basket_supplement.json")
+    print('supplement path: ', supplement_path)
+    os.remove(supplement_path)
+    
+    with pytest.raises(
+        FileNotFoundError, 
+        match=f"Invalid Basket, basket_supplement.json doest not exist at: {basket_path}"
+    ):
+        validate.validate_bucket(basket_path)
+    
+    
+    
+# @patch("weave.config.get_file_system", return_value=LocalFileSystem())
+# def test_no_metadata(patch):
+#     print('no metadata')
+    
+    
+    
+# @patch("weave.config.get_file_system", return_value=LocalFileSystem())
+# def test_basket_get_metadata(path):
+#     # upload basket
+#     upload_items = [{"path": temp_dir_path, "stub": False}]
+#     upload_basket(
+#         upload_items, basket_path, uuid, basket_type
+#     )
     
     
     

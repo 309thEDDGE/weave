@@ -65,7 +65,7 @@ def validate_bucket(bucket_name):
         output['manifest'] = isValid(data, config.manifest_schema)
         
     else:
-        raise FileNotFoundError(f"No Manifest Found at: {basket_address}")
+        raise FileNotFoundError(f"Invalid Basket, basket_manifest.json doest not exist at: {basket_address}")
         
     
     if os.path.isfile(supplement_path):        
@@ -74,7 +74,7 @@ def validate_bucket(bucket_name):
         output['supplement'] =  isValid(data, config.supplement_schema)
         
     else:
-        raise FileNotFoundError(f"No Supplement Found at: {basket_address}")
+        raise FileNotFoundError(f"Invalid Basket, basket_supplement.json doest not exist at: {basket_address}")
         
         
     if os.path.isfile(metadata_path):       
