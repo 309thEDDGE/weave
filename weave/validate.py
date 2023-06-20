@@ -22,7 +22,10 @@ def isValid(data, schema):
     return True
 
 
-        
+def validate_baskets(bucket_name):
+    manifest_path = f"{basket_address}/basket_manifest.json"
+    supplement_path = f"{basket_address}/basket_supplement.json"
+    metadata_path = f"{basket_address}/basket_metadata.json"
 
 
 def validate_bucket(bucket_name):
@@ -41,38 +44,37 @@ def validate_bucket(bucket_name):
     
     basket_address = os.fspath(bucket_name)
 
-    #valide the bucket exists
-    # if not fs.exists(basket_address):
-    #     raise FileNotFoundError(f"Invalid Basket Path, cannot find file")
-    
+    # valide the bucket exists
+    if not fs.exists(basket_address):
+        raise ValueError(f"Invalid basket path: {basket_address}")
+        return None
+        
+
     
     manifest_path = f"{basket_address}/basket_manifest.json"
     supplement_path = f"{basket_address}/basket_supplement.json"
     metadata_path = f"{basket_address}/basket_metadata.json"
     
-    
+        
     output = {"manifest": False, "supplement": False, "metadata": False}
     
     
     if os.path.isfile(manifest_path):
         f = open(manifest_path)
-        
         data = json.load(f)
-        
         output['manifest'] = isValid(data, config.manifest_schema)
+        
     else:
-        output['manifest'] = 'No manifest found'
+        raise FileNotFoundError(f"No Manifest Found at: {basket_address}")
         
     
     if os.path.isfile(supplement_path):        
         f = open(supplement_path)
-        
         data = json.load(f)
-        
         output['supplement'] =  isValid(data, config.supplement_schema)
+        
     else:
-        output['supplement'] = 'No supplement found'
-    
+        raise FileNotFoundError(f"No Supplement Found at: {basket_address}")
         
         
     if os.path.isfile(metadata_path):       
@@ -90,8 +92,8 @@ def validate_bucket(bucket_name):
         
 
         
-tempPath = './TestingValidation/'
+# tempPath = './TestingValidation/'
 # tempPath = 'TERRIBLE'
-print("\n",validate_bucket(tempPath))
+# print("\n",validate_bucket(tempPath))
    
     

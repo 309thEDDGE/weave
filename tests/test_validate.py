@@ -12,49 +12,62 @@ from fsspec.implementations.local import LocalFileSystem
 import pytest
 import s3fs
 
-from weave import validate
+from weave import validate, Basket, upload_basket, create_index_from_s3
 
 
 correct_out = {"manifest": True, "supplement": True, "metadata": True}
-
-
-def test_manifest_uuid():
-    print('\n my test \n')
-#     fs = LocalFileSystem()
-    
-#     ck={"endpoint_url": os.environ["S3_ENDPOINT"]}
-#     s3fs_client = s3fs.S3FileSystem(client_kwargs=ck)
-    
-#     print(s3fs_client)
     
 
+@patch("weave.config.get_file_system", return_value=LocalFileSystem())
+def test_bucket_does_not_exist(patch):
+    basket_path = Path("THISisNOTaPROPERbucketNAME")
+    
+    with pytest.raises(
+        ValueError, match=f"Invalid basket path: {basket_path}"
+    ):
+        validate.validate_bucket(basket_path)
 
-# def test_bucket_does_not_exist():
-    
-#     out = validate.validate_bucket("THISisNOTaPROPERbucketNAME")
-    
-#     assert correct_out == out
-    
-#     if (correct_out == out):
-#         print('correct output')
-#     else:
-#         print('incorrect output')
+        
+@patch("weave.config.get_file_system", return_value=LocalFileSystem())
+def test_no_manifest(patch):
+    with pytest.raises(
+        FileNotFoundError, match=f"No Manifest Found at: {basket_path}"
+    ):
+        validate.validate_bucket(basket_path)
     
     
-#     basket_path = Path('bad path')
-#     with pytest.raises(
-#         ValueError, match=f"Basket does not exist: {basket_path}"
-#     ):
-#         print('error raised')
+    
+@patch("weave.config.get_file_system", return_value=LocalFileSystem())
+def test_no_supplement(patch): 
+    with pytest.raises(
+        FileNotFoundError, match=f"No Supplement Found at: {basket_path}"
+    ):
+        validate.validate_bucket(basket_path)
     
     
-#     print("local file system: ", LocalFileSystem())
-#     print('test')
     
-# print('\n \n \n test2')
+@patch("weave.config.get_file_system", return_value=LocalFileSystem())
+def test_no_metadata(patch):
+    print('no metadata')
     
-    # tempPath = './TestingValidation/'
-    # validate_bucket(tempPath)
+    
+    
+@patch("weave.config.get_file_system", return_value=LocalFileSystem())
+def test_basket_get_metadata(path):
+    # upload basket
+    upload_items = [{"path": temp_dir_path, "stub": False}]
+    upload_basket(
+        upload_items, basket_path, uuid, basket_type
+    )
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
 class MinioBucketAndTempBasket():
@@ -79,7 +92,7 @@ class MinioBucketAndTempBasket():
         tmp_basket_txt_file.write("This is a text file for testing purposes.")
         return tmp_basket_dir
     
-    def add_lower_dir_to_temp_basket(self, tmp_bakset_dir):
+    def add_lower_dir_to_temp_basket(self, tmp_basket_dir):
         nd = tmp_basket_dir.mkdir("nested_dir")
         nd.join("another_test.txt").write("more test text")
         return tmp_basket_dir
