@@ -17,7 +17,17 @@ Useful functions are imported from `weave.access` and `weave.create_index`.
 Weave was built with the intention of connecting to an S3 bucket with an
 `s3fs.S3FileSystem` object. Any filesystem that uses an
 `fsspec.implementations` API should be possible to implement. For now, Weave
-has only been tested using an S3 bucket filesystem.
+has only been tested using an S3 bucket filesystem.  
+
+The following environment variables are required to establish an S3 connection:  
+- AWS_ACCESS_KEY_ID
+- AWS_SECRET_ACCESS_KEY
+- S3_ENDPOINT
+  
+The following environment variables are required to establish a MongoClient connection:  
+- MONGODB_HOST
+- MONGODB_USERNAME
+- MONGODB_PASSWORD
 
 ### Baskets 
 

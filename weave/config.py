@@ -32,6 +32,9 @@ def get_file_system():
 def get_mongo_db():
     """Get the mongodb client to be used for metadata search"""
     
+    # If MONGODB_HOST, USERNAME and PASSWORD are provided as environment
+    # variables, initialize the mongo client with the provided
+    # credentials. Else defer to default credentials for OPAL
     if "MONGODB_HOST" in os.environ and \
        "MONGODB_USERNAME" in os.environ and \
        "MONGODB_PASSWORD" in os.environ:
