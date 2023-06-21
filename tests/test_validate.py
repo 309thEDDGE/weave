@@ -21,6 +21,237 @@ all_true = {"manifest": True, "supplement": True, "metadata": True}
 
 
 
+# """
+
+
+class TestValidate():
+    def __init__(self, tmpdir):
+        self.tmpdir = tmpdir
+        
+        self.basket_list = []
+        ck={"endpoint_url": os.environ["S3_ENDPOINT"]}
+        self.s3fs_client = s3fs.S3FileSystem(client_kwargs=ck)
+        self._set_up_bucket()
+        
+    def _set_up_bucket(self):
+        try:
+            self.s3_bucket_name = 'pytest-temp-bucket'
+            self.s3fs_client.mkdir(self.s3_bucket_name)
+        except:
+            self.cleanup_bucket()
+            self._set_up_bucket()
+        
+        
+    def upload_basket(self, tmp_basket_dir, uid='0000'):
+        b_type = "test_basket"
+        up_dir = os.path.join(self.s3_bucket_name, b_type, uid)
+        upload_basket(
+            upload_items=[{'path':str(tmp_basket_dir.realpath()),
+                           'stub':False}],
+            upload_directory=up_dir,
+            unique_id=uid,
+            basket_type=b_type
+        )
+        return up_dir
+    
+    
+        
+    def set_up_basket(self, tmp_dir_name):
+        tmp_basket_dir = self.tmpdir.mkdir(tmp_dir_name)
+        tmp_basket_json_file = tmp_basket_dir.join("basket_manifest.json")
+        tmp_basket_json_file.write('{"test":1}')
+        return tmp_basket_dir
+    
+    def clean_up(self):
+        print('cleanup')
+        
+        
+        
+    def cleanup_bucket(self):
+        self.s3fs_client.rm(self.s3_bucket_name, recursive=True)
+    
+    
+@pytest.fixture
+def set_up_TestValidate(tmpdir):
+    tv = TestValidate(tmpdir)
+    yield tv
+    tv.clean_up()
+    
+
+    
+# @patch("weave.config.get_file_system", return_value=LocalFileSystem())
+def test_validate_bucket_does_not_exist(set_up_TestValidate):
+    tv = set_up_TestValidate
+    
+    basket_path = Path("THISisNOTaPROPERbucketNAMEorPATH")
+    
+    with pytest.raises(
+        ValueError, match=f"Invalid basket path: {basket_path}"
+    ):
+        validate.validate_bucket(basket_path)
+    
+    
+    
+    
+def test_validate_no_manifest_file(set_up_TestValidate):
+    tv = set_up_TestValidate
+    
+    
+    tmp_basket_dir_name = "manifest"
+    tmp_basket_dir = tv.set_up_basket(tmp_basket_dir_name)
+    
+    s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
+    
+    create_index_from_s3(tv.s3_bucket_name)
+    
+    tv.s3fs_client.find(tv.s3_bucket_name)
+    
+    manifest_path = os.path.join(tmp_basket_dir, "basket_manifest.json")
+    print('tmpbasketdir:', tmp_basket_dir)
+    print('manifestpath:', manifest_path)
+    print('\n\n\nfiles in this dir:\n', os.listdir(manifest_path))
+    
+    
+    
+    validate.validate_bucket(tmp_basket_dir)
+    
+    
+    
+#     upload_basket(
+#         [{"path": str(tv.file_system_dir), "stub": False}],
+#         tv.basket_path,
+#         tv.uuid,
+#         tv.basket_type,
+#     )
+    
+#     manifest_path = os.path.join(tv.basket_path, "basket_manifest.json")
+    
+#     print('manifest path:', manifest_path)
+#     os.remove(manifest_path)
+    
+    
+#     with pytest.raises(
+#         FileNotFoundError, 
+#         match=f"Invalid Basket, basket_manifest.json doest not exist at: {basket_path}"
+#     ):
+#         validate.validate_bucket(tv.basket_path)
+        
+        
+        
+        
+        
+        
+        
+        
+#         self.fs = LocalFileSystem()
+#         self.basket_type = "test_basket_type"
+        
+#         self.file_system_dir = self.tmpdir.mkdir('file_system_dir')
+#         print('file_system_dir', self.file_system_dir)
+#         # self.file_system_dir = tempfile.TemporaryDirectory()
+#         # self.file_system_dir_path = self.file_system_dir.name
+        
+#         self.test_bucket = os.path.join(self.file_system_dir, "pytest-bucket")
+#         self.fs.mkdir(self.test_bucket)
+#         self.uuid = "1234"
+#         self.basket_path = os.path.join(self.test_bucket, self.basket_type, self.uuid)
+#         print('basket_path:', self.basket_path)
+        
+        
+        # self.temp_dir = self.tmpdir.mkdir('temp_dir')
+        # print('temp_Dir:', self.temp_dir)
+        # self.temp_dir_path = self.temp_dir.name
+        
+        # self.temp_dir = tempfile.TemporaryDirectory()
+        # self.temp_dir_path = self.temp_dir.name
+        
+        
+#     def set_up_function(self):
+#         print('before setup tempdir', self.temp_dir_path)
+#         self.temp_dir = self.tmpdir.mkdir('myTempDir')
+#         # self.temp_dir_path = self.temp_dir.name
+#         # self.temp_dir = tempfile.TemporaryDirectory()
+#         # self.temp_dir_path = self.temp_dir.name
+#         print('after setup tempdir', self.temp_dir_path)
+#         if self.fs.exists(self.basket_path):
+#             self.fs.rm(self.basket_path, recursive=True)
+    
+#     def clean_up_function(self):
+#         if (self.fs.exists(self.basket_path)):
+#             self.fs.rm(self.basket_path, recursive=True)
+#         self.temp_dir.cleanup()
+        
+#     def clean_up(self):
+#         if self.fs.exists(self.test_bucket):
+#             self.fs.rm(self.test_bucket, recursive=True)
+#         self.temp_dir.cleanup()
+
+    
+# @pytest.fixture
+# def set_up_TestValidate(tmpdir):
+#     tv = TestValidate(tmpdir)
+#     yield tv
+#     tv.clean_up()
+    
+
+    
+# # @patch("weave.config.get_file_system", return_value=LocalFileSystem())
+# def test_validate_bucket_does_not_exist(set_up_TestValidate):
+#     tv = set_up_TestValidate
+    
+#     # tv.set_up_function()
+    
+#     basket_path = Path("THISisNOTaPROPERbucketNAMEorPATH")
+    
+#     with pytest.raises(
+#         ValueError, match=f"Invalid basket path: {basket_path}"
+#     ):
+#         validate.validate_bucket(basket_path)
+        
+#     # tv.clean_up_function()
+    
+    
+# # @patch("weave.config.get_file_system", return_value=LocalFileSystem())
+# def test_validate_no_manifest_file(set_up_TestValidate):
+#     tv = set_up_TestValidate
+    
+#     # print('\n\nbasketpath: ', tv.basket_path)
+#     # print('temp_dir_path:', tv.temp_dir_path)
+    
+#     # tv.set_up_function()
+    
+# #     print('\n\nbasketpath: ', tv.basket_path)
+# #     print('temp_dir_path:', tv.temp_dir_path)
+# #     print('\nuuid:', tv.uuid)
+# #     print('basket_type:', tv.basket_type)
+    
+#     upload_basket(
+#         [{"path": str(tv.file_system_dir), "stub": False}],
+#         tv.basket_path,
+#         tv.uuid,
+#         tv.basket_type,
+#     )
+    
+#     manifest_path = os.path.join(tv.basket_path, "basket_manifest.json")
+    
+#     print('manifest path:', manifest_path)
+#     os.remove(manifest_path)
+    
+    
+#     with pytest.raises(
+#         FileNotFoundError, 
+#         match=f"Invalid Basket, basket_manifest.json doest not exist at: {basket_path}"
+#     ):
+#         validate.validate_bucket(tv.basket_path)
+        
+#     # tv.clean_up_function()
+        
+        
+# """
+        
+        
+    
+"""s    
 # stuff for the temp directories/basksets
 fs = LocalFileSystem()
 print('\n-----------------------------\n\n\nfs: ', fs)
@@ -40,35 +271,7 @@ temp_dir = tempfile.TemporaryDirectory()
 print('temp dir: ', temp_dir)
 temp_dir_path = temp_dir.name
 print('temp dir path: ', temp_dir_path)
-print('\n\n\n--------------------------------------')
-
-
-class TestValidate():
-    def __innit__(self, tmpdir):
-        # stuff for the temp directories/basksets
-        self.fs = LocalFileSystem()
-        # print('\n-----------------------------\n\n\nfs: ', fs)
-        self.basket_type = "test_basket_type"
-        # print("basket type: ", basket_type)
-        self.file_system_dir = tempfile.TemporaryDirectory()
-        # print('file system dir: ', file_system_dir)
-        self.file_system_dir_path = self.file_system_dir.name
-        # print('file system dir path: ', file_system_dir_path)
-        self.test_bucket = os.path.join(self.file_system_dir_path, "pytest-bucket")
-        # print('test bucket: ', test_bucket)
-        self.fs.mkdir(self.test_bucket)
-        self.uuid = "1234"
-        self.basket_path = os.path.join(self.test_bucket, self.basket_type, self.uuid)
-        # print('basket path: ', basket_path)
-        self.temp_dir = tempfile.TemporaryDirectory()
-        # print('temp dir: ', temp_dir)
-        self.temp_dir_path = self.temp_dir.name
-        # print('temp dir path: ', temp_dir_path)
-        # print('\n\n\n--------------------------------------')
-
-
-
-
+print('\n\n\n--------------------------------------')    
 
 def setup_function():  
     global temp_dir
@@ -84,7 +287,7 @@ def teardown_function():
         fs.rm(basket_path, recursive=True)
     temp_dir.cleanup()
 
-    
+
     
     
 @patch("weave.config.get_file_system", return_value=LocalFileSystem())
@@ -106,8 +309,13 @@ def test_validate_no_manifest_file(patch):
         basket_type,
     )
     
+    print('\nbasketpath:', basket_path)
+    print('tempdirpath:', temp_dir_path)
+    
     manifest_path = os.path.join(basket_path, "basket_manifest.json")
+    print('manifestpath:', manifest_path)
     os.remove(manifest_path)
+    
     
     with pytest.raises(
         FileNotFoundError, 
@@ -134,6 +342,26 @@ def test_validate_no_supplement_file(patch):
         match=f"Invalid Basket, basket_supplement.json doest not exist at: {basket_path}"
     ):
         validate.validate_bucket(basket_path)
+    
+    
+@patch("weave.config.get_file_system", return_value=LocalFileSystem())
+def test_validate_no_metadata_file(patch):
+    upload_basket(
+        [{"path": temp_dir_path, "stub": False}],
+        basket_path,
+        uuid,
+        basket_type,
+    
+    )
+    
+    metadata_path = os.path.join(basket_path, "basket_metadata.json")
+    
+    if fs.exists(metadata_path):
+        os.remove(metadata_path)
+    
+    dict_out = validate.validate_bucket(basket_path)
+    assert dict_out['metadata'] == 'No metadata found' 
+    
     
     
 @patch("weave.config.get_file_system", return_value=LocalFileSystem())
@@ -185,10 +413,62 @@ def test_validate_supplement_is_valid(patch):
     # validate_bucket returns a dictionary showing manifest, supplement, and metadata
     # and if their json's were valid by saying true or false
     dict_out = validate.validate_bucket(basket_path)
-    # checks if manifest's data is true (valid json scheme)
+    # checks if supplement's data is true (valid json scheme)
     assert dict_out['supplement']
     
     
+    
+@patch("weave.config.get_file_system", return_value=LocalFileSystem())
+def test_validate_metadata_is_valid(patch):
+    # upload basket
+    metadata_in = {"test":1}
+    upload_basket(
+        [{"path": temp_dir_path, "stub": False}],
+        basket_path,
+        uuid,
+        basket_type,
+        metadata=metadata_in,
+    )
+    dict_out = validate.validate_bucket(basket_path)
+    
+    #metadata is valid, because it is able to read into a dictionary
+    assert dict_out['metadata']
+    
+    
+# @patch("weave.config.get_file_system", return_value=LocalFileSystem())
+# def test_validate_metadata_is_invalid(patch):
+#     # upload basket
+#     # metadata_in = {
+#     # "uuid": "str3",
+#     # "upload_time": "uploadtime string", 
+#     # "parent_uuids": [ "string1", "string2", "string3" ],
+#     # "basket_type": "basket type string",
+#     # "label": "label string"
+#     # }
+#     metadata_in = '''{
+#     "uuid": "str3",
+#     "upload_time": "uploadtime string", 
+#     "parent_uuids": [ "string1", "string2", "string3" ],
+#     "basket_type": "basket type string",
+#     "label": "label string"
+#     }'''
+#     upload_basket(
+#         [{"path": temp_dir_path, "stub": False}],
+#         basket_path,
+#         uuid,
+#         basket_type,
+#         metadata=metadata_in,
+#     )
+#     dict_out = validate.validate_bucket(basket_path)
+    
+#     #metadata is valid, because it is able to read into a dictionary
+#     assert dict_out['metadata']
+    
+    
+    
+    
+    
+# """   
     
     
     

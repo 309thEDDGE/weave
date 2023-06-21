@@ -29,19 +29,8 @@ def validate_baskets(bucket_name):
 
 
 def validate_bucket(bucket_name):
-    # the bucket name would be something like this: 
-    # 7b71a3f0654093511babbeeba3d0242c0a82011
-    # this is like a folder name, then there should be:
-    # manifest, supplement, and sometimes the metadata. 
-    # if we do have the metadata, we need to make sure we can read it into a json object
-    # my current working notes too:
-    # bucket_name/basket_type/unique_id
     
     fs = config.get_file_system()
-    # print('this is the fs: ', fs)
-    # print('fs tell: ', fs.tell())
-    
-    
     basket_address = os.fspath(bucket_name)
 
     # valide the bucket exists
@@ -49,7 +38,6 @@ def validate_bucket(bucket_name):
         raise ValueError(f"Invalid basket path: {basket_address}")
         return None
         
-
     
     manifest_path = f"{basket_address}/basket_manifest.json"
     supplement_path = f"{basket_address}/basket_supplement.json"
