@@ -34,7 +34,9 @@ def get_mongo_db():
     
     # If MONGODB_HOST, USERNAME and PASSWORD are provided as environment
     # variables, initialize the mongo client with the provided
-    # credentials. Else defer to default credentials for OPAL
+    # credentials. Else defer to default credentials for OPAL.
+    # TODO: remove the default credentials for OPAL, 
+    # once OPAL exposes environment variables
     if "MONGODB_HOST" in os.environ and \
        "MONGODB_USERNAME" in os.environ and \
        "MONGODB_PASSWORD" in os.environ:
