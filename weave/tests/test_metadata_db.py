@@ -88,6 +88,13 @@ class TestMongo():
         ):
             weave.load_mongo("", self.test_collection)
             
+    def test_load_mongo_check_collection_for_string(self):
+        with pytest.raises(
+            TypeError, match="Invalid datatype for collection: "
+                             "must be a string"
+        ):
+            weave.load_mongo(pd.DataFrame(), 1)
+            
     def test_load_mongo_check_dataframe_for_uuid(self):
         with pytest.raises(
             ValueError, match="Invalid index_table: "

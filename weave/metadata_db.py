@@ -27,6 +27,10 @@ def load_mongo(index_table, collection = 'metadata'):
     if not isinstance(index_table, pd.DataFrame):
         raise TypeError("Invalid datatype for index_table: "
                         "must be Pandas DataFrame")
+        
+    if not isinstance(collection, str):
+        raise TypeError("Invalid datatype for collection: "
+                        "must be a string")
     
     required_columns = ['uuid', 'basket_type', 'address']
     
