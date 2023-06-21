@@ -29,12 +29,17 @@ jobs:
       run: |
         mkdir ~/minio
         minio server ~/minio --console-address :9090 &!
+    - name: Expose MongoDB Credentials
+      run: |
+        export MONGODB_HOST=localhost
+        export MONGODB_USERNAME=testusername
+        export MONGODB_PASSWORD=testpassword
     - name: Start MongoDB
       uses: supercharge/mongodb-github-action@1.8.0
       with:
-        mongodb-version: ${{ matrix.mongodb-version }}
-        mongodb-username: root
-        mongodb-password: password
+        mongodb-version: 6.0.5
+        mongodb-username: testusername
+        mongodb-password: testpassword
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
