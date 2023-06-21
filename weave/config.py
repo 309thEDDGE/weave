@@ -31,7 +31,20 @@ def get_file_system():
 
 def get_mongo_db():
     """Get the mongodb client to be used for metadata search"""
-    client = pymongo.MongoClient("mongodb", 
-                                 username="root", 
-                                 password="example")
+    
+    # If MONGODB_HOST, USERNAME and PASSWORD are provided as environment
+    # variables, initialize the mongo client with the provided
+    # credentials. Else defer to default credentials for OPAL.
+    # TODO: remove the default credentials for OPAL, 
+    # once OPAL exposes environment variables
+    if "MONGODB_HOST" in os.environ and \
+       "MONGODB_USERNAME" in os.environ and \
+       "MONGODB_PASSWORD" in os.environ:
+        client = pymongo.MongoClient(host = os.environ["MONGODB_HOST"],
+                                     username = os.environ["MONGODB_USERNAME"],
+                                     password = os.environ["MONGODB_PASSWORD"])
+    else:
+        client = pymongo.MongoClient("mongodb",
+                                     username="root", 
+                                     password="example")
     return client
