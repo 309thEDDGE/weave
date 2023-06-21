@@ -29,11 +29,6 @@ jobs:
       run: |
         mkdir ~/minio
         minio server ~/minio --console-address :9090 &!
-    - name: Expose MongoDB Credentials
-      run: |
-        export MONGODB_HOST=localhost
-        export MONGODB_USERNAME=testusername
-        export MONGODB_PASSWORD=testpassword
     - name: Start MongoDB
       uses: supercharge/mongodb-github-action@1.8.0
       with:
@@ -47,6 +42,9 @@ jobs:
         pip install .
     - name: Test with pytest
       run: |
+        export MONGODB_HOST=localhost
+        export MONGODB_USERNAME=testusername
+        export MONGODB_PASSWORD=testpassword
         export AWS_ACCESS_KEY_ID=minioadmin
         export AWS_SECRET_ACCESS_KEY=minioadmin
         export S3_ENDPOINT=http://172.17.0.1:9000/
