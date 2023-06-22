@@ -40,7 +40,56 @@ class TestValidate():
         except:
             self.cleanup_bucket()
             self._set_up_bucket()
+            
+    def set_up_basket(self, tmp_dir_name, is_man=True, is_sup=True, is_meta=True):
+        tmp_basket_dir = self.tmpdir.mkdir(tmp_dir_name)
         
+        if is_man:
+            tmp_manifest = tmp_basket_dir.join("basket_manifest.json")
+            tmp_manifest.write('''{
+                "uuid": "str3",
+                "upload_time": "uploadtime string", 
+                "parent_uuids": [ "string1", "string2", "string3" ],
+                "basket_type": "basket type string",
+                "label": "label string"
+            }''')
+        
+        if is_sup:
+            tmp_supplement = tmp_basket_dir.join("basket_supplement.json")
+            tmp_supplement.write('''{
+                "upload_items":
+                [
+                { "path": "str", "stub": false}
+                ],
+
+                "integrity_data": 
+                [
+                { 
+                    "file_size": 33, 
+                    "hash": "string", 
+                    "access_date":"string", 
+                    "source_path": "string", 
+                    "byte_count": 1, 
+                    "stub":false, 
+                    "upload_path":"string"
+                }
+                ]
+            }''')
+            
+        if is_meta:
+            tmp_metadata = tmp_basket_dir.join("basket_metadata.json")
+            tmp_metadata.write('''{"Test":1, "test_bool":true}''')
+    
+        return tmp_basket_dir
+    
+                            
+    
+    def add_lower_dir_to_temp_basket(self, tmp_basket_dir):
+        nd = tmp_basket_dir.mkdir("nested_dir")
+        nd.join("basket_test.json").write('{"baskTest":22}')
+        return tmp_basket_dir
+        
+                            
         
     def upload_basket(self, tmp_basket_dir, uid='0000'):
         b_type = "test_basket"
@@ -54,28 +103,19 @@ class TestValidate():
         )
         return up_dir
     
-    
-        
-    def set_up_basket(self, tmp_dir_name):
-        tmp_basket_dir = self.tmpdir.mkdir(tmp_dir_name)
-        tmp_basket_json_file = tmp_basket_dir.join("basket_manifest.json")
-        tmp_basket_json_file.write('{"test":1}')
-        return tmp_basket_dir
-    
-    def clean_up(self):
-        print('cleanup')
-        
-        
         
     def cleanup_bucket(self):
         self.s3fs_client.rm(self.s3_bucket_name, recursive=True)
-    
+   
+
+
+
     
 @pytest.fixture
 def set_up_TestValidate(tmpdir):
     tv = TestValidate(tmpdir)
     yield tv
-    tv.clean_up()
+    tv.cleanup_bucket()
     
 
     
@@ -83,12 +123,12 @@ def set_up_TestValidate(tmpdir):
 def test_validate_bucket_does_not_exist(set_up_TestValidate):
     tv = set_up_TestValidate
     
-    basket_path = Path("THISisNOTaPROPERbucketNAMEorPATH")
+    bucket_path = Path("THISisNOTaPROPERbucketNAMEorPATH")
     
     with pytest.raises(
-        ValueError, match=f"Invalid basket path: {basket_path}"
+        ValueError, match=f"Invalid Bucket path, it does not exist at: {bucket_path}"
     ):
-        validate.validate_bucket(basket_path)
+        validate.validate_bucket(bucket_path)
     
     
     
@@ -97,8 +137,22 @@ def test_validate_no_manifest_file(set_up_TestValidate):
     tv = set_up_TestValidate
     
     
-    tmp_basket_dir_name = "manifest"
-    tmp_basket_dir = tv.set_up_basket(tmp_basket_dir_name)
+    tmp_basket_dir_name = "deeper_basket"
+    
+# ----- THIS CURRENTLY WILL MAKE A BASKET WITHOUT THE FILE YOU WANT WHEN YOU SPECIFY,
+# - --- BUT IT DOESN'T RAISE AN ERROR IN THE VALIDATE.PY BECAUSE IT'S CHECKING IF THEY EXIST AT ALL
+
+    tmp_basket_dir = tv.set_up_basket(tmp_basket_dir_name, is_man=False)
+    
+    my_basket = tv.tmpdir.mkdir("my_new_basket")
+    
+    tmp_manifest = my_basket.join("mytesting_manifest_thingy.json")
+    
+    print('my_basket: ', my_basket)
+    print('tmpmanifest: ', tmp_manifest)
+    
+    
+    # tmp_basket_dir = tv.add_lower_dir_to_temp_basket(tmp_basket_dir)
     
     s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
     
@@ -106,14 +160,20 @@ def test_validate_no_manifest_file(set_up_TestValidate):
     
     tv.s3fs_client.find(tv.s3_bucket_name)
     
-    manifest_path = os.path.join(tmp_basket_dir, "basket_manifest.json")
-    print('tmpbasketdir:', tmp_basket_dir)
-    print('manifestpath:', manifest_path)
-    print('\n\n\nfiles in this dir:\n', os.listdir(manifest_path))
+    # manifest_path = os.path.join(tmp_basket_dir, "basket_manifest.json")
+#     print('tmpbasketdir:', tmp_basket_dir)
+#     print('manifestpath:', manifest_path)
+#     print('\n\n\nfiles in this dir:\n', os.listdir(manifest_path))
+    print('\n\n\n')
+    mylist = tv.s3fs_client.find(tv.s3_bucket_name)
+    for i in mylist:
+        print(i)
+    # print(tv.s3fs_client.info(tv.s3_bucket_name))
+    # print(tv.s3fs_client.tell())
+    print('\n\n\n')
+    # print('bucket name: ', tv.s3_bucket_name)
     
-    
-    
-    validate.validate_bucket(tmp_basket_dir)
+    validate.validate_bucket(tv.s3_bucket_name)
     
     
     
