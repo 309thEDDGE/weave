@@ -158,6 +158,7 @@ class Index():
             n is the number of latest index baskets to retain.
         '''
         n = int(n)
+        fs = config.get_file_system()
         index_paths = fs.glob(f"{self.index_basket_dir_path}/**/*-index.json")
         if not len(index_paths) > n:
             return
