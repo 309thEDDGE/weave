@@ -7,7 +7,7 @@ from weave.uploader import upload_basket
 # The following code is for testing in an environment with MinIO:
 
 
-class TestBucket():
+class BucketForTest():
     def __init__(self, tmpdir):
         self.tmpdir = tmpdir
         self.basket_list = []

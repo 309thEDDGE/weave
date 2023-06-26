@@ -8,9 +8,9 @@ from fsspec.implementations.local import LocalFileSystem
 import pytest
 
 from weave.basket import Basket
-from weave.create_index import create_index_from_s3
+from weave.index import create_index_from_s3
 from weave.uploader import upload_basket
-from weave.tests.pytest_resources import TestBucket
+from weave.tests.pytest_resources import BucketForTest
 
 
 class TestBasket:
@@ -344,7 +344,7 @@ https://docs.pytest.org/en/7.3.x/how-to
 
 @pytest.fixture
 def set_up_tb(tmpdir):
-    tb = TestBucket(tmpdir)
+    tb = BucketForTest(tmpdir)
     yield tb
     tb.cleanup_bucket()
 
