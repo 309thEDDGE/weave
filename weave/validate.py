@@ -2,6 +2,34 @@
 #basket_data
 #take in the bucket name as the argument
 
+
+# psuedo code for how I'm going to take a bucket, and get all the jsons from it.
+# when you get a bucket name, there could be any number of sub directories and baskets in it
+# a sub directory could have even more sub directories in it with hundreds of baskets
+# we know something is a basket because it will have a manifest, supplement, and sometimes a metadata
+# 
+# when given a Bucket name, it's very likely that there will be a set of folders directly in it.
+# inside those folder, we could have more folders, or baskets.
+# so, when given a Bucket name, go one folder deeper, check if there is a manifest.json
+# if there is no manifest.json, try to go one folder deeper.
+# if you go deeper, and there is still no manifest.json, try to go deeper.
+# keep going deeper in the directories until you find a manifest.json.
+# when we find a manifest.json, validate it and the supplement.json with it.
+
+# Bucket name, check files inside
+# check folders inside the Bucket for manifests
+# if no manifests, go deeper
+#  if there is a manifest, validate it with supplement and metadata
+#  This is a Basket
+# once Basket is validated, check other Baskets at the same level
+# once all Baskets have been checked, make sure you go back out and have checked
+# all the other directories in the Bucket
+# 
+# raise errors where needed, return true or something else to confirm Bucket is valid.  
+
+
+
+
 import os
 import json
 import jsonschema
@@ -9,6 +37,7 @@ from jsonschema import validate
 from pathlib import Path
 
 from weave import config
+from weave.create_index import create_index_from_s3
 from fsspec.implementations.local import LocalFileSystem
 import s3fs
 
@@ -99,8 +128,14 @@ def validate_bucket(bucket_name):
     s3fs_client = s3fs.S3FileSystem(client_kwargs=ck)
     
     if not s3fs_client.exists(bucket_name):
-        raise ValueError(f"Invalid Bucket path, it does not exist at: {bucket_name}")
+        raise ValueError(f"Invalid Bucket Path, it does not exist at: {bucket_name}")
         return None
+    
+    #testing with minio and buckets
+    index = create_index_from_s3(bucket_name)
+    print('index:', index)
+    
+    
     
     file_list = s3fs_client.find(bucket_name)
     
