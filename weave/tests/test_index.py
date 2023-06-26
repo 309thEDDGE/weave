@@ -156,6 +156,16 @@ class TestCreateIndex:
                 os.path.join(self.file_system_dir_path, "NOT-A-BUCKET")
             )
 
+
+class TestBucket():
+    '''Facilitate testing of Index class'''
+    
+    def __init__(self, bucket_name='pytest-weave-index-bucket'):
+        self.bucket_name = bucket_name
+
+    def add_test_basket(self):
+        
+
 def test_sync_index_gets_latest_index():
     pass
 
