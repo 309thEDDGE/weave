@@ -167,7 +167,11 @@ class Index():
         for index in index_list:
             if index not in indices_to_keep:
                 try:
-                    self.delete_basket(basket_uuid=index)
+                    path = fs.glob(
+                        f"{self.index_basket_dir_path}/**/{index}-index.json"
+                    )[0]
+                    uuid = path.split(os.path.sep)[-2]
+                    self.delete_basket(basket_uuid=uuid)
                 except ValueError as e:
                     warn(e)
 
@@ -233,5 +237,7 @@ class Index():
                 "delete that basket before deleting it's parent basket."
             )
         else:
-            adr = self.index[self.index_df["uuid"] == basket_uuid]["address"]
+            adr = self.index_df[
+                self.index_df["uuid"] == basket_uuid
+            ]["address"]
             fs.rm(adr, recursive=True)

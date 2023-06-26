@@ -1,15 +1,18 @@
-import pytest
-import tempfile
-import os
 import json
-import pandas as pd
-from weave.create_index import create_index_from_s3
-from fsspec.implementations.local import LocalFileSystem
+import os
+import re
+import tempfile
 from unittest.mock import patch
 
-from weave.uploader import upload_basket
+from fsspec.implementations.local import LocalFileSystem
+import pandas as pd
+import pytest
+
+from weave.config import get_file_system
+from weave.create_index import create_index_from_s3
 from weave.index import Index
 from weave.tests.pytest_resources import TestBucket
+from weave.uploader import upload_basket
 
 
 class TestCreateIndex:
@@ -194,38 +197,163 @@ def test_sync_index_gets_latest_index(set_up_tb):
     # add another basket
     tmp_basket_dir_two = tb.set_up_basket("basket_two")
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
+    
+    # Regenerate index outside of current index object
+    ind2 = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind2.regenerate_index()
+
+    # assert length of index includes both baskets
+    assert len(ind.to_pandas_df()) == 3
+
+def test_sync_index_calls_generate_index_if_no_index(set_up_tb):
+    tb = set_up_tb
+    # Put basket in the temporary bucket
+    tmp_basket_dir_one = tb.set_up_basket("basket_one")
+    tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+
+    # create index
+    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    assert len(ind.to_pandas_df()) == 1
+
+def test_get_index_time_from_path():
+    path = "C:/asdf/gsdjls/1234567890-index.json"
+    time = Index()._get_index_time_from_path(path=path)
+    assert time == 1234567890
+
+def test_to_pandas_df(set_up_tb):
+    tb = set_up_tb
+    # Put basket in the temporary bucket
+    tmp_basket_dir_one = tb.set_up_basket("basket_one")
+    tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+
+    # create index
+    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    df = ind.to_pandas_df()
+    assert len(df) == 1 and type(df) is pd.DataFrame
+
+def test_clean_up_indices_n_not_int():
+    test_str = "the test"
+    with pytest.raises(
+        ValueError, match=re.escape(
+            "invalid literal for int() with base 10: 'the test'"
+        )
+    ):
+        ind = Index()
+        ind.clean_up_indices(n=test_str)
+
+def test_clean_up_indices_leaves_n_indices(set_up_tb):
+    tb = set_up_tb
+    # Put basket in the temporary bucket
+    tmp_basket_dir_one = tb.set_up_basket("basket_one")
+    tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+
+    # create index
+    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind.to_pandas_df()
+
+    # add another basket
+    tmp_basket_dir_two = tb.set_up_basket("basket_two")
+    tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
+    ind.regenerate_index()
+    
+    # Now there should be two index baskets. clean up all but one of them:
+    ind.clean_up_indices(n=1)
+    fs = get_file_system()
+    index_path = os.path.join(tb.s3_bucket_name, 'index')
+    assert len(fs.ls(index_path)) == 1
+
+def test_clean_up_indices_with_n_greater_than_num_of_indices(set_up_tb):
+    tb = set_up_tb
+    # Put basket in the temporary bucket
+    tmp_basket_dir_one = tb.set_up_basket("basket_one")
+    tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+
+    # create index
+    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind.to_pandas_df()
+
+    # add another basket
+    tmp_basket_dir_two = tb.set_up_basket("basket_two")
+    tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
+    ind.regenerate_index()
+    
+    # Now there should be two index baskets. clean up all but one of them:
+    ind.clean_up_indices(n=3)
+    fs = get_file_system()
+    index_path = os.path.join(tb.s3_bucket_name, 'index')
+    assert len(fs.ls(index_path)) == 2
+
+def test_is_index_current(set_up_tb):
+    tb = set_up_tb
+    # Put basket in the temporary bucket
+    tmp_basket_dir_one = tb.set_up_basket("basket_one")
+    tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+
+    # create index
+    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind.to_pandas_df()
+
+    # add another basket
+    tmp_basket_dir_two = tb.set_up_basket("basket_two")
+    tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
+    
+    # Regenerate index outside of current index object
+    ind2 = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind2.regenerate_index()
+    assert ind2.is_index_current() is True and ind.is_index_current() is False
+
+def test_regenerate_index(set_up_tb):
+    tb = set_up_tb
+    # Put basket in the temporary bucket
+    tmp_basket_dir_one = tb.set_up_basket("basket_one")
+    tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+
+    # create index
+    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind.to_pandas_df()
+
+    # add another basket
+    tmp_basket_dir_two = tb.set_up_basket("basket_two")
+    tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
     ind.regenerate_index()
 
     # assert length of index includes both baskets
-    breakpoint()
     assert len(ind.to_pandas_df()) == 3
 
-def test_sync_index_calls_generate_index_if_no_index():
-    pass
+def test_delete_basket_deletes_basket(set_up_tb):
+    tb = set_up_tb
+    # Put basket in the temporary bucket
+    tmp_basket_dir_one = tb.set_up_basket("basket_one")
+    tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
-def test_get_index_time_from_path():
-    pass
+    # create index
+    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind.to_pandas_df()
 
-def test_to_pandas_df():
-    pass
+    # add another basket
+    tmp_basket_dir_two = tb.set_up_basket("basket_two")
+    tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
+    
+    ind.regenerate_index()
+    ind.delete_basket(basket_uuid="0002")
+    ind.clean_up_indices(n=1)
+    ind.regenerate_index()
+    assert "0002" not in ind.index_df["uuid"].to_list()
 
-def test_clean_up_indices_n_not_int():
-    pass
-
-def test_clean_up_indices_leaves_n_indices():
-    pass
-
-def test_clean_up_indices_with_n_greater_than_num_of_indices():
-    pass
-
-def test_is_index_current():
-    pass
-
-def test_regenerate_index():
-    pass
-
-def test_delete_basket_deletes_basket():
-    pass
-
-def test_delete_basket_fails_if_basket_is_parent():
-    pass
+def test_delete_basket_fails_if_basket_is_parent(set_up_tb):
+    tb = set_up_tb
+    # Put basket in the temporary bucket
+    tmp_basket_dir_one = tb.set_up_basket("basket_one")
+    tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+    tmp_basket_dir_two = tb.set_up_basket("basket_two")
+    tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two,
+                     uid="0002", parent_ids=["0001"])
+    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    with pytest.raises(
+        ValueError, match=(
+            "The provided value for basket_uuid 0001 is listed as a parent " +
+            "UUID for another basket. Please delete that basket before " +
+            "deleting it's parent basket."
+        )
+    ):
+        ind.delete_basket(basket_uuid="0001")

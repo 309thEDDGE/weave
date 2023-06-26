@@ -1,7 +1,6 @@
 import os
 
 import s3fs
-import pytest
 
 from weave.uploader import upload_basket
 
@@ -35,7 +34,7 @@ class TestBucket():
         nd.join("another_test.txt").write("more test text")
         return tmp_basket_dir
 
-    def upload_basket(self, tmp_basket_dir, uid='0000'):
+    def upload_basket(self, tmp_basket_dir, uid='0000', parent_ids=[]):
         b_type = "test_basket"
         up_dir = os.path.join(self.s3_bucket_name, b_type, uid)
         upload_basket(
@@ -43,7 +42,8 @@ class TestBucket():
                            'stub':False}],
             upload_directory=up_dir,
             unique_id=uid,
-            basket_type=b_type
+            basket_type=b_type,
+            parent_ids=parent_ids
         )
         return up_dir
 
