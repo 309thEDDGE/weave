@@ -1,6 +1,7 @@
 import os
 
 import s3fs
+import pytest
 
 from weave.uploader import upload_basket
 
@@ -48,3 +49,5 @@ class TestBucket():
 
     def cleanup_bucket(self):
         self.s3fs_client.rm(self.s3_bucket_name, recursive=True)
+
+

@@ -178,6 +178,8 @@ class Index():
         '''
         fs = config.get_file_system()
         index_paths = fs.glob(f"{self.index_basket_dir_path}/**/*-index.json")
+        if len(index_paths) == 0:
+            return False
         index_times = [self._get_index_time_from_path(i)
                       for i in index_paths]
         return all([self.index_json_time >= i for i in index_times])

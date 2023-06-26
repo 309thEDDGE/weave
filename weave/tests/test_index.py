@@ -8,6 +8,8 @@ from fsspec.implementations.local import LocalFileSystem
 from unittest.mock import patch
 
 from weave.uploader import upload_basket
+from weave.index import Index
+from weave.tests.pytest_resources import TestBucket
 
 
 class TestCreateIndex:
@@ -157,17 +159,46 @@ class TestCreateIndex:
             )
 
 
-class TestBucket():
-    '''Facilitate testing of Index class'''
+# class TestBucket():
+#     '''Facilitate testing of Index class'''
     
-    def __init__(self, bucket_name='pytest-weave-index-bucket'):
-        self.bucket_name = bucket_name
+#     def __init__(self, bucket_name='pytest-weave-index-bucket'):
+#         self.bucket_name = bucket_name
 
-    def add_test_basket(self):
-        pass
+#     def add_test_basket(self):
+#         pass
 
-def test_sync_index_gets_latest_index():
-    pass
+"""Pytest Fixtures Documentation:
+https://docs.pytest.org/en/7.3.x/how-to/fixtures.html
+
+https://docs.pytest.org/en/7.3.x/how-to
+/fixtures.html#teardown-cleanup-aka-fixture-finalization"""
+
+@pytest.fixture
+def set_up_tb(tmpdir):
+    tb = TestBucket(tmpdir)
+    yield tb
+    tb.cleanup_bucket()
+
+
+def test_sync_index_gets_latest_index(set_up_tb):
+    tb = set_up_tb
+    # Put basket in the temporary bucket
+    tmp_basket_dir_one = tb.set_up_basket("basket_one")
+    tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+
+    # create index
+    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind.to_pandas_df()
+
+    # add another basket
+    tmp_basket_dir_two = tb.set_up_basket("basket_two")
+    tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
+    ind.regenerate_index()
+
+    # assert length of index includes both baskets
+    breakpoint()
+    assert len(ind.to_pandas_df()) == 3
 
 def test_sync_index_calls_generate_index_if_no_index():
     pass

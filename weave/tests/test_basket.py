@@ -336,8 +336,6 @@ class TestBasket:
         ):
             basket.ls(1)
 
-
-
 """Pytest Fixtures Documentation:
 https://docs.pytest.org/en/7.3.x/how-to/fixtures.html
 
@@ -360,7 +358,7 @@ def test_basket_ls_after_find(set_up_tb):
     include directories) do not affect the s3fs.ls() function used to enable
     the Basket.ls() function.
     """
-    # set_up_MBATB is at this point a class object, but it's a weird name
+    # set_up_tb is at this point a class object, but it's a weird name
     # because it looks like a function name (because it was before pytest
     # did weird stuff to it) so I just rename it to mbatb for reading purposes
     tb = set_up_tb
