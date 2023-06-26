@@ -100,21 +100,25 @@ class Basket:
         """
 
         ls_path = os.fspath(Path(self.basket_address))
-        
+
         if relative_path is not None:
             relative_path = os.fspath(relative_path)
             ls_path = os.fspath(
               Path(os.path.join(self.basket_address, relative_path))
             )
-            
+
         if ls_path == os.fspath(Path(self.basket_address)): 
             # remove any prohibited files from the list if they exist 
             # in the root directory
-            ls_results = self.fs.ls(ls_path)
+            # Note that fs.ls can have unpredictable behavior if
+            # not passing refresh=True
+            ls_results = self.fs.ls(ls_path, refresh=True)
             return [
                 x
                 for x in ls_results
                 if os.path.basename(Path(x)) not in config.prohibited_filenames
             ]
         else:
-            return self.fs.ls(ls_path)
+            # Note that fs.ls can have unpredictable behavior if
+            # not passing refresh=True
+            return self.fs.ls(ls_path, refresh=True)
