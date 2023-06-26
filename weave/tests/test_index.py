@@ -164,7 +164,7 @@ class TestBucket():
         self.bucket_name = bucket_name
 
     def add_test_basket(self):
-        
+        pass
 
 def test_sync_index_gets_latest_index():
     pass
