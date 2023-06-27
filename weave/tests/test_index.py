@@ -162,14 +162,6 @@ class TestCreateIndex:
             )
 
 
-# class TestBucket():
-#     '''Facilitate testing of Index class'''
-    
-#     def __init__(self, bucket_name='pytest-weave-index-bucket'):
-#         self.bucket_name = bucket_name
-
-#     def add_test_basket(self):
-#         pass
 
 """Pytest Fixtures Documentation:
 https://docs.pytest.org/en/7.3.x/how-to/fixtures.html
