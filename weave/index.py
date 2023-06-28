@@ -130,10 +130,9 @@ class Index():
             if path_time >= self.index_json_time:
                 self.index_json_time = path_time
                 latest_index_path = path
-        with tempfile.TemporaryDirectory() as temp:
-            temp_path = os.path.join(temp, "temp.json")
-            fs.download(latest_index_path, temp_path)
-            self.index_df = pd.read_json(temp_path)
+        self.index_df = pd.read_json(
+            fs.open(latest_index_path), dtype = {'uuid': str}
+        )
 
     def _get_index_time_from_path(self, path):
         '''Returns time as int from index_json path.'''
