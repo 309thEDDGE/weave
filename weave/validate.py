@@ -43,6 +43,131 @@ import s3fs
 
 
 
+
+def validate_bucket(bucket_name):    
+    print('validate_bucket_new: ', bucket_name)
+    fs = config.get_file_system()
+    # basket_address = os.fspath(bucket_name)
+    
+    ck={"endpoint_url": os.environ["S3_ENDPOINT"]}
+    s3fs_client = s3fs.S3FileSystem(client_kwargs=ck)
+    
+    if not s3fs_client.exists(bucket_name):
+        raise ValueError(f"Invalid Bucket Path, Bucket does not exist at: {bucket_name}")
+        return None
+    
+    check_level(bucket_name) #call check level, with a path, but since we're just starting, we just use the bucket_name as the path
+   
+    
+    
+
+
+
+def check_level(current_dir_level):
+    print('check_level: ', current_dir_level)
+    
+    ck={"endpoint_url": os.environ["S3_ENDPOINT"]}
+    s3fs_client = s3fs.S3FileSystem(client_kwargs=ck)
+    
+    dirs_and_files = s3fs_client.find(path=current_dir_level, maxdepth=1, withdirs=True)
+        
+    for file_or_dir in dirs_and_files:
+        file_type = s3fs_client.info(file_or_dir)['type']
+        
+        if file_type == 'file':
+            print('this is a file, check if its a manifest, if so, validate it')
+            
+            if is_basket(file_or_dir):
+                print('this is a basket, validate it')
+                validate_basket(file_or_dir)
+                
+        elif file_type == 'directory':
+            print('this is a dir, and we need to check the files at this level')
+            check_level(file_or_dir)
+        
+        
+        
+            
+            
+            
+#     def print_file_list(files):
+#         for file in files:
+#             print('\n')
+#             print("file:", file)
+#             info = s3fs_client.info(file)
+#             print('info on file: ', info)
+            
+#             if info['type'] == 'file':
+#                 print('this is a file')
+                
+#             elif info['type'] == 'directory':
+#                 print('this is a dir')
+    
+    
+    
+def is_basket(directory):
+    print('is_basket: ', directory)
+    
+    head, bottom_file = os.path.split(directory)
+    print('head:', head)
+    print('tail:', bottom_file)
+    
+    if bottom_file == 'basket_manifest.json':
+        print('we found a basket, now validate it')
+        if validate_basket(directory):
+            print('this is a valid basket')
+            
+        else:
+            print('this is not a valid basket')
+        
+    
+    
+    
+    
+    return False
+
+
+
+def validate_basket(basket_path):
+    print('validate_basket: ', basket_path)
+    
+    return False
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
+
+
+
+
 def isValid(data, schema):
     try:
         validate(instance=data, schema=schema)
@@ -53,9 +178,14 @@ def isValid(data, schema):
 
 def validate_baskets(s3_client, path):
     
+    
+    
     head, tail = os.path.split(path)
-    # print('head: ', head)
-    # print('tail: ', tail)
+    print(f"head path: {head}. Head info: {s3_client.info(head)}")
+    print('tail: ', tail)
+    head2, tail2 = os.path.split(head)
+    print('head2: ', head2)
+    print('tail2: ', tail2)
     
     
     
@@ -120,27 +250,66 @@ def validate_baskets(s3_client, path):
 
 def validate_bucket(bucket_name):
     
+    # print('\n bucket_name:', bucket_name)
+    
     fs = config.get_file_system()
     basket_address = os.fspath(bucket_name)
+    
+    # print('\n basket_address:', basket_address)
     
     
     ck={"endpoint_url": os.environ["S3_ENDPOINT"]}
     s3fs_client = s3fs.S3FileSystem(client_kwargs=ck)
     
     if not s3fs_client.exists(bucket_name):
-        raise ValueError(f"Invalid Bucket Path, it does not exist at: {bucket_name}")
+        raise ValueError(f"Invalid Bucket Path, Bucket does not exist at: {bucket_name}")
         return None
     
     #testing with minio and buckets
-    index = create_index_from_s3(bucket_name)
-    print('index:', index)
+    # index = create_index_from_s3(bucket_name)
+    # print('index:', index)
+    
+    # print('test before')
+    # print('bucket_name:', bucket_name)
+    
+    # when you have the max depth=1, you get only the files and directories under that specific folder or path you give it.
+    # using this, we can recursively go through every single file/directory path and see if it's a basket, if it
+    # is a basket, then 
+    file_list = s3fs_client.find(path=bucket_name, maxdepth=1, withdirs=True)
+    
+    filelist2 = s3fs_client.find(path=file_list[0], maxdepth=1, withdirs=True)
+    
+    filelist3 = s3fs_client.find(path=filelist2[0], maxdepth=1, withdirs=True)
+    
+    def print_file_list(files):
+        for file in files:
+            print('\n')
+            print("file:", file)
+            info = s3fs_client.info(file)['type']
+            print('info on file: ', info)
+            if info == 'file':
+                print('this is a file')
+            elif info == 'directory':
+                print('this is a dir')
+
     
     
+    print_file_list(file_list)
+    print_file_list(filelist2)
+    print_file_list(filelist3)
     
-    file_list = s3fs_client.find(bucket_name)
     
-    for file in file_list:
-        validate_baskets(s3fs_client, file)
+    # print('\n\nfile list 1: \n', file_list)
+    # print('\n\nfile list 2: \n', filelist2)
+    # print('\n\nfile list 3: \n', filelist3)
+    
+#     print('file list: ', file_list)
+    
+#     print('test after')
+    
+    # print('info: \n', s3fs_client.info(bucket_name))
+
+        # validate_baskets(s3fs_client, file)
         
         
         
@@ -202,3 +371,7 @@ def validate_bucket(bucket_name):
 # print("\n",validate_bucket(tempPath))
    
     
+    
+    
+    
+'''
