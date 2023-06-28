@@ -192,7 +192,7 @@ def test_sync_index_gets_latest_index(set_up_tb):
     
     # Regenerate index outside of current index object
     ind2 = Index(bucket_name=tb.s3_bucket_name, sync=True)
-    ind2.regenerate_index()
+    ind2.generate_index()
 
     # assert length of index includes both baskets
     assert len(ind.to_pandas_df()) == 3
@@ -246,7 +246,7 @@ def test_clean_up_indices_leaves_n_indices(set_up_tb):
     # add another basket
     tmp_basket_dir_two = tb.set_up_basket("basket_two")
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
-    ind.regenerate_index()
+    ind.generate_index()
     
     # Now there should be two index baskets. clean up all but one of them:
     ind.clean_up_indices(n=1)
@@ -267,7 +267,7 @@ def test_clean_up_indices_with_n_greater_than_num_of_indices(set_up_tb):
     # add another basket
     tmp_basket_dir_two = tb.set_up_basket("basket_two")
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
-    ind.regenerate_index()
+    ind.generate_index()
     
     # Now there should be two index baskets. clean up all but one of them:
     ind.clean_up_indices(n=3)
@@ -291,10 +291,10 @@ def test_is_index_current(set_up_tb):
     
     # Regenerate index outside of current index object
     ind2 = Index(bucket_name=tb.s3_bucket_name, sync=True)
-    ind2.regenerate_index()
+    ind2.generate_index()
     assert ind2.is_index_current() is True and ind.is_index_current() is False
 
-def test_regenerate_index(set_up_tb):
+def test_generate_index(set_up_tb):
     tb = set_up_tb
     # Put basket in the temporary bucket
     tmp_basket_dir_one = tb.set_up_basket("basket_one")
@@ -307,7 +307,7 @@ def test_regenerate_index(set_up_tb):
     # add another basket
     tmp_basket_dir_two = tb.set_up_basket("basket_two")
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
-    ind.regenerate_index()
+    ind.generate_index()
 
     # assert length of index includes both baskets
     assert len(ind.to_pandas_df()) == 3
@@ -326,10 +326,10 @@ def test_delete_basket_deletes_basket(set_up_tb):
     tmp_basket_dir_two = tb.set_up_basket("basket_two")
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
     
-    ind.regenerate_index()
+    ind.generate_index()
     ind.delete_basket(basket_uuid="0002")
     ind.clean_up_indices(n=1)
-    ind.regenerate_index()
+    ind.generate_index()
     assert "0002" not in ind.index_df["uuid"].to_list()
 
 def test_delete_basket_fails_if_basket_is_parent(set_up_tb):

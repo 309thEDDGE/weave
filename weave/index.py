@@ -120,7 +120,7 @@ class Index():
         fs = config.get_file_system()
         index_paths = fs.glob(f"{self.index_basket_dir_path}/**/*-index.json")
         if len(index_paths) == 0:
-            return self._generate_index()
+            return self.generate_index()
         if len(index_paths) > 20:
             warn(f"The index basket count is {len(index_paths)}. " +
                  "Consider running weave.Index.clean_up_indices")
@@ -189,11 +189,7 @@ class Index():
                       for i in index_paths]
         return all([self.index_json_time >= i for i in index_times])
 
-    def regenerate_index(self):
-        '''Remakes/stores index.'''
-        self._generate_index()
-
-    def _generate_index(self):
+    def generate_index(self):
         '''Generates index and stores it in a basket'''
         index = create_index_from_s3(self.bucket_name)
         with tempfile.TemporaryDirectory() as out:
