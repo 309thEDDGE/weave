@@ -161,13 +161,15 @@ class Index():
         index_paths = fs.glob(f"{self.index_basket_dir_path}/**/*-index.json")
         if len(index_paths) <= n:
             return
-        index_list = [self._get_index_time_from_path(i) for i in index_paths]
-        indices_to_keep = sorted(index_list, reverse=True)[:n]
-        for index in index_list:
-            if index not in indices_to_keep:
+        index_time_list = [self._get_index_time_from_path(i)
+                           for i in index_paths]
+        index_times_to_keep = sorted(index_time_list, reverse=True)[:n]
+        for index_time in index_time_list:
+            if index_time not in index_times_to_keep:
                 try:
                     path = fs.glob(
-                        f"{self.index_basket_dir_path}/**/{index}-index.json"
+                        f"{self.index_basket_dir_path}/**/" +
+                        f"{index_time}-index.json"
                     )[0]
                     uuid = path.split(os.path.sep)[-2]
                     self.delete_basket(basket_uuid=uuid)
