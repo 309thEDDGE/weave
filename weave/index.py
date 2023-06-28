@@ -159,7 +159,7 @@ class Index():
         n = int(n)
         fs = config.get_file_system()
         index_paths = fs.glob(f"{self.index_basket_dir_path}/**/*-index.json")
-        if not len(index_paths) > n:
+        if len(index_paths) <= n:
             return
         index_list = [self._get_index_time_from_path(i) for i in index_paths]
         indices_to_keep = sorted(index_list, reverse=True)[:n]
