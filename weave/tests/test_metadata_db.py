@@ -66,7 +66,7 @@ class TestMongo():
     
     @patch("weave.config.get_file_system", return_value=LocalFileSystem())
     def test_load_mongo(self, patch1):
-        index_table = weave.create_index_from_s3(self.bucket_path)
+        index_table = weave.index.create_index_from_s3(self.bucket_path)
         weave.load_mongo(index_table, self.test_collection)
         truth_db = [{'uuid': '1234', 'basket_type': 'test_basket_type', 
                      'key1': 'value1'}, 

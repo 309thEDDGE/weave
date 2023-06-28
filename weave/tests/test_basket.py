@@ -6,11 +6,11 @@ from unittest.mock import patch
 
 from fsspec.implementations.local import LocalFileSystem
 import pytest
-import s3fs
 
 from weave.basket import Basket
-from weave.create_index import create_index_from_s3
+from weave.index import create_index_from_s3
 from weave.uploader import upload_basket
+from weave.tests.pytest_resources import BucketForTest
 
 
 class TestBasket:
@@ -336,52 +336,6 @@ class TestBasket:
         ):
             basket.ls(1)
 
-# The following code is for testing in an environment with MinIO:
-
-
-class MinioBucketAndTempBasket():
-    def __init__(self, tmpdir):
-        self.tmpdir = tmpdir
-        self.basket_list = []
-        ck={"endpoint_url": os.environ["S3_ENDPOINT"]}
-        self.s3fs_client = s3fs.S3FileSystem(client_kwargs=ck)
-        self._set_up_bucket()
-
-    def _set_up_bucket(self):
-        try:
-            self.s3_bucket_name = 'pytest-temp-bucket'
-            self.s3fs_client.mkdir(self.s3_bucket_name)
-        except FileExistsError:
-            self.cleanup_bucket()
-            self._set_up_bucket()
-
-    def set_up_basket(self, tmp_dir_name):
-        tmp_basket_dir = self.tmpdir.mkdir(tmp_dir_name)
-        tmp_basket_txt_file = tmp_basket_dir.join("test.txt")
-        tmp_basket_txt_file.write("This is a text file for testing purposes.")
-        return tmp_basket_dir
-
-    def add_lower_dir_to_temp_basket(self, tmp_basket_dir):
-        nd = tmp_basket_dir.mkdir("nested_dir")
-        nd.join("another_test.txt").write("more test text")
-        return tmp_basket_dir
-
-    def upload_basket(self, tmp_basket_dir, uid='0000'):
-        b_type = "test_basket"
-        up_dir = os.path.join(self.s3_bucket_name, b_type, uid)
-        upload_basket(
-            upload_items=[{'path':str(tmp_basket_dir.realpath()),
-                           'stub':False}],
-            upload_directory=up_dir,
-            unique_id=uid,
-            basket_type=b_type
-        )
-        return up_dir
-
-    def cleanup_bucket(self):
-        self.s3fs_client.rm(self.s3_bucket_name, recursive=True)
-
-
 """Pytest Fixtures Documentation:
 https://docs.pytest.org/en/7.3.x/how-to/fixtures.html
 
@@ -389,12 +343,12 @@ https://docs.pytest.org/en/7.3.x/how-to
 /fixtures.html#teardown-cleanup-aka-fixture-finalization"""
 
 @pytest.fixture
-def set_up_MBATB(tmpdir):
-    mbatb = MinioBucketAndTempBasket(tmpdir)
-    yield mbatb
-    mbatb.cleanup_bucket()
+def set_up_tb(tmpdir):
+    tb = BucketForTest(tmpdir)
+    yield tb
+    tb.cleanup_bucket()
 
-def test_basket_ls_after_find(set_up_MBATB):
+def test_basket_ls_after_find(set_up_tb):
     """The s3fs.S3FileSystem.ls() func is broken after running {}.find()
 
     s3fs.S3FileSystem.find() function is called during index creation. The
@@ -404,20 +358,20 @@ def test_basket_ls_after_find(set_up_MBATB):
     include directories) do not affect the s3fs.ls() function used to enable
     the Basket.ls() function.
     """
-    # set_up_MBATB is at this point a class object, but it's a weird name
+    # set_up_tb is at this point a class object, but it's a weird name
     # because it looks like a function name (because it was before pytest
     # did weird stuff to it) so I just rename it to mbatb for reading purposes
-    mbatb = set_up_MBATB
+    tb = set_up_tb
     tmp_basket_dir_name = "test_basket_temp_dir"
-    tmp_basket_dir = mbatb.set_up_basket(tmp_basket_dir_name)
-    tmp_basket_dir = mbatb.add_lower_dir_to_temp_basket(tmp_basket_dir)
-    s3_basket_path = mbatb.upload_basket(tmp_basket_dir=tmp_basket_dir)
+    tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
+    tmp_basket_dir = tb.add_lower_dir_to_temp_basket(tmp_basket_dir)
+    s3_basket_path = tb.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
     # create index on bucket
-    create_index_from_s3(mbatb.s3_bucket_name)
+    create_index_from_s3(tb.s3_bucket_name)
 
     # run find in case index creation changes
-    mbatb.s3fs_client.find(mbatb.s3_bucket_name)
+    tb.s3fs_client.find(tb.s3_bucket_name)
 
     # set up basket
     test_b = Basket(s3_basket_path)
