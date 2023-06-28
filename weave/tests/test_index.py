@@ -269,7 +269,8 @@ def test_clean_up_indices_with_n_greater_than_num_of_indices(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
     ind.generate_index()
     
-    # Now there should be two index baskets. clean up all but one of them:
+    # Now there should be two index baskets. clean up all but three of them:
+    # (this should fail, obvs)
     ind.clean_up_indices(n=3)
     fs = get_file_system()
     index_path = os.path.join(tb.s3_bucket_name, 'index')
