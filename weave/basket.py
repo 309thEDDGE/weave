@@ -39,9 +39,14 @@ class Basket:
         self.validate_basket_path()
 
     def set_up_basket_from_uuid(self, basket_address, bucket_name):
-        ind = Index(bucket_name=bucket_name)
-        ind_df = ind.to_pandas_df()
-        ind_df[""]
+        try:
+            ind = Index(bucket_name=bucket_name)
+            ind_df = ind.to_pandas_df()
+            path = ind_df["address"][ind_df["uuid"] == basket_address].iloc[0]
+            self.set_up_basket_from_path(basket_address=path)
+        except:
+            self.basket_address = basket_address
+            self.validate_basket_path()
 
     def validate_basket_path(self):
         """Validates basket health"""
