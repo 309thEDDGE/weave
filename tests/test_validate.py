@@ -2,6 +2,43 @@
 #every test function can only have 1 assert statement
 #
 
+
+"""
+test no manifest in baskset
+test invalid manifest json structure in basket
+
+test no supplement in basket
+test invalid supplement json structure in basket
+
+test no metadata in basket
+test invalid metadata json structure (unable to convert to json object) in root basket
+
+
+test basket inside of basket (this could be one directory down or many)
+test if manifest.json is inside sub-directory of a basket (this one goes with the previous one)
+
+test if there are 2 or more manifest files in basket
+test if there are 2 or more supplement files in basket 
+test if there are 2 or more metadata files in basket
+
+
+test if there are no files in the bucket
+test if there are no baskets found at all (no manifest.json found in any directory)
+
+
+possibly test each individual item in the manifest and supplement
+	like if an item is not a string, throw error
+	if an item is not a bool, but a num, throw error, etc.
+	do this for every item?
+	the validate from jsonschema might do this already so maybe we don't need to.
+
+
+test if the bucket is also a basket (manifest inside the root bucket)
+"""
+
+
+
+
 import tempfile
 import os
 import json
