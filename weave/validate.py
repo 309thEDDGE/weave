@@ -45,18 +45,18 @@ import s3fs
 
 
 def validate_bucket(bucket_name):    
-    print('validate_bucket_new: ', bucket_name)
-    fs = config.get_file_system()
+    # print('validate_bucket_new: ', bucket_name)
+    # fs = config.get_file_system()
     # basket_address = os.fspath(bucket_name)
     
     ck={"endpoint_url": os.environ["S3_ENDPOINT"]}
     s3fs_client = s3fs.S3FileSystem(client_kwargs=ck)
     
     if not s3fs_client.exists(bucket_name):
-        raise ValueError(f"Invalid Bucket Path, Bucket does not exist at: {bucket_name}")
+        raise ValueError(f"Invalid Bucket Path. Bucket does not exist at: {bucket_name}")
         return None
     
-    check_level(bucket_name) #call check level, with a path, but since we're just starting, we just use the bucket_name as the path
+    return check_level(bucket_name) #call check level, with a path, but since we're just starting, we just use the bucket_name as the path
    
     
     
@@ -64,10 +64,40 @@ def validate_bucket(bucket_name):
 
 
 def check_level(current_dir_level):
-    print('check_level: ', current_dir_level)
+    # print('check_level: ', current_dir_level)
     
     ck={"endpoint_url": os.environ["S3_ENDPOINT"]}
     s3fs_client = s3fs.S3FileSystem(client_kwargs=ck)
+
+    manifest_path = os.path.join(current_dir_level, 'basket_manifest.json')
+    # print('\t\t\tmanifest path: ', manifest_path)
+    if s3fs_client.exists(manifest_path):
+        #this is a bucket, because there is a manifest inside this dir
+        # print('basket found at: ', current_dir_level)
+        if validate_basket(current_dir_level):
+            # print('valid basket at: ', current_dir_level)
+            return True
+        else:
+            # print('invalid basket at: ', current_dir_level)
+            return False
+        
+    else:
+        # if there is no manifest at this level (no bucket here) then check all directories in this dir
+        # if there is a dir, we call check_level() again at that level
+        dirs_and_files = s3fs_client.find(path=current_dir_level, maxdepth=1, withdirs=True)
+        # print('dirs and files:', dirs_and_files)
+        
+        for file_or_dir in dirs_and_files:
+            file_type = s3fs_client.info(file_or_dir)['type']
+            # print('file type: ', file_type)
+            # print('file_or_dir:', file_or_dir)
+            
+            if file_type == 'directory':
+                return check_level(file_or_dir)
+    
+    
+    
+'''  
     
     dirs_and_files = s3fs_client.find(path=current_dir_level, maxdepth=1, withdirs=True)
         
@@ -75,17 +105,22 @@ def check_level(current_dir_level):
         file_type = s3fs_client.info(file_or_dir)['type']
         
         if file_type == 'file':
-            print('this is a file, check if its a manifest, if so, validate it')
+            # print('this is a file, check if its a manifest, if so, validate it')
             
             if is_basket(file_or_dir):
-                print('this is a basket, validate it')
-                validate_basket(file_or_dir)
+                # print('this is a basket, validate it')
+                if not validate_basket(file_or_dir):
+                    print('\n\tthis is not a valid basket')
+                else:
+                    print('this is a valid basket')
+            # else:
+            #     print('this is not a basket, probs just a regular file: ', file_or_dir)
                 
         elif file_type == 'directory':
-            print('this is a dir, and we need to check the files at this level')
+            # print('this is a dir, and we need to check the files at this level')
             check_level(file_or_dir)
         
-        
+'''
         
             
             
@@ -104,37 +139,180 @@ def check_level(current_dir_level):
 #                 print('this is a dir')
     
     
-    
+'''
 def is_basket(directory):
-    print('is_basket: ', directory)
+    # print('is_basket: ', directory)
     
-    head, bottom_file = os.path.split(directory)
-    print('head:', head)
-    print('tail:', bottom_file)
+    basket_dir, bottom_file = os.path.split(directory)
+    # print('head:', basket_dir)
+    # print('tail:', bottom_file)
+    
+    # print('bottom file in is_basket: ', bottom_file)
     
     if bottom_file == 'basket_manifest.json':
-        print('we found a basket, now validate it')
-        if validate_basket(directory):
-            print('this is a valid basket')
+        return True
+        # print('we found a basket, now validate it')
+        # print('basket_dir in is_bakset:', basket_dir)
+        # print('directory: ', directory)
+        # return validate_basket(basket_dir)
+#             print('this is a valid basket')
             
-        else:
-            print('this is not a valid basket')
+#         else:
+#             print('this is not a valid basket')
+ 
+    
+    return False
+'''
+
+
+def validate_basket(basket_dir):
+    # this needs to validate the schema of the found manifest.
+    # it also needs to see if a supplement exists, if so, validate it against schema. if not, invalid basket
+    # it also needs to see if a metadata exists, if so, make sure it can be loaded into a json object.
+    # print('validate_basket: ', basket_dir)
+    
+    # print('we are in validate_basket')
+    
+    ck={"endpoint_url": os.environ["S3_ENDPOINT"]}
+    s3fs_client = s3fs.S3FileSystem(client_kwargs=ck)
+    
+    
+    supplement_path = os.path.join(basket_dir, 'basket_supplement.json')
+    # print('supp path:', supplement_path)
+    
+    if not s3fs_client.exists(supplement_path):
+        raise FileNotFoundError(f"Invalid Basket. No Supplement file found at: {supplement_path}")
+    
+    files_in_basket = s3fs_client.find(path=basket_dir, maxdepth=1, withdirs=True)
+    
+    
+    for file in files_in_basket:
         
+        basket_dir, file_name = os.path.split(file)
+        
+        if file_name == 'basket_manifest.json':
+            try:
+                data = json.load(s3fs_client.open(file))
+                validate(instance=data, schema=config.manifest_schema)
+                
+            except jsonschema.exceptions.ValidationError as err:
+                raise ValueError(f"Invalid Basket. Manifest Schema does not match at: {file}")
+                return False
+            
+            except json.decoder.JSONDecodeError as err:
+                raise ValueError(f"Invalid Basket. Manifest could not be loaded into json at: {file}")
+                return False    
+            
+            
+        if file_name == 'basket_supplement.json':
+            try:
+                data = json.load(s3fs_client.open(file))
+                validate(instance=data, schema=config.supplement_schema)
+                
+            except jsonschema.exceptions.ValidationError as err:
+                raise ValueError(f"Invalid Basket. Supplement Schema does not match at: {file}")
+                return False
+            
+            except json.decoder.JSONDecodeError as err:
+                raise ValueError(f"Invalid Basket. Supplement could not be loaded into json at: {file}")
+                return False   
+            
+
+        if file_name == 'basket_metadata.json':
+            try:
+                data = json.load(s3fs_client.open(file))
+                
+            except json.decoder.JSONDecodeError as err:
+                raise ValueError(f"Invalid Basket. Metadata could not be loaded into json at: {file}")
+                return False 
+
+            
+        if s3fs_client.info(file)['type'] == 'directory':
+            if check_level(file):
+                raise ValueError(f"Invalid Basket. Manifest File found in sub directory of basket at: {basket_dir}")
+            else:
+                return True
+            
+            
     
     
+    return True
+    
+    """
+    
+
+    ck={"endpoint_url": os.environ["S3_ENDPOINT"]}
+    s3fs_client = s3fs.S3FileSystem(client_kwargs=ck)
+    
+    files_in_basket = s3fs_client.find(path=basket_path, maxdepth=1, withdirs=True)
+    # print('\n\n files in the found basket: ', files_in_basket)
+    # print('\n')
+    
+    # print('basket path: ', basket_path)
+    supplement_path = os.path.join(basket_path, 'basket_supplement.json')
+    # print('supplement path: ', supplement_path)
+    
+    # print('basket_path: ', basket_path)
+    # print('basket_join: ', os.path.join(basket_path, 'basket_supplement.json'))
+    if not s3fs_client.exists(supplement_path):
+        print('there was no supplement found here')
+        raise FileNotFoundError(f"Invalid Basket, No Supplement file found at: {supplement_path}")
+    else:
+        print('there was a supplement found')
+    
+    man_schema = config.manifest_schema
+    sup_schema = config.supplement_schema
+    
+    for file in files_in_basket:
+        # print('current file working on: ', file)
+        
+        basket_dir, file_name = os.path.split(file)
+        # print('head:', basket_dir)
+        # print('tail:', bottom_file)
+        # print('file_name:', file_name)
+        
+        # meta_schema = config.meta_schema
+        
+        if file_name == 'basket_manifest.json':
+            
+            data = json.load(s3fs_client.open(file))
+
+            try:
+                validate(instance=data, schema=man_schema)
+            except jsonschema.exceptions.ValidationError as err:
+                raise ValueError(f"Invalid Basket, Manifest Schema does not match at: {file}")
+                return False
+            # print('this is valid schema')    
+            
+            
+        if file_name == 'basket_supplement.json':
+            
+            data = json.load(s3fs_client.open(file))
+
+            try:
+                validate(instance=data, schema=sup_schema)
+            except jsonschema.exceptions.ValidationError as err:
+                raise ValueError(f"Invalid Basket, Supplement Schema does not match at: {file}")
+                return False
+            # print('this is valid schema')    
+            
+
+        if file_name == 'basket_supplement.json':
+            try:
+                data = json.load(s3fs_client.open(file))
+                # print('data:', data)
+            except Exception as err:
+                 raise ValueError(f"Invalid Basket, Metadata could not be loaded at: {file}")
+            
+        if s3fs_client.info(file)['type'] == 'directory':
+            bask_in_bask = check_level(file)
+            print('\n\nbask_in_bask: ', bask_in_bask)
     
     
-    return False
+    return True
 
 
-
-def validate_basket(basket_path):
-    print('validate_basket: ', basket_path)
-    
-    return False
-
-
-
+"""
 
 
 
