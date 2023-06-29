@@ -2,36 +2,54 @@ import os
 import json
 from pathlib import Path
 
-from weave import config
+from weave import config, Index
 
 
 class Basket:
     """This class provides convenience functions for accessing basket contents.
     """
 
-    def __init__(self, basket_address):
+    def __init__(self, basket_address, bucket_name="basket-data"):
         """Initializes the Basket_Class.
 
         Parameters
         ----------
-        basket_address: [string]
-            Path to the Basket directory
+        basket_address: string
+            Argument can take one of two forms: either a path to the Basket 
+            directory, or the UUID of the basket.
         """
-        self.basket_address = os.fspath(basket_address)
+        self.fs = config.get_file_system()
+        try:
+            self.set_up_basket_from_path(basket_address)
+        except ValueError as e:
+            if e.__str__() != f"Basket does not exist: {self.basket_address}":
+                raise e
+            else:
+                self.set_up_basket_from_uuid(basket_address, bucket_name)
         self.manifest_path = f"{self.basket_address}/basket_manifest.json"
         self.supplement_path = f"{self.basket_address}/basket_supplement.json"
         self.metadata_path = f"{self.basket_address}/basket_metadata.json"
         self.manifest = None
         self.supplement = None
         self.metadata = None
-        self.fs = config.get_file_system()
         self.validate()
 
-    def validate(self):
+    def set_up_basket_from_path(self, basket_address):
+        self.basket_address = os.fspath(basket_address)
+        self.validate_basket_path()
+
+    def set_up_basket_from_uuid(self, basket_address, bucket_name):
+        ind = Index(bucket_name=bucket_name)
+        ind_df = ind.to_pandas_df()
+        ind_df[""]
+
+    def validate_basket_path(self):
         """Validates basket health"""
         if not self.fs.exists(self.basket_address):
             raise ValueError(f"Basket does not exist: {self.basket_address}")
 
+    def validate(self):
+        """Validates basket health"""
         if not self.fs.exists(self.manifest_path):
             raise FileNotFoundError(
                 f"Invalid Basket, basket_manifest.json "
