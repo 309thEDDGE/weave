@@ -5,7 +5,7 @@ import uuid
 from fsspec.implementations.local import LocalFileSystem
 from unittest.mock import patch
 
-from weave.access import upload
+from weave import upload
 
 
 class TestUpload:
