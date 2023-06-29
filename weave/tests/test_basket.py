@@ -403,7 +403,7 @@ def test_basket_init_fails_if_uuid_does_not_exist(set_up_tb):
     with pytest.raises(
         ValueError, match=f"Basket does not exist: {bad_uuid}"
     ):
-        test_b = Basket(basket_address=bad_uuid, bucket_name=tb.s3_bucket_name)
+        Basket(basket_address=bad_uuid, bucket_name=tb.s3_bucket_name)
 
 def test_basket_bucket_name_does_not_exist(set_up_tb):
     tb = set_up_tb
@@ -414,7 +414,7 @@ def test_basket_bucket_name_does_not_exist(set_up_tb):
     with pytest.raises(
         ValueError, match=f"Basket does not exist: {uuid}"
     ):
-        test_b = Basket(basket_address=uuid, bucket_name="the wrong basket 007")
+        Basket(basket_address=uuid, bucket_name="the wrong basket 007")
 
 def test_basket_from_uuid_with_many_baskets(set_up_tb):
     tb = set_up_tb

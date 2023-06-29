@@ -44,7 +44,7 @@ class Basket:
             ind_df = ind.to_pandas_df()
             path = ind_df["address"][ind_df["uuid"] == basket_address].iloc[0]
             self.set_up_basket_from_path(basket_address=path)
-        except:
+        except BaseException:
             self.basket_address = basket_address
             self.validate_basket_path()
 
