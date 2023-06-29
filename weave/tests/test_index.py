@@ -2,6 +2,7 @@ import json
 import os
 import re
 import tempfile
+import warnings
 from unittest.mock import patch
 
 from fsspec.implementations.local import LocalFileSystem
@@ -115,8 +116,7 @@ class TestCreateIndex:
         upload a basket with a basket_details.json with incorrect keys.
         check that correct error is thrown. delete said basket from s3
         """
-
-        # make something to put in basket
+        # make something else to put in basket
         file_path = os.path.join(self.local_dir_path, "sample.txt")
         with open(file_path, "w") as f:
             f.write("this is another test file")
@@ -146,8 +146,34 @@ class TestCreateIndex:
             f"{self.bucket_path}/{self.basket_type}/5678/basket_manifest.json",
         )
 
-        with pytest.raises(ValueError, match="basket found at"):
-            create_index_from_s3(f"{self.bucket_path}")
+        truth_index_dict = {
+            "uuid": ["1234", "4321"],
+            "upload_time": ["1679335295759652", "1234567890"],
+            "parent_uuids": [["1111", "2222"], ["333", "444"]],
+            "basket_type": "test_basket_type",
+            "label": "my label",
+            "address": [
+                f"{self.bucket_path}/{self.basket_type}/1234",
+                f"{self.bucket_path}/{self.basket_type}/one_deeper/4321",
+            ],
+            "storage_type": "s3",
+        }
+        truth_index = pd.DataFrame(truth_index_dict)
+
+        #check that we correctly indexed a valid basket
+        #while correctly catching an invalid basket in the warning message
+        with warnings.catch_warnings(record = True) as w:
+            minio_index = create_index_from_s3(f"{self.bucket_path}")
+            print(w[0].message)
+            assert (
+                (truth_index == minio_index)
+                .drop(columns=["upload_time"])
+                .all()
+                .all()
+                and 
+                f"{self.bucket_path}/{self.basket_type}/5678" in str(w[0].message)
+                and len(w) == 1
+            )
 
     @patch("weave.config.get_file_system", return_value=LocalFileSystem())
     def test_root_dir_does_not_exist(self, patch):
@@ -189,7 +215,7 @@ def test_sync_index_gets_latest_index(set_up_tb):
     # add another basket
     tmp_basket_dir_two = tb.set_up_basket("basket_two")
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
-    
+
     # Regenerate index outside of current index object
     ind2 = Index(bucket_name=tb.s3_bucket_name, sync=True)
     ind2.generate_index()

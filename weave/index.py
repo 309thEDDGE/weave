@@ -6,8 +6,8 @@ python create_index.py <root_dir>
 import json
 import os
 import tempfile
+import warnings
 from time import time_ns
-from warnings import warn
 
 import pandas as pd
 
@@ -23,14 +23,17 @@ def validate_basket_dict(basket_dict, basket_address):
         basket_dict: dictionary read in from basket_manifest.json in minio
         basket_address: basket in question. Passed here to create better error
                         message
+
+    Returns:
+        valid (bool): True if basket has correct schema, false otherwise
     """
 
     schema = config.index_schema()
 
     if list(basket_dict.keys()) != schema:
-        raise ValueError(
-            f"basket found at {basket_address} has invalid schema"
-        )
+        return False
+    else:
+        return True
 
     # TODO: validate types for each key
 
@@ -70,13 +73,21 @@ def create_index_from_s3(root_dir):
     index_dict["storage_type"] = []
 
     for basket_json_address in basket_jsons:
+        bad_baskets = []
         with fs.open(basket_json_address, "rb") as file:
             basket_dict = json.load(file)
-            validate_basket_dict(basket_dict, basket_json_address)
-            for field in basket_dict.keys():
-                index_dict[field].append(basket_dict[field])
-            index_dict["address"].append(os.path.dirname(basket_json_address))
-            index_dict["storage_type"].append("s3")
+            if validate_basket_dict(basket_dict, basket_json_address):
+                for field in basket_dict.keys():
+                    index_dict[field].append(basket_dict[field])
+                index_dict["address"].append(os.path.dirname(basket_json_address))
+                index_dict["storage_type"].append("s3")
+            else:
+                bad_baskets.append(os.path.dirname(basket_json_address))
+
+        if len(bad_baskets) != 0:
+            warnings.warn('baskets found in the following locations '
+                          'do not follow specified weave schema:\n'
+                          f'{bad_baskets}')
 
     index = pd.DataFrame(index_dict)
     index["uuid"] = index["uuid"].astype(str)
