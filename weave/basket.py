@@ -17,6 +17,8 @@ class Basket:
         basket_address: string
             Argument can take one of two forms: either a path to the Basket 
             directory, or the UUID of the basket.
+        bucket_name: string
+            Name of the bucket which the desired index is associated with.
         """
         self.fs = config.get_file_system()
         try:
@@ -44,12 +46,15 @@ class Basket:
             ind_df = ind.to_pandas_df()
             path = ind_df["address"][ind_df["uuid"] == basket_address].iloc[0]
             self.set_up_basket_from_path(basket_address=path)
-        except BaseException:
+        except BaseException as e:
             self.basket_address = basket_address
             self.validate_basket_path()
+            # the above line should raise an exception
+            # the below line is more or less a fail safe and will raise the ex.
+            raise e
 
     def validate_basket_path(self):
-        """Validates basket health"""
+        """Validates basket exists"""
         if not self.fs.exists(self.basket_address):
             raise ValueError(f"Basket does not exist: {self.basket_address}")
 
