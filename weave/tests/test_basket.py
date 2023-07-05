@@ -381,3 +381,49 @@ def test_basket_ls_after_find(set_up_tb):
     }
     ls = test_b.ls(tmp_basket_dir_name)
     assert set(ls) == what_should_be_in_base_dir_path
+
+def test_basket_init_from_uuid(set_up_tb):
+    tb = set_up_tb
+    # Put basket in the temporary bucket
+    tmp_basket_dir_one = tb.set_up_basket("basket_one")
+    uuid = "0000"
+    tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
+    test_b = Basket(basket_address=uuid, bucket_name=tb.s3_bucket_name)
+    assert test_b.ls("basket_one") == [
+        "pytest-temp-bucket/test_basket/0000/basket_one/test.txt"
+    ]
+
+def test_basket_init_fails_if_uuid_does_not_exist(set_up_tb):
+    tb = set_up_tb
+    # Put basket in the temporary bucket
+    tmp_basket_dir_one = tb.set_up_basket("basket_one")
+    uuid = "0000"
+    bad_uuid = "a bad uuid"
+    tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
+    with pytest.raises(
+        ValueError, match=f"Basket does not exist: {bad_uuid}"
+    ):
+        Basket(basket_address=bad_uuid, bucket_name=tb.s3_bucket_name)
+
+def test_basket_bucket_name_does_not_exist(set_up_tb):
+    tb = set_up_tb
+    # Put basket in the temporary bucket
+    tmp_basket_dir_one = tb.set_up_basket("basket_one")
+    uuid = "0000"
+    tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
+    with pytest.raises(
+        ValueError, match=f"Basket does not exist: {uuid}"
+    ):
+        Basket(basket_address=uuid, bucket_name="the wrong basket 007")
+
+def test_basket_from_uuid_with_many_baskets(set_up_tb):
+    tb = set_up_tb
+    # Set up ten baskets
+    for uuid in range(10):
+        uuid = str(uuid)
+        tmp_basket_dir = tb.set_up_basket(f"temp_basket_{uuid}")
+        tb.upload_basket(tmp_basket_dir=tmp_basket_dir, uid=uuid)
+    test_b = Basket(basket_address=uuid, bucket_name=tb.s3_bucket_name)
+    assert test_b.ls(f"temp_basket_{uuid}") == [
+        f"pytest-temp-bucket/test_basket/{uuid}/temp_basket_{uuid}/test.txt"
+    ]
