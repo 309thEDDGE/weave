@@ -125,7 +125,7 @@ class Index():
         self.index_json_time = 0 # 0 is essentially same as None in this case
         self.index_df = None
         pass
-    
+
     def sync_index(self):
         '''Gets index from latest index basket'''
         fs = config.get_file_system()
@@ -133,7 +133,7 @@ class Index():
         if len(index_paths) == 0:
             return self.generate_index()
         if len(index_paths) > 20:
-            warn(f"The index basket count is {len(index_paths)}. " +
+            warnings.warn(f"The index basket count is {len(index_paths)}. " +
                  "Consider running weave.Index.clean_up_indices")
         latest_index_path = ""
         for path in index_paths:
@@ -161,7 +161,7 @@ class Index():
 
     def clean_up_indices(self, n=20):
         '''Deletes any index basket except the latest n index baskets.
-        
+
         Parameters
         ----------
         n: [int]
@@ -185,7 +185,7 @@ class Index():
                     uuid = path.split(os.path.sep)[-2]
                     self.delete_basket(basket_uuid=uuid)
                 except ValueError as e:
-                    warn(e)
+                    warnings.warn(e)
 
     def is_index_current(self):
         '''Checks to see if the index in memory is up to date with disk index.
