@@ -396,8 +396,8 @@ def upload_basket(
     """
     Upload files and directories to MinIO.
 
-    This function takes in a list of items to upload along with
-    taging information and uploads the data together with three
+    This function takes in a list of items to upload, along with
+    identifying tags, and uploads the data together with three
     json files: basket_manifest.json, basket_metadata.json, and
     supplement.json. The contents of the three files are specified
     below. These three files together with the data specified by
