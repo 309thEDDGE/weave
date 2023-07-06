@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 import pytest
-import s3fs
 from weave.uploader_functions import upload_basket
 from weave import validate, config
 

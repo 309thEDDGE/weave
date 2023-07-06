@@ -4,7 +4,6 @@ import jsonschema
 from jsonschema import validate
 
 from weave import config
-import s3fs
 
 
 def validate_bucket(bucket_name): 
