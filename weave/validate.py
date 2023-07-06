@@ -54,12 +54,16 @@ def _check_level(current_dir, in_basket=False):
     current_dir: string
         the current directory that we want to search all files and 
         directories of
+    in_basket: bool
+        optional parameter. This is a flag to signify that we are in a basket
+        and we are looking for a nested basket now. 
     
     Returns
     ----------
     bool that comes from:
         a validate_basket() if there is a basket found
         a check_level() if there is a directory found
+        a true if we found a manifest while inside another basket
         a default true if no basket is found
     """
     
@@ -82,7 +86,6 @@ def _check_level(current_dir, in_basket=False):
         return _validate_basket(current_dir)
         
     # go through all the other files, if it's a directory, we need to check it
-    
     dirs_and_files = s3fs_client.find(
         path=current_dir, maxdepth=1, withdirs=True
     )
@@ -96,8 +99,6 @@ def _check_level(current_dir, in_basket=False):
             # check the rest of the dirs
             if not _check_level(file_or_dir, in_basket=in_basket): 
                 return False
-    
-    
     
     # This is a backup return because if there are no baskets at all,
     # and no other files, then return true, because the structure is still

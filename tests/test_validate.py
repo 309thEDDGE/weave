@@ -195,8 +195,7 @@ class TestValidate():
         self.s3fs_client.rm(self.s3_bucket_name, recursive=True)
         
         
-    
-    
+        
 @pytest.fixture
 def set_up_TestValidate(tmpdir):
     tv = TestValidate(tmpdir)
@@ -484,6 +483,7 @@ def test_validate_deeply_nested(set_up_TestValidate):
     """
     create a basket with a folder that has a manifest (nested basket)
     10 directories deep to make sure the recursive algorithm will find it
+    and check that it throws an error
     """
     tv = set_up_TestValidate
 
@@ -499,7 +499,8 @@ def test_validate_deeply_nested(set_up_TestValidate):
                                 tmp_basket_dir=tmp_basket_dir, 
                                 new_dir_name='nest_level'
                             )
-
+    
+    #create a deep directory 10 deep that we can use
     for i in range(10):    
         nested_dir_name = "nest_level_" + str(i)
         my_nested_dir = tv.add_lower_dir_to_temp_basket(
@@ -507,6 +508,7 @@ def test_validate_deeply_nested(set_up_TestValidate):
                                 new_dir_name=nested_dir_name
                             )
         
+    # using the deep directory, upload a manifest to make it a nested basket
     my_nested_dir = tv.add_lower_dir_to_temp_basket(
                                 tmp_basket_dir=my_nested_dir, 
                                 new_dir_name="deepest_basket", 
