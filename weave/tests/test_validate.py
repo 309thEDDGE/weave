@@ -1,15 +1,9 @@
-import tempfile
 import os
-import json
 from pathlib import Path
-from unittest.mock import patch
-
-from fsspec.implementations.local import LocalFileSystem
 import pytest
 import s3fs
-
-from weave import validate, Basket, upload_basket, create_index_from_s3
-import weave
+from weave.uploader_functions import upload_basket
+from weave import validate
 
 
 class TestValidate():
@@ -37,7 +31,7 @@ class TestValidate():
         try:
             self.s3_bucket_name = 'pytest-temp-bucket'
             self.s3fs_client.mkdir(self.s3_bucket_name)
-        except:
+        except Exception:
             self.cleanup_bucket()
             self._set_up_bucket()
           
@@ -207,7 +201,6 @@ def test_validate_bucket_does_not_exist(set_up_TestValidate):
     """
     input a bucket path that does not exist and check that it throws an error
     """
-    tv = set_up_TestValidate
     
     bucket_path = Path("THISisNOTaPROPERbucketNAMEorPATH")
     
@@ -257,9 +250,9 @@ def test_validate_no_metadata_file(set_up_TestValidate):
     tmp_basket_dir_name = "my_basket"
     tmp_basket_dir = tv.set_up_basket(tmp_basket_dir_name)
     
-    s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
+    tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
     
-    assert validate.validate_bucket(tv.s3_bucket_name) == True
+    assert validate.validate_bucket(tv.s3_bucket_name)
     
     
 def test_validate_invalid_manifest_schema(set_up_TestValidate):
@@ -466,10 +459,6 @@ def test_validate_nested_basket(set_up_TestValidate):
                         )
     
     s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
-    
-    # mylist = tv.s3fs_client.find(tv.s3_bucket_name, withdirs=True)
-    # for i in mylist:
-    #     print(i)
       
     with pytest.raises(
         ValueError, 
@@ -516,12 +505,12 @@ def test_validate_deeply_nested(set_up_TestValidate):
                             )
     
     nested_basket_name = "my_nested_basket"
-    nested_basket_dir = tv.set_up_basket(
-                                nested_basket_name, 
-                                is_man=True, 
-                                is_sup=True, 
-                                is_meta=False
-                            )
+    tv.set_up_basket(
+                nested_basket_name, 
+                is_man=True, 
+                is_sup=True, 
+                is_meta=False
+            )
     
     s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
     
@@ -550,7 +539,7 @@ def test_validate_no_files_or_dirs(set_up_TestValidate):
     tv.s3fs_client.rm(manifest_path)
     tv.s3fs_client.rm(supplement_path)
                 
-    assert validate.validate_bucket(tv.s3_bucket_name) == True
+    assert validate.validate_bucket(tv.s3_bucket_name)
     
     
 def test_validate_no_baskets(set_up_TestValidate):
@@ -567,11 +556,11 @@ def test_validate_no_baskets(set_up_TestValidate):
     #adding this lower dir with a .txt file to have the
     # program at least search the directories.
     nested_dir_name = "nest"
-    my_nested_dir = tv.add_lower_dir_to_temp_basket(
-                                        tmp_basket_dir=tmp_basket_dir, 
-                                        new_dir_name=nested_dir_name
-                                    )
-    
+    tv.add_lower_dir_to_temp_basket(
+                            tmp_basket_dir=tmp_basket_dir, 
+                            new_dir_name=nested_dir_name
+                        )
+
     s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
     
     manifest_path = os.path.join(s3_basket_path, "basket_manifest.json")
@@ -579,7 +568,7 @@ def test_validate_no_baskets(set_up_TestValidate):
     tv.s3fs_client.rm(manifest_path)
     tv.s3fs_client.rm(supplement_path)
                 
-    assert validate.validate_bucket(tv.s3_bucket_name) == True
+    assert validate.validate_bucket(tv.s3_bucket_name)
 
     
     
@@ -608,10 +597,7 @@ def test_validate_fifty_baskets(set_up_TestValidate):
     
     for i in range(50):
         uuid = '00' + str(i)
-        s3_basket_path = tv.upload_basket(
-                                    tmp_basket_dir=tmp_basket_dir, 
-                                    uid=uuid
-                                )
+        tv.upload_basket(tmp_basket_dir=tmp_basket_dir, uid=uuid)
    
     with pytest.raises(
         ValueError, 
@@ -634,12 +620,12 @@ def test_validate_call_check_level(set_up_TestValidate):
     tmp_basket_dir_name = "my_basket"
     tmp_basket_dir = tv.set_up_basket(tmp_basket_dir_name)
     
-    s3_basket_path = tv.upload_basket(
-                                tmp_basket_dir=tmp_basket_dir, 
-                                metadata={"Test":1, "test_bool":True}
-                            )    
+    tv.upload_basket(
+                tmp_basket_dir=tmp_basket_dir, 
+                metadata={"Test":1, "test_bool":True}
+            )    
     
-    assert validate._check_level(tv.s3_bucket_name) == True
+    assert validate._check_level(tv.s3_bucket_name)
     
     
 def test_validate_call_validate_basket(set_up_TestValidate):
@@ -654,10 +640,10 @@ def test_validate_call_validate_basket(set_up_TestValidate):
     tmp_basket_dir_name = "my_basket"
     tmp_basket_dir = tv.set_up_basket(tmp_basket_dir_name)
     
-    s3_basket_path = tv.upload_basket(
-                                tmp_basket_dir=tmp_basket_dir, 
-                                metadata={"Test":1, "test_bool":True}
-                            )    
+    tv.upload_basket(
+            tmp_basket_dir=tmp_basket_dir, 
+            metadata={"Test":1, "test_bool":True}
+        )    
     
         
     with pytest.raises(

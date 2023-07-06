@@ -2,11 +2,8 @@ import os
 import json
 import jsonschema
 from jsonschema import validate
-from pathlib import Path
 
 from weave import config
-from weave.create_index import create_index_from_s3
-from fsspec.implementations.local import LocalFileSystem
 import s3fs
 
 
@@ -170,13 +167,13 @@ def _validate_basket(basket_dir):
                 data = json.load(s3fs_client.open(file))
                 validate(instance=data, schema=config.manifest_schema)
                 
-            except jsonschema.exceptions.ValidationError as err:
+            except jsonschema.exceptions.ValidationError:
                 raise ValueError(
                     f"Invalid Basket. "
                     f"Manifest Schema does not match at: {file}"
                 )
             
-            except json.decoder.JSONDecodeError as err:
+            except json.decoder.JSONDecodeError:
                 raise ValueError(
                     f"Invalid Basket. "
                     f"Manifest could not be loaded into json at: {file}"
@@ -189,13 +186,13 @@ def _validate_basket(basket_dir):
                 data = json.load(s3fs_client.open(file))
                 validate(instance=data, schema=config.supplement_schema)
                 
-            except jsonschema.exceptions.ValidationError as err:
+            except jsonschema.exceptions.ValidationError:
                 raise ValueError(
                     f"Invalid Basket. "
                     f"Supplement Schema does not match at: {file}"
                 )
             
-            except json.decoder.JSONDecodeError as err:
+            except json.decoder.JSONDecodeError:
                 raise ValueError(
                     f"Invalid Basket. "
                     f"Supplement could not be loaded into json at: {file}"
@@ -206,7 +203,7 @@ def _validate_basket(basket_dir):
             try:
                 data = json.load(s3fs_client.open(file))
                 
-            except json.decoder.JSONDecodeError as err:
+            except json.decoder.JSONDecodeError:
                 raise ValueError(
                     f"Invalid Basket. "
                     f"Metadata could not be loaded into json at: {file}"
