@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 import s3fs
 from weave.uploader_functions import upload_basket
-from weave import validate
+from weave import validate, config
 
 
 class TestValidate():
@@ -19,8 +19,7 @@ class TestValidate():
         self.tmpdir = tmpdir
         
         self.basket_list = []
-        ck={"endpoint_url": os.environ["S3_ENDPOINT"]}
-        self.s3fs_client = s3fs.S3FileSystem(client_kwargs=ck)
+        self.s3fs_client = config.get_file_system()
         self._set_up_bucket()
         
         

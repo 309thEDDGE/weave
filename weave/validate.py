@@ -25,8 +25,7 @@ def validate_bucket(bucket_name):
     A bool of whether the bucket is valid or not that comes from check_level()
     """
     
-    ck={"endpoint_url": os.environ["S3_ENDPOINT"]}
-    s3fs_client = s3fs.S3FileSystem(client_kwargs=ck)
+    s3fs_client = config.get_file_system()
     
     if not s3fs_client.exists(bucket_name):
         raise ValueError(
@@ -64,8 +63,7 @@ def _check_level(current_dir, in_basket=False):
         a default true if no basket is found
     """
     
-    ck={"endpoint_url": os.environ["S3_ENDPOINT"]}
-    s3fs_client = s3fs.S3FileSystem(client_kwargs=ck)
+    s3fs_client = config.get_file_system()
     
     if not s3fs_client.exists(current_dir):
         raise ValueError(
@@ -132,8 +130,7 @@ def _validate_basket(basket_dir):
         if the Basket is invalid, raise an error
     """
     
-    ck={"endpoint_url": os.environ["S3_ENDPOINT"]}
-    s3fs_client = s3fs.S3FileSystem(client_kwargs=ck)
+    s3fs_client = config.get_file_system()
     
     manifest_path = os.path.join(basket_dir, 'basket_manifest.json')
     supplement_path = os.path.join(basket_dir, 'basket_supplement.json')
