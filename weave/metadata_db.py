@@ -1,7 +1,7 @@
 import pandas as pd
 from weave import config, Basket
 
-def load_mongo(index_table):
+def load_mongo(index_table, collection = 'metadata'):
     """Load metadata from baskets into the mongo database.
 
        A metadata.json is created in Baskets when the metadata
@@ -18,11 +18,19 @@ def load_mongo(index_table):
                uuid
                basket_type
                address
+               
+        collection: [string]
+            Metadata wil be added to the Mongo collection specified.
+            default: 'metadata'
         """
     
     if not isinstance(index_table, pd.DataFrame):
         raise TypeError("Invalid datatype for index_table: "
                         "must be Pandas DataFrame")
+        
+    if not isinstance(collection, str):
+        raise TypeError("Invalid datatype for collection: "
+                        "must be a string")
     
     required_columns = ['uuid', 'basket_type', 'address']
     
@@ -43,4 +51,4 @@ def load_mongo(index_table):
         mongo_metadata['uuid'] = manifest['uuid']
         mongo_metadata['basket_type'] = manifest['basket_type']
         mongo_metadata.update(metadata)
-        db['metadata'].insert_one(mongo_metadata)
+        db[collection].insert_one(mongo_metadata)

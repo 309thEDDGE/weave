@@ -4,18 +4,13 @@ from fsspec.implementations.local import LocalFileSystem
 from unittest.mock import patch
 import pytest
 import pandas as pd
-import mongomock
-from weave.metadata_db import load_mongo
-from weave.create_index import create_index_from_s3
-from weave.uploader import upload_basket
-
-mock_db = mongomock.MongoClient()
+import weave
 
 class TestMongo():
     
     @patch("weave.config.get_file_system", return_value=LocalFileSystem())
     def load_data(self, patch):
-        upload_basket(
+        weave.uploader.upload_basket(
             [{"path": self.local_dir_path, "stub": False}],
             f"{self.bucket_path}/{self.basket_type}/1234",
             "1234",
@@ -23,7 +18,7 @@ class TestMongo():
             metadata={'key1': 'value1'}
         )
 
-        upload_basket(
+        weave.uploader.upload_basket(
             [{"path": self.local_dir_path, "stub": False}],
             f"{self.bucket_path}/{self.basket_type}/one_deeper/4321",
             "4321",
@@ -32,7 +27,7 @@ class TestMongo():
         )
             
         # No Metadata
-        upload_basket(
+        weave.uploader.upload_basket(
             [{"path": self.local_dir_path, "stub": False}],
             f"{self.bucket_path}/{self.basket_type}/nometadata",
             "nometadata",
@@ -40,6 +35,9 @@ class TestMongo():
         )
     
     def setup_class(self):
+        self.test_collection = 'test_collection'
+        self.mongodb = weave.config.get_mongo_db().mongo_metadata
+        
         self.fs = LocalFileSystem()
         self.basket_type = "test_basket_type"
         self.test_bucket = "test-bucket"
@@ -63,51 +61,63 @@ class TestMongo():
     def teardown_method(self):
         if self.fs.exists(f"{self.bucket_path}"):
             self.fs.rm(f"{self.bucket_path}", recursive=True)
+            
+        self.mongodb[self.test_collection].drop()
     
     @patch("weave.config.get_file_system", return_value=LocalFileSystem())
-    @patch("weave.config.get_mongo_db", return_value=mock_db)
-    def test_load_mongo(self, patch1, patch2):
-        index_table = create_index_from_s3(self.bucket_path)
-        load_mongo(index_table)
+    def test_load_mongo(self, patch1):
+        index_table = weave.index.create_index_from_s3(self.bucket_path)
+        weave.load_mongo(index_table, self.test_collection)
         truth_db = [{'uuid': '1234', 'basket_type': 'test_basket_type', 
                      'key1': 'value1'}, 
                     {'uuid': '4321', 'basket_type': 'test_basket_type', 
                      'key2': 'value2'}]
-        db_data = list(mock_db.mongo_metadata.metadata.find({}))
+        
+        db_data = list(self.mongodb[self.test_collection].find({}))
         compared_data = []
         for item in db_data:
             item.pop('_id')
             compared_data.append(item)
             
-        assert truth_db == compared_data
+        assert truth_db == compared_data        
         
     def test_load_mongo_check_for_dataframe(self):
         with pytest.raises(
             TypeError, match="Invalid datatype for index_table: "
                              "must be Pandas DataFrame"
         ):
-            load_mongo("")
+            weave.load_mongo("", self.test_collection)
+            
+    def test_load_mongo_check_collection_for_string(self):
+        with pytest.raises(
+            TypeError, match="Invalid datatype for collection: "
+                             "must be a string"
+        ):
+            weave.load_mongo(pd.DataFrame(), 1)
             
     def test_load_mongo_check_dataframe_for_uuid(self):
         with pytest.raises(
             ValueError, match="Invalid index_table: "
                               "missing uuid column"
         ):
-            load_mongo(pd.DataFrame({'basket_type': ['type'], 
-                                     'address': ['path']}))
+            weave.load_mongo(pd.DataFrame({'basket_type': ['type'], 
+                                           'address': ['path']}),
+                             self.test_collection)
                        
     def test_load_mongo_check_dataframe_for_address(self):
         with pytest.raises(
             ValueError, match="Invalid index_table: "
                               "missing address column"
         ):
-            load_mongo(pd.DataFrame({'uuid': ['1234'], 
-                                     'basket_type': ['type']}))
+            weave.load_mongo(pd.DataFrame({'uuid': ['1234'], 
+                                           'basket_type': ['type']}),
+                             self.test_collection)
                        
     def test_load_mongo_check_dataframe_for_basket_type(self):
         with pytest.raises(
             ValueError, match="Invalid index_table: "
                               "missing basket_type column"
         ):
-            load_mongo(pd.DataFrame({'uuid': ['1234'], 
-                                     'address': ['path']}))
+            weave.load_mongo(pd.DataFrame({'uuid': ['1234'], 
+                                           'address': ['path']}),
+                             self.test_collection)

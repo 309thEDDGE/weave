@@ -9,10 +9,8 @@ from fsspec.implementations.local import LocalFileSystem
 from unittest.mock import patch
 
 from weave.uploader import upload_basket
-from weave.uploader_functions import (
-    derive_integrity_data,
-    validate_upload_item,
-)
+from weave.uploader_functions import (derive_integrity_data,
+                                      validate_upload_item)
 
 
 class TestValidateUploadItems:

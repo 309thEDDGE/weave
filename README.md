@@ -13,11 +13,21 @@ access to data provenance.
 ## Usage
 
 Weave can be installed by running `pip install .` from the root directory.
-Useful functions are imported from `weave.access` and `weave.create_index`.
+Useful functions are available after running `import weave`
 Weave was built with the intention of connecting to an S3 bucket with an
 `s3fs.S3FileSystem` object. Any filesystem that uses an
 `fsspec.implementations` API should be possible to implement. For now, Weave
-has only been tested using an S3 bucket filesystem.
+has only been tested using an S3 bucket filesystem.  
+
+The following environment variables are required to establish an S3 connection:  
+- AWS_ACCESS_KEY_ID
+- AWS_SECRET_ACCESS_KEY
+- S3_ENDPOINT
+  
+The following environment variables are required to establish a MongoClient connection:  
+- MONGODB_HOST
+- MONGODB_USERNAME
+- MONGODB_PASSWORD
 
 ### Baskets 
 
@@ -49,7 +59,7 @@ Optional basket information:
 Example code to upload a basket:
 
 ```python
-from weave.access import upload
+from weave import upload
 upload_items = [{'path':'Path_to_file_or_dir', 'stub': False}]
 upload(upload_items, basket_type = 'item', bucket_name = 'basket-data')
 ```
@@ -57,17 +67,18 @@ upload(upload_items, basket_type = 'item', bucket_name = 'basket-data')
 Running `help(weave.access.upload)` will print the docstring that provides more
 information on each of these upload parameters.
 
-### Creating an Index
+### Using an Index
 
 Weave can scrape a datastore of baskets and create an index of all the baskets
 in that datastore. This index provides information about each basket, including
 its uuid, upload time, parent uuids, basket type, label, address and storage
 type. Example code to create this index:
 ```python
-from weave.create_index import create_index_from_s3
-index = create_index_from_s3(name_of_s3_bucket)
+from weave import Index
+ind = Index(name_of_s3_bucket)
+ind_df = ind.to_pandas_df()
 ```
-`create_index_from_s3` returns a pandas dataframe with each row corresponding
+`Index.to_pandas_df()` returns a pandas dataframe with each row corresponding
 to a basketin the datastore.
 
 ## Contribution
