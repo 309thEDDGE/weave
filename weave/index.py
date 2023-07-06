@@ -192,6 +192,12 @@ class Index():
     def generate_index(self):
         '''Generates index and stores it in a basket'''
         index = create_index_from_s3(self.bucket_name)
+        self._upload_index(index=index)
+        self.index_df = index
+        self.index_json_time = ns
+
+    def _upload_index(self, index):
+        """Upload a new index"""
         with tempfile.TemporaryDirectory() as out:
             ns = time_ns()
             temp_json_path = os.path.join(out, f"{ns}-index.json")
@@ -199,8 +205,6 @@ class Index():
             upload(upload_items=[{'path':temp_json_path, 'stub':False}],
                    basket_type=self.index_basket_dir_name,
                    bucket_name=self.bucket_name)
-        self.index_df = index
-        self.index_json_time = ns
 
     def delete_basket(self, basket_uuid):
         '''Deletes basket of given UUID.
@@ -238,3 +242,56 @@ class Index():
                 self.index_df["uuid"] == basket_uuid
             ]["address"]
             fs.rm(adr, recursive=True)
+
+    def upload_basket(
+        upload_items,
+        basket_type,
+        parent_ids=[],
+        metadata={},
+        label=""
+    ):
+        """Upload a basket to the same pantry referenced by the Index
+
+        Parameters
+        ----------
+        upload_items : [dict]
+            List of python dictionaries with the following schema:
+            {
+                'path': path to the file or folder being uploaded (string),
+                'stub': true/false (bool)
+            }
+            'path' can be a file or folder to be uploaded. Every filename
+            and folder name must be unique. If 'stub' is set to True, integrity
+            data will be included without uploading the actual file or folder.
+            Stubs are useful when original file source information is desired
+            without uploading the data itself. This is especially useful when
+            dealing with large files.
+        basket_type: str
+            Type of basket being uploaded.
+        parent_ids: optional [str]
+            List of unique ids associated with the parent baskets
+            used to derive the new basket being uploaded.
+        metadata: optional dict,
+            Python dictionary that will be written to metadata.json
+            and stored in the basket in MinIO.
+        label: optional str,
+            Optional user friendly label associated with the basket.
+        """
+        up_dir = upload(
+            upload_items=upload_items,
+            basket_type=basket_type,
+            bucket_name=self.bucket_name,
+            parent_ids=parent_ids,
+            metadata=metadata,
+            label=label,
+        )
+        self.sync_index()
+        # basket_json_list should be len == 1
+        single_indice_index = create_index_from_s3(up_dir)
+        if len(single_indice_index) != 1:
+            raise AssertionError(f"Basket located at {up_dir} contains more " +
+                                 "than one basket_manifest.json " +
+                                 "(perhaps nested baskets exist)")
+        row = single_indice_index.iloc[0]
+        self.index_df.append(row, inplace=True)
+        self._upload_index(self.index_df)
