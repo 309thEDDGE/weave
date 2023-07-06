@@ -35,12 +35,13 @@ def validate_bucket(bucket_name):
         raise ValueError(
             f"Invalid Bucket Path. Bucket does not exist at: {bucket_name}"
         )
+    
     # call check level, with a path, but since we're just starting, 
     # we just use the bucket_name as the path
-    return check_level(bucket_name) 
+    return _check_level(bucket_name) 
 
 
-def check_level(current_dir):    
+def _check_level(current_dir, in_basket=False):    
     """
     Checks all the immediate subdirectories and files in the given directory 
     to see if there is a basket_manifest.json file. If there is a manifest, 
@@ -64,27 +65,39 @@ def check_level(current_dir):
     
     ck={"endpoint_url": os.environ["S3_ENDPOINT"]}
     s3fs_client = s3fs.S3FileSystem(client_kwargs=ck)
+    
+    if not s3fs_client.exists(current_dir):
+        raise ValueError(
+            f"Invalid Path. No file or directory found at: {current_dir}"
+        )
 
     manifest_path = os.path.join(current_dir, 'basket_manifest.json')
     
     # if a manifest exists, its a basket, validate it
     if s3fs_client.exists(manifest_path):
-        return validate_basket(current_dir)
-    # go through all the other files, if it's a directory, we need to check it
-    else:
-        dirs_and_files = s3fs_client.find(
-            path=current_dir, maxdepth=1, withdirs=True
-        )
+        # if we find another manifest inside a basket, we just need to say 
+        # we found it, we don't need to validate the nested basket
+        if in_basket:
+            return True
+        return _validate_basket(current_dir)
         
-        for file_or_dir in dirs_and_files:
-            file_type = s3fs_client.info(file_or_dir)['type']
-            
-            if file_type == 'directory':
-                #we don't want to reutrn check_level here because 
-                #if it's valid, then you still need to 
-                # check the rest of the dirs
-                if not check_level(file_or_dir): 
-                    return False
+    # go through all the other files, if it's a directory, we need to check it
+    
+    dirs_and_files = s3fs_client.find(
+        path=current_dir, maxdepth=1, withdirs=True
+    )
+
+    for file_or_dir in dirs_and_files:
+        file_type = s3fs_client.info(file_or_dir)['type']
+
+        if file_type == 'directory':
+            #we don't want to reutrn check_level here because 
+            #if it's valid, then you still need to 
+            # check the rest of the dirs
+            if not _check_level(file_or_dir, in_basket=in_basket): 
+                return False
+    
+    
     
     # This is a backup return because if there are no baskets at all,
     # and no other files, then return true, because the structure is still
@@ -92,7 +105,7 @@ def check_level(current_dir):
     return True
 
 
-def validate_basket(basket_dir):   
+def _validate_basket(basket_dir):   
     """
     Takes the root directory of a basket and validates it
     
@@ -124,9 +137,18 @@ def validate_basket(basket_dir):
     ck={"endpoint_url": os.environ["S3_ENDPOINT"]}
     s3fs_client = s3fs.S3FileSystem(client_kwargs=ck)
     
+    manifest_path = os.path.join(basket_dir, 'basket_manifest.json')
     supplement_path = os.path.join(basket_dir, 'basket_supplement.json')
     
     # a valid basket has both manifest and supplement
+    # if for some reason the manifest is gone, we get a wrong directory,
+    # or this function is incorrectly called, 
+    # we can say that this isn't a basket. 
+    if not s3fs_client.exists(manifest_path):
+        raise FileNotFoundError(
+            f"Invalid Path. No Basket found at: {basket_dir}"
+        )
+    
     if not s3fs_client.exists(supplement_path):
         raise FileNotFoundError(
             f"Invalid Basket. No Supplement file found at: {supplement_path}"
@@ -192,7 +214,7 @@ def validate_basket(basket_dir):
         # if we find a directory inside this basket, we need to check it
         # if we check it and find a basket, this basket is invalid.
         if s3fs_client.info(file)['type'] == 'directory':
-            if check_level(file):
+            if _check_level(file, in_basket=True):
                 raise ValueError(
                     f"Invalid Basket. "
                     f"Manifest File found in sub directory of "
