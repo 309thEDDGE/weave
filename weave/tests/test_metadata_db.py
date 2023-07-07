@@ -121,3 +121,39 @@ class TestMongo():
             weave.load_mongo(pd.DataFrame({'uuid': ['1234'], 
                                            'address': ['path']}),
                              self.test_collection)
+            
+    def test_load_mongo_check_for_duplicate_uuid(self):
+        test_uuid = '42069'
+        
+        # Ensure uuid doesn't exist already.
+        count = self.mongodb[self.test_collection].count_documents(
+            {'uuid': test_uuid})
+        assert count == 0, "test uuid already exists"
+        
+        # Create the test basket.
+        weave.uploader.upload_basket(
+            [{"path": self.local_dir_path, "stub": False}],
+            f"{self.bucket_path}/{self.basket_type}/{test_uuid}",
+            test_uuid,
+            self.basket_type,
+            metadata={'key1': 'value1'}
+        )
+        
+        test_metadata = pd.DataFrame(
+            {'uuid': [test_uuid],
+            'address': [f"{self.bucket_path}/{self.basket_type}/{test_uuid}"],
+            'basket_type': ['type']})
+        
+        # Load the metadata to the mongoDB
+        weave.load_mongo(test_metadata, self.test_collection)
+        count = self.mongodb[self.test_collection].count_documents(
+            {'uuid': test_uuid})
+        assert count == 1, "insert failed"
+        
+        # Attempt to load it again, and ensure it didn't
+        weave.load_mongo(test_metadata, self.test_collection)
+        count = self.mongodb[self.test_collection].count_documents(
+            {'uuid': test_uuid})
+        assert count == 1, "duplicate uuid inserted"
+        
+        
