@@ -18,23 +18,31 @@ manifest_schema = {
     "properties": {
         "uuid": {"type" : "string" },
         "upload_time":{"type" : "string" },
-        
+
         "parent_uuids": {
             "type": "array",
             "items": {
                 "type" : "string"
             }
         },
-        
+
         "basket_type": {"type" : "string" },
         "label": {"type" : "string" },
-    }
+    },
+    "required": [
+        "uuid",
+        "upload_time",
+        "parent_uuids",
+        "basket_type",
+        "label"
+    ],
+    "additionalProperties": False
 }
 
 #basket_supplement must follow this schema 
 supplement_schema = {
     "properties": {
-        
+
         "upload_items": {
             "type": "array",
             "items": {
@@ -43,10 +51,10 @@ supplement_schema = {
                     "path": {"type": "string"},
                     "stub": {"type": "boolean"}
                 }
-                                
+
             }
         },
-        
+
          "integrity_data": {
             "type": "array",
             "items": {
@@ -59,22 +67,19 @@ supplement_schema = {
                     "byte_count": {"type" : "number" },
                     "stub":{"type" : "boolean" }, 
                     "upload_path":{"type" : "string" }
-                }                      
+                }
             }
         }
-    }
+    },
+    "required": ["upload_items", "integrity_data"],
+    "additionalProperties": False
 }
 
-
-
-# As schema change, a parameter can be passed to index_schema
-# to determine which schema to return.
 def index_schema():
     """
     Return the keys expected from the manifest.json file.
     """
     return ["uuid", "upload_time", "parent_uuids", "basket_type", "label"]
-
 
 def get_file_system():
     """Get the filesystem to be used for storing baskets"""
@@ -84,7 +89,7 @@ def get_file_system():
 
 def get_mongo_db():
     """Get the mongodb client to be used for metadata search"""
-    
+
     # If MONGODB_HOST, USERNAME and PASSWORD are provided as environment
     # variables, initialize the mongo client with the provided
     # credentials. Else defer to default credentials for OPAL.
