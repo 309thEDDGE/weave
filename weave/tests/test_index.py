@@ -70,12 +70,12 @@ def test_correct_index(set_up_tb):
         .all()
     )
 
-def test_create_index_with_malformed_basket(set_up_tb):
+@pytest.fixture
+def set_up_malformed_basket(tmpdir):
     """
     upload a basket with a basket_details.json with incorrect keys.
-    check that correct error is thrown. delete said basket from s3
     """
-    tb = set_up_tb
+    tb = BucketForTest(tmpdir)
     tmp_basket_dir_one = tb.set_up_basket("basket_one")
     addr_one = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
@@ -100,6 +100,14 @@ def test_create_index_with_malformed_basket(set_up_tb):
         f"{tb.s3_bucket_name}/test_basket/0002/basket_manifest.json",
     )
 
+    yield tb, addr_one, addr_two
+    tb.cleanup_bucket()
+
+def test_create_index_with_malformed_basket_works(set_up_malformed_basket):
+    '''check that the index is made correctly when a malformed basket exists.
+    '''
+    tb, addr_one, addr_two = set_up_malformed_basket
+
     truth_index_dict = {
         "uuid": "0001",
         "upload_time": "whatever",
@@ -111,8 +119,6 @@ def test_create_index_with_malformed_basket(set_up_tb):
     }
     truth_index = pd.DataFrame(truth_index_dict)
 
-    #check that we correctly indexed a valid basket
-    #while correctly catching an invalid basket in the warning message
     with warnings.catch_warnings(record = True) as w:
         minio_index = create_index_from_s3(tb.s3_bucket_name)
         assert (
@@ -120,10 +126,16 @@ def test_create_index_with_malformed_basket(set_up_tb):
             .drop(columns=["upload_time"])
             .all()
             .all()
-            and 
-            addr_two in str(w[0].message)
-            and len(w) == 1
         )
+
+def test_create_index_with_bad_basket_throws_warning(set_up_malformed_basket):
+    '''check that a warning is thrown during index creation
+    '''
+    tb, addr_one, addr_two = set_up_malformed_basket
+
+    with warnings.catch_warnings(record = True) as w:
+        minio_index = create_index_from_s3(tb.s3_bucket_name)
+        assert (addr_two in str(w[0].message) and len(w) == 1)
 
 def test_sync_index_gets_latest_index(set_up_tb):
     tb = set_up_tb
@@ -196,7 +208,7 @@ def test_clean_up_indices_leaves_n_indices(set_up_tb):
     tmp_basket_dir_two = tb.set_up_basket("basket_two")
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
     ind.generate_index()
-    
+
     # Now there should be two index baskets. clean up all but one of them:
     ind.clean_up_indices(n=1)
     fs = get_file_system()
@@ -217,7 +229,7 @@ def test_clean_up_indices_with_n_greater_than_num_of_indices(set_up_tb):
     tmp_basket_dir_two = tb.set_up_basket("basket_two")
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
     ind.generate_index()
-    
+
     # Now there should be two index baskets. clean up all but three of them:
     # (this should fail, obvs)
     ind.clean_up_indices(n=3)
@@ -238,7 +250,7 @@ def test_is_index_current(set_up_tb):
     # add another basket
     tmp_basket_dir_two = tb.set_up_basket("basket_two")
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
-    
+
     # Regenerate index outside of current index object
     ind2 = Index(bucket_name=tb.s3_bucket_name, sync=True)
     ind2.generate_index()
@@ -275,7 +287,7 @@ def test_delete_basket_deletes_basket(set_up_tb):
     # add another basket
     tmp_basket_dir_two = tb.set_up_basket("basket_two")
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
-    
+
     ind.generate_index()
     ind.delete_basket(basket_uuid="0002")
     ind.clean_up_indices(n=1)
