@@ -293,7 +293,47 @@ def test_validate_invalid_manifest_schema(set_up_TestValidate):
         f"Manifest Schema does not match at: {s3_basket_path}"
     ):
         validate.validate_bucket(tv.s3_bucket_name)
-    
+
+def test_validate_manifest_schema_missing_field(set_up_TestValidate):
+    """
+    make a basket with an invalid manifest schema, check that it 
+    throws an error
+    """
+    tv = set_up_TestValidate
+
+    tmp_basket_dir_name = "bad_man_schema"
+
+    # the manifest is missing the uuid field
+    # this is invalid against the schema
+    bad_manifest_data = """{
+                    "upload_time": "str", 
+                    "parent_uuids": [ "str1", "str2", "str3" ],
+                    "basket_type": "str",
+                    "label": "str"
+                }"""
+
+    tmp_basket_dir = tv.set_up_basket(
+                            tmp_basket_dir_name, 
+                            is_man=True, 
+                            man_data=bad_manifest_data, 
+                            is_sup=True, 
+                            is_meta=False
+                        )
+
+    s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
+
+    manifest_path = os.path.join(s3_basket_path, "basket_manifest.json")
+    supplement_path = os.path.join(s3_basket_path, "basket_supplement.json")
+    tv.s3fs_client.rm(manifest_path)
+    tv.s3fs_client.rm(supplement_path)
+
+    with pytest.raises(
+        ValueError, 
+        match=f"Invalid Basket. "
+        f"Manifest Schema does not match at: {s3_basket_path}"
+    ):
+        validate.validate_bucket(tv.s3_bucket_name)
+
 
 def test_validate_invalid_manifest_json(set_up_TestValidate):
     """

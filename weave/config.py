@@ -28,7 +28,15 @@ manifest_schema = {
         
         "basket_type": {"type" : "string" },
         "label": {"type" : "string" },
-    }
+    },
+    "required": [
+        "uuid",
+        "upload_time",
+        "parent_uuids",
+        "basket_type",
+        "label"
+    ],
+    "additionalProperties": False
 }
 
 #basket_supplement must follow this schema 
@@ -62,19 +70,16 @@ supplement_schema = {
                 }                      
             }
         }
-    }
+    },
+    "required": ["upload_items", "integrity_data"],
+    "additionalProperties": False
 }
 
-
-
-# As schema change, a parameter can be passed to index_schema
-# to determine which schema to return.
 def index_schema():
     """
     Return the keys expected from the manifest.json file.
     """
     return ["uuid", "upload_time", "parent_uuids", "basket_type", "label"]
-
 
 def get_file_system():
     """Get the filesystem to be used for storing baskets"""
