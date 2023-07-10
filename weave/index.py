@@ -10,6 +10,8 @@ import warnings
 from time import time_ns
 
 import pandas as pd
+import jsonschema
+from jsonschema import validate
 
 from weave import config, upload
 
@@ -28,14 +30,12 @@ def validate_basket_dict(basket_dict, basket_address):
         valid (bool): True if basket has correct schema, false otherwise
     """
 
-    schema = config.index_schema()
-
-    if list(basket_dict.keys()) != schema:
-        return False
-    else:
+    try:
+        validate(instance=basket_dict, schema=config.manifest_schema)
         return True
 
-    # TODO: validate types for each key
+    except jsonschema.exceptions.ValidationError:
+        return False
 
 
 def create_index_from_s3(root_dir):
@@ -76,6 +76,7 @@ def create_index_from_s3(root_dir):
         bad_baskets = []
         with fs.open(basket_json_address, "rb") as file:
             basket_dict = json.load(file)
+            print(basket_dict)
             if validate_basket_dict(basket_dict, basket_json_address):
                 for field in basket_dict.keys():
                     index_dict[field].append(basket_dict[field])
