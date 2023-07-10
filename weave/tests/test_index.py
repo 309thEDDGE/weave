@@ -119,14 +119,13 @@ def test_create_index_with_malformed_basket_works(set_up_malformed_basket):
     }
     truth_index = pd.DataFrame(truth_index_dict)
 
-    with warnings.catch_warnings(record = True) as w:
-        minio_index = create_index_from_s3(tb.s3_bucket_name)
-        assert (
-            (truth_index == minio_index)
-            .drop(columns=["upload_time"])
-            .all()
-            .all()
-        )
+    minio_index = create_index_from_s3(tb.s3_bucket_name)
+    assert (
+        (truth_index == minio_index)
+        .drop(columns=["upload_time"])
+        .all()
+        .all()
+    )
 
 def test_create_index_with_bad_basket_throws_warning(set_up_malformed_basket):
     '''check that a warning is thrown during index creation
@@ -134,7 +133,7 @@ def test_create_index_with_bad_basket_throws_warning(set_up_malformed_basket):
     tb, addr_one, addr_two = set_up_malformed_basket
 
     with warnings.catch_warnings(record = True) as w:
-        minio_index = create_index_from_s3(tb.s3_bucket_name)
+        create_index_from_s3(tb.s3_bucket_name)
         assert (addr_two in str(w[0].message) and len(w) == 1)
 
 def test_sync_index_gets_latest_index(set_up_tb):
