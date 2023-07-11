@@ -23,7 +23,7 @@ def validate_bucket(bucket_name):
     ----------
     A bool of whether the bucket is valid or not that comes from check_level()
     """
-    
+
     s3fs_client = config.get_file_system()
     
     if not s3fs_client.exists(bucket_name):
@@ -70,11 +70,14 @@ def _check_level(current_dir, in_basket=False):
         )
 
     manifest_path = os.path.join(current_dir, 'basket_manifest.json')
+    # print('in_basket: ', str(in_basket))
+    # print('manifest Path: ', manifest_path)
     
     # if a manifest exists, its a basket, validate it
     if s3fs_client.exists(manifest_path):
         # if we find another manifest inside a basket, we just need to say 
         # we found it, we don't need to validate the nested basket
+        # print("this file exists: ", manifest_path, ". in_basket?: ", in_basket)
         if in_basket:
             return True
         return _validate_basket(current_dir)
@@ -91,12 +94,17 @@ def _check_level(current_dir, in_basket=False):
             #we don't want to reutrn check_level here because 
             #if it's valid, then you still need to 
             # check the rest of the dirs
+            # print('checking dir of: ', file_or_dir)
+            # print('in basket?: ', in_basket)
             if not _check_level(file_or_dir, in_basket=in_basket): 
                 return False
     
     # This is a backup return because if there are no baskets at all,
     # and no other files, then return true, because the structure is still
     # valid, but we just didn't find a basket to validate
+    # print('return true in check_level of:', current_dir)
+    if in_basket: 
+        return False
     return True
 
 
@@ -128,6 +136,8 @@ def _validate_basket(basket_dir):
     boolean that is true when the Basket is valid
         if the Basket is invalid, raise an error
     """
+    
+    # print('checking validate_basket of dir: ', basket_dir)
     
     s3fs_client = config.get_file_system()
     
@@ -180,6 +190,7 @@ def _validate_basket(basket_dir):
             try:
                 # these two lines make sure it can be read and is valid schema
                 data = json.load(s3fs_client.open(file))
+                # print('\nsupplement data: ', data)
                 validate(instance=data, schema=config.supplement_schema)
                 
             except jsonschema.exceptions.ValidationError:
@@ -208,6 +219,7 @@ def _validate_basket(basket_dir):
         # if we find a directory inside this basket, we need to check it
         # if we check it and find a basket, this basket is invalid.
         if s3fs_client.info(file)['type'] == 'directory':
+            # print("checking dir: ", file)
             if _check_level(file, in_basket=True):
                 raise ValueError(
                     f"Invalid Basket. "

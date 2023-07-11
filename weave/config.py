@@ -45,20 +45,25 @@ supplement_schema = {
 
         "upload_items": {
             "type": "array",
+            "minItems": 1,
             "items": {
                 "type": "object",
                 "properties": {
                     "path": {"type": "string"},
                     "stub": {"type": "boolean"}
-                }
+                }, 
+                "required": ["path", "stub"],
+                "additionalProperties": False
 
             }
         },
 
          "integrity_data": {
             "type": "array",
+            "minItems": 1,
             "items": {
                 "type": "object",
+                
                 "properties": {
                     "file_size": {"type" : "number" },
                     "hash": {"type" : "string" },
@@ -67,9 +72,14 @@ supplement_schema = {
                     "byte_count": {"type" : "number" },
                     "stub":{"type" : "boolean" }, 
                     "upload_path":{"type" : "string" }
-                }
-            }
+                }, 
+                "required": ["file_size", "hash", "access_date", "source_path", "byte_count", "stub", "upload_path"],
+                "additionalProperties": False
+            },
+            "required": ["type"],
+            "additionalProperties": False
         }
+        
     },
     "required": ["upload_items", "integrity_data"],
     "additionalProperties": False
