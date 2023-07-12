@@ -73,7 +73,15 @@ supplement_schema = {
                     "stub":{"type" : "boolean" }, 
                     "upload_path":{"type" : "string" }
                 }, 
-                "required": ["file_size", "hash", "access_date", "source_path", "byte_count", "stub", "upload_path"],
+                "required": [
+                    "file_size", 
+                    "hash", 
+                    "access_date", 
+                    "source_path", 
+                    "byte_count", 
+                    "stub", 
+                    "upload_path"
+                ],
                 "additionalProperties": False
             },
             "required": ["type"],
