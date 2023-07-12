@@ -1021,13 +1021,6 @@ def test_validate_deeply_nested(set_up_TestValidate):
     
     s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
     
-#     dirs_and_files = tv.s3fs_client.find(
-#         path=tv.s3_bucket_name, withdirs=True
-#     )
-#     print("\n")
-#     for i in dirs_and_files:
-#         print(i)
-    
     with pytest.raises(
         ValueError, match=
         f"Invalid Basket. "
@@ -1114,13 +1107,6 @@ def test_validate_fifty_baskets(set_up_TestValidate):
     for i in range(50):
         uuid = '00' + str(i)
         tv.upload_basket(tmp_basket_dir=tmp_basket_dir, uid=uuid)
-   
-    # dirs_and_files = tv.s3fs_client.find(
-    #     path=tv.s3_bucket_name, withdirs=True
-    # )
-    # print("\n")
-    # for i in dirs_and_files:
-    #     print(i)
 
     with pytest.raises(
         ValueError, 
