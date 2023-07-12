@@ -54,6 +54,5 @@ def load_mongo(index_table, collection = 'metadata'):
         
         # If the UUID already has metadata loaded in mongodb,
         # the metadata should not be loaded to mongoDB again.
-        # if 0 == db[collection].count_documents({'uuid': manifest['uuid']}):
-        
-        db[collection].insert_one(mongo_metadata)
+        if 0 == db[collection].count_documents({'uuid': manifest['uuid']}):
+            db[collection].insert_one(mongo_metadata)
