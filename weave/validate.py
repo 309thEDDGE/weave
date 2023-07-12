@@ -70,42 +70,46 @@ def _check_level(current_dir, in_basket=False):
         )
 
     manifest_path = os.path.join(current_dir, 'basket_manifest.json')
-    # print('in_basket: ', str(in_basket))
-    # print('manifest Path: ', manifest_path)
     
     # if a manifest exists, its a basket, validate it
     if s3fs_client.exists(manifest_path):
         # if we find another manifest inside a basket, we just need to say 
         # we found it, we don't need to validate the nested basket
-        # print("this file exists: ", manifest_path, ". in_basket?: ", in_basket)
         if in_basket:
             return True
         return _validate_basket(current_dir)
         
     # go through all the other files, if it's a directory, we need to check it
     dirs_and_files = s3fs_client.find(
-        path=current_dir, maxdepth=1, withdirs=True
-    )
-
+                                path=current_dir, 
+                                maxdepth=1, 
+                                withdirs=True
+                            )
+    
     for file_or_dir in dirs_and_files:
         file_type = s3fs_client.info(file_or_dir)['type']
 
         if file_type == 'directory':
-            #we don't want to reutrn check_level here because 
-            #if it's valid, then you still need to 
-            # check the rest of the dirs
-            # print('checking dir of: ', file_or_dir)
-            # print('in basket?: ', in_basket)
-            if not _check_level(file_or_dir, in_basket=in_basket): 
-                return False
+            # if we are in a basket, check evrything under it, for a manifest
+            # and return true, this will return true to the _validate_basket
+            # and throw an error
+            if in_basket:
+                return _check_level(file_or_dir, in_basket=in_basket)
+            # if we aren't in the basket, we want to check all files in our
+            # current dir. If everything is valid, _check_level returns true
+            # if it isn't valid, we go in and return false
+            # we don't want to return _check_level because we want to keep
+            # looking at all the sub-directories
+            else:
+                if not _check_level(file_or_dir, in_basket=in_basket):
+                    return False
     
-    # This is a backup return because if there are no baskets at all,
-    # and no other files, then return true, because the structure is still
-    # valid, but we just didn't find a basket to validate
-    # print('return true in check_level of:', current_dir)
-    if in_basket: 
-        return False
-    return True
+    # This is the default backup return. 
+    # If we are in a basket, it will be valid if we return false,
+    # because we want to signify that we didn't find another basket
+    # If we are not in a basket, we want to return true, because 
+    # we didn't find a basekt and it was valid to have no baskets
+    return not in_basket
 
 
 def _validate_basket(basket_dir):   
@@ -136,8 +140,6 @@ def _validate_basket(basket_dir):
     boolean that is true when the Basket is valid
         if the Basket is invalid, raise an error
     """
-    
-    # print('checking validate_basket of dir: ', basket_dir)
     
     s3fs_client = config.get_file_system()
     
@@ -190,7 +192,6 @@ def _validate_basket(basket_dir):
             try:
                 # these two lines make sure it can be read and is valid schema
                 data = json.load(s3fs_client.open(file))
-                # print('\nsupplement data: ', data)
                 validate(instance=data, schema=config.supplement_schema)
                 
             except jsonschema.exceptions.ValidationError:
@@ -219,7 +220,6 @@ def _validate_basket(basket_dir):
         # if we find a directory inside this basket, we need to check it
         # if we check it and find a basket, this basket is invalid.
         if s3fs_client.info(file)['type'] == 'directory':
-            # print("checking dir: ", file)
             if _check_level(file, in_basket=True):
                 raise ValueError(
                     f"Invalid Basket. "

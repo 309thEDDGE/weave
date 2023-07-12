@@ -249,17 +249,9 @@ def test_validate_no_metadata_file(set_up_TestValidate):
     tmp_basket_dir_name = "my_basket"
     tmp_basket_dir = tv.set_up_basket(tmp_basket_dir_name)
     
-    
     tv.add_lower_dir_to_temp_basket(tmp_basket_dir=tmp_basket_dir)
     
     tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
-    
-    # dirs_and_files = tv.s3fs_client.find(
-    #     path=tv.s3_bucket_name, withdirs=True
-    # )
-    # print("\n")
-    # for i in dirs_and_files:
-    #     print(i)
     
     assert validate.validate_bucket(tv.s3_bucket_name)
     
@@ -273,7 +265,7 @@ def test_validate_invalid_manifest_schema(set_up_TestValidate):
     
     tmp_basket_dir_name = "bad_man_schema"
     
-    # the '100' is supposed to be a string, not a number, 
+    # the 'uuid: 100' is supposed to be a string, not a number, 
     # this is invalid against the schema
     bad_manifest_data = """{
                     "uuid": 100, 
@@ -298,7 +290,6 @@ def test_validate_invalid_manifest_schema(set_up_TestValidate):
     tv.s3fs_client.rm(manifest_path)
     tv.s3fs_client.rm(supplement_path)
     
-
     
     with pytest.raises(
         ValueError, 
@@ -307,6 +298,7 @@ def test_validate_invalid_manifest_schema(set_up_TestValidate):
     ):
         validate.validate_bucket(tv.s3_bucket_name)
 
+        
 def test_validate_manifest_schema_missing_field(set_up_TestValidate):
     """
     make a basket with an invalid manifest schema, check that it 
@@ -518,6 +510,234 @@ def test_validate_supplement_schema_missing_field(set_up_TestValidate):
     ):
         validate.validate_bucket(tv.s3_bucket_name)
         
+    
+def test_validate_supplement_schema_missing_array_field(set_up_TestValidate):
+    """
+    make a basket with an invalid supplement schema, check that it 
+    throws an error
+    """
+    tv = set_up_TestValidate
+
+    tmp_basket_dir_name = "bad_sup_schema"
+
+    # the supplement is missing the upload_path field inside 
+    # the integrity_data array
+    # this is invalid against the schema
+    bad_supplement_data = '''{
+                    "upload_items":
+                    [
+                    { "path": "str", "stub": false}
+                    ],
+
+                    "integrity_data": 
+                    [
+                    { 
+                        "file_size": 33, 
+                        "hash": "string", 
+                        "access_date":"string", 
+                        "source_path": "string", 
+                        "byte_count": 1, 
+                        "stub":false
+                        
+                    }
+                    ]
+                }'''
+
+    tmp_basket_dir = tv.set_up_basket(
+                            tmp_basket_dir_name, 
+                            is_man=True, 
+                            sup_data=bad_supplement_data, 
+                            is_sup=True, 
+                            is_meta=False
+                        )
+
+    s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
+
+    manifest_path = os.path.join(s3_basket_path, "basket_manifest.json")
+    supplement_path = os.path.join(s3_basket_path, "basket_supplement.json")
+    tv.s3fs_client.rm(manifest_path)
+    tv.s3fs_client.rm(supplement_path)
+
+    with pytest.raises(
+        ValueError, 
+        match=f"Invalid Basket. "
+        f"Supplement Schema does not match at: {s3_basket_path}"
+    ):
+        validate.validate_bucket(tv.s3_bucket_name)
+    
+    
+def test_validate_supplement_schema_missing_array_field_2(set_up_TestValidate):
+    """
+    make a basket with an invalid supplement schema, check that it 
+    throws an error
+    """
+    tv = set_up_TestValidate
+
+    tmp_basket_dir_name = "bad_sup_schema"
+
+    # the supplement is missing the stub field inside 
+    # the upload_items array
+    # this is invalid against the schema
+    bad_supplement_data = '''{
+                    "upload_items":
+                    [
+                    { "path": "str" }
+                    ],
+
+                    "integrity_data": 
+                    [
+                    { 
+                        "file_size": 33, 
+                        "hash": "string", 
+                        "access_date":"string", 
+                        "source_path": "string", 
+                        "byte_count": 1, 
+                        "stub":false,
+                        "upload_path": "string"
+                    }
+                    ]
+                }'''
+
+    tmp_basket_dir = tv.set_up_basket(
+                            tmp_basket_dir_name, 
+                            is_man=True, 
+                            sup_data=bad_supplement_data, 
+                            is_sup=True, 
+                            is_meta=False
+                        )
+
+    s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
+
+    manifest_path = os.path.join(s3_basket_path, "basket_manifest.json")
+    supplement_path = os.path.join(s3_basket_path, "basket_supplement.json")
+    tv.s3fs_client.rm(manifest_path)
+    tv.s3fs_client.rm(supplement_path)
+
+    with pytest.raises(
+        ValueError, 
+        match=f"Invalid Basket. "
+        f"Supplement Schema does not match at: {s3_basket_path}"
+    ):
+        validate.validate_bucket(tv.s3_bucket_name)
+    
+    
+def test_validate_supplement_schema_added_array_field(set_up_TestValidate):
+    """
+    make a basket with an invalid supplement schema, check that it 
+    throws an error
+    """
+    tv = set_up_TestValidate
+
+    tmp_basket_dir_name = "bad_sup_schema"
+
+    # the supplement has an additional field of "error" in  
+    # the upload_items array
+    # this is invalid against the schema
+    bad_supplement_data = '''{
+                    "upload_items":
+                    [
+                    { 
+                        "path": "str", 
+                        "stub": false,
+                        "error": "additional field"
+                    }
+                    ],
+
+                    "integrity_data": 
+                    [
+                    { 
+                        "file_size": 33, 
+                        "hash": "string", 
+                        "access_date":"string", 
+                        "source_path": "string", 
+                        "byte_count": 1, 
+                        "stub":false, 
+                        "upload_path":"string"
+                    }
+                    ]
+                }'''
+
+    tmp_basket_dir = tv.set_up_basket(
+                            tmp_basket_dir_name, 
+                            is_man=True, 
+                            sup_data=bad_supplement_data, 
+                            is_sup=True, 
+                            is_meta=False
+                        )
+
+    s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
+
+    manifest_path = os.path.join(s3_basket_path, "basket_manifest.json")
+    supplement_path = os.path.join(s3_basket_path, "basket_supplement.json")
+    tv.s3fs_client.rm(manifest_path)
+    tv.s3fs_client.rm(supplement_path)
+
+    with pytest.raises(
+        ValueError, 
+        match=f"Invalid Basket. "
+        f"Supplement Schema does not match at: {s3_basket_path}"
+    ):
+        validate.validate_bucket(tv.s3_bucket_name)
+    
+    
+def test_validate_supplement_schema_added_array_field_2(set_up_TestValidate):
+    """
+    make a basket with an invalid supplement schema, check that it 
+    throws an error
+    """
+    tv = set_up_TestValidate
+
+    tmp_basket_dir_name = "bad_sup_schema"
+
+    # the supplement has an additional field of "error" in
+    # the integrity_data array
+    # this is invalid against the schema
+    bad_supplement_data = '''{
+                    "upload_items":
+                    [
+                    { 
+                        "path": "str", 
+                        "stub": false
+                    }
+                    ],
+
+                    "integrity_data": 
+                    [
+                    { 
+                        "file_size": 33, 
+                        "hash": "string", 
+                        "access_date":"string", 
+                        "source_path": "string", 
+                        "byte_count": 1, 
+                        "stub":false, 
+                        "upload_path":"string",
+                        "error": "additional field"
+                    }
+                    ]
+                }'''
+
+    tmp_basket_dir = tv.set_up_basket(
+                            tmp_basket_dir_name, 
+                            is_man=True, 
+                            sup_data=bad_supplement_data, 
+                            is_sup=True, 
+                            is_meta=False
+                        )
+
+    s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
+
+    manifest_path = os.path.join(s3_basket_path, "basket_manifest.json")
+    supplement_path = os.path.join(s3_basket_path, "basket_supplement.json")
+    tv.s3fs_client.rm(manifest_path)
+    tv.s3fs_client.rm(supplement_path)
+
+    with pytest.raises(
+        ValueError, 
+        match=f"Invalid Basket. "
+        f"Supplement Schema does not match at: {s3_basket_path}"
+    ):
+        validate.validate_bucket(tv.s3_bucket_name)
+    
         
 def test_validate_supplement_schema_additional_field(set_up_TestValidate):
     """
@@ -574,6 +794,99 @@ def test_validate_supplement_schema_additional_field(set_up_TestValidate):
     ):
         validate.validate_bucket(tv.s3_bucket_name)
         
+    
+def test_validate_supplement_schema_empty_upload_items(set_up_TestValidate):
+    """
+    make a basket with an invalid supplement schema, check that it 
+    throws an error
+    """
+    tv = set_up_TestValidate
+
+    tmp_basket_dir_name = "bad_sup_schema"
+
+    # the supplement has an empty array of "upload_items"
+    # this is invalid against the schema
+    bad_supplement_data = '''{
+                    "upload_items": [],
+
+                    "integrity_data": 
+                    [
+                    { 
+                        "file_size": 33, 
+                        "hash": "string", 
+                        "access_date":"string", 
+                        "source_path": "string", 
+                        "byte_count": 1, 
+                        "stub":false, 
+                        "upload_path":"string"
+                    }
+                    ]
+                }'''
+
+    tmp_basket_dir = tv.set_up_basket(
+                            tmp_basket_dir_name, 
+                            is_man=True, 
+                            sup_data=bad_supplement_data, 
+                            is_sup=True, 
+                            is_meta=False
+                        )
+
+    s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
+
+    manifest_path = os.path.join(s3_basket_path, "basket_manifest.json")
+    supplement_path = os.path.join(s3_basket_path, "basket_supplement.json")
+    tv.s3fs_client.rm(manifest_path)
+    tv.s3fs_client.rm(supplement_path)
+
+    with pytest.raises(
+        ValueError, 
+        match=f"Invalid Basket. "
+        f"Supplement Schema does not match at: {s3_basket_path}"
+    ):
+        validate.validate_bucket(tv.s3_bucket_name)
+        
+        
+def test_validate_supplement_schema_empty_integrity_data(set_up_TestValidate):
+    """
+    make a basket with an invalid supplement schema, check that it 
+    throws an error
+    """
+    tv = set_up_TestValidate
+
+    tmp_basket_dir_name = "bad_sup_schema"
+
+    # the supplement an empty array of "integrity_data"
+    # this is invalid against the schema
+    bad_supplement_data = '''{
+                    "upload_items":
+                    [
+                    { "path": "str", "stub": false}
+                    ],
+
+                    "integrity_data": []
+                }'''
+
+    tmp_basket_dir = tv.set_up_basket(
+                            tmp_basket_dir_name, 
+                            is_man=True, 
+                            sup_data=bad_supplement_data, 
+                            is_sup=True, 
+                            is_meta=False
+                        )
+
+    s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
+
+    manifest_path = os.path.join(s3_basket_path, "basket_manifest.json")
+    supplement_path = os.path.join(s3_basket_path, "basket_supplement.json")
+    tv.s3fs_client.rm(manifest_path)
+    tv.s3fs_client.rm(supplement_path)
+
+    with pytest.raises(
+        ValueError, 
+        match=f"Invalid Basket. "
+        f"Supplement Schema does not match at: {s3_basket_path}"
+    ):
+        validate.validate_bucket(tv.s3_bucket_name)
         
         
 def test_validate_invalid_supplement_json(set_up_TestValidate):
@@ -708,12 +1021,12 @@ def test_validate_deeply_nested(set_up_TestValidate):
     
     s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
     
-    # dirs_and_files = tv.s3fs_client.find(
-    #     path=tv.s3_bucket_name, withdirs=True
-    # )
-    # print("\n")
-    # for i in dirs_and_files:
-    #     print(i)
+#     dirs_and_files = tv.s3fs_client.find(
+#         path=tv.s3_bucket_name, withdirs=True
+#     )
+#     print("\n")
+#     for i in dirs_and_files:
+#         print(i)
     
     with pytest.raises(
         ValueError, match=
