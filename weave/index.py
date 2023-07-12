@@ -76,7 +76,6 @@ def create_index_from_s3(root_dir):
         bad_baskets = []
         with fs.open(basket_json_address, "rb") as file:
             basket_dict = json.load(file)
-            print(basket_dict)
             if validate_basket_dict(basket_dict, basket_json_address):
                 for field in basket_dict.keys():
                     index_dict[field].append(basket_dict[field])
