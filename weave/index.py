@@ -238,3 +238,58 @@ class Index():
                 self.index_df["uuid"] == basket_uuid
             ]["address"]
             fs.rm(adr, recursive=True)
+
+            
+################################################ FOR TESTING ########################################################
+    def get_parents(self, basket_address):
+        print('\n\nwe made it in get_parents')    
+        fs = config.get_file_system()
+                
+        df = pd.DataFrame()
+        
+        finished = self._get_parent(basket_address=basket_address, gen_level=1, data=df)
+        print('\n\nfinished: \n', finished)
+        return finished
+        
+
+    def _get_parent(self, basket_address, gen_level=0, data=pd.DataFrame()):
+        list_of_parent_uids = create_index_from_s3(basket_address)["parent_uuids"].to_numpy()[0]
+
+        df = self.index_df
+
+        parents_index = df.loc[df["uuid"].isin(list_of_parent_uids), :]
+        parents_index["generation_level"] = gen_level
+        
+        data = pd.concat([data, parents_index])
+        print('data: \n', data)
+        
+        for basket_addr in parents_index["address"]:
+            return self._get_parent(basket_address=basket_addr, gen_level=gen_level+1, data=data)
+        return data
+        
+        
+    
+    
+    
+    
+    def get_children(self, basket_address):
+        print('\n\nwe made it in get_children')
+        fs = config.get_file_system()
+        
+        all_index = self.index_df
+        print('all_index: \n', all_index)
+        
+        
+        parent_uid = create_index_from_s3(basket_address)["uuid"][0]
+        
+        # children_index = df.loc[df["uuid"].isin(list_of_parent_uids), :]
+        children_index = all_index[all_index["parent_uuids"].str.contains(parent_uid)]
+        print('children_index: \n', children_index)
+        
+        print('parent_uid: ', parent_uid)
+        
+        
+        
+        
+        
+################################################ FOR TESTING ########################################################

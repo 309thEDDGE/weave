@@ -174,6 +174,64 @@ def set_up_tb(tmpdir):
     tb = BucketForTest(tmpdir)
     yield tb
     tb.cleanup_bucket()
+    
+################################################ FOR TESTING ########################################################
+def test_testinglol(set_up_tb):
+    tb = set_up_tb
+    
+    great_grandparents_3 = ["3000", "3003", "3333", "3303"]
+    grandparents_2 = ["2000", "2002"]
+    parents_1 = ["1000", "1001"]
+    children = ["0000", "0001"]
+    
+    tmp_basket_dir_one = tb.set_up_basket("great_grandparent_3")
+    oldest_grandparent = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="3000")
+    
+    tmp_basket_dir_one = tb.set_up_basket("great_grandparent_3_1")
+    basket_address = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="3003")
+    
+    tmp_basket_dir_one = tb.set_up_basket("great_grandparent_3_2")
+    basket_address = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="3333")
+    
+    tmp_basket_dir_one = tb.set_up_basket("great_grandparent_3_3")
+    basket_address = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="3303")
+    
+    tmp_basket_dir_one = tb.set_up_basket("grandparent_2")
+    basket_address = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="2000", parent_ids=["3000", "3003", "3333"])
+    
+    tmp_basket_dir_one = tb.set_up_basket("grandparent_2_1")
+    basket_address = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="2002")
+    
+    tmp_basket_dir_one = tb.set_up_basket("parent_1")
+    basket_address = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="1000", parent_ids=["2000", "2002", "3303"])
+    
+    tmp_basket_dir_one = tb.set_up_basket("parent_1_1")
+    basket_address = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="1001")
+    
+    tmp_basket_dir_one = tb.set_up_basket("child_0")
+    child_address = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0000", parent_ids=["1001", "1000"])
+    
+    tmp_basket_dir_one = tb.set_up_basket("child_0_1")
+    basket_address = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+    
+    
+    print("\n\nbasket address: ", basket_address)
+    print("child address: ", child_address)
+    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    my_index = ind.generate_index()
+    
+    print('my_index:', my_index)
+    
+    # res = dir(ind)
+    # print('results: ', res)
+
+    # assert len(df) == 1 and type(df) is pd.DataFrame
+    ind.get_parents(child_address)
+    ind.get_children(oldest_grandparent)
+    
+
+################################################ FOR TESTING ########################################################
+    
 
 
 def test_sync_index_gets_latest_index(set_up_tb):
