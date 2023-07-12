@@ -64,6 +64,9 @@ def set_up(tmpdir):
     db.cleanup_bucket()
 
 def test_load_mongo(set_up):
+    """
+    Test that load_mongo successfully loads valid metadata to the db.
+    """
     db = set_up
     index_table = weave.index.create_index_from_s3(db.test_bucket)
     weave.load_mongo(index_table, db.test_collection)
@@ -82,6 +85,9 @@ def test_load_mongo(set_up):
     assert truth_db == compared_data        
 
 def test_load_mongo_check_for_dataframe(set_up):
+    """
+    Test that load_mongo prevents loading data with an invalid index_table.
+    """
     db = set_up
     with pytest.raises(
         TypeError, match="Invalid datatype for index_table: "
@@ -90,7 +96,9 @@ def test_load_mongo_check_for_dataframe(set_up):
         weave.load_mongo("", db.test_collection)
 
 def test_load_mongo_check_collection_for_string(set_up):
-    set_up
+    """
+    Test that load_mongo prevents loading data with an invalid db collection.
+    """
     with pytest.raises(
         TypeError, match="Invalid datatype for collection: "
                          "must be a string"
@@ -98,6 +106,9 @@ def test_load_mongo_check_collection_for_string(set_up):
         weave.load_mongo(pd.DataFrame(), 1)
 
 def test_load_mongo_check_dataframe_for_uuid(set_up):
+    """
+    Test that load_mongo prevents loading data with missing uuid.
+    """
     db = set_up
     with pytest.raises(
         ValueError, match="Invalid index_table: "
@@ -108,6 +119,9 @@ def test_load_mongo_check_dataframe_for_uuid(set_up):
                          db.test_collection)
 
 def test_load_mongo_check_dataframe_for_address(set_up):
+    """
+    Test that load_mongo prevents loading data with missing address.
+    """
     db = set_up
     with pytest.raises(
         ValueError, match="Invalid index_table: "
@@ -118,6 +132,9 @@ def test_load_mongo_check_dataframe_for_address(set_up):
                          db.test_collection)
 
 def test_load_mongo_check_dataframe_for_basket_type(set_up):
+    """
+    Test that load_mongo prevents loading data with missing basket type.
+    """
     db = set_up
     with pytest.raises(
         ValueError, match="Invalid index_table: "
@@ -128,6 +145,9 @@ def test_load_mongo_check_dataframe_for_basket_type(set_up):
                          db.test_collection)
         
 def test_load_mongo_check_for_duplicate_uuid(set_up):
+    """
+    Test duplicate metadata won't be uploaded to mongoDB, based on the UUID.
+    """
     db = set_up
     test_uuid = '1234'
 
