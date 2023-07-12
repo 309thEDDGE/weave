@@ -3,7 +3,6 @@ from pathlib import Path
 import pytest
 from weave.uploader_functions import upload_basket
 from weave import validate, config
-from weave.tests.pytest_resources import BucketForTest
 
 
 class TestValidate():
