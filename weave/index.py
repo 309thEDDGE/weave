@@ -239,57 +239,139 @@ class Index():
             ]["address"]
             fs.rm(adr, recursive=True)
 
-            
-################################################ FOR TESTING ########################################################
+
     def get_parents(self, basket_address):
-        print('\n\nwe made it in get_parents')    
-        fs = config.get_file_system()
-                
-        df = pd.DataFrame()
+        """
+        Calls a recursive algorithm and 
+        returns an index of parent baskets
         
-        finished = self._get_parent(basket_address=basket_address, gen_level=1, data=df)
-        print('\n\nfinished: \n', finished)
-        return finished
+        the reason why this only calls a function is that I don't want users
+        to input variables for gen_level and data in the private _get_parent
         
+        Parameters
+        ----------
+        basket_address: string
+            string that holds the path of the basket
+            
+        Returns
+        ----------
+        index of all the parents for the given basket address with added
+        column for generation level, 1 for parent, 2 for grandparent, etc.
+        """
+        return self._get_parent(basket_address=basket_address)
 
-    def _get_parent(self, basket_address, gen_level=0, data=pd.DataFrame()):
-        list_of_parent_uids = create_index_from_s3(basket_address)["parent_uuids"].to_numpy()[0]
+    
+    def _get_parent(self, basket_address, gen_level=1, data=pd.DataFrame()):
+        """
+        Recursively goes through all the parents of the given basket
+        to return a index of all generations of parents/grandparents
+        
+        Parameters
+        ----------
+        basket_address: string
+            string that holds the path of the basket
+        gen_level: int
+            number the indicates what generation we are on, 1 for parent,
+            2 for grandparent and so forth
+        data: pandas dataframe (optional)
+            this is the index or dataframe we have collected so far
+            when it is initially called, it is empty, every 
+            iteration/recursive call we add all the immediate parents for
+            the given basket
+            
+        Returns
+        ----------
+        index or dataframe of all the parents of the immediate
+        basket we are given, along with all the previous parents
+        of the previous calls. 
+        """
+        ba = basket_address #this is litteraly used to pass ruff
+        puids = create_index_from_s3(ba)["parent_uuids"].to_numpy()[0]
 
-        df = self.index_df
-
-        parents_index = df.loc[df["uuid"].isin(list_of_parent_uids), :]
+        df = self.index_df       
+        
+        # check if the list is empty return the data how it is
+        if len(puids) == 0:
+            return data
+        
+        parents_index = df.loc[df["uuid"].isin(puids), :]
         parents_index["generation_level"] = gen_level
         
+        #add the parents for this generation to the data
         data = pd.concat([data, parents_index])
-        print('data: \n', data)
         
+        # for every parent, go get their parents
         for basket_addr in parents_index["address"]:
-            return self._get_parent(basket_address=basket_addr, gen_level=gen_level+1, data=data)
+            return self._get_parent(
+                                basket_address=basket_addr, 
+                                gen_level=gen_level+1, 
+                                data=data
+                            )
         return data
         
-        
-    
-    
-    
     
     def get_children(self, basket_address):
-        print('\n\nwe made it in get_children')
-        fs = config.get_file_system()
+        """
+        Calls a recursive algorithm and 
+        returns an index of children baskets
         
-        all_index = self.index_df
-        print('all_index: \n', all_index)
+        the reason why this only calls a function is that I don't want users
+        to input variables for gen_level and data in the private _get_children
         
+        Parameters
+        ----------
+        basket_address: string
+            string that holds the path of the basket
+            
+        Returns
+        ----------
+        index of all the children for the given basket address with added
+        column for generation level, -1 for child, -2 for grandchild, etc.
+        """
+        return self._get_children(basket_address=basket_address)
+    
+        
+    def _get_children(self, basket_address, gen_level=-1, data=pd.DataFrame()):
+        """
+        Recursively goes through all the children of the given basket
+        to return a index of all generations of children/grandchildren
+        
+        Parameters
+        ----------
+        basket_address: string
+            string that holds the path of the basket
+        gen_level: int
+            number the indicates what generation we are on, -1 for child.
+            -2 for grandchild and so forth
+        data: pandas dataframe (optional)
+            this is the index or dataframe we have collected so far
+            when it is initially called, it is empty, every 
+            iteration/recursive call we add all the immediate children for
+            the given basket
+            
+        Returns
+        ----------
+        index or dataframe of all the children of the immediate
+        basket we are given, along with all the previous children
+        of the previous calls. 
+        """
+        df = self.index_df
         
         parent_uid = create_index_from_s3(basket_address)["uuid"][0]
         
-        # children_index = df.loc[df["uuid"].isin(list_of_parent_uids), :]
-        children_index = all_index[all_index["parent_uuids"].str.contains(parent_uid)]
-        print('children_index: \n', children_index)
+        # this looks at all the baskets and returns a list of baskets who have
+        # the the parent id inside their "parent_uuids" list
+        child_index = df.loc[df.parent_uuids.apply(lambda a: parent_uid in a)]
+        child_index["generation_level"] = gen_level
         
-        print('parent_uid: ', parent_uid)
+        # add the children fro this generation to the data
+        data = pd.concat([data, child_index])
         
-        
-        
-        
-        
-################################################ FOR TESTING ########################################################
+        # go through all the children and get their children too
+        for basket_addr in child_index["address"]:
+            return self._get_children(
+                                basket_address=basket_addr, 
+                                gen_level=gen_level-1, 
+                                data=data
+                            )
+        return data

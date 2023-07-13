@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from fsspec.implementations.local import LocalFileSystem
 import pandas as pd
+import numpy as np
 import pytest
 
 from weave.config import get_file_system
@@ -173,65 +174,7 @@ https://docs.pytest.org/en/7.3.x/how-to
 def set_up_tb(tmpdir):
     tb = BucketForTest(tmpdir)
     yield tb
-    tb.cleanup_bucket()
-    
-################################################ FOR TESTING ########################################################
-def test_testinglol(set_up_tb):
-    tb = set_up_tb
-    
-    great_grandparents_3 = ["3000", "3003", "3333", "3303"]
-    grandparents_2 = ["2000", "2002"]
-    parents_1 = ["1000", "1001"]
-    children = ["0000", "0001"]
-    
-    tmp_basket_dir_one = tb.set_up_basket("great_grandparent_3")
-    oldest_grandparent = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="3000")
-    
-    tmp_basket_dir_one = tb.set_up_basket("great_grandparent_3_1")
-    basket_address = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="3003")
-    
-    tmp_basket_dir_one = tb.set_up_basket("great_grandparent_3_2")
-    basket_address = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="3333")
-    
-    tmp_basket_dir_one = tb.set_up_basket("great_grandparent_3_3")
-    basket_address = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="3303")
-    
-    tmp_basket_dir_one = tb.set_up_basket("grandparent_2")
-    basket_address = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="2000", parent_ids=["3000", "3003", "3333"])
-    
-    tmp_basket_dir_one = tb.set_up_basket("grandparent_2_1")
-    basket_address = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="2002")
-    
-    tmp_basket_dir_one = tb.set_up_basket("parent_1")
-    basket_address = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="1000", parent_ids=["2000", "2002", "3303"])
-    
-    tmp_basket_dir_one = tb.set_up_basket("parent_1_1")
-    basket_address = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="1001")
-    
-    tmp_basket_dir_one = tb.set_up_basket("child_0")
-    child_address = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0000", parent_ids=["1001", "1000"])
-    
-    tmp_basket_dir_one = tb.set_up_basket("child_0_1")
-    basket_address = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
-    
-    
-    print("\n\nbasket address: ", basket_address)
-    print("child address: ", child_address)
-    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
-    my_index = ind.generate_index()
-    
-    print('my_index:', my_index)
-    
-    # res = dir(ind)
-    # print('results: ', res)
-
-    # assert len(df) == 1 and type(df) is pd.DataFrame
-    ind.get_parents(child_address)
-    ind.get_children(oldest_grandparent)
-    
-
-################################################ FOR TESTING ########################################################
-    
+    tb.cleanup_bucket()  
 
 
 def test_sync_index_gets_latest_index(set_up_tb):
@@ -408,3 +351,245 @@ def test_delete_basket_fails_if_basket_is_parent(set_up_tb):
         )
     ):
         ind.delete_basket(basket_uuid="0001")
+        
+        
+
+def test_get_parents_valid(set_up_tb):
+    """
+    setup a valid basket strucure with valid parents and children
+    check that it returns a proper index of all the parents
+    """
+    tb = set_up_tb
+    
+    #setup random strucutre of parents and children 
+    tmp_dir = tb.set_up_basket("great_grandparent_3")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
+    
+    tmp_dir = tb.set_up_basket("great_grandparent_3_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3003")
+    
+    tmp_dir = tb.set_up_basket("great_grandparent_3_2")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3333")
+    
+    tmp_dir = tb.set_up_basket("great_grandparent_3_3")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3303")
+    
+    tmp_dir = tb.set_up_basket("grandparent_2")
+    tb.upload_basket(
+                    tmp_basket_dir=tmp_dir, 
+                    uid="2000", 
+                    parent_ids=["3000", "3003", "3333"]
+                )
+    
+    tmp_dir = tb.set_up_basket("grandparent_2_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="2002")
+    
+    tmp_dir = tb.set_up_basket("parent_1")
+    tb.upload_basket(
+                    tmp_basket_dir=tmp_dir, 
+                    uid="1000", 
+                    parent_ids=["2000", "2002", "3303"]
+                )
+    
+    tmp_dir = tb.set_up_basket("parent_1_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="1001")
+    
+    tmp_dir = tb.set_up_basket("child_0")
+    child = tb.upload_basket(
+                    tmp_basket_dir=tmp_dir, 
+                    uid="0000", 
+                    parent_ids=["1001", "1000"]
+                )
+    
+    
+    #string to shorten things for ruff
+    gen_lvl = "generation_level"
+    
+    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind.generate_index()
+    
+    # setup df of the right answer
+    parent_ids = [
+        "1000", "1001", "2000", "2002", "3303", "3000", "3003", "3333"
+        ]
+    parent_gens = [1, 1, 2, 2, 2, 3, 3, 3]
+    index = ind.index_df
+    parent_answer = index.loc[index["uuid"].isin(parent_ids)]
+    
+    #add the generation levels
+    for i, j in zip(parent_ids, parent_gens):
+        parent_answer.loc[parent_answer["uuid"] == i, gen_lvl] = j
+    
+
+    # get the results
+    results = ind.get_parents(child)
+    
+    # sort so that they can be properly compared to
+    parent_answer = parent_answer.sort_values(by="uuid")
+    results = results.sort_values(by="uuid")
+    
+    #cast to int64 so datatypes match
+    parent_answer[gen_lvl] = parent_answer[gen_lvl].astype(np.int64)
+    
+    assert parent_answer.equals(results)
+    
+    
+def test_get_parents_invalid_basket_address(set_up_tb):
+    """
+    try and find he parents of an invalid basket path/address
+    """
+    tb = set_up_tb
+    
+    basket_path = "INVALIDpath"
+    
+    index = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    
+    with pytest.raises(
+        FileNotFoundError, match=f"'root_dir' does not exist '{basket_path}'"
+    ): 
+        index.get_parents(basket_path)
+    
+    
+def test_get_parents_no_parents(set_up_tb):
+    """
+    try and get all parents of basket with no parent uuids.
+    check that it returns an empty dataframe/index
+    """
+    tb = set_up_tb
+    
+    no_parents = tb.set_up_basket("no_parents")
+    no_parents_path = tb.upload_basket(tmp_basket_dir=no_parents, uid="0001")
+    
+    index = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    index.generate_index()
+    
+    parent_indexes = index.get_parents(no_parents_path)
+    
+    assert parent_indexes.empty
+    
+
+def test_get_parents_parent_is_child(set_up_tb):
+    # get a parent who has a parent that is a child to a previous parent
+    # this will result in an infinite loop
+    return
+
+
+def test_get_children_valid(set_up_tb):
+    """
+    setup a valid basket strucure with valid parents and children
+    check that it returns a proper index of all the children
+    """
+    tb = set_up_tb
+    
+    #setup random strucutre of parents and children 
+    tmp_dir = tb.set_up_basket("great_grandparent_3")
+    great_grandparent = tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
+    
+    tmp_dir = tb.set_up_basket("great_grandparent_3_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3003")
+    
+    tmp_dir = tb.set_up_basket("great_grandparent_3_2")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3333")
+    
+    tmp_dir = tb.set_up_basket("great_grandparent_3_3")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3303")
+    
+    tmp_dir = tb.set_up_basket("grandparent_2")
+    tb.upload_basket(
+                tmp_basket_dir=tmp_dir, 
+                uid="2000", 
+                parent_ids=["3000", "3003", "3333"]
+            )
+    
+    tmp_dir = tb.set_up_basket("grandparent_2_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="2002")
+    
+    tmp_dir = tb.set_up_basket("parent_1")
+    tb.upload_basket(
+                    tmp_basket_dir=tmp_dir, 
+                    uid="1000", 
+                    parent_ids=["2000", "2002", "3303"]
+                )
+    
+    tmp_dir = tb.set_up_basket("parent_1_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="1001")
+    
+    tmp_dir = tb.set_up_basket("child_0")
+    tb.upload_basket(
+                    tmp_basket_dir=tmp_dir, 
+                    uid="0000", 
+                    parent_ids=["1001", "1000"]
+                )
+    
+    #string to shorten things for ruff
+    gen_lvl = "generation_level"
+    
+    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind.generate_index()
+    
+    # setup df of the right answer
+    child_ids = ["2000", "1000", "0000"]
+    child_gens = [-1,-2,-3]
+    index = ind.index_df
+    child_answer = index.loc[index["uuid"].isin(child_ids)]
+    
+    #add the generation levels
+    for i, j in zip(child_ids, child_gens):
+        child_answer.loc[child_answer["uuid"] == i, gen_lvl] = j
+    
+
+    # get the results
+    results = ind.get_children(great_grandparent)
+    
+    # sort so that they can be properly compared to
+    child_answer = child_answer.sort_values(by="uuid")
+    results = results.sort_values(by="uuid")
+    
+    #cast to int64 so datatypes match
+    child_answer[gen_lvl] = child_answer[gen_lvl].astype(np.int64)
+    
+    assert child_answer.equals(results)
+
+
+
+def test_get_children_invalid_basket_address(set_up_tb):
+    """
+    try and find he children of an invalid basket path/address
+    """
+    tb = set_up_tb
+    
+    basket_path = "INVALIDpath"
+    
+    index = Index(bucket_name=tb.s3_bucket_name, sync=True)
+
+    
+    with pytest.raises(
+        FileNotFoundError, match=f"'root_dir' does not exist '{basket_path}'"
+    ): 
+        index.get_children(basket_path)
+
+        
+def test_get_children_no_children(set_up_tb):
+    """
+    try and get all children of basket that has no children 
+    baskets pointing to it.
+    check that it returns an empty dataframe/index
+    """
+    tb = set_up_tb
+    
+    no_children = tb.set_up_basket("no_children")
+    no_children_path = tb.upload_basket(tmp_basket_dir=no_children, uid="0001")
+    
+    index = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    index.generate_index()
+    
+    children_indexes = index.get_children(no_children_path)
+    
+    assert children_indexes.empty
+
+
+def test_get_children_child_is_parent(set_up_tb):
+    # get a child who has a child that is a parent to a previous child
+    # this will result in an infinite loop
+    return
+
