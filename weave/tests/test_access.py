@@ -14,7 +14,6 @@ class TestUpload:
         self._set_up_bucket()
         
         self.local_dir_path = self.tmpdir.mkdir("test_dir_local")
-        print("local_dir_path", self.local_dir_path)
         self.tmp_basket_txt_file = self.local_dir_path.join("test.txt")
         self.tmp_basket_txt_file.write("This is a file for testing purposes")
         
