@@ -14,6 +14,9 @@ class BucketForTest():
         self._set_up_bucket()
 
     def _set_up_bucket(self):
+        """
+        Create a temporary S3 Bucket for testing purposes.
+        """
         try:
             self.s3_bucket_name = 'pytest-temp-bucket'
             self.s3fs_client.mkdir(self.s3_bucket_name)
@@ -22,30 +25,47 @@ class BucketForTest():
             self._set_up_bucket()
 
     def set_up_basket(self, tmp_dir_name):
+        """
+        Create a temporary (local) basket, with a single text file.
+        """
         tmp_basket_dir = self.tmpdir.mkdir(tmp_dir_name)
         tmp_basket_txt_file = tmp_basket_dir.join("test.txt")
         tmp_basket_txt_file.write("This is a text file for testing purposes.")
         return tmp_basket_dir
 
     def add_lower_dir_to_temp_basket(self, tmp_basket_dir):
+        """
+        Add a nested directory inside the temporary basket.
+        """
         nd = tmp_basket_dir.mkdir("nested_dir")
         nd.join("another_test.txt").write("more test text")
         return tmp_basket_dir
 
-    def upload_basket(self, tmp_basket_dir, uid='0000', parent_ids=[]):
+    def upload_basket(self, tmp_basket_dir,
+                      uid='0000', parent_ids=[],
+                      upload_items=None, metadata={}):
+        """
+        Upload a temporary (local) basket to the S3 test bucket. 
+        """
         b_type = "test_basket"
         up_dir = os.path.join(self.s3_bucket_name, b_type, uid)
+        
+        if upload_items is None:
+            upload_items = [{'path':str(tmp_basket_dir.realpath()),
+                           'stub':False}]
+        
         upload_basket(
-            upload_items=[{'path':str(tmp_basket_dir.realpath()),
-                           'stub':False}],
+            upload_items=upload_items,
             upload_directory=up_dir,
             unique_id=uid,
             basket_type=b_type,
-            parent_ids=parent_ids
+            parent_ids=parent_ids,
+            metadata=metadata
         )
         return up_dir
 
     def cleanup_bucket(self):
+        """
+        Delete the temporary test bucket, including any uploaded baskets.
+        """
         self.s3fs_client.rm(self.s3_bucket_name, recursive=True)
-
-
