@@ -469,9 +469,50 @@ def test_get_parents_no_parents(set_up_tb):
     
 
 def test_get_parents_parent_is_child(set_up_tb):
-    # get a parent who has a parent that is a child to a previous parent
-    # this will result in an infinite loop
-    return
+    """
+    set up 3 baskets, child, parent, grandparent, but the grandparent's 
+    parent_ids has the child's uid. this causes an infinite loop,
+    check that it throw error
+    """
+    tb = set_up_tb
+    
+    # create a basket structure with child, parent, and grandparent, but
+    # the grandparent's parent, is the child, making an loop for the
+    # parent-child relationship
+    tmp_dir = tb.set_up_basket("grandparent")
+    tb.upload_basket(
+                    tmp_basket_dir=tmp_dir, 
+                    uid="3000", 
+                    parent_ids=["1000"]
+                )
+    
+    tmp_dir = tb.set_up_basket("parent")
+    tb.upload_basket(
+                    tmp_basket_dir=tmp_dir, 
+                    uid="2000", 
+                    parent_ids=["3000"]
+                )
+    
+    tmp_dir = tb.set_up_basket("child")
+    child = tb.upload_basket(
+                    tmp_basket_dir=tmp_dir, 
+                    uid="1000", 
+                    parent_ids=["2000"]
+                )
+    
+    index = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    index.generate_index()
+    
+    fail = ['3000']
+    
+    with pytest.raises(
+        ValueError, match=re.escape(f"Possible child-parent loop found in "
+                          f"structure at: {fail}. Ending Search")
+    ): 
+        index.get_parents(child)
+    
+    
+    
 
 
 def test_get_children_valid(set_up_tb):
@@ -589,7 +630,140 @@ def test_get_children_no_children(set_up_tb):
 
 
 def test_get_children_child_is_parent(set_up_tb):
-    # get a child who has a child that is a parent to a previous child
-    # this will result in an infinite loop
-    return
+    """
+    set up 3 baskets, child, parent, grandparent, but the grandparents's 
+    parent_ids has the child's uid. this causes an infinite loop,
+    check that it throw error
+    """
+    tb = set_up_tb
+    
+    # create a basket structure with child, parent, and grandparent, but
+    # the grandparent's parent, is the child, making an loop for the
+    # parent-child relationship
+    tmp_dir = tb.set_up_basket("grandparent")
+    gp = tb.upload_basket(
+                    tmp_basket_dir=tmp_dir, 
+                    uid="3000", 
+                    parent_ids=["1000"]
+                )
+    
+    tmp_dir = tb.set_up_basket("parent")
+    tb.upload_basket(
+                    tmp_basket_dir=tmp_dir, 
+                    uid="2000", 
+                    parent_ids=["3000"]
+                )
+    
+    tmp_dir = tb.set_up_basket("child")
+    tb.upload_basket(
+                    tmp_basket_dir=tmp_dir, 
+                    uid="1000", 
+                    parent_ids=["2000"]
+                )
+    
+    index = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    index.generate_index()
+    
+    fail = ['1000']
+    
+    with pytest.raises(
+        ValueError, match=re.escape(f"Possible child-parent loop found in "
+                          f"structure at: {fail}. Ending Search")
+    ): 
+        index.get_children(gp)
+    
 
+    
+def test_get_parents_15_deep(set_up_tb):
+    """
+    Make a parent-child relationship of baskets 15 deep, so like a child
+    with a great*15 grandparent, and return all the grandparents for the child
+    manually make the data and compare with the result
+    """
+    tb = set_up_tb
+    
+    parent_id = "x"
+    
+    for i in range(15):
+        child_id = parent_id
+        parent_id = str(i)
+        tmp = tb.set_up_basket("basket_" + child_id)
+        tb.upload_basket(
+                            tmp_basket_dir=tmp, 
+                            uid=child_id, 
+                            parent_ids=[parent_id]
+                        )
+        
+    
+    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind.generate_index()   
+    index = ind.index_df
+    
+    child_path = index.loc[index["uuid"] == 'x']["address"].values[0]
+    
+    results = ind.get_parents(child_path)
+    
+    # Get the anwser to compare to the results we got
+    par_ids = ['0','1','2','3','4','5','6','7','8','9','10','11','12','13']
+    par_gens = [1,2,3,4,5,6,7,8,9,10,11,12,13,14]
+    answer = index.loc[index["uuid"].isin(par_ids)]
+    
+    gen_lvl = "generation_level"
+    
+    for i, j in zip(par_ids, par_gens):
+        answer.loc[answer["uuid"] == i, gen_lvl] = j
+        
+    #format and sort so .equals can be properly used
+    answer = answer.sort_values(by="uuid")
+    results = results.sort_values(by="uuid")
+    answer[gen_lvl] = answer[gen_lvl].astype(np.int64)
+    
+    assert answer.equals(results)    
+    
+
+def test_get_children_15_deep(set_up_tb):
+    """
+    Make a parent-child relationship of baskets 15 deep, so like a child
+    with a great*15 grandparent, and return all the grandchildren for the
+    highest grandparent.
+    manually make the data and compare with the result
+    """
+    tb = set_up_tb
+    
+    parent_id = "x"
+    
+    for i in range(15):
+        child_id = parent_id
+        parent_id = str(i)
+        tmp = tb.set_up_basket("basket_" + child_id)
+        tb.upload_basket(
+                        tmp_basket_dir=tmp, 
+                        uid=child_id, 
+                        parent_ids=[parent_id]
+                    )
+        
+    
+    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind.generate_index()   
+    index = ind.index_df
+    
+    parent_path = index.loc[index["uuid"] == '13']["address"].values[0]
+    
+    results = ind.get_children(parent_path)
+    
+    # Get the anwser to compare to the results we got
+    child_ids = ['x','0','1','2','3','4','5','6','7','8','9','10','11','12']
+    child_gens = [-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1]
+    answer = index.loc[index["uuid"].isin(child_ids)]
+    
+    gen_lvl = "generation_level"
+    
+    for i, j in zip(child_ids, child_gens):
+        answer.loc[answer["uuid"] == i, gen_lvl] = j
+        
+    #format and sort so .equals can be properly used
+    answer = answer.sort_values(by="uuid")
+    results = results.sort_values(by="uuid")
+    answer[gen_lvl] = answer[gen_lvl].astype(np.int64)
+    
+    assert answer.equals(results)    

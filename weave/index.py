@@ -294,7 +294,18 @@ class Index():
         if len(puids) == 0:
             return data
         
+        # if the data passed in is not empty, and we find a parent uid already
+        # in the data, and we've gone a few generations, then I assume we are 
+        # infinitely looping, throw error.
+        d = data # this is just used to pass ruff
+        if not data.empty:
+            if not d.loc[d["uuid"].isin(puids), :].empty and gen_level > 10:
+                raise ValueError(f"Possible child-parent loop found in "
+                                 f"structure at: {puids}. Ending Search"
+                )
+                
         parents_index = df.loc[df["uuid"].isin(puids), :]
+        
         parents_index["generation_level"] = gen_level
         
         #add the parents for this generation to the data
@@ -358,10 +369,23 @@ class Index():
         df = self.index_df
         
         parent_uid = create_index_from_s3(basket_address)["uuid"][0]
-        
+                
         # this looks at all the baskets and returns a list of baskets who have
         # the the parent id inside their "parent_uuids" list
         child_index = df.loc[df.parent_uuids.apply(lambda a: parent_uid in a)]
+        
+        cids = child_index["uuid"].values
+       
+        # here we are checking to see if the child is already in the index.
+        # if it is, and we've gone 10 generations deep, I'm assuming we've been
+        # in an endless parent-child loop, throwing an error
+        d = data #this is just to pass ruff.
+        if not data.empty:
+            if not d.loc[d["uuid"].isin(cids), :].empty and gen_level < -10:
+                raise ValueError(f"Possible child-parent loop found in "
+                          f"structure at: {cids}. Ending Search")
+        
+        
         child_index["generation_level"] = gen_level
         
         # add the children fro this generation to the data
