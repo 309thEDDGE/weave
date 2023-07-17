@@ -1,4 +1,5 @@
 import os
+import json
 
 from weave.uploader import upload_basket
 from weave.config import get_file_system
@@ -32,7 +33,12 @@ class BucketForTest():
         tmp_basket_dir = self.tmpdir.mkdir(tmp_dir_name)
         tmp_basket_txt_file = tmp_basket_dir.join(file_name)
         
-        tmp_basket_txt_file.write(file_content)
+        if file_name[file_name.rfind('.'):] == ".json":
+            with open(tmp_basket_txt_file, "w") as outfile:
+                json.dump(file_content, outfile)
+        else:
+            tmp_basket_txt_file.write(file_content)
+        
         return tmp_basket_dir
 
     def add_lower_dir_to_temp_basket(self, tmp_basket_dir):
