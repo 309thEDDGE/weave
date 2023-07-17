@@ -8,6 +8,7 @@ from datetime import datetime
 from fsspec.implementations.local import LocalFileSystem
 from unittest.mock import patch
 
+from weave import upload
 from weave.uploader import upload_basket
 from weave.uploader_functions import (derive_integrity_data,
                                       validate_upload_item)
@@ -15,13 +16,134 @@ from weave.uploader_functions import (derive_integrity_data,
 from weave.tests.pytest_resources import BucketForTest
 
 
-# class TestValidateUploadItems:
-#     def setup_method(self):
-#         self.temp_dir = tempfile.TemporaryDirectory()
-#         self.temp_dir_path = self.temp_dir.name
+class UploadForTest(BucketForTest):
+    """
+    Test class extended from BucketForTest to include custom call for upload.
+    """
+    def __init__(self, tmpdir):
+        super().__init__(tmpdir)
+        
+    def run_uploader(self, tmp_basket_dir):
+        """
+        Wrapper to call the weave upload function.
+        """
+        upload_items = [{'path': str(os.path.join(tmp_basket_dir, "test.txt")),
+                         'stub': False}]
+        b_type = "test_basket"
+        metadata = {"oh": "i don't know", "something": "stupid"}
+        label = "my label"
+        parent_ids = [uuid.uuid1().hex]
+        
+        self.upload_path = upload(
+            upload_items,
+            b_type,
+            self.s3_bucket_name,
+            parent_ids,
+            metadata,
+            label,
+            test_prefix="test_prefix",
+        )
+        
+        self.uploaded_files = self.s3fs_client.ls(self.upload_path)
+        
+        return self.upload_path
+    
+@pytest.fixture
+def set_up_tu(tmpdir):
+    tu = UploadForTest(tmpdir)
+    yield tu
+    tu.cleanup_bucket()
+    
+def test_upload_test_txt_in_uploaded_files(set_up_tu):
+    """
+    Test that uploaded test files are properly uploaded.
+    """
+    tu = set_up_tu
+    
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = tu.set_up_basket(tmp_basket_dir_name)
+    upload_path = tu.run_uploader(tmp_basket_dir)
+    
+    assert (
+        os.path.join(upload_path, "test.txt") in tu.uploaded_files
+    )
 
-#     def teardown_method(self):
-#         self.temp_dir.cleanup()
+def test_upload_basket_manifest_in_uploaded_files(set_up_tu):
+    """
+    Test that basket manifest files are properly uploaded.
+    """
+    tu = set_up_tu
+    
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = tu.set_up_basket(tmp_basket_dir_name)
+    upload_path = tu.run_uploader(tmp_basket_dir)
+    
+    assert (
+        os.path.join(upload_path, "basket_manifest.json") 
+        in tu.uploaded_files
+    )
+
+def test_upload_basket_supplement_in_uploaded_files(set_up_tu):
+    """
+    Test that basket supplement files are properly uploaded.
+    """
+    tu = set_up_tu
+    
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = tu.set_up_basket(tmp_basket_dir_name)
+    upload_path = tu.run_uploader(tmp_basket_dir)
+    
+    assert (
+        os.path.join(upload_path, "basket_supplement.json")
+        in tu.uploaded_files
+    )
+
+def test_upload_basket_metadata_in_uploaded_files(set_up_tu):
+    """
+    Test that basket metadata files are properly uploaded.
+    """
+    tu = set_up_tu
+    
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = tu.set_up_basket(tmp_basket_dir_name)
+    upload_path = tu.run_uploader(tmp_basket_dir)
+    
+    assert (
+        os.path.join(upload_path, "basket_metadata.json")
+        in tu.uploaded_files
+    )
+
+def test_upload_nothing_else_in_uploaded_files(set_up_tu):
+    """
+    Test that only basket data and required files are uploaded.
+    """
+    tu = set_up_tu
+    
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = tu.set_up_basket(tmp_basket_dir_name)
+    tu.run_uploader(tmp_basket_dir)
+    
+    assert len(tu.uploaded_files) == 4
+
+def test_upload_bucket_name_is_string(set_up_tu):
+    """
+    Test that an error is raised when the bucket name is not a string.
+    """
+    tu = set_up_tu
+    
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = tu.set_up_basket(tmp_basket_dir_name)
+    tu.run_uploader(tmp_basket_dir)
+    
+    bucket_name = 7
+
+    upload_items = [{'path': str(os.path.join(tmp_basket_dir, "test.txt")),
+                     'stub': False}]
+    
+    with pytest.raises(
+        TypeError, match=f"'bucket_name' must be a string: '{bucket_name}'"
+    ):
+        upload(upload_items, "test_basket", bucket_name)
 
 @pytest.fixture
 def set_up_tb(tmpdir):
