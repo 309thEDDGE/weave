@@ -24,13 +24,15 @@ class BucketForTest():
             self.cleanup_bucket()
             self._set_up_bucket()
 
-    def set_up_basket(self, tmp_dir_name):
+    def set_up_basket(self, tmp_dir_name,
+                      file_name="test.txt", file_content="This is a test"):
         """
         Create a temporary (local) basket, with a single text file.
         """
         tmp_basket_dir = self.tmpdir.mkdir(tmp_dir_name)
-        tmp_basket_txt_file = tmp_basket_dir.join("test.txt")
-        tmp_basket_txt_file.write("This is a text file for testing purposes.")
+        tmp_basket_txt_file = tmp_basket_dir.join(file_name)
+        
+        tmp_basket_txt_file.write(file_content)
         return tmp_basket_dir
 
     def add_lower_dir_to_temp_basket(self, tmp_basket_dir):

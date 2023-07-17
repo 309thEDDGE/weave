@@ -82,12 +82,12 @@ def test_validate_upload_item_valid_inputs(set_up_tb):
     """
     tb = set_up_tb
     
-    # Create a tmp basket.
+    # Create a temporary basket with a test file.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
     
     # Test using the FILE path
-    tmp_basket_file_path = tmp_basket_dir.join("test.txt")    
+    tmp_basket_file_path = tmp_basket_dir.join("test.txt")
     valid_upload_item = {"path": tmp_basket_file_path.strpath, "stub": True}
     
     try:
@@ -107,7 +107,7 @@ def test_validate_upload_item_file_exists(set_up_tb):
 def test_validate_upload_item_folder_exists(set_up_tb):
     tb = set_up_tb
     
-    # Create a tmp basket.
+    # Create a temporary basket with a test file.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
     
@@ -126,109 +126,216 @@ def test_validate_upload_item_validate_dictionary(set_up_tb):
         match="'upload_item' must be a dictionary: 'upload_item = 5'",
     ):
         validate_upload_item(upload_item)
-            
 
-class TestDeriveIntegrityData:
-    def setup_method(self):
-        self.temp_dir = tempfile.TemporaryDirectory()
-        self.temp_dir_path = self.temp_dir.name
-        self.file_path = os.path.join(self.temp_dir_path, "file.txt")
-        file_data = "0123456789"
-        with open(self.file_path, "w") as outfile:
-            outfile.write(file_data)
+def test_derive_integrity_data_file_doesnt_exist(set_up_tb):
+    file_path = "f a k e f i l e p a t h"
+    with pytest.raises(
+        FileExistsError, match=f"'file_path' does not exist: '{file_path}'"
+    ):
+        derive_integrity_data(file_path)
 
-    def teardown_method(self):
-        self.temp_dir.cleanup()
+def test_derive_integrity_data_path_is_string(set_up_tb):
+    file_path = 10
+    with pytest.raises(
+        TypeError, match=f"'file_path' must be a string: '{file_path}'"
+    ):
+        derive_integrity_data(file_path)
 
-    def test_derive_integrity_data_file_doesnt_exist(self):
-        file_path = "f a k e f i l e p a t h"
-        with pytest.raises(
-            FileExistsError, match=f"'file_path' does not exist: '{file_path}'"
-        ):
-            derive_integrity_data(file_path)
+def test_derive_integrity_data_byte_count_string(set_up_tb):
+    tb = set_up_tb
+    
+    # Create a temporary basket with a test file.
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
+    
+    tmp_basket_file_path = tmp_basket_dir.join("test.txt").strpath
+    byte_count_in = "invalid byte count"
+    
+    with pytest.raises(
+        TypeError, match=f"'byte_count' must be an int: '{byte_count_in}'"
+    ):
+        derive_integrity_data(tmp_basket_file_path, byte_count=byte_count_in)
 
-    def test_derive_integrity_data_path_is_string(self):
-        file_path = 10
-        with pytest.raises(
-            TypeError, match=f"'file_path' must be a string: '{file_path}'"
-        ):
-            derive_integrity_data(file_path)
+def test_derive_integrity_data_byte_count_float(set_up_tb):
+    tb = set_up_tb
+    
+    # Create a temporary basket with a test file.
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
+    
+    tmp_basket_file_path = tmp_basket_dir.join("test.txt").strpath
+    byte_count_in = 6.5
+    
+    with pytest.raises(
+        TypeError, match=f"'byte_count' must be an int: '{byte_count_in}'"
+    ):
+        derive_integrity_data(tmp_basket_file_path, byte_count=byte_count_in)
 
-    def test_derive_integrity_data_byte_count_string(self):
-        byte_count_in = "invalid byte count"
-        with pytest.raises(
-            TypeError, match=f"'byte_count' must be an int: '{byte_count_in}'"
-        ):
-            derive_integrity_data(self.file_path, byte_count=byte_count_in)
+def test_derive_integrity_data_byte_count_0(set_up_tb):
+    tb = set_up_tb
+    
+    # Create a temporary basket with a test file.
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
+    
+    tmp_basket_file_path = tmp_basket_dir.join("test.txt").strpath
+    byte_count_in = 0
+    
+    with pytest.raises(
+        ValueError,
+        match=f"'byte_count' must be greater than zero: '{byte_count_in}'",
+    ):
+        derive_integrity_data(tmp_basket_file_path, byte_count=byte_count_in)
 
-    def test_derive_integrity_data_byte_count_float(self):
-        byte_count_in = 6.5
-        with pytest.raises(
-            TypeError, match=f"'byte_count' must be an int: '{byte_count_in}'"
-        ):
-            derive_integrity_data(self.file_path, byte_count=byte_count_in)
+def test_derive_integrity_data_large_byte_count(set_up_tb):
+    tb = set_up_tb
+    
+    # Create a temporary basket with a test file.
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    text_file_name = "test.txt"
+    text_file_content = "0123456789"
+    tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name,
+                                      file_name=text_file_name,
+                                      file_content=text_file_content)
+    
+    tmp_basket_file_path = tmp_basket_dir.join("test.txt").strpath
+    
+    # Expected sha256 hash of the string "0123456789"
+    e_hash = "84d89877f0d4041efb6bf91a16f0248f2fd573e6af05c19f96bedb9f882f7882"
+    assert e_hash == derive_integrity_data(tmp_basket_file_path, 10**6)["hash"]
 
-    def test_derive_integrity_data_byte_count_0(self):
-        byte_count_in = 0
-        with pytest.raises(
-            ValueError,
-            match=f"'byte_count' must be greater than zero: '{byte_count_in}'",
-        ):
-            derive_integrity_data(self.file_path, byte_count=byte_count_in)
+def test_derive_integrity_data_small_byte_count(set_up_tb):
+    tb = set_up_tb
+    
+    # Create a temporary basket with a test file.
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    text_file_name = "test.txt"
+    text_file_content = "0123456789"
+    tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name,
+                                      file_name=text_file_name,
+                                      file_content=text_file_content)
+    
+    tmp_basket_file_path = tmp_basket_dir.join("test.txt").strpath
+    
+    # Expected sha256 hash of the string "014589". This string is used as the
+    # file size is <= 3*byte_count. So checksum is generated using bytes from
+    # beginning, middle, and end (instead of whole file content)
+    e_hash = "a2a7cb1d7fc8f79e33b716b328e19bb381c3ec96a2dca02a3d1183e7231413bb"
+    assert e_hash == derive_integrity_data(tmp_basket_file_path, 2)["hash"]
 
-    def test_derive_integrity_data_large_byte_count(self):
-        assert (
-            "84d89877f0d4041efb6bf91a16f024"
-            + "8f2fd573e6af05c19f96bedb9f882f7882"
-            == derive_integrity_data(self.file_path, 10**6)["hash"]
+def test_derive_integrity_data_file_size(set_up_tb):
+    tb = set_up_tb
+    
+    # Create a temporary basket with a test file.
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    text_file_name = "test.txt"
+    text_file_content = "0123456789"
+    tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name,
+                                      file_name=text_file_name,
+                                      file_content=text_file_content)
+    
+    tmp_basket_file_path = tmp_basket_dir.join(text_file_name).strpath
+    
+    # Check the size of the file is accurate to the length of it's contents.
+    assert (
+        derive_integrity_data(tmp_basket_file_path, 2)["file_size"]
+        == len(text_file_content)
+    )
+
+def test_derive_integrity_data_date(set_up_tb):
+    tb = set_up_tb
+    
+    # Create a temporary basket with a test file.
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
+    
+    tmp_basket_file_path = tmp_basket_dir.join("test.txt").strpath
+    
+    access_date = derive_integrity_data(tmp_basket_file_path, 2)["access_date"]
+    access_date = datetime.strptime(access_date, "%m/%d/%Y %H:%M:%S")
+    access_date_seconds = access_date.timestamp()
+    now_seconds = time.time_ns() // 10**9
+    diff_seconds = abs(access_date_seconds - now_seconds)
+    assert diff_seconds < 60
+
+def test_derive_integrity_data_source_path(set_up_tb):
+    tb = set_up_tb
+    
+    # Create a temporary basket with a test file.
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
+    
+    tmp_basket_file_path = tmp_basket_dir.join("test.txt").strpath
+    
+    assert (
+        derive_integrity_data(tmp_basket_file_path, 2)["source_path"]
+        == tmp_basket_file_path
+    )
+
+def test_derive_integrity_byte_count(set_up_tb):
+    tb = set_up_tb
+    
+    # Create a temporary basket with a test file.
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    text_file_name = "test.txt"
+    text_file_content = "0123456789"
+    tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name,
+                                      file_name=text_file_name,
+                                      file_content=text_file_content)
+    
+    tmp_basket_file_path = tmp_basket_dir.join(text_file_name).strpath
+    
+    assert derive_integrity_data(tmp_basket_file_path, 2)["byte_count"] == 2
+
+def test_derive_integrity_data_max_byte_count_off_by_one(set_up_tb):
+    tb = set_up_tb
+    
+    # Create a temporary basket with a test file.
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    text_file_name = "test.txt"
+    text_file_content = "0123456789"
+    tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name,
+                                      file_name=text_file_name,
+                                      file_content=text_file_content)
+    
+    tmp_basket_file_path = tmp_basket_dir.join(text_file_name).strpath
+    byte_count_in = 300 * 10**6 + 1
+    
+    with pytest.raises(
+        ValueError,
+        match=f"'byte_count' must be less "
+        f"than or equal to 300000000 bytes: '{byte_count_in}'",
+    ):
+        derive_integrity_data(tmp_basket_file_path, byte_count=byte_count_in)
+
+def test_derive_integrity_data_max_byte_count_exact(set_up_tb):
+    tb = set_up_tb
+    
+    # Create a temporary basket with a test file.
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    text_file_name = "test.txt"
+    text_file_content = "0123456789"
+    tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name,
+                                      file_name=text_file_name,
+                                      file_content=text_file_content)
+    
+    tmp_basket_file_path = tmp_basket_dir.join(text_file_name).strpath
+    byte_count_in = 300 * 10**6 + 1
+    
+    try:
+        derive_integrity_data(
+            tmp_basket_file_path, byte_count=(byte_count_in - 1)
         )
-
-    def test_derive_integrity_data_small_byte_count(self):
-        assert (
-            "a2a7cb1d7fc8f79e33b716b328e19bb3"
-            + "81c3ec96a2dca02a3d1183e7231413bb"
-            == derive_integrity_data(self.file_path, 2)["hash"]
-        )
-
-    def test_derive_integrity_data_file_size(self):
-        assert derive_integrity_data(self.file_path, 2)["file_size"] == 10
-
-    def test_derive_integrity_data_date(self):
-        access_date = derive_integrity_data(self.file_path, 2)["access_date"]
-        access_date = datetime.strptime(access_date, "%m/%d/%Y %H:%M:%S")
-        access_date_seconds = access_date.timestamp()
-        now_seconds = time.time_ns() // 10**9
-        diff_seconds = abs(access_date_seconds - now_seconds)
-        assert diff_seconds < 60
-
-    def test_derive_integrity_data_source_path(self):
-        assert (
-            derive_integrity_data(self.file_path, 2)["source_path"]
-            == self.file_path
-        )
-
-    def test_derive_integrity_byte_count(self):
-        assert derive_integrity_data(self.file_path, 2)["byte_count"] == 2
-
-    def test_derive_integrity_data_max_byte_count_off_by_one(self):
-        byte_count_in = 300 * 10**6 + 1
-        with pytest.raises(
-            ValueError,
-            match=f"'byte_count' must be less "
-            f"than or equal to 300000000 bytes: '{byte_count_in}'",
-        ):
-            derive_integrity_data(self.file_path, byte_count=byte_count_in)
-
-    def test_derive_integrity_data_max_byte_count_exact(self):
-        byte_count_in = 300 * 10**6 + 1
-        try:
-            derive_integrity_data(
-                self.file_path, byte_count=(byte_count_in - 1)
-            )
-        except Exception as e:
-            pytest.fail(f"Unexpected error occurred:{e}")
+    except Exception as e:
+        pytest.fail(f"Unexpected error occurred:{e}")
 
 
+        
+        
+        
+        
+        
+        
 class TestUploadBasket:
     def setup_class(cls):
         cls.fs = LocalFileSystem()
