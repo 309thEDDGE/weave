@@ -12,98 +12,121 @@ from weave.uploader import upload_basket
 from weave.uploader_functions import (derive_integrity_data,
                                       validate_upload_item)
 
+from weave.tests.pytest_resources import BucketForTest
 
-class TestValidateUploadItems:
-    def setup_method(self):
-        self.temp_dir = tempfile.TemporaryDirectory()
-        self.temp_dir_path = self.temp_dir.name
 
-    def teardown_method(self):
-        self.temp_dir.cleanup()
+# class TestValidateUploadItems:
+#     def setup_method(self):
+#         self.temp_dir = tempfile.TemporaryDirectory()
+#         self.temp_dir_path = self.temp_dir.name
 
-    def test_validate_upload_item_correct_schema_path_key(self):
-        file_path = "path/path"
+#     def teardown_method(self):
+#         self.temp_dir.cleanup()
 
-        # Invalid Path Key
-        upload_item = {"path_invalid_key": file_path, "stub": True}
-        with pytest.raises(
-            KeyError, match="Invalid upload_item key: 'path_invalid_key'"
-        ):
-            validate_upload_item(upload_item)
+@pytest.fixture
+def set_up_tb(tmpdir):
+    tb = BucketForTest(tmpdir)
+    yield tb
+    tb.cleanup_bucket()
 
-    def test_validate_upload_item_correct_schema_path_type(self):
-        upload_item = {"path": 1234, "stub": True}
-        with pytest.raises(
-            TypeError, match="Invalid upload_item type: 'path: <class 'int'>'"
-        ):
-            validate_upload_item(upload_item)
+def test_validate_upload_item_correct_schema_path_key(set_up_tb):
+    file_path = "path/path"
 
-    def test_validate_upload_item_correct_schema_stub_key(self):
-        file_path = "path/path"
-        # Invalid Stub Key
-        upload_item = {"path": file_path, "invalid_stub_key": True}
-        with pytest.raises(
-            KeyError, match="Invalid upload_item key: 'invalid_stub_key'"
-        ):
-            validate_upload_item(upload_item)
+    # Invalid Path Key
+    upload_item = {"path_invalid_key": file_path, "stub": True}
+    with pytest.raises(
+        KeyError, match="Invalid upload_item key: 'path_invalid_key'"
+    ):
+        validate_upload_item(upload_item)
 
-    def test_validate_upload_item_correct_schema_stub_type(self):
-        # Invalid Stub Type
-        file_path = "path/path"
-        upload_item = {"path": file_path, "stub": "invalid type"}
-        with pytest.raises(
-            TypeError, match="Invalid upload_item type: 'stub: <class 'str'>'"
-        ):
-            validate_upload_item(upload_item)
+def test_validate_upload_item_correct_schema_path_type(set_up_tb):
+    upload_item = {"path": 1234, "stub": True}
+    with pytest.raises(
+        TypeError, match="Invalid upload_item type: 'path: <class 'int'>'"
+    ):
+        validate_upload_item(upload_item)
 
-    def test_validate_upload_item_correct_schema_extra_key(self):
-        file_path = "path/path"
-        # Extra Key
-        upload_item = {"path": file_path, "stub": True, "extra_key": True}
-        with pytest.raises(
-            KeyError, match="Invalid upload_item key: 'extra_key'"
-        ):
-            validate_upload_item(upload_item)
+def test_validate_upload_item_correct_schema_stub_key(set_up_tb):
+    file_path = "path/path"
+    # Invalid Stub Key
+    upload_item = {"path": file_path, "invalid_stub_key": True}
+    with pytest.raises(
+        KeyError, match="Invalid upload_item key: 'invalid_stub_key'"
+    ):
+        validate_upload_item(upload_item)
 
-    def test_validate_upload_item_valid_inputs(self):
-        # Correct Schema
-        file_path = os.path.join(self.temp_dir_path, "file.json")
-        json_data = {"t": [1, 2, 3]}
-        with open(file_path, "w") as outfile:
-            json.dump(json_data, outfile)
-        valid_upload_item = {"path": file_path, "stub": True}
-        try:
-            validate_upload_item(valid_upload_item)
-        except Exception as e:
-            pytest.fail(f"Unexpected error occurred:{e}")
+def test_validate_upload_item_correct_schema_stub_type(set_up_tb):
+    # Invalid Stub Type
+    file_path = "path/path"
+    upload_item = {"path": file_path, "stub": "invalid type"}
+    with pytest.raises(
+        TypeError, match="Invalid upload_item type: 'stub: <class 'str'>'"
+    ):
+        validate_upload_item(upload_item)
 
-    def test_validate_upload_item_file_exists(self):
-        upload_item = {"path": "i n v a l i d p a t h", "stub": True}
-        with pytest.raises(
-            FileExistsError,
-            match="'path' does not exist: 'i n v a l i d p a t h'",
-        ):
-            validate_upload_item(upload_item)
+def test_validate_upload_item_correct_schema_extra_key(set_up_tb):
+    file_path = "path/path"
+    # Extra Key
+    upload_item = {"path": file_path, "stub": True, "extra_key": True}
+    with pytest.raises(
+        KeyError, match="Invalid upload_item key: 'extra_key'"
+    ):
+        validate_upload_item(upload_item)
 
-    def test_validate_upload_item_folder_exists(self):
-        file_path = os.path.join(self.temp_dir_path, "file.json")
-        json_data = {"t": [1, 2, 3]}
-        with open(file_path, "w") as outfile:
-            json.dump(json_data, outfile)
-        valid_upload_item = {"path": self.temp_dir_path, "stub": True}
-        try:
-            validate_upload_item(valid_upload_item)
-        except Exception as e:
-            pytest.fail(f"Unexpected error occurred:{e}")
 
-    def test_validate_upload_item_validate_dictionary(self):
-        upload_item = 5
-        with pytest.raises(
-            TypeError,
-            match="'upload_item' must be a dictionary: 'upload_item = 5'",
-        ):
-            validate_upload_item(upload_item)
 
+def test_validate_upload_item_valid_inputs(set_up_tb):
+    """
+    Test that no errors are raised when calling validate_upload_item on valid
+    inputs.
+    """
+    tb = set_up_tb
+    
+    # Create a tmp basket.
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
+    
+    # Test using the FILE path
+    tmp_basket_file_path = tmp_basket_dir.join("test.txt")    
+    valid_upload_item = {"path": tmp_basket_file_path.strpath, "stub": True}
+    
+    try:
+        validate_upload_item(valid_upload_item)
+    except Exception as e:
+        pytest.fail(f"Unexpected error occurred:{e}")
+        
+
+def test_validate_upload_item_file_exists(set_up_tb):
+    upload_item = {"path": "i n v a l i d p a t h", "stub": True}
+    with pytest.raises(
+        FileExistsError,
+        match="'path' does not exist: 'i n v a l i d p a t h'",
+    ):
+        validate_upload_item(upload_item)
+
+def test_validate_upload_item_folder_exists(set_up_tb):
+    tb = set_up_tb
+    
+    # Create a tmp basket.
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
+    
+    # Test using the FOLDER path
+    valid_upload_item = {"path": tmp_basket_dir.strpath, "stub": True}
+    
+    try:
+        validate_upload_item(valid_upload_item)
+    except Exception as e:
+        pytest.fail(f"Unexpected error occurred:{e}")
+
+def test_validate_upload_item_validate_dictionary(set_up_tb):
+    upload_item = 5
+    with pytest.raises(
+        TypeError,
+        match="'upload_item' must be a dictionary: 'upload_item = 5'",
+    ):
+        validate_upload_item(upload_item)
+            
 
 class TestDeriveIntegrityData:
     def setup_method(self):
