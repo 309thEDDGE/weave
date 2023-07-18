@@ -1,18 +1,14 @@
 import uuid
 import os
-import tempfile
 import json
 import pytest
 import time
 from datetime import datetime
-from fsspec.implementations.local import LocalFileSystem
-from unittest.mock import patch
 
 from weave import upload
 from weave.uploader import upload_basket
 from weave.uploader_functions import (derive_integrity_data,
                                       validate_upload_item)
-
 from weave.tests.pytest_resources import BucketForTest
 
 
@@ -152,6 +148,10 @@ def set_up_tb(tmpdir):
     tb.cleanup_bucket()
 
 def test_validate_upload_item_correct_schema_path_key(set_up_tb):
+    """
+    Test that validate_upload_item raises a KeyError when an invalid path key 
+    is used.
+    """
     file_path = "path/path"
 
     # Invalid Path Key
@@ -162,6 +162,10 @@ def test_validate_upload_item_correct_schema_path_key(set_up_tb):
         validate_upload_item(upload_item)
 
 def test_validate_upload_item_correct_schema_path_type(set_up_tb):
+    """
+    Test that validate_upload_item raises a KeyError when an invalid upload 
+    item type is used.
+    """
     upload_item = {"path": 1234, "stub": True}
     with pytest.raises(
         TypeError, match="Invalid upload_item type: 'path: <class 'int'>'"
@@ -169,6 +173,10 @@ def test_validate_upload_item_correct_schema_path_type(set_up_tb):
         validate_upload_item(upload_item)
 
 def test_validate_upload_item_correct_schema_stub_key(set_up_tb):
+    """
+    Test that validate_upload_item raises a KeyError when an invalid stub key 
+    is used.
+    """
     file_path = "path/path"
     # Invalid Stub Key
     upload_item = {"path": file_path, "invalid_stub_key": True}
@@ -178,6 +186,10 @@ def test_validate_upload_item_correct_schema_stub_key(set_up_tb):
         validate_upload_item(upload_item)
 
 def test_validate_upload_item_correct_schema_stub_type(set_up_tb):
+    """
+    Test that validate_upload_item raises a KeyError when an invalid stub value 
+    type is used.
+    """
     # Invalid Stub Type
     file_path = "path/path"
     upload_item = {"path": file_path, "stub": "invalid type"}
@@ -187,6 +199,10 @@ def test_validate_upload_item_correct_schema_stub_type(set_up_tb):
         validate_upload_item(upload_item)
 
 def test_validate_upload_item_correct_schema_extra_key(set_up_tb):
+    """
+    Test that validate_upload_item raises a KeyError when an invalid extra key 
+    is used.
+    """
     file_path = "path/path"
     # Extra Key
     upload_item = {"path": file_path, "stub": True, "extra_key": True}
@@ -194,8 +210,6 @@ def test_validate_upload_item_correct_schema_extra_key(set_up_tb):
         KeyError, match="Invalid upload_item key: 'extra_key'"
     ):
         validate_upload_item(upload_item)
-
-
 
 def test_validate_upload_item_valid_inputs(set_up_tb):
     """
@@ -216,9 +230,12 @@ def test_validate_upload_item_valid_inputs(set_up_tb):
         validate_upload_item(valid_upload_item)
     except Exception as e:
         pytest.fail(f"Unexpected error occurred:{e}")
-        
 
 def test_validate_upload_item_file_exists(set_up_tb):
+    """
+    Test that validate_upload_item raises a FileExistsError when an invalid
+    path value is used.
+    """
     upload_item = {"path": "i n v a l i d p a t h", "stub": True}
     with pytest.raises(
         FileExistsError,
@@ -227,6 +244,10 @@ def test_validate_upload_item_file_exists(set_up_tb):
         validate_upload_item(upload_item)
 
 def test_validate_upload_item_folder_exists(set_up_tb):
+    """
+    Test that validate_upload_item does not raise an error when using a folder
+    path.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -242,6 +263,10 @@ def test_validate_upload_item_folder_exists(set_up_tb):
         pytest.fail(f"Unexpected error occurred:{e}")
 
 def test_validate_upload_item_validate_dictionary(set_up_tb):
+    """
+    Test that validate_upload_item raises a TypeError when upload_item is not a 
+    dictionary.
+    """
     upload_item = 5
     with pytest.raises(
         TypeError,
@@ -249,7 +274,12 @@ def test_validate_upload_item_validate_dictionary(set_up_tb):
     ):
         validate_upload_item(upload_item)
 
+
 def test_derive_integrity_data_file_doesnt_exist(set_up_tb):
+    """
+    Test that derive_integrity_data raises a FileExistsError when using a file
+    path that does not exist.
+    """
     file_path = "f a k e f i l e p a t h"
     with pytest.raises(
         FileExistsError, match=f"'file_path' does not exist: '{file_path}'"
@@ -257,6 +287,10 @@ def test_derive_integrity_data_file_doesnt_exist(set_up_tb):
         derive_integrity_data(file_path)
 
 def test_derive_integrity_data_path_is_string(set_up_tb):
+    """
+    Test that derive_integrity_data raises a TypeError when the file path is
+    not a string.
+    """
     file_path = 10
     with pytest.raises(
         TypeError, match=f"'file_path' must be a string: '{file_path}'"
@@ -264,6 +298,10 @@ def test_derive_integrity_data_path_is_string(set_up_tb):
         derive_integrity_data(file_path)
 
 def test_derive_integrity_data_byte_count_string(set_up_tb):
+    """
+    Test that derive_integrity_data raises a TypeError when byte count is not
+    an integer.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -279,6 +317,10 @@ def test_derive_integrity_data_byte_count_string(set_up_tb):
         derive_integrity_data(tmp_basket_file_path, byte_count=byte_count_in)
 
 def test_derive_integrity_data_byte_count_float(set_up_tb):
+    """
+    Test that derive_integrity_data raises a TypeError when byte count is not
+    an integer
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -294,6 +336,10 @@ def test_derive_integrity_data_byte_count_float(set_up_tb):
         derive_integrity_data(tmp_basket_file_path, byte_count=byte_count_in)
 
 def test_derive_integrity_data_byte_count_0(set_up_tb):
+    """
+    Test that derive_integrity_data raises a ValueError when byte count is not
+    greater than 0.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -310,6 +356,10 @@ def test_derive_integrity_data_byte_count_0(set_up_tb):
         derive_integrity_data(tmp_basket_file_path, byte_count=byte_count_in)
 
 def test_derive_integrity_data_large_byte_count(set_up_tb):
+    """
+    Test that derive_integrity_data returns the expected hash values when using
+    large byte counts.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -322,11 +372,16 @@ def test_derive_integrity_data_large_byte_count(set_up_tb):
     
     tmp_basket_file_path = tmp_basket_dir.join("test.txt").strpath
     
-    # Expected sha256 hash of the string "0123456789"
+    # Expected sha256 hash of the string "0123456789". The whole file is used 
+    # as the file size is > 3*byte_count. 
     e_hash = "84d89877f0d4041efb6bf91a16f0248f2fd573e6af05c19f96bedb9f882f7882"
     assert e_hash == derive_integrity_data(tmp_basket_file_path, 10**6)["hash"]
 
 def test_derive_integrity_data_small_byte_count(set_up_tb):
+    """
+    Test that derive_integrity_data returns the expected hash values when using
+    small byte counts.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -341,11 +396,14 @@ def test_derive_integrity_data_small_byte_count(set_up_tb):
     
     # Expected sha256 hash of the string "014589". This string is used as the
     # file size is <= 3*byte_count. So checksum is generated using bytes from
-    # beginning, middle, and end (instead of whole file content)
+    # beginning, middle, and end (instead of whole file content).
     e_hash = "a2a7cb1d7fc8f79e33b716b328e19bb381c3ec96a2dca02a3d1183e7231413bb"
     assert e_hash == derive_integrity_data(tmp_basket_file_path, 2)["hash"]
 
 def test_derive_integrity_data_file_size(set_up_tb):
+    """
+    Test that derive_integrity_data returns the correct file size value.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -365,6 +423,9 @@ def test_derive_integrity_data_file_size(set_up_tb):
     )
 
 def test_derive_integrity_data_date(set_up_tb):
+    """
+    Test that derive_integrity_data returns the correct data access date.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -381,6 +442,9 @@ def test_derive_integrity_data_date(set_up_tb):
     assert diff_seconds < 60
 
 def test_derive_integrity_data_source_path(set_up_tb):
+    """
+    Test that derive_integrity_data returns the correct source path value.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -395,6 +459,9 @@ def test_derive_integrity_data_source_path(set_up_tb):
     )
 
 def test_derive_integrity_byte_count(set_up_tb):
+    """
+    Test that derive_integrity_data returns the correct byte count value.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -410,6 +477,10 @@ def test_derive_integrity_byte_count(set_up_tb):
     assert derive_integrity_data(tmp_basket_file_path, 2)["byte_count"] == 2
 
 def test_derive_integrity_data_max_byte_count_off_by_one(set_up_tb):
+    """
+    Test that derive_integrity_data raises a ValueError when the passed in byte
+    count is > 300,000,000 bytes
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -431,6 +502,10 @@ def test_derive_integrity_data_max_byte_count_off_by_one(set_up_tb):
         derive_integrity_data(tmp_basket_file_path, byte_count=byte_count_in)
 
 def test_derive_integrity_data_max_byte_count_exact(set_up_tb):
+    """
+    Test that derive_integrity_data runs successfully when the passed in byte
+    count is exactly 300,000,000 bytes
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -452,43 +527,11 @@ def test_derive_integrity_data_max_byte_count_exact(set_up_tb):
         pytest.fail(f"Unexpected error occurred:{e}")
 
 
-        
-        
-        
-        
-        
-        
-# class TestUploadBasket:
-#     def setup_class(cls):
-#         cls.fs = LocalFileSystem()
-#         cls.basket_type = "test_basket_type"
-#         cls.file_system_dir = tempfile.TemporaryDirectory()
-#         cls.file_system_dir_path = cls.file_system_dir.name
-#         cls.test_bucket = (
-#             f"{cls.file_system_dir_path}/pytest-{uuid.uuid1().hex}"
-#         )
-#         cls.fs.mkdir(cls.test_bucket)
-#         cls.basket_path = f"{cls.test_bucket}/{cls.basket_type}"
-
-#     def setup_method(self):
-#         self.temp_dir = tempfile.TemporaryDirectory()
-#         self.temp_dir_path = self.temp_dir.name
-#         if self.fs.exists(f"{self.basket_path}"):
-#             self.fs.rm(f"{self.basket_path}", recursive=True)
-
-#     def teardown_method(self):
-#         if self.fs.exists(f"{self.basket_path}"):
-#             self.fs.rm(f"{self.basket_path}", recursive=True)
-#         self.temp_dir.cleanup()
-
-#     def teardown_class(cls):
-#         if cls.fs.exists(cls.test_bucket):
-#             cls.fs.rm(cls.test_bucket, recursive=True)
-#         cls.file_system_dir.cleanup()
-
-
-
 def test_upload_basket_upload_items_is_not_a_string(set_up_tb):
+    """
+    Test that upload_basket raises a TypeError when upload_items is not a list
+    of dictionaries.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -508,6 +551,10 @@ def test_upload_basket_upload_items_is_not_a_string(set_up_tb):
         upload_basket(upload_items, upload_path, unique_id, basket_type)
 
 def test_upload_basket_upload_items_is_not_a_list_of_strings(set_up_tb):
+    """
+    Test that upload_basket raises a TypeError when upload_items is not a list
+    of dictionaries.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -525,6 +572,10 @@ def test_upload_basket_upload_items_is_not_a_list_of_strings(set_up_tb):
         upload_basket(upload_items, upload_path, unique_id, basket_type)
 
 def test_upload_basket_upload_items_is_a_list_of_only_dictionaries(set_up_tb):
+    """
+    Test that upload_basket raises a TypeError when upload_items is not a list
+    of dictionaries.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -542,6 +593,9 @@ def test_upload_basket_upload_items_is_a_list_of_only_dictionaries(set_up_tb):
         upload_basket(upload_items, upload_path, unique_id, basket_type)
 
 def test_upload_basket_with_bad_upload_items_is_deleted_if_it_fails(set_up_tb):
+    """
+    Test that upload_basket deletes bad upload items if it fails to upload.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -559,6 +613,10 @@ def test_upload_basket_with_bad_upload_items_is_deleted_if_it_fails(set_up_tb):
         assert not tb.s3fs_client.exists(upload_path)
 
 def test_upload_basket_upload_items_invalid_dictionary(set_up_tb):
+    """
+    Test that upload_basket raises a KeyError when upload_items contains an
+    invalid path key.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -586,6 +644,10 @@ def test_upload_basket_upload_items_invalid_dictionary(set_up_tb):
         upload_basket(upload_items, upload_path, unique_id, basket_type)
 
 def test_deletion_when_basket_upload_items_is_an_invalid_dictionary(set_up_tb):
+    """
+    Test that upload_basket deletes a bad upload basket when upload items is 
+    invalid.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -612,11 +674,11 @@ def test_deletion_when_basket_upload_items_is_an_invalid_dictionary(set_up_tb):
     except KeyError:
         assert not tb.s3fs_client.exists(f"{upload_path}")
 
-        
-        
-        
-        
 def test_upload_basket_upload_items_check_unique_file_folder_names(set_up_tb):
+    """
+    Test that upload_basket raises ValueErrors when upload_items does not
+    contain unique file and folder names.
+    """
 #     unique_id = uuid.uuid1().hex
 #     upload_path = f"{self.basket_path}/{unique_id}"
 
@@ -725,6 +787,10 @@ def test_upload_basket_upload_items_check_unique_file_folder_names(set_up_tb):
     
 # check if upload_path is a string
 def test_upload_basket_upload_path_is_string(set_up_tb):
+    """
+    Test that upload_basket raises a TypeError when upload_items is not a list
+    of dictionaries.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -750,8 +816,10 @@ def test_upload_basket_upload_path_is_string(set_up_tb):
 
     assert not tb.s3fs_client.exists(f"{tmp_basket_dir}")
 
-# check if unique_id is an int
 def test_upload_basket_unique_id_string(set_up_tb):
+    """
+    Test that upload_basket raises a TypeError when unique id is not a string.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -776,8 +844,10 @@ def test_upload_basket_unique_id_string(set_up_tb):
 
     assert not tb.s3fs_client.exists(f"{tmp_basket_dir}")
 
-# check if basket_type is a string
 def test_upload_basket_type_is_string(set_up_tb):
+    """
+    Test that upload_basket raises TypeError when basket type is not a string.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -803,8 +873,11 @@ def test_upload_basket_type_is_string(set_up_tb):
 
     assert not tb.s3fs_client.exists(f"{tmp_basket_dir}")
 
-# check if parent_ids is a list of ints
 def test_upload_basket_parent_ids_list_str(set_up_tb):
+    """
+    Test that upload_basket raises a TypeError when parent ids is not a list
+    of strings.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -836,8 +909,10 @@ def test_upload_basket_parent_ids_list_str(set_up_tb):
 
     assert not tb.s3fs_client.exists(f"{tmp_basket_dir}")
 
-# check if parent_ids is a list
 def test_upload_basket_parent_ids_is_list(set_up_tb):
+    """
+    Test that upload_basket raises a TypeError when parent ids is not a list.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -869,8 +944,11 @@ def test_upload_basket_parent_ids_is_list(set_up_tb):
 
     assert not tb.s3fs_client.exists(f"{tmp_basket_dir}")
 
-# check if metadata is a dictionary
 def test_upload_basket_metadata_is_dictionary(set_up_tb):
+    """
+    Test that upload_basket raises a TypeError when metadata is not a
+    dictionary.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -903,8 +981,10 @@ def test_upload_basket_metadata_is_dictionary(set_up_tb):
 
     assert not tb.s3fs_client.exists(f"{tmp_basket_dir}")
 
-# check if label is string
 def test_upload_basket_label_is_string(set_up_tb):
+    """
+    Test that upload_basket raises a TypeError when the label is not a string.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -937,6 +1017,9 @@ def test_upload_basket_label_is_string(set_up_tb):
     assert not tb.s3fs_client.exists(f"{tmp_basket_dir}")
 
 def test_upload_basket_no_metadata(set_up_tb):
+    """
+    Test that no metadata is created if no metadata is passed to upload_bucket.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -967,6 +1050,10 @@ def test_upload_basket_no_metadata(set_up_tb):
     
     
 def test_upload_basket_check_existing_upload_path(set_up_tb):
+    """
+    Test that upload_basket raises a FileExistsError when the upload directory
+    already exists.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -1005,6 +1092,10 @@ def test_upload_basket_check_existing_upload_path(set_up_tb):
     
     
 def test_upload_basket_check_unallowed_file_names(set_up_tb):
+    """
+    Test that upload_basket raises a ValueError when trying to upload files
+    with reserved/unallowed file names.
+    """
     tb = set_up_tb
     
     json_data = {"t": [1, 2, 3]}
@@ -1044,7 +1135,13 @@ def test_upload_basket_check_unallowed_file_names(set_up_tb):
 
 
     
+    
+    
 def test_upload_basket_clean_up_on_error(set_up_tb):
+    """
+    Test that upload_basket cleans up failed basket uploads when any Exception 
+    is encountered and the test_cleanup_flag is passed.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -1074,6 +1171,10 @@ def test_upload_basket_clean_up_on_error(set_up_tb):
     assert not tb.s3fs_client.exists(upload_path)
 
 def test_upload_basket_invalid_optional_argument(set_up_tb):
+    """
+    Test that upload_basket raises a KeyError when an invalid optional argument
+    is passed.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -1103,6 +1204,10 @@ def test_upload_basket_invalid_optional_argument(set_up_tb):
     assert not tb.s3fs_client.exists(upload_path)
 
 def test_upload_basket_invalid_test_clean_up_datatype(set_up_tb):
+    """
+    Test that upload_basket raises a TypeError when the optional test_clean_up 
+    argument is not a bool.
+    """
     tb = set_up_tb
     
     # Create a temporary basket with a test file.
@@ -1135,7 +1240,7 @@ def test_upload_basket_invalid_test_clean_up_datatype(set_up_tb):
 
     assert not tb.s3fs_client.exists(upload_path)
 
-@patch("weave.config.get_file_system", return_value=LocalFileSystem())
+# @patch("weave.config.get_file_system", return_value=LocalFileSystem())
 def test_upload_basket_end_to_end_test(self, patch):
     file_path1 = os.path.join(self.temp_dir_path, "file1.txt")
     file1_data = "01234"
