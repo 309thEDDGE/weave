@@ -72,8 +72,8 @@ def create_index_from_s3(root_dir):
     index_dict["address"] = []
     index_dict["storage_type"] = []
 
+    bad_baskets = []
     for basket_json_address in basket_jsons:
-        bad_baskets = []
         with fs.open(basket_json_address, "rb") as file:
             basket_dict = json.load(file)
             if validate_basket_dict(basket_dict, basket_json_address):
@@ -84,10 +84,10 @@ def create_index_from_s3(root_dir):
             else:
                 bad_baskets.append(os.path.dirname(basket_json_address))
 
-        if len(bad_baskets) != 0:
-            warnings.warn('baskets found in the following locations '
-                          'do not follow specified weave schema:\n'
-                          f'{bad_baskets}')
+    if len(bad_baskets) != 0:
+        warnings.warn('baskets found in the following locations '
+                      'do not follow specified weave schema:\n'
+                      f'{bad_baskets}')
 
     index = pd.DataFrame(index_dict)
     index["uuid"] = index["uuid"].astype(str)
