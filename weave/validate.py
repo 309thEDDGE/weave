@@ -7,8 +7,7 @@ from weave import config
 
 
 def validate_bucket(bucket_name): 
-    """
-    Starts the validation process off based off the name of the bucket
+    """Starts the validation process off based off the name of the bucket
     
     Validates that the bucket actually exists at the location given.
     If there is a bucket that exists, check it and every subdirectory by 
@@ -37,7 +36,8 @@ def validate_bucket(bucket_name):
 
 
 def _check_level(current_dir, in_basket=False):    
-    """
+    """Check all immediate subdirs in dir, check for manifest
+    
     Checks all the immediate subdirectories and files in the given directory 
     to see if there is a basket_manifest.json file. If there is a manifest, 
     it's a basket and must be validated.
@@ -113,8 +113,7 @@ def _check_level(current_dir, in_basket=False):
 
 
 def _validate_basket(basket_dir):   
-    """
-    Takes the root directory of a basket and validates it
+    """Takes the root directory of a basket and validates it
     
     Validation means there is a required basket_manifest.json and
     basket_supplment.json. And an optional basket_metadata.json
