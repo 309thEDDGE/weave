@@ -355,8 +355,7 @@ def test_delete_basket_fails_if_basket_is_parent(set_up_tb):
         
 
 def test_get_parents_valid(set_up_tb):
-    """
-    setup a valid basket strucure with valid parents and children
+    """setup a valid basket strucure with valid parents and children
     check that it returns a proper index of all the parents
     """
     tb = set_up_tb
@@ -435,9 +434,7 @@ def test_get_parents_valid(set_up_tb):
     
     
 def test_get_parents_invalid_basket_address(set_up_tb):
-    """
-    try and find he parents of an invalid basket path/address
-    """
+    """try and find the parents of an invalid basket path/address"""
     tb = set_up_tb
     
     basket_path = "INVALIDpath"
@@ -445,14 +442,13 @@ def test_get_parents_invalid_basket_address(set_up_tb):
     index = Index(bucket_name=tb.s3_bucket_name, sync=True)
     
     with pytest.raises(
-        FileNotFoundError, match=f"'root_dir' does not exist '{basket_path}'"
+        FileNotFoundError, match=f"basket path does not exist '{basket_path}'"
     ): 
         index.get_parents(basket_path)
     
     
 def test_get_parents_no_parents(set_up_tb):
-    """
-    try and get all parents of basket with no parent uuids.
+    """try and get all parents of basket with no parent uuids.
     check that it returns an empty dataframe/index
     """
     tb = set_up_tb
@@ -463,14 +459,13 @@ def test_get_parents_no_parents(set_up_tb):
     index = Index(bucket_name=tb.s3_bucket_name, sync=True)
     index.generate_index()
     
-    parent_indexes = index.get_parents(no_parents_path)
+    parent_indeces = index.get_parents(no_parents_path)
     
-    assert parent_indexes.empty
+    assert parent_indeces.empty
     
 
 def test_get_parents_parent_is_child(set_up_tb):
-    """
-    set up 3 baskets, child, parent, grandparent, but the grandparent's 
+    """set up 3 baskets, child, parent, grandparent, but the grandparent's 
     parent_ids has the child's uid. this causes an infinite loop,
     check that it throw error
     """
@@ -503,7 +498,7 @@ def test_get_parents_parent_is_child(set_up_tb):
     index = Index(bucket_name=tb.s3_bucket_name, sync=True)
     index.generate_index()
     
-    fail = ['3000']
+    fail = ['1000']
     
     with pytest.raises(
         ValueError, match=re.escape(f"Possible child-parent loop found in "
@@ -511,13 +506,9 @@ def test_get_parents_parent_is_child(set_up_tb):
     ): 
         index.get_parents(child)
     
-    
-    
-
 
 def test_get_children_valid(set_up_tb):
-    """
-    setup a valid basket strucure with valid parents and children
+    """setup a valid basket strucure with valid parents and children
     check that it returns a proper index of all the children
     """
     tb = set_up_tb
@@ -594,9 +585,7 @@ def test_get_children_valid(set_up_tb):
 
 
 def test_get_children_invalid_basket_address(set_up_tb):
-    """
-    try and find he children of an invalid basket path/address
-    """
+    """try and find he children of an invalid basket path/address"""
     tb = set_up_tb
     
     basket_path = "INVALIDpath"
@@ -605,14 +594,13 @@ def test_get_children_invalid_basket_address(set_up_tb):
 
     
     with pytest.raises(
-        FileNotFoundError, match=f"'root_dir' does not exist '{basket_path}'"
+        FileNotFoundError, match=f"basket path does not exist '{basket_path}'"
     ): 
         index.get_children(basket_path)
 
         
 def test_get_children_no_children(set_up_tb):
-    """
-    try and get all children of basket that has no children 
+    """try and get all children of basket that has no children 
     baskets pointing to it.
     check that it returns an empty dataframe/index
     """
@@ -630,8 +618,7 @@ def test_get_children_no_children(set_up_tb):
 
 
 def test_get_children_child_is_parent(set_up_tb):
-    """
-    set up 3 baskets, child, parent, grandparent, but the grandparents's 
+    """set up 3 baskets, child, parent, grandparent, but the grandparents's 
     parent_ids has the child's uid. this causes an infinite loop,
     check that it throw error
     """
@@ -664,7 +651,7 @@ def test_get_children_child_is_parent(set_up_tb):
     index = Index(bucket_name=tb.s3_bucket_name, sync=True)
     index.generate_index()
     
-    fail = ['1000']
+    fail = ['3000']
     
     with pytest.raises(
         ValueError, match=re.escape(f"Possible child-parent loop found in "
@@ -675,8 +662,7 @@ def test_get_children_child_is_parent(set_up_tb):
 
     
 def test_get_parents_15_deep(set_up_tb):
-    """
-    Make a parent-child relationship of baskets 15 deep, so like a child
+    """Make a parent-child relationship of baskets 15 deep, so like a child
     with a great*15 grandparent, and return all the grandparents for the child
     manually make the data and compare with the result
     """
@@ -722,8 +708,7 @@ def test_get_parents_15_deep(set_up_tb):
     
 
 def test_get_children_15_deep(set_up_tb):
-    """
-    Make a parent-child relationship of baskets 15 deep, so like a child
+    """Make a parent-child relationship of baskets 15 deep, so like a child
     with a great*15 grandparent, and return all the grandchildren for the
     highest grandparent.
     manually make the data and compare with the result
@@ -750,6 +735,7 @@ def test_get_children_15_deep(set_up_tb):
     parent_path = index.loc[index["uuid"] == '13']["address"].values[0]
     
     results = ind.get_children(parent_path)
+    print('parent_path:', parent_path)
     
     # Get the anwser to compare to the results we got
     child_ids = ['x','0','1','2','3','4','5','6','7','8','9','10','11','12']
