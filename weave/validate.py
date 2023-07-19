@@ -81,10 +81,10 @@ def _check_level(current_dir, in_basket=False):
         
     # go through all the other files, if it's a directory, we need to check it
     dirs_and_files = s3fs_client.find(
-                                path=current_dir, 
-                                maxdepth=1, 
-                                withdirs=True
-                            )
+        path=current_dir, 
+        maxdepth=1, 
+        withdirs=True
+    )
     
     for file_or_dir in dirs_and_files:
         file_type = s3fs_client.info(file_or_dir)['type']
@@ -160,10 +160,10 @@ def _validate_basket(basket_dir):
         )
     
     files_in_basket = s3fs_client.find(
-                                path=basket_dir, 
-                                maxdepth=1, 
-                                withdirs=True
-                            )
+        path=basket_dir, 
+        maxdepth=1, 
+        withdirs=True
+    )
         
     for file in files_in_basket:   
         basket_dir, file_name = os.path.split(file)

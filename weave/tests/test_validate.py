@@ -150,12 +150,12 @@ class TestValidate():
         
         if is_basket:
             nd.join("basket_manifest.json").write('''{
-                    "uuid": "str",
-                    "upload_time": "uploadtime string", 
-                    "parent_uuids": [ "string1", "string2", "string3" ],
-                    "basket_type": "basket type string",
-                    "label": "label string"
-                }''')
+                "uuid": "str",
+                "upload_time": "uploadtime string", 
+                "parent_uuids": [ "string1", "string2", "string3" ],
+                "basket_type": "basket type string",
+                "label": "label string"
+            }''')
 
         return nd
     
@@ -251,12 +251,12 @@ def test_validate_invalid_manifest_schema(set_up_TestValidate):
     # the 'uuid: 100' is supposed to be a string, not a number, 
     # this is invalid against the schema
     bad_manifest_data = """{
-                    "uuid": 100, 
-                    "upload_time": "str", 
-                    "parent_uuids": [ "str1", "str2", "str3" ],
-                    "basket_type": "str",
-                    "label": "str"
-                }"""
+        "uuid": 100, 
+        "upload_time": "str", 
+        "parent_uuids": [ "str1", "str2", "str3" ],
+        "basket_type": "str",
+        "label": "str"
+    }"""
 
     tmp_basket_dir = tv.set_up_basket(
                             "bad_man_schema", 
@@ -290,11 +290,11 @@ def test_validate_manifest_schema_missing_field(set_up_TestValidate):
     # the manifest is missing the uuid field
     # this is invalid against the schema
     bad_manifest_data = """{
-                    "upload_time": "str", 
-                    "parent_uuids": [ "str1", "str2", "str3" ],
-                    "basket_type": "str",
-                    "label": "str"
-                }"""
+        "upload_time": "str", 
+        "parent_uuids": [ "str1", "str2", "str3" ],
+        "basket_type": "str",
+        "label": "str"
+    }"""
 
     tmp_basket_dir = tv.set_up_basket(
                             "bad_man_schema", 
@@ -327,14 +327,14 @@ def test_validate_manifest_schema_additional_field(set_up_TestValidate):
     # the manifest has the additional "error" field
     # this is invalid against the schema
     bad_manifest_data = '''{
-                    "uuid": "str",
-                    "upload_time": "uploadtime string", 
-                    "parent_uuids": [ "string1", "string2", "string3" ],
-                    "basket_type": "basket type string",
-                    "label": "label string",
-                    
-                    "error": "this is an additional field"
-                }'''
+        "uuid": "str",
+        "upload_time": "uploadtime string", 
+        "parent_uuids": [ "string1", "string2", "string3" ],
+        "basket_type": "basket type string",
+        "label": "label string",
+
+        "error": "this is an additional field"
+    }'''
 
     tmp_basket_dir = tv.set_up_basket(
                             "bad_man_schema", 
@@ -366,12 +366,12 @@ def test_validate_invalid_manifest_json(set_up_TestValidate):
     tv = set_up_TestValidate
     
     tmp_basket_dir = tv.set_up_basket(
-                            "bad_man", 
-                            is_man=True, 
-                            man_data='{"Bad":1}}', 
-                            is_sup=True, 
-                            is_meta=False
-                        )
+        "bad_man", 
+        is_man=True, 
+        man_data='{"Bad":1}}', 
+        is_sup=True, 
+        is_meta=False
+    )
     
     s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
     
@@ -396,24 +396,24 @@ def test_validate_invalid_supplement_schema(set_up_TestValidate):
     # the '1231231' is supposed to be a boolean, not a number, 
     # this is invalid against the schema
     bad_supplement_data = """{
-                    "upload_items":
-                    [
-                    { "path": "str", "stub": 1231231}
-                    ],
+        "upload_items":
+        [
+        { "path": "str", "stub": 1231231}
+        ],
 
-                    "integrity_data": 
-                    [
-                    { 
-                        "file_size": 33, 
-                        "hash": "str", 
-                        "access_date":"str", 
-                        "source_path": "str", 
-                        "byte_count": 1, 
-                        "stub":false, 
-                        "upload_path":"str"
-                    }
-                    ]
-                }"""
+        "integrity_data": 
+        [
+        { 
+            "file_size": 33, 
+            "hash": "str", 
+            "access_date":"str", 
+            "source_path": "str", 
+            "byte_count": 1, 
+            "stub":false, 
+            "upload_path":"str"
+        }
+        ]
+    }"""
 
     tmp_basket_dir = tv.set_up_basket(
                             "bad_sup_schema", 
@@ -446,19 +446,19 @@ def test_validate_supplement_schema_missing_field(set_up_TestValidate):
     # the supplement is missing the integrity_data field
     # this is invalid against the schema
     bad_supplement_data = """{
-                    "upload_items":
-                    [
-                    { "path": "str", "stub": false}
-                    ]
-                }"""
+        "upload_items":
+        [
+        { "path": "str", "stub": false}
+        ]
+    }"""
 
     tmp_basket_dir = tv.set_up_basket(
-                            "bad_sup_schema", 
-                            is_man=True, 
-                            sup_data=bad_supplement_data, 
-                            is_sup=True, 
-                            is_meta=False
-                        )
+        "bad_sup_schema", 
+        is_man=True, 
+        sup_data=bad_supplement_data, 
+        is_sup=True, 
+        is_meta=False
+    )
 
     s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
@@ -484,31 +484,31 @@ def test_validate_supplement_schema_missing_array_field(set_up_TestValidate):
     # the integrity_data array
     # this is invalid against the schema
     bad_supplement_data = '''{
-                    "upload_items":
-                    [
-                    { "path": "str", "stub": false}
-                    ],
+        "upload_items":
+        [
+        { "path": "str", "stub": false}
+        ],
 
-                    "integrity_data": 
-                    [
-                    { 
-                        "file_size": 33, 
-                        "hash": "string", 
-                        "access_date":"string", 
-                        "source_path": "string", 
-                        "byte_count": 1, 
-                        "stub":false 
-                    }
-                    ]
-                }'''
+        "integrity_data": 
+        [
+        { 
+            "file_size": 33, 
+            "hash": "string", 
+            "access_date":"string", 
+            "source_path": "string", 
+            "byte_count": 1, 
+            "stub":false 
+        }
+        ]
+    }'''
 
     tmp_basket_dir = tv.set_up_basket(
-                            "bad_sup_schema", 
-                            is_man=True, 
-                            sup_data=bad_supplement_data, 
-                            is_sup=True, 
-                            is_meta=False
-                        )
+        "bad_sup_schema", 
+        is_man=True, 
+        sup_data=bad_supplement_data, 
+        is_sup=True, 
+        is_meta=False
+    )
 
     s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
@@ -534,32 +534,32 @@ def test_validate_supplement_schema_missing_array_field_2(set_up_TestValidate):
     # the upload_items array
     # this is invalid against the schema
     bad_supplement_data = '''{
-                    "upload_items":
-                    [
-                    { "path": "str" }
-                    ],
+        "upload_items":
+        [
+        { "path": "str" }
+        ],
 
-                    "integrity_data": 
-                    [
-                    { 
-                        "file_size": 33, 
-                        "hash": "string", 
-                        "access_date":"string", 
-                        "source_path": "string", 
-                        "byte_count": 1, 
-                        "stub":false,
-                        "upload_path": "string"
-                    }
-                    ]
-                }'''
+        "integrity_data": 
+        [
+        { 
+            "file_size": 33, 
+            "hash": "string", 
+            "access_date":"string", 
+            "source_path": "string", 
+            "byte_count": 1, 
+            "stub":false,
+            "upload_path": "string"
+        }
+        ]
+    }'''
 
     tmp_basket_dir = tv.set_up_basket(
-                            "bad_sup_schema", 
-                            is_man=True, 
-                            sup_data=bad_supplement_data, 
-                            is_sup=True, 
-                            is_meta=False
-                        )
+        "bad_sup_schema", 
+        is_man=True, 
+        sup_data=bad_supplement_data, 
+        is_sup=True, 
+        is_meta=False
+    )
 
     s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
@@ -585,28 +585,28 @@ def test_validate_supplement_schema_added_array_field(set_up_TestValidate):
     # the upload_items array
     # this is invalid against the schema
     bad_supplement_data = '''{
-                    "upload_items":
-                    [
-                    { 
-                        "path": "str", 
-                        "stub": false,
-                        "error": "additional field"
-                    }
-                    ],
+        "upload_items":
+        [
+        { 
+            "path": "str", 
+            "stub": false,
+            "error": "additional field"
+        }
+        ],
 
-                    "integrity_data": 
-                    [
-                    { 
-                        "file_size": 33, 
-                        "hash": "string", 
-                        "access_date":"string", 
-                        "source_path": "string", 
-                        "byte_count": 1, 
-                        "stub":false, 
-                        "upload_path":"string"
-                    }
-                    ]
-                }'''
+        "integrity_data": 
+        [
+        { 
+            "file_size": 33, 
+            "hash": "string", 
+            "access_date":"string", 
+            "source_path": "string", 
+            "byte_count": 1, 
+            "stub":false, 
+            "upload_path":"string"
+        }
+        ]
+    }'''
 
     tmp_basket_dir = tv.set_up_basket(
                             "bad_sup_schema", 
@@ -640,28 +640,28 @@ def test_validate_supplement_schema_added_array_field_2(set_up_TestValidate):
     # the integrity_data array
     # this is invalid against the schema
     bad_supplement_data = '''{
-                    "upload_items":
-                    [
-                    { 
-                        "path": "str", 
-                        "stub": false
-                    }
-                    ],
+        "upload_items":
+        [
+        { 
+            "path": "str", 
+            "stub": false
+        }
+        ],
 
-                    "integrity_data": 
-                    [
-                    { 
-                        "file_size": 33, 
-                        "hash": "string", 
-                        "access_date":"string", 
-                        "source_path": "string", 
-                        "byte_count": 1, 
-                        "stub":false, 
-                        "upload_path":"string",
-                        "error": "additional field"
-                    }
-                    ]
-                }'''
+        "integrity_data": 
+        [
+        { 
+            "file_size": 33, 
+            "hash": "string", 
+            "access_date":"string", 
+            "source_path": "string", 
+            "byte_count": 1, 
+            "stub":false, 
+            "upload_path":"string",
+            "error": "additional field"
+        }
+        ]
+    }'''
 
     tmp_basket_dir = tv.set_up_basket(
                             "bad_sup_schema", 
@@ -694,34 +694,34 @@ def test_validate_supplement_schema_additional_field(set_up_TestValidate):
     # the supplement has an additional my_extra_field field
     # this is invalid against the schema
     bad_supplement_data = '''{
-                    "upload_items":
-                    [
-                    { "path": "str", "stub": false}
-                    ],
+        "upload_items":
+        [
+        { "path": "str", "stub": false}
+        ],
 
-                    "integrity_data": 
-                    [
-                    { 
-                        "file_size": 33, 
-                        "hash": "string", 
-                        "access_date":"string", 
-                        "source_path": "string", 
-                        "byte_count": 1, 
-                        "stub":false, 
-                        "upload_path":"string"
-                    }
-                    ],
-                    
-                    "my_extra_field":"HAHA-ERROR"
-                }'''
+        "integrity_data": 
+        [
+        { 
+            "file_size": 33, 
+            "hash": "string", 
+            "access_date":"string", 
+            "source_path": "string", 
+            "byte_count": 1, 
+            "stub":false, 
+            "upload_path":"string"
+        }
+        ],
+
+        "my_extra_field":"HAHA-ERROR"
+    }'''
 
     tmp_basket_dir = tv.set_up_basket(
-                            "bad_sup_schema", 
-                            is_man=True, 
-                            sup_data=bad_supplement_data, 
-                            is_sup=True, 
-                            is_meta=False
-                        )
+        "bad_sup_schema", 
+        is_man=True, 
+        sup_data=bad_supplement_data, 
+        is_sup=True, 
+        is_meta=False
+    )
 
     s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
@@ -746,29 +746,29 @@ def test_validate_supplement_schema_empty_upload_items(set_up_TestValidate):
     # the supplement has an empty array of "upload_items"
     # this is invalid against the schema
     bad_supplement_data = '''{
-                    "upload_items": [],
+        "upload_items": [],
 
-                    "integrity_data": 
-                    [
-                    { 
-                        "file_size": 33, 
-                        "hash": "string", 
-                        "access_date":"string", 
-                        "source_path": "string", 
-                        "byte_count": 1, 
-                        "stub":false, 
-                        "upload_path":"string"
-                    }
-                    ]
-                }'''
+        "integrity_data": 
+        [
+        { 
+            "file_size": 33, 
+            "hash": "string", 
+            "access_date":"string", 
+            "source_path": "string", 
+            "byte_count": 1, 
+            "stub":false, 
+            "upload_path":"string"
+        }
+        ]
+    }'''
 
     tmp_basket_dir = tv.set_up_basket(
-                            "bad_sup_schema", 
-                            is_man=True, 
-                            sup_data=bad_supplement_data, 
-                            is_sup=True, 
-                            is_meta=False
-                        )
+        "bad_sup_schema", 
+        is_man=True, 
+        sup_data=bad_supplement_data, 
+        is_sup=True, 
+        is_meta=False
+    )
 
     s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
@@ -793,21 +793,21 @@ def test_validate_supplement_schema_empty_integrity_data(set_up_TestValidate):
     # the supplement an empty array of "integrity_data"
     # this is invalid against the schema
     bad_supplement_data = '''{
-                    "upload_items":
-                    [
-                    { "path": "str", "stub": false}
-                    ],
+        "upload_items":
+        [
+        { "path": "str", "stub": false}
+        ],
 
-                    "integrity_data": []
-                }'''
+        "integrity_data": []
+    }'''
 
     tmp_basket_dir = tv.set_up_basket(
-                            "bad_sup_schema", 
-                            is_man=True, 
-                            sup_data=bad_supplement_data, 
-                            is_sup=True, 
-                            is_meta=False
-                        )
+        "bad_sup_schema", 
+        is_man=True, 
+        sup_data=bad_supplement_data, 
+        is_sup=True, 
+        is_meta=False
+    )
 
     s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
@@ -830,12 +830,12 @@ def test_validate_invalid_supplement_json(set_up_TestValidate):
     tv = set_up_TestValidate
     
     tmp_basket_dir = tv.set_up_basket(
-                        "bad_supp", 
-                        is_man=True, 
-                        sup_data='{"Bad":1}}', 
-                        is_sup=True, 
-                        is_meta=False
-                    )
+        "bad_supp", 
+        is_man=True, 
+        sup_data='{"Bad":1}}', 
+        is_sup=True, 
+        is_meta=False
+    )
     
     s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
     
@@ -858,12 +858,12 @@ def test_validate_invalid_metadata_json(set_up_TestValidate):
     tv = set_up_TestValidate
     
     tmp_basket_dir = tv.set_up_basket(
-                            "bad_meta", 
-                            is_man=True, 
-                            meta_data='{"Bad":1}}', 
-                            is_sup=True, 
-                            is_meta=True
-                        )
+        "bad_meta", 
+        is_man=True, 
+        meta_data='{"Bad":1}}', 
+        is_sup=True, 
+        is_meta=True
+    )
     
     s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
     
@@ -886,11 +886,11 @@ def test_validate_nested_basket(set_up_TestValidate):
     tv = set_up_TestValidate
     
     tmp_basket_dir = tv.set_up_basket(
-                            "my_nested_basket", 
-                            is_man=True, 
-                            is_sup=True, 
-                            is_meta=True
-                        )
+        "my_nested_basket", 
+        is_man=True, 
+        is_sup=True, 
+        is_meta=True
+    )
     
     s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
       
@@ -908,11 +908,11 @@ def test_validate_deeply_nested(set_up_TestValidate):
     tv = set_up_TestValidate
 
     tmp_basket_dir = tv.set_up_basket(
-                        "my_basket", 
-                        is_man=False, 
-                        is_sup=False, 
-                        is_meta=False
-                    )
+        "my_basket", 
+        is_man=False, 
+        is_sup=False, 
+        is_meta=False
+    )
     
     my_nested_dir = tv.add_lower_dir_to_temp_basket(
                                 tmp_basket_dir=tmp_basket_dir, 
@@ -923,23 +923,23 @@ def test_validate_deeply_nested(set_up_TestValidate):
     for i in range(10):    
         nested_dir_name = "nest_level_" + str(i)
         my_nested_dir = tv.add_lower_dir_to_temp_basket(
-                                tmp_basket_dir=my_nested_dir, 
-                                new_dir_name=nested_dir_name
-                            )
+            tmp_basket_dir=my_nested_dir, 
+            new_dir_name=nested_dir_name
+        )
         
     # using the deep directory, upload a manifest to make it a nested basket
     my_nested_dir = tv.add_lower_dir_to_temp_basket(
-                                tmp_basket_dir=my_nested_dir, 
-                                new_dir_name="deepest_basket", 
-                                is_basket=True
-                            )
+        tmp_basket_dir=my_nested_dir, 
+        new_dir_name="deepest_basket", 
+        is_basket=True
+    )
     
     tv.set_up_basket(
-                "my_nested_basket", 
-                is_man=True, 
-                is_sup=True, 
-                is_meta=False
-            )
+        "my_nested_basket", 
+        is_man=True, 
+        is_sup=True, 
+        is_meta=False
+    )
     
     s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
     
@@ -979,9 +979,9 @@ def test_validate_no_baskets(set_up_TestValidate):
     # program at least search the directories.
     nested_dir_name = "nest"
     tv.add_lower_dir_to_temp_basket(
-                            tmp_basket_dir=tmp_basket_dir, 
-                            new_dir_name=nested_dir_name
-                        )
+        tmp_basket_dir=tmp_basket_dir, 
+        new_dir_name=nested_dir_name
+    )
 
     s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
     
@@ -994,7 +994,7 @@ def test_validate_no_baskets(set_up_TestValidate):
 
     
     
-def test_validate_fifty_baskets(set_up_TestValidate):
+def test_validate_fifty_baskets_invalid(set_up_TestValidate):
     """create bucket with 50 baskets, and 1 nested, check that it throws error 
     """
     tv = set_up_TestValidate
@@ -1004,17 +1004,17 @@ def test_validate_fifty_baskets(set_up_TestValidate):
     
     nested_basket_name = "my_nested_basket"
     nested_basket_dir = tv.set_up_basket(
-                            nested_basket_name, 
-                            is_man=True, 
-                            is_sup=True, 
-                            is_meta=False
-                        )
+        nested_basket_name, 
+        is_man=True, 
+        is_sup=True, 
+        is_meta=False
+    )
     tv.add_lower_dir_to_temp_basket(tmp_basket_dir=nested_basket_dir)
     
     invalid_basket_path = tv.upload_basket(
-                                    tmp_basket_dir=nested_basket_dir, 
-                                    uid='9999'
-                                )
+        tmp_basket_dir=nested_basket_dir, 
+        uid='9999'
+    )
     
     for i in range(50):
         uuid = '00' + str(i)
@@ -1027,6 +1027,36 @@ def test_validate_fifty_baskets(set_up_TestValidate):
         f"directory of basket at: {invalid_basket_path}"
     ):
         validate.validate_bucket(tv.s3_bucket_name)
+        
+        
+def test_validate_fifty_baskets_valid(set_up_TestValidate):
+    """create bucket with 50 baskets, and 0 nested, check that its valid
+    """
+    tv = set_up_TestValidate
+    
+    tmp_basket_dir = tv.set_up_basket("my_basket")
+    tv.add_lower_dir_to_temp_basket(tmp_basket_dir=tmp_basket_dir)
+    
+    nested_basket_name = "my_nested_basket"
+    nested_basket_dir = tv.set_up_basket(
+        nested_basket_name, 
+        is_man=False, 
+        is_sup=False, 
+        is_meta=False
+    )
+    tv.add_lower_dir_to_temp_basket(tmp_basket_dir=nested_basket_dir)
+    
+    invalid_basket_path = tv.upload_basket(
+        tmp_basket_dir=nested_basket_dir, 
+        uid='9999'
+    )
+    
+    for i in range(50):
+        uuid = '00' + str(i)
+        tv.upload_basket(tmp_basket_dir=tmp_basket_dir, uid=uuid)
+
+    assert validate.validate_bucket(tv.s3_bucket_name)
+        
         
         
 def test_validate_call_check_level(set_up_TestValidate):
@@ -1043,9 +1073,9 @@ def test_validate_call_check_level(set_up_TestValidate):
     tv.add_lower_dir_to_temp_basket(tmp_basket_dir=tmp_basket_dir)
     
     tv.upload_basket(
-                tmp_basket_dir=tmp_basket_dir, 
-                metadata={"Test":1, "test_bool":True}
-            )    
+        tmp_basket_dir=tmp_basket_dir, 
+        metadata={"Test":1, "test_bool":True}
+    )    
     
     assert validate._check_level(tv.s3_bucket_name)
     
@@ -1064,9 +1094,9 @@ def test_validate_call_validate_basket(set_up_TestValidate):
     tv.add_lower_dir_to_temp_basket(tmp_basket_dir=tmp_basket_dir)
     
     tv.upload_basket(
-            tmp_basket_dir=tmp_basket_dir, 
-            metadata={"Test":1, "test_bool":True}
-        )    
+        tmp_basket_dir=tmp_basket_dir, 
+        metadata={"Test":1, "test_bool":True}
+    )    
     
         
     with pytest.raises(
