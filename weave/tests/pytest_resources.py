@@ -6,7 +6,6 @@ from weave.config import get_file_system
 
 # The following code is for testing in an environment with MinIO:
 
-
 class BucketForTest():
     def __init__(self, tmpdir):
         self.tmpdir = tmpdir
@@ -32,13 +31,13 @@ class BucketForTest():
         """
         tmp_basket_dir = self.tmpdir.mkdir(tmp_dir_name)
         tmp_basket_txt_file = tmp_basket_dir.join(file_name)
-        
+
         if file_name[file_name.rfind('.'):] == ".json":
             with open(tmp_basket_txt_file, "w") as outfile:
                 json.dump(file_content, outfile)
         else:
             tmp_basket_txt_file.write(file_content)
-        
+
         return tmp_basket_dir
 
     def add_lower_dir_to_temp_basket(self, tmp_basket_dir):
@@ -53,15 +52,15 @@ class BucketForTest():
                       uid='0000', parent_ids=[],
                       upload_items=None, metadata={}):
         """
-        Upload a temporary (local) basket to the S3 test bucket. 
+        Upload a temporary (local) basket to the S3 test bucket.
         """
         b_type = "test_basket"
         up_dir = os.path.join(self.s3_bucket_name, b_type, uid)
-        
+
         if upload_items is None:
             upload_items = [{'path':str(tmp_basket_dir.realpath()),
                            'stub':False}]
-        
+
         upload_basket(
             upload_items=upload_items,
             upload_directory=up_dir,
