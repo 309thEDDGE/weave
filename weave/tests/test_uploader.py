@@ -23,7 +23,7 @@ class UploadForTest(BucketForTest):
         """
         upload_items = [{'path': str(os.path.join(tmp_basket_dir, "test.txt")),
                          'stub': False}]
-        b_type = "test_basket"
+        b_type = "test-basket"
         metadata = {"oh": "i don't know", "something": "stupid"}
         label = "my label"
         parent_ids = [uuid.uuid1().hex]
@@ -35,7 +35,7 @@ class UploadForTest(BucketForTest):
             parent_ids,
             metadata,
             label,
-            test_prefix="test_prefix",
+            test_prefix="test-prefix",
         )
 
         self.uploaded_files = self.s3fs_client.ls(self.upload_path)
