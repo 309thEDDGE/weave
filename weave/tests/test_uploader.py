@@ -691,7 +691,7 @@ def test_upload_basket_upload_items_check_unique_file_folder_names(set_up_tb):
     tmp_basket_dir_name2 = "test_basket_tmp_dir2"
     tmp_basket_dir2 = tb.set_up_basket(tmp_basket_dir_name2,
                                       file_name=tmp_basket_txt_file_name)
-    tmp_basket_txt_file2 = tmp_basket_dir2.join(tmp_basket_txt_file_name)    
+    tmp_basket_txt_file2 = tmp_basket_dir2.join(tmp_basket_txt_file_name)
 
     upload_path = os.path.join(tb.s3_bucket_name, basket_type, unique_id)
 
