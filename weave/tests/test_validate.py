@@ -1046,7 +1046,7 @@ def test_validate_fifty_baskets_valid(set_up_TestValidate):
     )
     tv.add_lower_dir_to_temp_basket(tmp_basket_dir=nested_basket_dir)
     
-    invalid_basket_path = tv.upload_basket(
+    tv.upload_basket(
         tmp_basket_dir=nested_basket_dir, 
         uid='9999'
     )
