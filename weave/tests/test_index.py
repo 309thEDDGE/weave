@@ -498,12 +498,17 @@ def test_get_parents_parent_is_child(set_up_tb):
     index = Index(bucket_name=tb.s3_bucket_name, sync=True)
     index.generate_index()
     
-    fail = ['1000']
+    # fail = ['1000']
+    fail = '1000'
     
+    # with pytest.raises(
+    #     ValueError, match=re.escape(f"Possible child-parent loop found in "
+    #                       f"structure at: {fail}. Ending Search")
+    # ): 
+    #     index.get_parents(child)
     with pytest.raises(
-        ValueError, match=re.escape(f"Possible child-parent loop found in "
-                          f"structure at: {fail}. Ending Search")
-    ): 
+        ValueError, match=f"Parent-Child loop found at {fail}"
+    ):
         index.get_parents(child)
     
 

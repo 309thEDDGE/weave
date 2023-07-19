@@ -258,7 +258,7 @@ class Index():
         return self._get_parent(basket_address=basket_address)
 
     
-    def _get_parent(self, basket_address, gen_level=1, data=pd.DataFrame()):
+    def _get_parent(self, basket_address, gen_level=1, data=pd.DataFrame(), descendants=[]):
         """Recursively gathers all parents of basket and returns index
         
         Parameters
@@ -285,7 +285,7 @@ class Index():
 
         if not fs.exists(basket_address):
             raise FileNotFoundError(
-                f"'basket path' does not exist '{basket_address}'"
+                f"basket path does not exist '{basket_address}'"
             )
         
         
@@ -295,23 +295,41 @@ class Index():
         elif self.index_df is None:
             self.sync_index()
         
-        puids = self.index_df["parent_uuids"].loc[self.index_df["address"] == 
-                                              basket_address].to_numpy()[0]
+        
+        
+        #get the current uid of the basket we're getting the parents of
+        current_uid = self.index_df["uuid"].loc[self.index_df["address"] == basket_address].values[0]
+
+        # check if there is a parent-child loop in the basket structure
+        if current_uid in descendants:
+            raise ValueError(f"Parent-Child loop found at {current_uid}")
+        else:
+            descendants.append(current_uid)
+        
+        
+        
+        puids = self.index_df["parent_uuids"].loc[
+            self.index_df["address"] == basket_address
+        ].to_numpy()[0]
         
         # check if the list is empty return the data how it is
         if len(puids) == 0:
             return data
         
+        
+        
         # if the data passed in is not empty, and we find a parent uid already
         # in the data, and we've gone a few generations, then I assume we are 
         # infinitely looping, throw error.
-        if not data.empty:
-            if (not data.loc[data["uuid"].isin(puids), :].empty and 
-                                                        gen_level > 50):
-                raise ValueError(f"Possible child-parent loop found in "
-                                 f"structure at: {puids}. Ending Search"
-                )
-                
+        # if not data.empty:
+        #     if (not data.loc[data["uuid"].isin(puids), :].empty and 
+        #                                                 gen_level > 50):
+        #         raise ValueError(f"Possible child-parent loop found in "
+        #                          f"structure at: {puids}. Ending Search"
+        #         )
+        
+        
+        
         parents_index = self.index_df.loc[self.index_df["uuid"].isin(puids), :]
         
         parents_index["generation_level"] = gen_level
@@ -346,11 +364,11 @@ class Index():
         column for generation level, -1 for child, -2 for grandchild, etc.
         """
         return self._get_children(basket_address=basket_address)
-    
-        
+
+
     def _get_children(self, basket_address, gen_level=-1, data=pd.DataFrame()):
         """Recursively gathers all the children of basket and returns an index 
-        
+
         Parameters
         ----------
         basket_address: string
@@ -360,25 +378,24 @@ class Index():
             -2 for grandchild and so forth
         data: pandas dataframe (optional)
             this is the index or dataframe we have collected so far
-            when it is initially called, it is empty, every 
+            when it is initially called, it is empty, every
             iteration/recursive call we add all the immediate children for
             the given basket
-            
+
         Returns
         ----------
         index or dataframe of all the children of the immediate
         basket we are given, along with all the previous children
-        of the previous calls. 
+        of the previous calls.
         """
-        # df = self.index_df
-        
+
         fs = config.get_file_system()
 
         if not fs.exists(basket_address):
             raise FileNotFoundError(
-                f"'basket path' does not exist '{basket_address}'"
+                f"basket path does not exist '{basket_address}'"
             )
-        
+
         if self.sync:
             if not self.is_index_current():
                 self.sync_index()
@@ -393,9 +410,9 @@ class Index():
         child_index = self.index_df.loc[
             self.index_df.parent_uuids.apply(lambda a: parent_uid in a)
         ]
-        
+
         cids = child_index["uuid"].values
-       
+
         # here we are checking to see if the child is already in the index.
         # if it is, and we've gone 10 generations deep, I'm assuming we've been
         # in an endless parent-child loop, throwing an error
