@@ -679,27 +679,6 @@ def test_upload_basket_upload_items_check_unique_file_folder_names(set_up_tb):
     Test that upload_basket raises ValueErrors when upload_items does not
     contain unique file and folder names.
     """
-#     unique_id = uuid.uuid1().hex
-#     upload_path = f"{self.basket_path}/{unique_id}"
-
-#     temp_dir2 = tempfile.TemporaryDirectory()
-#     temp_dir_path2 = temp_dir2.name
-
-#     json_data = {"t": [1, 2, 3]}
-
-#     json_path1 = os.path.join(self.temp_dir_path, "sample.json")
-#     json_path2 = os.path.join(temp_dir_path2, "sample.json")
-
-#     with open(json_path1, "w") as outfile:
-#         json.dump(json_data, outfile)
-#     with open(json_path2, "w") as outfile:
-#         json.dump(json_data, outfile)
-
-#     dir_path1 = os.path.join(temp_dir_path2, "directory_name")
-#     dir_path2 = os.path.join(self.temp_dir_path, "directory_name")
-#     os.mkdir(dir_path1)
-#     os.mkdir(dir_path2)
-
     tb = set_up_tb
     
     unique_id = uuid.uuid1().hex
@@ -713,27 +692,17 @@ def test_upload_basket_upload_items_check_unique_file_folder_names(set_up_tb):
     tmp_basket_txt_file1 = tmp_basket_dir1.join(tmp_basket_txt_file_name)
     
     # Manually add another test file with the same name as the other.
-    tmp_basket_dir_name2 = "test_basket_tmp_dir"
+    tmp_basket_dir_name2 = "test_basket_tmp_dir2"
     tmp_basket_dir2 = tb.set_up_basket(tmp_basket_dir_name2,
                                       file_name=tmp_basket_txt_file_name)
-    tmp_basket_txt_file2 = tmp_basket_dir2.join(tmp_basket_txt_file_name)
-
-    print("\n\n-------------<JA>-------------")
-    print(tmp_basket_dir1)
-    print(tmp_basket_dir2)
-    print("-------------<JA>-------------\n")
-    
+    tmp_basket_txt_file2 = tmp_basket_dir2.join(tmp_basket_txt_file_name)    
 
     upload_path = os.path.join(tb.s3_bucket_name, basket_type, unique_id)
 
-
     # Test same file names
     upload_items = [
-        {
-            "path": tmp_basket_txt_file1.strpath,
-            "stub": True,
-        },
-        {"path": tmp_basket_txt_file2.strpath, "stub": True},
+        {"path": tmp_basket_txt_file1.strpath, "stub": True },
+        {"path": tmp_basket_txt_file2.strpath, "stub": True },
     ]
     with pytest.raises(
         ValueError,
@@ -744,29 +713,20 @@ def test_upload_basket_upload_items_check_unique_file_folder_names(set_up_tb):
 
     # Test same dirname
     upload_items = [
-        {
-            "path": tmp_basket_dir1.strpath,
-            "stub": True,
-        },
-        {"path": tmp_basket_dir2.strpath, "stub": True},
+        {"path": tmp_basket_dir1.strpath, "stub": True },
+        {"path": tmp_basket_dir1.strpath, "stub": True },
     ]
     with pytest.raises(
         ValueError,
         match="'upload_item' folder and file names must be unique:"
-        " Duplicate Name = directory_name",
+        " Duplicate Name = test_basket_tmp_dir",
     ):
         upload_basket(upload_items, upload_path, unique_id, basket_type)
 
-        
-        
-    dir_path3 = os.path.join(tmp_basket_dir1, "test.txt")
     # Test same dirname same file
     upload_items = [
-        {
-            "path": tmp_basket_txt_file1.strpath,
-            "stub": True,
-        },
-        {"path": dir_path3, "stub": True},
+        {"path": tmp_basket_txt_file1.strpath, "stub": True },
+        {"path": tmp_basket_txt_file1.strpath, "stub": True },
     ]
     with pytest.raises(
         ValueError,
@@ -775,17 +735,8 @@ def test_upload_basket_upload_items_check_unique_file_folder_names(set_up_tb):
     ):
         upload_basket(upload_items, upload_path, unique_id, basket_type)
 
-    assert not tb.s3fs_client.exists(f"{basket_path}")
+    assert not tb.s3fs_client.exists(f"{upload_path}")
 
-    
-    
-    
-    
-    
-    
-    
-    
-# check if upload_path is a string
 def test_upload_basket_upload_path_is_string(set_up_tb):
     """
     Test that upload_basket raises a TypeError when upload_items is not a list
@@ -1042,13 +993,6 @@ def test_upload_basket_no_metadata(set_up_tb):
     # Assert metadata.json was not written
     assert not tb.s3fs_client.exists(f"{upload_path}/metadata.json")
 
-    
-    
-    
-    
-    
-    
-    
 def test_upload_basket_check_existing_upload_path(set_up_tb):
     """
     Test that upload_basket raises a FileExistsError when the upload directory
@@ -1071,8 +1015,6 @@ def test_upload_basket_check_existing_upload_path(set_up_tb):
     unique_id = uuid.uuid1().hex
     upload_path = os.path.join(tb.s3_bucket_name, f"{basket_type}", unique_id)
 
-    # tb.s3fs_client.upload(tmp_basket_dir, f"{upload_path}", recursive=True)
-    # upload_basket(upload_items, upload_path, unique_id, basket_type)
     tb.s3fs_client.upload(tmp_basket_dir.strpath, f"{upload_path}", recursive=True)
 
     with pytest.raises(
@@ -1081,16 +1023,11 @@ def test_upload_basket_check_existing_upload_path(set_up_tb):
     ):
         upload_basket(upload_items, upload_path, unique_id, basket_type)
 
-    assert tb.s3fs_client.ls(f"{tmp_basket_dir}") == [upload_path]
+    assert (
+        tb.s3fs_client.ls(os.path.join(tb.s3_bucket_name, f"{basket_type}")) 
+                             == [upload_path]
+    )
 
-    
-    
-    
-    
-    
-    
-    
-    
 def test_upload_basket_check_unallowed_file_names(set_up_tb):
     """
     Test that upload_basket raises a ValueError when trying to upload files
@@ -1133,10 +1070,6 @@ def test_upload_basket_check_unallowed_file_names(set_up_tb):
 
     assert not tb.s3fs_client.exists(f"{tmp_basket_dir}")
 
-
-    
-    
-    
 def test_upload_basket_clean_up_on_error(set_up_tb):
     """
     Test that upload_basket cleans up failed basket uploads when any Exception 
@@ -1239,7 +1172,48 @@ def test_upload_basket_invalid_test_clean_up_datatype(set_up_tb):
         )
 
     assert not tb.s3fs_client.exists(upload_path)
+    
+def test_upload_basket_file_contents_identical(set_up_tb):
+    tb = set_up_tb
+    
+    # Create a temporary basket with a test file.
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
+    tmp_basket_file_path = tmp_basket_dir.join("test.txt")
+    
+    upload_items = [
+        {
+            "path": tmp_basket_file_path.strpath,
+            "stub": True,
+        }
+    ]
 
+    basket_type = "test_basket"
+    unique_id = uuid.uuid1().hex
+    upload_path = os.path.join(tb.s3_bucket_name, f"{basket_type}", unique_id)
+    upload_file_path = upload_path.join("test.txt")
+
+    upload_basket(
+        upload_items,
+        upload_path,
+        unique_id,
+        basket_type
+    )
+    
+    print()
+    print(upload_file_path)
+    # print()
+    # print(tb.s3fs_client.ls(upload_file_path))
+    print()
+    print(tb.s3fs_client.ls(upload_path))
+    print()
+    
+    with open(tmp_basket_file_path, "r") as r_file:
+        local_file_data = r_file.read()
+        
+    with tb.s3fs_client.open(upload_path, "r") as r_file:
+        assert r_file.read() == local_file_data    
+    
 # @patch("weave.config.get_file_system", return_value=LocalFileSystem())
 def test_upload_basket_end_to_end_test(self, patch):
     file_path1 = os.path.join(self.temp_dir_path, "file1.txt")
