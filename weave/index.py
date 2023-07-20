@@ -241,26 +241,27 @@ class Index():
 
     def get_parents(self, basket_address):
         """Calls a recursive algorithm and returns an index of parent baskets
-        
+
         the reason why this only calls a function is that I don't want users
         to input variables for gen_level and data in the private _get_parent
-        
+
         Parameters
         ----------
         basket_address: string
             string that holds the path of the basket
-            
+
         Returns
         ----------
         index of all the parents for the given basket address with added
         column for generation level, 1 for parent, 2 for grandparent, etc.
         """
+        # breakpoint()
         return self._get_parent(basket_address=basket_address)
 
-    
-    def _get_parent(self, basket_address, gen_level=1, data=pd.DataFrame(), descendants=[]):
+
+    def _get_parent(self, basket_address, gen_level=1, data=pd.DataFrame(), descendants=[11]):
         """Recursively gathers all parents of basket and returns index
-        
+
         Parameters
         ----------
         basket_address: string
@@ -273,51 +274,61 @@ class Index():
             when it is initially called, it is empty, every 
             iteration/recursive call we add all the immediate parents for
             the given basket
-            
+
         Returns
         ----------
         index or dataframe of all the parents of the immediate
         basket we are given, along with all the previous parents
         of the previous calls. 
         """
-        
+        # desc = descendants.copy()
+        print(f"\ndescendants data: {descendants}. location: {id(descendants)}")
+        # print("\n\ndesc: ", desc)
+
         fs = config.get_file_system()
 
         if not fs.exists(basket_address):
             raise FileNotFoundError(
                 f"basket path does not exist '{basket_address}'"
             )
-        
-        
+
+
         if self.sync:
             if not self.is_index_current():
                 self.sync_index()
         elif self.index_df is None:
             self.sync_index()
-        
-        
-        
+
+
+
         #get the current uid of the basket we're getting the parents of
         current_uid = self.index_df["uuid"].loc[self.index_df["address"] == basket_address].values[0]
 
+        
+        # print('\n\n\t CURRENT DATA: \n', data)
+        
+        
         # check if there is a parent-child loop in the basket structure
-        if current_uid in descendants:
-            raise ValueError(f"Parent-Child loop found at {current_uid}")
-        else:
-            descendants.append(current_uid)
         
-        
-        
+
+
+
         puids = self.index_df["parent_uuids"].loc[
             self.index_df["address"] == basket_address
         ].to_numpy()[0]
-        
+
         # check if the list is empty return the data how it is
         if len(puids) == 0:
             return data
         
         
-        
+        # print(f"current uid: {current_uid}. descendants: {descendants}")
+        if current_uid in descendants:
+            raise ValueError(f"Parent-Child loop found at {current_uid}")
+        else:
+            descendants.append(current_uid)
+
+
         # if the data passed in is not empty, and we find a parent uid already
         # in the data, and we've gone a few generations, then I assume we are 
         # infinitely looping, throw error.
@@ -327,37 +338,45 @@ class Index():
         #         raise ValueError(f"Possible child-parent loop found in "
         #                          f"structure at: {puids}. Ending Search"
         #         )
-        
-        
-        
+
+
+        # print('\n the parent uids: ', puids)
         parents_index = self.index_df.loc[self.index_df["uuid"].isin(puids), :]
-        
+
         parents_index["generation_level"] = gen_level
-        
+
         #add the parents for this generation to the data
         data = pd.concat([data, parents_index])
-        
+
+        # print('\n\t the parent indexes: \n', parents_index["address"])
         # for every parent, go get their parents
         for basket_addr in parents_index["address"]:
-            return self._get_parent(
+            
+            # print(f"BEFORE current uid: {current_uid}. descendants: {descendants}")
+            data = self._get_parent(
                                 basket_address=basket_addr, 
                                 gen_level=gen_level+1, 
-                                data=data
+                                data=data,
+                                descendants=descendants.copy()
                             )
+            # print('\n\t The Returned Data: \n', new_data)
+            
+            # print(f"AFTER current uid: {current_uid}. descendants: {descendants}")
+            # data = pd.concat([data,new_data])
         return data
-        
-    
+
+
     def get_children(self, basket_address):
         """Calls a recursive algorithm and returns an index of children baskets
-        
+
         the reason why this only calls a function is that I don't want users
         to input variables for gen_level and data in the private _get_children
-        
+
         Parameters
         ----------
         basket_address: string
             string that holds the path of the basket
-            
+
         Returns
         ----------
         index of all the children for the given basket address with added
@@ -421,7 +440,7 @@ class Index():
                     gen_level < -50):
                 raise ValueError(f"Possible child-parent loop found in "
                           f"structure at: {cids}. Ending Search")
-        
+
         # if len(child_index) != 0:
         child_index["generation_level"] = gen_level
         # print('\nold child_index: \n', child_index)
@@ -432,19 +451,19 @@ class Index():
         # child_index.loc[child_index["generation_level"]] = gen_level
         # child_index_copy = child_index.copy()
         # child_index_copy["generation_level"] = gen_level
-        
+
         # child_copy = child_index.loc[:,:].copy()
         # child_copy.loc[:,"generation_level"] = gen_level
         # print('child_copy: \n', child_copy)
-        
-        
+
+
         # if len(child_index) != 0:
         #     child_index.loc[:,'generation_level'] = gen_level
         #     data = pd.concat([data, child_index])
-        
+
         # add the children from this generation to the data
         data = pd.concat([data, child_index])
-        
+
         # go through all the children and get their children too
         for basket_addr in child_index["address"]:
             return self._get_children(
