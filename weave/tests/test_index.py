@@ -350,3 +350,34 @@ def test_delete_basket_fails_if_basket_is_parent(set_up_tb):
         )
     ):
         ind.delete_basket(basket_uuid="0001")
+
+def test_upload_basket_updates_the_index(set_up_tb):
+    """
+    In this test the index already exists with one basket inside of it.
+    This test will add another basket using Index.upload_basket, and then check
+    to ensure that the index_df has been updated.
+    """
+    tb = set_up_tb
+
+def test_upload_basket_works_on_empty_basket(set_up_tb):
+    """
+    In this test the Index object will upload a basket to a pantry that does not
+    have any baskets yet. This test will make sure that this functionality is
+    present, and that the index_df has been updated.
+    """
+    tb = set_up_tb
+    # Put basket in the temporary bucket
+    tmp_basket = tb.set_up_basket("basket_one")
+    ind = Index(tb.s3_bucket_name)
+    ind.upload_basket(upload_items=tmp_basket, basket_type="test")
+    assert(len(ind.index_df) == 1)
+
+# @patch(uuid.uuid1().hex, new="0000")
+def test_upload_basket_fails_when_uploading_basket_to_same_uuid(set_up_tb):
+    """
+    This test will make sure that Index.upload_basket fails when uploading
+    a basket that has the same uuid as another basket. (When the baskets share
+    a uuid then they should be uploaded to the same directory, creating an
+    invalid pantry structure.)
+    """
+    tb = set_up_tb
