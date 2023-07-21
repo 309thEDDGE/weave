@@ -38,11 +38,12 @@ def validate_basket_dict(basket_dict, basket_address):
         return False
 
 
-def create_index_from_s3(root_dir):
-    """Recursively parse an s3 bucket and create an index
+def create_index_from_fs(root_dir, file_system):
+    """Recursively parse an bucket and create an index
 
     Parameters:
-        root_dir: path to s3 bucket
+        root_dir: path to bucket
+        file_system: the file system hosting the bucket to be indexed.
 
     Returns:
         index: a pandas DataFrame with columns
@@ -51,17 +52,16 @@ def create_index_from_s3(root_dir):
                and where each row corresponds to a single basket_manifest.json
                found recursively under specified root_dir
     """
+    fs = file_system
 
     # check parameter data types
     if not isinstance(root_dir, str):
         raise TypeError(f"'root_dir' must be a string: '{root_dir}'")
 
-    fs = config.get_file_system()
-
     if not fs.exists(root_dir):
         raise FileNotFoundError(f"'root_dir' does not exist '{root_dir}'")
 
-    basket_jsons = _get_list_of_basket_jsons(root_dir)
+    basket_jsons = _get_list_of_basket_jsons(root_dir, fs)
 
     schema = config.index_schema()
 
@@ -93,19 +93,21 @@ def create_index_from_s3(root_dir):
     index["uuid"] = index["uuid"].astype(str)
     return index
 
-def _get_list_of_basket_jsons(root_dir):
-    fs = config.get_file_system()
+def _get_list_of_basket_jsons(root_dir, file_system):
+    fs = file_system
     return [x for x in fs.find(root_dir) if x.endswith("basket_manifest.json")]
 
 
 class Index():
     '''Facilitate user interaction with the index of a Weave data warehouse.'''
 
-    def __init__(self, bucket_name="basket-data", sync=True):
+    def __init__(self, file_system, bucket_name="basket-data", sync=True):
         '''Initializes the Index class.
 
         Parameters
         ----------
+        file_system: fsspec object
+            The fsspec object which hosts the bucket we desire to index.
         bucket_name: [string]
             Name of the bucket which the desired index is associated with.
         sync: [bool]
@@ -116,6 +118,7 @@ class Index():
             then the Index object may be stale, but operations will perform
             at a higher speed.
         '''
+        self.fs = file_system
         self.bucket_name = str(bucket_name)
         self.index_basket_dir_name = 'index' # AKA basket type
         self.index_basket_dir_path = os.path.join(
@@ -128,8 +131,7 @@ class Index():
 
     def sync_index(self):
         '''Gets index from latest index basket'''
-        fs = config.get_file_system()
-        index_paths = fs.glob(f"{self.index_basket_dir_path}/**/*-index.json")
+        index_paths = self.fs.glob(f"{self.index_basket_dir_path}/**/*-index.json")
         if len(index_paths) == 0:
             return self.generate_index()
         if len(index_paths) > 20:
@@ -142,7 +144,7 @@ class Index():
                 self.index_json_time = path_time
                 latest_index_path = path
         self.index_df = pd.read_json(
-            fs.open(latest_index_path), dtype = {'uuid': str}
+            self.fs.open(latest_index_path), dtype = {'uuid': str}
         )
 
     def _get_index_time_from_path(self, path):
@@ -168,8 +170,7 @@ class Index():
             n is the number of latest index baskets to retain.
         '''
         n = int(n)
-        fs = config.get_file_system()
-        index_paths = fs.glob(f"{self.index_basket_dir_path}/**/*-index.json")
+        index_paths = self.fs.glob(f"{self.index_basket_dir_path}/**/*-index.json")
         if len(index_paths) <= n:
             return
         index_time_list = [self._get_index_time_from_path(i)
@@ -178,7 +179,7 @@ class Index():
         for index_time in index_time_list:
             if index_time not in index_times_to_keep:
                 try:
-                    path = fs.glob(
+                    path = self.fs.glob(
                         f"{self.index_basket_dir_path}/**/" +
                         f"{index_time}-index.json"
                     )[0]
@@ -192,8 +193,7 @@ class Index():
 
         Returns True if index in memory is up to date, else False.
         '''
-        fs = config.get_file_system()
-        index_paths = fs.glob(f"{self.index_basket_dir_path}/**/*-index.json")
+        index_paths = self.fs.glob(f"{self.index_basket_dir_path}/**/*-index.json")
         if len(index_paths) == 0:
             return False
         index_times = [self._get_index_time_from_path(i)
@@ -202,13 +202,14 @@ class Index():
 
     def generate_index(self):
         '''Generates index and stores it in a basket'''
-        index = create_index_from_s3(self.bucket_name)
+        index = create_index_from_fs(self.bucket_name, self.fs)
         with tempfile.TemporaryDirectory() as out:
             ns = time_ns()
             temp_json_path = os.path.join(out, f"{ns}-index.json")
             index.to_json(temp_json_path)
             upload(upload_items=[{'path':temp_json_path, 'stub':False}],
                    basket_type=self.index_basket_dir_name,
+                   upload_file_system=self.fs,
                    bucket_name=self.bucket_name)
         self.index_df = index
         self.index_json_time = ns
@@ -224,7 +225,6 @@ class Index():
         basket_uuid: [int]
             The uuid of the basket to delete.
         '''
-        fs = config.get_file_system()
         basket_uuid = str(basket_uuid)
         if self.index_df is None:
             self.sync_index()
@@ -248,4 +248,4 @@ class Index():
             adr = self.index_df[
                 self.index_df["uuid"] == basket_uuid
             ]["address"]
-            fs.rm(adr, recursive=True)
+            self.fs.rm(adr, recursive=True)

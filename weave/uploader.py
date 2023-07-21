@@ -2,11 +2,12 @@ import uuid
 import os
 
 from .uploader_functions import upload_basket
-
+from weave import config
 
 def upload(
     upload_items,
     basket_type,
+    upload_file_system=None,
     bucket_name="basket-data",
     parent_ids=[],
     metadata={},
@@ -62,6 +63,9 @@ def upload(
     if "test_prefix" in kwargs.keys():
         prefix = kwargs["test_prefix"]
 
+    if upload_file_system is None:
+        upload_file_system = config.get_file_system()
+
     # build upload directory of the form
     # bucket_name/basket_type/unique_id
     upload_directory = os.path.join(
@@ -71,6 +75,7 @@ def upload(
     upload_basket(
         upload_items,
         upload_directory,
+        upload_file_system,
         unique_id,
         basket_type,
         parent_ids,

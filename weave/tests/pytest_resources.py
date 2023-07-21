@@ -2,15 +2,14 @@ import os
 import json
 
 from weave.uploader import upload_basket
-from weave.config import get_file_system
 
 # The following code is for testing in an environment with MinIO:
 
 class BucketForTest():
-    def __init__(self, tmpdir):
+    def __init__(self, tmpdir, file_system):
         self.tmpdir = tmpdir
         self.basket_list = []
-        self.fs = get_file_system()
+        self.fs = file_system
         self.bucket_name = 'pytest-temp-bucket'
         self._set_up_bucket()
 
@@ -64,6 +63,7 @@ class BucketForTest():
         upload_basket(
             upload_items=upload_items,
             upload_directory=up_dir,
+            upload_file_system=self.fs,
             unique_id=uid,
             basket_type=b_type,
             parent_ids=parent_ids,

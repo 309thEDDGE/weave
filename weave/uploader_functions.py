@@ -123,6 +123,7 @@ class UploadBasket:
         self,
         upload_items,
         upload_directory,
+        upload_file_system,
         unique_id,
         basket_type,
         parent_ids,
@@ -147,7 +148,9 @@ class UploadBasket:
             without uploading the data itself. This is especially useful when
             dealing with large files.
         upload_directory: str
-            MinIO path where basket is to be uploaded.
+            Path where basket is to be uploaded (on the upload FS).
+        upload_file_system: fsspec object
+            The fsspec object to be used (ie, s3fs, local fs, etc)
         unique_id: str
             Unique ID to identify the basket once uploaded.
         basket_type: str
@@ -157,12 +160,13 @@ class UploadBasket:
             used to derive the new basket being uploaded.
         metadata: optional dict,
             Python dictionary that will be written to metadata.json
-            and stored in the basket in MinIO.
+            and stored in the basket in the upload FS.
         label: optional str,
             Optional user friendly label associated with the basket.
         """
         self.upload_items = upload_items
         self.upload_directory = upload_directory
+        self.fs = upload_file_system
         self.unique_id = unique_id
         self.basket_type = basket_type
         self.parent_ids = parent_ids
@@ -252,10 +256,6 @@ class UploadBasket:
         self.sanitize_upload_basket_kwargs()
         self.sanitize_upload_basket_non_kwargs()
 
-    def establish_s3fs(self):
-        """Establishes the S3FS connection"""
-        self.fs = config.get_file_system()
-
     def check_that_upload_dir_does_not_exist(self):
         """Ensure that upload directory does not previously exist
 
@@ -268,15 +268,15 @@ class UploadBasket:
                 f"'{self.upload_directory}''"
             )
 
-    def setup_temp_dir_for_staging_prior_to_s3fs(self):
-        """Sets up a temporary directory to hold stuff before upload to S3FS"""
+    def setup_temp_dir_for_staging_prior_to_fs(self):
+        """Sets up a temporary directory to hold stuff before upload to FS"""
         self.upload_path = f"{self.upload_directory}"
         self.temp_dir = tempfile.TemporaryDirectory()
         self.fs.mkdir(self.upload_path)
         self.temp_dir_path = self.temp_dir.name
 
-    def upload_files_and_stubs_to_s3fs(self):
-        """Method to upload both files and stubs to S3FS"""
+    def upload_files_and_stubs_to_fs(self):
+        """Method to upload both files and stubs to fs"""
         supplement_data = {}
         supplement_data["upload_items"] = self.upload_items
         supplement_data["integrity_data"] = []
@@ -325,7 +325,7 @@ class UploadBasket:
                 supplement_data["integrity_data"].append(fid)
         self.supplement_data = supplement_data
 
-    def create_and_upload_basket_json_to_s3fs(self):
+    def create_and_upload_basket_json_to_fs(self):
         """Creates and dumps a JSON containing basket metadata"""
         basket_json_path = os.path.join(
             self.temp_dir_path, "basket_manifest.json"
@@ -346,8 +346,8 @@ class UploadBasket:
             os.path.join(self.upload_path, "basket_manifest.json"),
         )
 
-    def upload_basket_metadata_to_s3fs(self):
-        """Dumps metadata to tempdir, and then uploads to S3FS"""
+    def upload_basket_metadata_to_fs(self):
+        """Dumps metadata to tempdir, and then uploads to FS"""
         metadata_path = os.path.join(
             self.temp_dir_path, "basket_metadata.json"
         )
@@ -359,8 +359,8 @@ class UploadBasket:
                 os.path.join(self.upload_path, "basket_metadata.json"),
             )
 
-    def upload_basket_supplement_to_s3fs(self):
-        """Dumps metadata to tempdir, and then uploads to S3FS"""
+    def upload_basket_supplement_to_fs(self):
+        """Dumps metadata to tempdir, and then uploads to FS"""
         supplement_json_path = os.path.join(
             self.temp_dir_path, "basket_supplement.json"
         )
@@ -371,11 +371,11 @@ class UploadBasket:
             os.path.join(self.upload_path, "basket_supplement.json"),
         )
 
-    def s3fs_upload_path_exists(self):
+    def fs_upload_path_exists(self):
         """Returns True if fs upload_path has been created, else False"""
         return self.fs.exists(self.upload_path)
 
-    def clean_out_s3fs_upload_dir(self):
+    def clean_out_fs_upload_dir(self):
         """Removes everything from upload_path inside fs"""
         self.fs.rm(self.upload_path, recursive=True)
 
@@ -386,6 +386,7 @@ class UploadBasket:
 def upload_basket(
     upload_items,
     upload_directory,
+    upload_file_system,
     unique_id,
     basket_type,
     parent_ids=[],
@@ -394,7 +395,7 @@ def upload_basket(
     **kwargs
 ):
     """
-    Upload files and directories to MinIO.
+    Upload files and directories to the upload FS.
 
     This function takes in a list of items to upload, along with
     identifying tags, and uploads the data together with three
@@ -402,7 +403,7 @@ def upload_basket(
     supplement.json. The contents of the three files are specified
     below. These three files together with the data specified by
     upload_items are uploaded to the upload_directory path within
-    MinIO as a basket of data.
+    the upload FS as a basket of data.
 
     basket_manifest.json contains:
         1) unique_id
@@ -422,7 +423,7 @@ def upload_basket(
             c) file size (bytes)
             d) source path (original file location)
             e) stub (true/false)
-            f) upload path (path to where the file is uploaded in MinIO)
+            f) upload path (path where the file is uploaded in the upload FS)
 
     Parameters
     ----------
@@ -439,7 +440,9 @@ def upload_basket(
         without uploading the data itself. This is especially useful when
         dealing with large files.
     upload_directory: str
-        MinIO path where basket is to be uploaded.
+        Path where basket is to be uploaded.
+    upload_file_system: fsspec object
+        The fsspec object to be used (ie, s3fs, local fs, etc)
     unique_id: str
         Unique ID to identify the basket once uploaded.
     basket_type: str
@@ -449,13 +452,14 @@ def upload_basket(
         used to derive the new basket being uploaded.
     metadata: optional dict,
         Python dictionary that will be written to metadata.json
-        and stored in the basket in MinIO.
+        and stored in the basket in upload FS.
     label: optional str,
         Optional user friendly label associated with the basket.
     """
     upload_basket_obj = UploadBasket(
         upload_items,
         upload_directory,
+        upload_file_system,
         unique_id,
         basket_type,
         parent_ids,
@@ -465,22 +469,21 @@ def upload_basket(
     )
 
     upload_basket_obj.sanitize_args()
-    upload_basket_obj.establish_s3fs()
     upload_basket_obj.check_that_upload_dir_does_not_exist()
 
     try:
-        upload_basket_obj.setup_temp_dir_for_staging_prior_to_s3fs()
-        upload_basket_obj.upload_files_and_stubs_to_s3fs()
-        upload_basket_obj.create_and_upload_basket_json_to_s3fs()
-        upload_basket_obj.upload_basket_metadata_to_s3fs()
-        upload_basket_obj.upload_basket_supplement_to_s3fs()
+        upload_basket_obj.setup_temp_dir_for_staging_prior_to_fs()
+        upload_basket_obj.upload_files_and_stubs_to_fs()
+        upload_basket_obj.create_and_upload_basket_json_to_fs()
+        upload_basket_obj.upload_basket_metadata_to_fs()
+        upload_basket_obj.upload_basket_supplement_to_fs()
 
         if upload_basket_obj.test_clean_up:
             raise Exception("Test Clean Up")
 
     except Exception as e:
-        if upload_basket_obj.s3fs_upload_path_exists():
-            upload_basket_obj.clean_out_s3fs_upload_dir()
+        if upload_basket_obj.fs_upload_path_exists():
+            upload_basket_obj.clean_out_fs_upload_dir()
         raise e
 
     finally:

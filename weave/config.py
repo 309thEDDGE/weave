@@ -42,7 +42,6 @@ manifest_schema = {
 #basket_supplement must follow this schema 
 supplement_schema = {
     "properties": {
-
         "upload_items": {
             "type": "array",
             "minItems": 1,
@@ -54,32 +53,29 @@ supplement_schema = {
                 }, 
                 "required": ["path", "stub"],
                 "additionalProperties": False
-
             }
         },
-
          "integrity_data": {
             "type": "array",
             "minItems": 1,
             "items": {
                 "type": "object",
-                
                 "properties": {
                     "file_size": {"type" : "number" },
                     "hash": {"type" : "string" },
                     "access_date":{"type" : "string" },
                     "source_path": {"type" : "string" },
                     "byte_count": {"type" : "number" },
-                    "stub":{"type" : "boolean" }, 
+                    "stub":{"type" : "boolean" },
                     "upload_path":{"type" : "string" }
-                }, 
+                },
                 "required": [
-                    "file_size", 
-                    "hash", 
-                    "access_date", 
-                    "source_path", 
-                    "byte_count", 
-                    "stub", 
+                    "file_size",
+                    "hash",
+                    "access_date",
+                    "source_path",
+                    "byte_count",
+                    "stub",
                     "upload_path"
                 ],
                 "additionalProperties": False
@@ -87,7 +83,6 @@ supplement_schema = {
             "required": ["type"],
             "additionalProperties": False
         }
-        
     },
     "required": ["upload_items", "integrity_data"],
     "additionalProperties": False
@@ -101,9 +96,10 @@ def index_schema():
 
 def get_file_system():
     """Get the filesystem to be used for storing baskets"""
-    return s3fs.S3FileSystem(
-        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-    )
+    return None
+    # return s3fs.S3FileSystem(
+    #     client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+    # )
 
 def get_mongo_db():
     """Get the mongodb client to be used for metadata search"""
@@ -111,7 +107,7 @@ def get_mongo_db():
     # If MONGODB_HOST, USERNAME and PASSWORD are provided as environment
     # variables, initialize the mongo client with the provided
     # credentials. Else defer to default credentials for OPAL.
-    # TODO: remove the default credentials for OPAL, 
+    # TODO: remove the default credentials for OPAL,
     # once OPAL exposes environment variables
     if "MONGODB_HOST" in os.environ and \
        "MONGODB_USERNAME" in os.environ and \
@@ -121,6 +117,6 @@ def get_mongo_db():
                                      password = os.environ["MONGODB_PASSWORD"])
     else:
         client = pymongo.MongoClient("mongodb",
-                                     username="root", 
+                                     username="root",
                                      password="example")
     return client

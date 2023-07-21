@@ -9,7 +9,7 @@ class Basket:
     """This class provides convenience functions for accessing basket contents.
     """
 
-    def __init__(self, basket_address, bucket_name="basket-data"):
+    def __init__(self, basket_address, file_system, bucket_name="basket-data"):
         """Initializes the Basket_Class.
 
         Parameters
@@ -17,10 +17,12 @@ class Basket:
         basket_address: string
             Argument can take one of two forms: either a path to the Basket 
             directory, or the UUID of the basket.
+        file_system: fsspec object
+            The fsspec filesystem to be used for retrieving and uploading.
         bucket_name: string
             Name of the bucket which the desired index is associated with.
         """
-        self.fs = config.get_file_system()
+        self.fs = file_system
         try:
             self.set_up_basket_from_path(basket_address)
         except ValueError as e:
@@ -42,7 +44,7 @@ class Basket:
 
     def set_up_basket_from_uuid(self, basket_address, bucket_name):
         try:
-            ind = Index(bucket_name=bucket_name)
+            ind = Index(file_system=self.fs, bucket_name=bucket_name)
             ind_df = ind.to_pandas_df()
             path = ind_df["address"][ind_df["uuid"] == basket_address].iloc[0]
             self.set_up_basket_from_path(basket_address=path)
