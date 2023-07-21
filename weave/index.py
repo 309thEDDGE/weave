@@ -192,12 +192,6 @@ class Index():
     def generate_index(self):
         '''Generates index and stores it in a basket'''
         index = create_index_from_s3(self.bucket_name)
-        self._upload_index(index=index)
-        self.index_df = index
-        self.index_json_time = ns
-
-    def _upload_index(self, index):
-        """Upload a new index"""
         with tempfile.TemporaryDirectory() as out:
             ns = time_ns()
             temp_json_path = os.path.join(out, f"{ns}-index.json")
@@ -205,6 +199,8 @@ class Index():
             upload(upload_items=[{'path':temp_json_path, 'stub':False}],
                    basket_type=self.index_basket_dir_name,
                    bucket_name=self.bucket_name)
+        self.index_df = index
+        self.index_json_time = ns
 
     def delete_basket(self, basket_uuid):
         '''Deletes basket of given UUID.
