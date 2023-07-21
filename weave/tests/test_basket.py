@@ -53,11 +53,11 @@ def test_basket_no_manifest_file(set_up_tb):
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
-    s3_basket_path = tb.upload_basket(tmp_basket_dir=tmp_basket_dir)
+    basket_path = tb.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
     # Manually remove the basket_manifest file.
-    manifest_path = os.path.join(s3_basket_path, "basket_manifest.json")
-    tb.s3fs_client.rm(manifest_path)
+    manifest_path = os.path.join(basket_path, "basket_manifest.json")
+    tb.fs.rm(manifest_path)
 
     # Attempt to create a Basket from the malformed basket (missing manifest)
     with pytest.raises(
@@ -67,7 +67,7 @@ def test_basket_no_manifest_file(set_up_tb):
             + f"does not exist: {manifest_path}"
         ),
     ):
-        Basket(Path(s3_basket_path))
+        Basket(Path(basket_path))
 
 def test_basket_no_suppl_file(set_up_tb):
     """
@@ -79,11 +79,11 @@ def test_basket_no_suppl_file(set_up_tb):
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
-    s3_basket_path = tb.upload_basket(tmp_basket_dir=tmp_basket_dir)
+    basket_path = tb.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
     # Manually remove the basket_supplement file.
-    supplement_path = os.path.join(s3_basket_path, "basket_supplement.json")
-    tb.s3fs_client.rm(supplement_path)
+    supplement_path = os.path.join(basket_path, "basket_supplement.json")
+    tb.fs.rm(supplement_path)
 
     # Attempt to create a Basket from the malformed basket (missing supplement)
     with pytest.raises(
@@ -93,7 +93,7 @@ def test_basket_no_suppl_file(set_up_tb):
             + f"does not exist: {supplement_path}"
         ),
     ):
-        Basket(Path(s3_basket_path))
+        Basket(Path(basket_path))
 
 def test_basket_get_manifest(set_up_tb):
     """
@@ -105,9 +105,9 @@ def test_basket_get_manifest(set_up_tb):
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
-    s3_basket_path = tb.upload_basket(tmp_basket_dir=tmp_basket_dir)
+    basket_path = tb.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
-    basket = Basket(Path(s3_basket_path))
+    basket = Basket(Path(basket_path))
     manifest = basket.get_manifest()
     assert manifest == {
         "uuid": "0000",
@@ -126,17 +126,17 @@ def test_basket_get_manifest_cached(set_up_tb):
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
-    s3_basket_path = tb.upload_basket(tmp_basket_dir=tmp_basket_dir)
+    basket_path = tb.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
-    basket = Basket(Path(s3_basket_path))
+    basket = Basket(Path(basket_path))
 
     # Read the basket_manifest.json file and store as a dictionary for later.
     manifest = basket.get_manifest()
     manifest_path = basket.manifest_path
 
     # Manually replace the manifest file.
-    tb.s3fs_client.rm(manifest_path)
-    with tb.s3fs_client.open(manifest_path, "w") as outfile:
+    tb.fs.rm(manifest_path)
+    with tb.fs.open(manifest_path, "w") as outfile:
         json.dump({"junk": "b"}, outfile)
 
     # Manifest should already be stored and the new file shouldn't be read.
@@ -158,9 +158,9 @@ def test_basket_get_supplement(set_up_tb):
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
-    s3_basket_path = tb.upload_basket(tmp_basket_dir=tmp_basket_dir)
+    basket_path = tb.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
-    basket = Basket(Path(s3_basket_path))
+    basket = Basket(Path(basket_path))
 
     # Create a copy of the basket's expected upload_items.
     upload_items = [{"path": str(tmp_basket_dir.realpath()), "stub": False}]
@@ -182,17 +182,17 @@ def test_basket_get_supplement_cached(set_up_tb):
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
-    s3_basket_path = tb.upload_basket(tmp_basket_dir=tmp_basket_dir)
+    basket_path = tb.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
-    basket = Basket(Path(s3_basket_path))
+    basket = Basket(Path(basket_path))
 
     # Save the original basket supplement as a dictionary.
     original_supplement = basket.get_supplement()
     supplement_path = basket.supplement_path
 
     # Manually replace the Supplement file.
-    tb.s3fs_client.rm(supplement_path)
-    with tb.s3fs_client.open(supplement_path, "w") as outfile:
+    tb.fs.rm(supplement_path)
+    with tb.fs.open(supplement_path, "w") as outfile:
         json.dump({"junk": "b"}, outfile)
 
     # Supplement should already be cached and the new copy shouldn't be read.
@@ -213,9 +213,9 @@ def test_basket_get_metadata(set_up_tb):
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
-    s3_basket_path = tb.upload_basket(tmp_basket_dir, metadata=metadata_in)
+    basket_path = tb.upload_basket(tmp_basket_dir, metadata=metadata_in)
 
-    basket = Basket(Path(s3_basket_path))
+    basket = Basket(Path(basket_path))
 
     # Check get_metadata returns the same values we used during the upload.
     metadata = basket.get_metadata()
@@ -233,17 +233,17 @@ def test_basket_get_metadata_cached(set_up_tb):
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
-    s3_basket_path = tb.upload_basket(tmp_basket_dir, metadata=metadata_in)
+    basket_path = tb.upload_basket(tmp_basket_dir, metadata=metadata_in)
 
-    basket = Basket(Path(s3_basket_path))
+    basket = Basket(Path(basket_path))
 
     # Save the original basket metadata as a dictionary.
     metadata = basket.get_metadata()
     metadata_path = basket.metadata_path
 
     # Manually replace the metadata file
-    tb.s3fs_client.rm(metadata_path)
-    with tb.s3fs_client.open(metadata_path, "w") as outfile:
+    tb.fs.rm(metadata_path)
+    with tb.fs.open(metadata_path, "w") as outfile:
         json.dump({"junk": "b"}, outfile)
 
     # Metadata should already be cached and the new copy shouldn't be read.
@@ -259,9 +259,9 @@ def test_basket_get_metadata_none(set_up_tb):
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
-    s3_basket_path = tb.upload_basket(tmp_basket_dir)
+    basket_path = tb.upload_basket(tmp_basket_dir)
 
-    basket = Basket(Path(s3_basket_path))
+    basket = Basket(Path(basket_path))
     metadata = basket.get_metadata()
 
     # No metadata was added to the upload, so it should be None.
@@ -276,11 +276,11 @@ def test_basket_ls(set_up_tb):
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
-    s3_basket_path = tb.upload_basket(tmp_basket_dir)
+    basket_path = tb.upload_basket(tmp_basket_dir)
 
-    basket = Basket(Path(s3_basket_path))
+    basket = Basket(Path(basket_path))
 
-    uploaded_dir_path = f"{s3_basket_path}/{tmp_basket_dir_name}"
+    uploaded_dir_path = f"{basket_path}/{tmp_basket_dir_name}"
     assert basket.ls() == [uploaded_dir_path]
 
 def test_basket_ls_relpath(set_up_tb):
@@ -292,11 +292,11 @@ def test_basket_ls_relpath(set_up_tb):
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
-    s3_basket_path = tb.upload_basket(tmp_basket_dir)
+    basket_path = tb.upload_basket(tmp_basket_dir)
 
-    basket = Basket(Path(s3_basket_path))
+    basket = Basket(Path(basket_path))
 
-    uploaded_file_path = f"{s3_basket_path}/{tmp_basket_dir_name}/test.txt"
+    uploaded_file_path = f"{basket_path}/{tmp_basket_dir_name}/test.txt"
     assert basket.ls(Path(tmp_basket_dir_name)) == [uploaded_file_path]
 
 def test_basket_ls_relpath_period(set_up_tb):
@@ -308,11 +308,11 @@ def test_basket_ls_relpath_period(set_up_tb):
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
-    s3_basket_path = tb.upload_basket(tmp_basket_dir)
+    basket_path = tb.upload_basket(tmp_basket_dir)
 
-    basket = Basket(Path(s3_basket_path))
+    basket = Basket(Path(basket_path))
 
-    uploaded_dir_path = f"{s3_basket_path}/{tmp_basket_dir_name}"
+    uploaded_dir_path = f"{basket_path}/{tmp_basket_dir_name}"
     assert basket.ls(".") == [uploaded_dir_path]
 
 def test_basket_ls_is_pathlike(set_up_tb):
@@ -324,9 +324,9 @@ def test_basket_ls_is_pathlike(set_up_tb):
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
-    s3_basket_path = tb.upload_basket(tmp_basket_dir)
+    basket_path = tb.upload_basket(tmp_basket_dir)
 
-    basket = Basket(Path(s3_basket_path))
+    basket = Basket(Path(basket_path))
 
     with pytest.raises(
         TypeError,
@@ -348,18 +348,18 @@ def test_basket_ls_after_find(set_up_tb):
     tmp_basket_dir_name = "test_basket_temp_dir"
     tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name)
     tmp_basket_dir = tb.add_lower_dir_to_temp_basket(tmp_basket_dir)
-    s3_basket_path = tb.upload_basket(tmp_basket_dir=tmp_basket_dir)
+    basket_path = tb.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
     # Create index on bucket
-    create_index_from_s3(tb.s3_bucket_name)
+    create_index_from_s3(tb.bucket_name)
 
     # Run find in case index creation changes
-    tb.s3fs_client.find(tb.s3_bucket_name)
+    tb.fs.find(tb.bucket_name)
 
     # Set up basket
-    test_b = Basket(s3_basket_path)
+    test_b = Basket(basket_path)
     what_should_be_in_base_dir_path = {
-        os.path.join(s3_basket_path, tmp_basket_dir_name, i)
+        os.path.join(basket_path, tmp_basket_dir_name, i)
         for i in ["nested_dir", "test.txt"]
     }
     ls = test_b.ls(tmp_basket_dir_name)
@@ -374,7 +374,7 @@ def test_basket_init_from_uuid(set_up_tb):
     tmp_basket_dir_one = tb.set_up_basket("basket_one")
     uuid = "0000"
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
-    test_b = Basket(basket_address=uuid, bucket_name=tb.s3_bucket_name)
+    test_b = Basket(basket_address=uuid, bucket_name=tb.bucket_name)
     assert test_b.ls("basket_one") == [
         "pytest-temp-bucket/test_basket/0000/basket_one/test.txt"
     ]
@@ -393,7 +393,7 @@ def test_basket_init_fails_if_uuid_does_not_exist(set_up_tb):
     with pytest.raises(
         ValueError, match=f"Basket does not exist: {bad_uuid}"
     ):
-        Basket(basket_address=bad_uuid, bucket_name=tb.s3_bucket_name)
+        Basket(basket_address=bad_uuid, bucket_name=tb.bucket_name)
 
 def test_basket_bucket_name_does_not_exist(set_up_tb):
     """
@@ -420,7 +420,7 @@ def test_basket_from_uuid_with_many_baskets(set_up_tb):
         uuid = str(uuid)
         tmp_basket_dir = tb.set_up_basket(f"temp_basket_{uuid}")
         tb.upload_basket(tmp_basket_dir=tmp_basket_dir, uid=uuid)
-    test_b = Basket(basket_address=uuid, bucket_name=tb.s3_bucket_name)
+    test_b = Basket(basket_address=uuid, bucket_name=tb.bucket_name)
     assert test_b.ls(f"temp_basket_{uuid}") == [
         f"pytest-temp-bucket/test_basket/{uuid}/temp_basket_{uuid}/test.txt"
     ]

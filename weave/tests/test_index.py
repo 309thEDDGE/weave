@@ -60,7 +60,7 @@ def test_correct_index(set_up_tb):
     }
     truth_index = pd.DataFrame(truth_index_dict)
 
-    minio_index = create_index_from_s3(tb.s3_bucket_name)
+    minio_index = create_index_from_s3(tb.bucket_name)
 
     # check that the indexes match, ignoring 'upload_time'
     assert (
@@ -90,17 +90,17 @@ def set_up_malformed_baskets(tmpdir):
             bad_addresses.append(address)
 
             basket_dict = {}
-            manifest_address = (f"{tb.s3_bucket_name}/test_basket/"
+            manifest_address = (f"{tb.bucket_name}/test_basket/"
                                 f"000{i}/basket_manifest.json")
 
-            with tb.s3fs_client.open(manifest_address,"rb") as f:
+            with tb.fs.open(manifest_address,"rb") as f:
                 basket_dict = json.load(f)
                 basket_dict.pop("uuid")
             basket_path = os.path.join(tmp_basket_dir, "basket_manifest.json")
             with open(basket_path, "w") as f:
                 json.dump(basket_dict, f)
 
-            tb.s3fs_client.upload(basket_path,manifest_address)
+            tb.fs.upload(basket_path,manifest_address)
 
         else:
             good_addresses.append(address)
@@ -124,7 +124,7 @@ def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
     }
     truth_index = pd.DataFrame(truth_index_dict)
 
-    minio_index = create_index_from_s3(tb.s3_bucket_name)
+    minio_index = create_index_from_s3(tb.bucket_name)
     assert (
         (truth_index == minio_index)
         .drop(columns=["upload_time"])
@@ -138,7 +138,7 @@ def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
     tb, good_addresses, bad_addresses = set_up_malformed_baskets
 
     with warnings.catch_warnings(record = True) as w:
-        create_index_from_s3(tb.s3_bucket_name)
+        create_index_from_s3(tb.bucket_name)
         message = ('baskets found in the following locations '
                   'do not follow specified weave schema:\n'
                   f'{bad_addresses}')
@@ -151,7 +151,7 @@ def test_sync_index_gets_latest_index(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # create index
-    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, sync=True)
     ind.to_pandas_df()
 
     # add another basket
@@ -159,7 +159,7 @@ def test_sync_index_gets_latest_index(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
 
     # Regenerate index outside of current index object
-    ind2 = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind2 = Index(bucket_name=tb.bucket_name, sync=True)
     ind2.generate_index()
 
     # assert length of index includes both baskets
@@ -172,7 +172,7 @@ def test_sync_index_calls_generate_index_if_no_index(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # create index
-    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, sync=True)
     assert len(ind.to_pandas_df()) == 1
 
 def test_get_index_time_from_path():
@@ -187,7 +187,7 @@ def test_to_pandas_df(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # create index
-    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, sync=True)
     df = ind.to_pandas_df()
     assert len(df) == 1 and type(df) is pd.DataFrame
 
@@ -208,7 +208,7 @@ def test_clean_up_indices_leaves_n_indices(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # create index
-    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, sync=True)
     ind.to_pandas_df()
 
     # add another basket
@@ -219,7 +219,7 @@ def test_clean_up_indices_leaves_n_indices(set_up_tb):
     # Now there should be two index baskets. clean up all but one of them:
     ind.clean_up_indices(n=1)
     fs = get_file_system()
-    index_path = os.path.join(tb.s3_bucket_name, 'index')
+    index_path = os.path.join(tb.bucket_name, 'index')
     assert len(fs.ls(index_path)) == 1
 
 def test_clean_up_indices_with_n_greater_than_num_of_indices(set_up_tb):
@@ -229,7 +229,7 @@ def test_clean_up_indices_with_n_greater_than_num_of_indices(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # create index
-    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, sync=True)
     ind.to_pandas_df()
 
     # add another basket
@@ -241,7 +241,7 @@ def test_clean_up_indices_with_n_greater_than_num_of_indices(set_up_tb):
     # (this should fail, obvs)
     ind.clean_up_indices(n=3)
     fs = get_file_system()
-    index_path = os.path.join(tb.s3_bucket_name, 'index')
+    index_path = os.path.join(tb.bucket_name, 'index')
     assert len(fs.ls(index_path)) == 2
 
 def test_is_index_current(set_up_tb):
@@ -251,7 +251,7 @@ def test_is_index_current(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # create index
-    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, sync=True)
     ind.to_pandas_df()
 
     # add another basket
@@ -259,7 +259,7 @@ def test_is_index_current(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
 
     # Regenerate index outside of current index object
-    ind2 = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind2 = Index(bucket_name=tb.bucket_name, sync=True)
     ind2.generate_index()
     assert ind2.is_index_current() is True and ind.is_index_current() is False
 
@@ -270,7 +270,7 @@ def test_generate_index(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # create index
-    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, sync=True)
     ind.to_pandas_df()
 
     # add another basket
@@ -288,7 +288,7 @@ def test_delete_basket_deletes_basket(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # create index
-    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, sync=True)
     ind.to_pandas_df()
 
     # add another basket
@@ -309,7 +309,7 @@ def test_delete_basket_fails_if_basket_is_parent(set_up_tb):
     tmp_basket_dir_two = tb.set_up_basket("basket_two")
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two,
                      uid="0002", parent_ids=["0001"])
-    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, sync=True)
     with pytest.raises(
         ValueError, match=(
             "The provided value for basket_uuid 0001 is listed as a parent " +

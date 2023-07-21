@@ -31,14 +31,14 @@ class UploadForTest(BucketForTest):
         self.upload_path = upload(
             upload_items,
             b_type,
-            self.s3_bucket_name,
+            self.bucket_name,
             parent_ids,
             metadata,
             label,
             test_prefix="test-prefix",
         )
 
-        self.uploaded_files = self.s3fs_client.ls(self.upload_path)
+        self.uploaded_files = self.fs.ls(self.upload_path)
 
         return self.upload_path
 
@@ -539,7 +539,7 @@ def test_upload_basket_upload_items_is_not_a_string(set_up_tb):
     upload_items = "n o t a r e a l p a t h"
     unique_id = uuid.uuid1().hex
     basket_type = "test_basket"
-    upload_path = os.path.join(tb.s3_bucket_name, basket_type, unique_id)
+    upload_path = os.path.join(tb.bucket_name, basket_type, unique_id)
 
     with pytest.raises(
         TypeError,
@@ -562,7 +562,7 @@ def test_upload_basket_upload_items_is_not_a_list_of_strings(set_up_tb):
     upload_items = ["invalid", "invalid2"]
     unique_id = uuid.uuid1().hex
     basket_type = "test_basket"
-    upload_path = os.path.join(tb.s3_bucket_name, basket_type, unique_id)
+    upload_path = os.path.join(tb.bucket_name, basket_type, unique_id)
 
     with pytest.raises(
         TypeError, match="'upload_items' must be a list of dictionaries:"
@@ -583,7 +583,7 @@ def test_upload_basket_upload_items_is_a_list_of_only_dictionaries(set_up_tb):
     upload_items = [{}, "invalid2"]
     unique_id = uuid.uuid1().hex
     basket_type = "test_basket"
-    upload_path = os.path.join(tb.s3_bucket_name, basket_type, unique_id)
+    upload_path = os.path.join(tb.bucket_name, basket_type, unique_id)
 
     with pytest.raises(
         TypeError, match="'upload_items' must be a list of dictionaries:"
@@ -603,12 +603,12 @@ def test_upload_basket_with_bad_upload_items_is_deleted_if_it_fails(set_up_tb):
     upload_items = [{}, "invalid2"]
     unique_id = uuid.uuid1().hex
     basket_type = "test_basket"
-    upload_path = os.path.join(tb.s3_bucket_name, basket_type, unique_id)
+    upload_path = os.path.join(tb.bucket_name, basket_type, unique_id)
 
     try:
         upload_basket(upload_items, upload_path, unique_id, basket_type)
     except TypeError:
-        assert not tb.s3fs_client.exists(upload_path)
+        assert not tb.fs.exists(upload_path)
 
 def test_upload_basket_upload_items_invalid_dictionary(set_up_tb):
     """
@@ -626,7 +626,7 @@ def test_upload_basket_upload_items_invalid_dictionary(set_up_tb):
 
     unique_id = uuid.uuid1().hex
     basket_type = "test_basket"
-    upload_path = os.path.join(tb.s3_bucket_name, basket_type, unique_id)
+    upload_path = os.path.join(tb.bucket_name, basket_type, unique_id)
 
     upload_items = [
         {
@@ -656,7 +656,7 @@ def test_deletion_when_basket_upload_items_is_an_invalid_dictionary(set_up_tb):
 
     unique_id = uuid.uuid1().hex
     basket_type = "test_basket"
-    upload_path = os.path.join(tb.s3_bucket_name, basket_type, unique_id)
+    upload_path = os.path.join(tb.bucket_name, basket_type, unique_id)
 
     upload_items = [
         {
@@ -668,7 +668,7 @@ def test_deletion_when_basket_upload_items_is_an_invalid_dictionary(set_up_tb):
     try:
         upload_basket(upload_items, upload_path, unique_id, basket_type)
     except KeyError:
-        assert not tb.s3fs_client.exists(f"{upload_path}")
+        assert not tb.fs.exists(f"{upload_path}")
 
 def test_upload_basket_upload_items_check_unique_file_folder_names(set_up_tb):
     """
@@ -693,7 +693,7 @@ def test_upload_basket_upload_items_check_unique_file_folder_names(set_up_tb):
                                       file_name=tmp_basket_txt_file_name)
     tmp_basket_txt_file2 = tmp_basket_dir2.join(tmp_basket_txt_file_name)
 
-    upload_path = os.path.join(tb.s3_bucket_name, basket_type, unique_id)
+    upload_path = os.path.join(tb.bucket_name, basket_type, unique_id)
 
     # Test same file names
     upload_items = [
@@ -731,7 +731,7 @@ def test_upload_basket_upload_items_check_unique_file_folder_names(set_up_tb):
     ):
         upload_basket(upload_items, upload_path, unique_id, basket_type)
 
-    assert not tb.s3fs_client.exists(f"{upload_path}")
+    assert not tb.fs.exists(f"{upload_path}")
 
 def test_upload_basket_upload_path_is_string(set_up_tb):
     """
@@ -761,7 +761,7 @@ def test_upload_basket_upload_path_is_string(set_up_tb):
     ):
         upload_basket(upload_items, upload_path, unique_id, basket_type)
 
-    assert not tb.s3fs_client.exists(f"{tmp_basket_dir}")
+    assert not tb.fs.exists(f"{tmp_basket_dir}")
 
 def test_upload_basket_unique_id_string(set_up_tb):
     """
@@ -782,14 +782,14 @@ def test_upload_basket_unique_id_string(set_up_tb):
 
     basket_type = "test_basket"
     unique_id = 6
-    upload_path = os.path.join(tb.s3_bucket_name, basket_type, f"{unique_id}")
+    upload_path = os.path.join(tb.bucket_name, basket_type, f"{unique_id}")
 
     with pytest.raises(
         TypeError, match=f"'unique_id' must be a string: '{unique_id}'"
     ):
         upload_basket(upload_items, upload_path, unique_id, basket_type)
 
-    assert not tb.s3fs_client.exists(f"{tmp_basket_dir}")
+    assert not tb.fs.exists(f"{tmp_basket_dir}")
 
 def test_upload_basket_type_is_string(set_up_tb):
     """
@@ -810,7 +810,7 @@ def test_upload_basket_type_is_string(set_up_tb):
 
     basket_type = 1234
     unique_id = uuid.uuid1().hex
-    upload_path = os.path.join(tb.s3_bucket_name, f"{basket_type}", unique_id)
+    upload_path = os.path.join(tb.bucket_name, f"{basket_type}", unique_id)
 
 
     with pytest.raises(
@@ -818,7 +818,7 @@ def test_upload_basket_type_is_string(set_up_tb):
     ):
         upload_basket(upload_items, upload_path, unique_id, basket_type)
 
-    assert not tb.s3fs_client.exists(f"{tmp_basket_dir}")
+    assert not tb.fs.exists(f"{tmp_basket_dir}")
 
 def test_upload_basket_parent_ids_list_str(set_up_tb):
     """
@@ -840,7 +840,7 @@ def test_upload_basket_parent_ids_list_str(set_up_tb):
 
     basket_type = "test_basket"
     unique_id = uuid.uuid1().hex
-    upload_path = os.path.join(tb.s3_bucket_name, f"{basket_type}", unique_id)
+    upload_path = os.path.join(tb.bucket_name, f"{basket_type}", unique_id)
     parent_ids_in = ["a", 3]
 
     with pytest.raises(
@@ -854,7 +854,7 @@ def test_upload_basket_parent_ids_list_str(set_up_tb):
             parent_ids=parent_ids_in,
         )
 
-    assert not tb.s3fs_client.exists(f"{tmp_basket_dir}")
+    assert not tb.fs.exists(f"{tmp_basket_dir}")
 
 def test_upload_basket_parent_ids_is_list(set_up_tb):
     """
@@ -875,7 +875,7 @@ def test_upload_basket_parent_ids_is_list(set_up_tb):
 
     basket_type = "test_basket"
     unique_id = uuid.uuid1().hex
-    upload_path = os.path.join(tb.s3_bucket_name, f"{basket_type}", unique_id)
+    upload_path = os.path.join(tb.bucket_name, f"{basket_type}", unique_id)
     parent_ids_in = 56
 
     with pytest.raises(
@@ -889,7 +889,7 @@ def test_upload_basket_parent_ids_is_list(set_up_tb):
             parent_ids=parent_ids_in,
         )
 
-    assert not tb.s3fs_client.exists(f"{tmp_basket_dir}")
+    assert not tb.fs.exists(f"{tmp_basket_dir}")
 
 def test_upload_basket_metadata_is_dictionary(set_up_tb):
     """
@@ -911,7 +911,7 @@ def test_upload_basket_metadata_is_dictionary(set_up_tb):
 
     basket_type = "test_basket"
     unique_id = uuid.uuid1().hex
-    upload_path = os.path.join(tb.s3_bucket_name, f"{basket_type}", unique_id)
+    upload_path = os.path.join(tb.bucket_name, f"{basket_type}", unique_id)
     metadata_in = "invalid"
 
     with pytest.raises(
@@ -926,7 +926,7 @@ def test_upload_basket_metadata_is_dictionary(set_up_tb):
             metadata=metadata_in,
         )
 
-    assert not tb.s3fs_client.exists(f"{tmp_basket_dir}")
+    assert not tb.fs.exists(f"{tmp_basket_dir}")
 
 def test_upload_basket_label_is_string(set_up_tb):
     """
@@ -947,7 +947,7 @@ def test_upload_basket_label_is_string(set_up_tb):
 
     basket_type = "test_basket"
     unique_id = uuid.uuid1().hex
-    upload_path = os.path.join(tb.s3_bucket_name, f"{basket_type}", unique_id)
+    upload_path = os.path.join(tb.bucket_name, f"{basket_type}", unique_id)
     label_in = 1234
 
     with pytest.raises(
@@ -961,7 +961,7 @@ def test_upload_basket_label_is_string(set_up_tb):
             label=label_in,
         )
 
-    assert not tb.s3fs_client.exists(f"{tmp_basket_dir}")
+    assert not tb.fs.exists(f"{tmp_basket_dir}")
 
 def test_upload_basket_no_metadata(set_up_tb):
     """
@@ -982,12 +982,12 @@ def test_upload_basket_no_metadata(set_up_tb):
 
     basket_type = "test_basket"
     unique_id = uuid.uuid1().hex
-    upload_path = os.path.join(tb.s3_bucket_name, f"{basket_type}", unique_id)
+    upload_path = os.path.join(tb.bucket_name, f"{basket_type}", unique_id)
 
     upload_basket(upload_items, upload_path, unique_id, basket_type)
 
     # Assert metadata.json was not written
-    assert not tb.s3fs_client.exists(f"{upload_path}/metadata.json")
+    assert not tb.fs.exists(f"{upload_path}/metadata.json")
 
 def test_upload_basket_check_existing_upload_path(set_up_tb):
     """
@@ -1009,9 +1009,9 @@ def test_upload_basket_check_existing_upload_path(set_up_tb):
 
     basket_type = "test_basket"
     unique_id = uuid.uuid1().hex
-    upload_path = os.path.join(tb.s3_bucket_name, f"{basket_type}", unique_id)
+    upload_path = os.path.join(tb.bucket_name, f"{basket_type}", unique_id)
 
-    tb.s3fs_client.upload(tmp_basket_dir.strpath,
+    tb.fs.upload(tmp_basket_dir.strpath,
                           f"{upload_path}",
                           recursive=True)
 
@@ -1022,7 +1022,7 @@ def test_upload_basket_check_existing_upload_path(set_up_tb):
         upload_basket(upload_items, upload_path, unique_id, basket_type)
 
     assert (
-        tb.s3fs_client.ls(os.path.join(tb.s3_bucket_name, f"{basket_type}")) 
+        tb.fs.ls(os.path.join(tb.bucket_name, f"{basket_type}")) 
                              == [upload_path]
     )
 
@@ -1057,7 +1057,7 @@ def test_upload_basket_check_unallowed_file_names(set_up_tb):
 
         basket_type = "test_basket"
         unique_id = uuid.uuid1().hex
-        upload_path = os.path.join(tb.s3_bucket_name, 
+        upload_path = os.path.join(tb.bucket_name, 
                                    f"{basket_type}", unique_id)
 
         with pytest.raises(
@@ -1066,7 +1066,7 @@ def test_upload_basket_check_unallowed_file_names(set_up_tb):
         ):
             upload_basket(upload_items, upload_path, unique_id, basket_type)
 
-    assert not tb.s3fs_client.exists(f"{tmp_basket_dir}")
+    assert not tb.fs.exists(f"{tmp_basket_dir}")
 
 def test_upload_basket_clean_up_on_error(set_up_tb):
     """
@@ -1088,7 +1088,7 @@ def test_upload_basket_clean_up_on_error(set_up_tb):
 
     basket_type = "test_basket"
     unique_id = uuid.uuid1().hex
-    upload_path = os.path.join(tb.s3_bucket_name, f"{basket_type}", unique_id)
+    upload_path = os.path.join(tb.bucket_name, f"{basket_type}", unique_id)
 
     with pytest.raises(Exception, match="Test Clean Up"):
         upload_basket(
@@ -1099,7 +1099,7 @@ def test_upload_basket_clean_up_on_error(set_up_tb):
             test_clean_up=True,
         )
 
-    assert not tb.s3fs_client.exists(upload_path)
+    assert not tb.fs.exists(upload_path)
 
 def test_upload_basket_invalid_optional_argument(set_up_tb):
     """
@@ -1121,7 +1121,7 @@ def test_upload_basket_invalid_optional_argument(set_up_tb):
 
     basket_type = "test_basket"
     unique_id = uuid.uuid1().hex
-    upload_path = os.path.join(tb.s3_bucket_name, f"{basket_type}", unique_id)
+    upload_path = os.path.join(tb.bucket_name, f"{basket_type}", unique_id)
 
     with pytest.raises(KeyError, match="Invalid kwargs argument: 'junk'"):
         upload_basket(
@@ -1132,7 +1132,7 @@ def test_upload_basket_invalid_optional_argument(set_up_tb):
             junk=True,
         )
 
-    assert not tb.s3fs_client.exists(upload_path)
+    assert not tb.fs.exists(upload_path)
 
 def test_upload_basket_invalid_test_clean_up_datatype(set_up_tb):
     """
@@ -1154,7 +1154,7 @@ def test_upload_basket_invalid_test_clean_up_datatype(set_up_tb):
 
     basket_type = "test_basket"
     unique_id = uuid.uuid1().hex
-    upload_path = os.path.join(tb.s3_bucket_name, f"{basket_type}", unique_id)
+    upload_path = os.path.join(tb.bucket_name, f"{basket_type}", unique_id)
 
     with pytest.raises(
         TypeError,
@@ -1169,7 +1169,7 @@ def test_upload_basket_invalid_test_clean_up_datatype(set_up_tb):
             test_clean_up="a",
         )
 
-    assert not tb.s3fs_client.exists(upload_path)
+    assert not tb.fs.exists(upload_path)
 
 def test_upload_basket_file_contents_identical(set_up_tb):
     tb = set_up_tb
@@ -1190,7 +1190,7 @@ def test_upload_basket_file_contents_identical(set_up_tb):
 
     basket_type = "test_basket"
     unique_id = uuid.uuid1().hex
-    upload_path = os.path.join(tb.s3_bucket_name, f"{basket_type}", unique_id)
+    upload_path = os.path.join(tb.bucket_name, f"{basket_type}", unique_id)
     upload_file_path = os.path.join(upload_path,
                                     tmp_basket_dir_name,
                                     test_file_name)
@@ -1206,5 +1206,5 @@ def test_upload_basket_file_contents_identical(set_up_tb):
     with open(tmp_basket_file_path, "r") as r_file:
         local_file_data = r_file.read()
 
-    with tb.s3fs_client.open(upload_file_path, "r") as r_file:
+    with tb.fs.open(upload_file_path, "r") as r_file:
         assert r_file.read() == local_file_data

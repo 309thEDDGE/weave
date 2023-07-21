@@ -10,7 +10,8 @@ class BucketForTest():
     def __init__(self, tmpdir):
         self.tmpdir = tmpdir
         self.basket_list = []
-        self.s3fs_client = get_file_system()
+        self.fs = get_file_system()
+        self.bucket_name = 'pytest-temp-bucket'
         self._set_up_bucket()
 
     def _set_up_bucket(self):
@@ -18,8 +19,7 @@ class BucketForTest():
         Create a temporary S3 Bucket for testing purposes.
         """
         try:
-            self.s3_bucket_name = 'pytest-temp-bucket'
-            self.s3fs_client.mkdir(self.s3_bucket_name)
+            self.fs.mkdir(self.bucket_name)
         except FileExistsError:
             self.cleanup_bucket()
             self._set_up_bucket()
@@ -55,7 +55,7 @@ class BucketForTest():
         Upload a temporary (local) basket to the S3 test bucket.
         """
         b_type = "test_basket"
-        up_dir = os.path.join(self.s3_bucket_name, b_type, uid)
+        up_dir = os.path.join(self.bucket_name, b_type, uid)
 
         if upload_items is None:
             upload_items = [{'path':str(tmp_basket_dir.realpath()),
@@ -75,4 +75,4 @@ class BucketForTest():
         """
         Delete the temporary test bucket, including any uploaded baskets.
         """
-        self.s3fs_client.rm(self.s3_bucket_name, recursive=True)
+        self.fs.rm(self.bucket_name, recursive=True)

@@ -46,7 +46,7 @@ def test_load_mongo(set_up):
     Test that load_mongo successfully loads valid metadata to the db.
     """
     db = set_up
-    index_table = weave.index.create_index_from_s3(db.s3_bucket_name)
+    index_table = weave.index.create_index_from_s3(db.bucket_name)
     weave.load_mongo(index_table, db.test_collection)
 
     truth_db = [{'uuid': '1234',
@@ -132,7 +132,7 @@ def test_load_mongo_check_for_duplicate_uuid(set_up):
     test_uuid = '1234'
 
     # Load metadata twice, and ensure there's only one instance
-    index_table = weave.index.create_index_from_s3(db.s3_bucket_name)
+    index_table = weave.index.create_index_from_s3(db.bucket_name)
     weave.load_mongo(index_table, db.test_collection)
     weave.load_mongo(index_table, db.test_collection)
     count = db.mongodb[db.test_collection].count_documents(
