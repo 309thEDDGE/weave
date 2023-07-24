@@ -1,8 +1,7 @@
 import os
 
-import s3fs
-
 from weave.uploader import upload_basket
+from weave.config import get_file_system
 
 # The following code is for testing in an environment with MinIO:
 
@@ -11,8 +10,7 @@ class BucketForTest():
     def __init__(self, tmpdir):
         self.tmpdir = tmpdir
         self.basket_list = []
-        ck={"endpoint_url": os.environ["S3_ENDPOINT"]}
-        self.s3fs_client = s3fs.S3FileSystem(client_kwargs=ck)
+        self.s3fs_client = get_file_system()
         self._set_up_bucket()
 
     def _set_up_bucket(self):
