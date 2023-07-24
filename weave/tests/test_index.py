@@ -327,7 +327,7 @@ def test_delete_basket_deletes_basket(set_up_tb):
     # add another basket
     tmp_basket_dir_two = tb.set_up_basket("basket_two")
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
-    
+
     ind.generate_index()
     ind.delete_basket(basket_uuid="0002")
     ind.clean_up_indices(n=1)
@@ -355,8 +355,7 @@ def test_delete_basket_fails_if_basket_is_parent(set_up_tb):
 
 
 def test_get_parents_valid(set_up_tb):
-    """setup a valid basket strucure with valid parents and children
-    check that it returns a proper index of all the parents
+    """setup a valid basket strucurem, validate the returned index
     """
     tb = set_up_tb
 
@@ -374,31 +373,25 @@ def test_get_parents_valid(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3303")
 
     tmp_dir = tb.set_up_basket("grandparent_2")
-    tb.upload_basket(
-                    tmp_basket_dir=tmp_dir, 
-                    uid="2000", 
-                    parent_ids=["3000", "3003", "3333"]
-                )
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="2000",
+                     parent_ids=["3000", "3003", "3333"])
 
     tmp_dir = tb.set_up_basket("grandparent_2_1")
     tb.upload_basket(tmp_basket_dir=tmp_dir, uid="2002")
 
     tmp_dir = tb.set_up_basket("parent_1")
-    tb.upload_basket(
-                    tmp_basket_dir=tmp_dir, 
-                    uid="1000", 
-                    parent_ids=["2000", "2002", "3303"]
-                )
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="1000",
+                     parent_ids=["2000", "2002", "3303"])
 
     tmp_dir = tb.set_up_basket("parent_1_1")
     tb.upload_basket(tmp_basket_dir=tmp_dir, uid="1001")
 
     tmp_dir = tb.set_up_basket("child_0")
-    child = tb.upload_basket(
-                    tmp_basket_dir=tmp_dir, 
-                    uid="0000", 
-                    parent_ids=["1001", "1000"]
-                )
+    child = tb.upload_basket(tmp_basket_dir=tmp_dir,
+                             uid="0000",
+                             parent_ids=["1001", "1000"])
 
 
     #string to shorten things for ruff
@@ -410,7 +403,7 @@ def test_get_parents_valid(set_up_tb):
     # setup df of the right answer
     parent_ids = [
         "1000", "1001", "2000", "2002", "3303", "3000", "3003", "3333"
-        ]
+    ]
     parent_gens = [1, 1, 2, 2, 2, 3, 3, 3]
     index = ind.index_df
     parent_answer = index.loc[index["uuid"].isin(parent_ids)]
@@ -420,7 +413,6 @@ def test_get_parents_valid(set_up_tb):
         parent_answer.loc[parent_answer["uuid"] == i, gen_lvl] = j
 
     # get the results
-    breakpoint()
     results = ind.get_parents(child)
 
     # sort so that they can be properly compared to
@@ -444,12 +436,12 @@ def test_get_parents_invalid_basket_address(set_up_tb):
     with pytest.raises(
         FileNotFoundError, match=f"basket path does not exist '{basket_path}'"
     ):
-        breakpoint()
         index.get_parents(basket_path)
 
 
 def test_get_parents_no_parents(set_up_tb):
     """try and get all parents of basket with no parent uuids.
+
     check that it returns an empty dataframe/index
     """
     tb = set_up_tb
@@ -466,7 +458,9 @@ def test_get_parents_no_parents(set_up_tb):
 
 
 def test_get_parents_parent_is_child(set_up_tb):
-    """set up 3 baskets, child, parent, grandparent, but the grandparent's 
+    """set up basket structure with parent-child loop, check that it fails
+
+    set up 3 baskets, child, parent, grandparent, but the grandparent's
     parent_ids has the child's uid. this causes an infinite loop,
     check that it throw error
     """
@@ -476,37 +470,25 @@ def test_get_parents_parent_is_child(set_up_tb):
     # the grandparent's parent, is the child, making an loop for the
     # parent-child relationship
     tmp_dir = tb.set_up_basket("grandparent")
-    tb.upload_basket(
-                    tmp_basket_dir=tmp_dir, 
-                    uid="3000", 
-                    parent_ids=["1000"]
-                )
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="3000",
+                     parent_ids=["1000"])
 
     tmp_dir = tb.set_up_basket("parent")
-    tb.upload_basket(
-                    tmp_basket_dir=tmp_dir, 
-                    uid="2000", 
-                    parent_ids=["3000"]
-                )
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="2000",
+                     parent_ids=["3000"])
 
     tmp_dir = tb.set_up_basket("child")
-    child = tb.upload_basket(
-                    tmp_basket_dir=tmp_dir, 
-                    uid="1000", 
-                    parent_ids=["2000"]
-                )
+    child = tb.upload_basket(tmp_basket_dir=tmp_dir,
+                             uid="1000",
+                             parent_ids=["2000"])
 
     index = Index(bucket_name=tb.s3_bucket_name, sync=True)
     index.generate_index()
 
-    # fail = ['1000']
     fail = '1000'
 
-    # with pytest.raises(
-    #     ValueError, match=re.escape(f"Possible child-parent loop found in "
-    #                       f"structure at: {fail}. Ending Search")
-    # ): 
-    #     index.get_parents(child)
     with pytest.raises(
         ValueError, match=f"Parent-Child loop found at {fail}"
     ):
@@ -514,8 +496,7 @@ def test_get_parents_parent_is_child(set_up_tb):
 
 
 def test_get_children_valid(set_up_tb):
-    """setup a valid basket strucure with valid parents and children
-    check that it returns a proper index of all the children
+    """setup a valid basket strucure, validate the returned dataframe
     """
     tb = set_up_tb
 
@@ -533,31 +514,25 @@ def test_get_children_valid(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3303")
 
     tmp_dir = tb.set_up_basket("grandparent_2")
-    tb.upload_basket(
-                tmp_basket_dir=tmp_dir, 
-                uid="2000", 
-                parent_ids=["3000", "3003", "3333"]
-            )
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="2000",
+                     parent_ids=["3000", "3003", "3333"])
 
     tmp_dir = tb.set_up_basket("grandparent_2_1")
     tb.upload_basket(tmp_basket_dir=tmp_dir, uid="2002")
 
     tmp_dir = tb.set_up_basket("parent_1")
-    tb.upload_basket(
-                    tmp_basket_dir=tmp_dir, 
-                    uid="1000", 
-                    parent_ids=["2000", "2002", "3303"]
-                )
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="1000",
+                     parent_ids=["2000", "2002", "3303"])
 
     tmp_dir = tb.set_up_basket("parent_1_1")
     tb.upload_basket(tmp_basket_dir=tmp_dir, uid="1001")
 
     tmp_dir = tb.set_up_basket("child_0")
-    tb.upload_basket(
-                    tmp_basket_dir=tmp_dir, 
-                    uid="0000", 
-                    parent_ids=["1001", "1000"]
-                )
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="0000",
+                     parent_ids=["1001", "1000"])
 
     #string to shorten things for ruff
     gen_lvl = "generation_level"
@@ -589,7 +564,6 @@ def test_get_children_valid(set_up_tb):
     assert child_answer.equals(results)
 
 
-
 def test_get_children_invalid_basket_address(set_up_tb):
     """try and find he children of an invalid basket path/address"""
     tb = set_up_tb
@@ -605,8 +579,8 @@ def test_get_children_invalid_basket_address(set_up_tb):
 
 
 def test_get_children_no_children(set_up_tb):
-    """try and get all children of basket that has no children 
-    baskets pointing to it.
+    """try and get all children of basket that has no children
+
     check that it returns an empty dataframe/index
     """
     tb = set_up_tb
@@ -623,7 +597,9 @@ def test_get_children_no_children(set_up_tb):
 
 
 def test_get_children_child_is_parent(set_up_tb):
-    """set up 3 baskets, child, parent, grandparent, but the grandparents's 
+    """set up a basket structure with a parent-child loop, check that it fails
+
+    set up 3 baskets, child, parent, grandparent, but the grandparents's
     parent_ids has the child's uid. this causes an infinite loop,
     check that it throw error
     """
@@ -633,41 +609,36 @@ def test_get_children_child_is_parent(set_up_tb):
     # the grandparent's parent, is the child, making an loop for the
     # parent-child relationship
     tmp_dir = tb.set_up_basket("grandparent")
-    gp = tb.upload_basket(
-                    tmp_basket_dir=tmp_dir, 
-                    uid="3000", 
-                    parent_ids=["1000"]
-                )
+    gp = tb.upload_basket(tmp_basket_dir=tmp_dir,
+                          uid="3000",
+                          parent_ids=["1000"])
 
     tmp_dir = tb.set_up_basket("parent")
-    tb.upload_basket(
-                    tmp_basket_dir=tmp_dir, 
-                    uid="2000", 
-                    parent_ids=["3000"]
-                )
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="2000",
+                     parent_ids=["3000"])
 
     tmp_dir = tb.set_up_basket("child")
-    tb.upload_basket(
-                    tmp_basket_dir=tmp_dir, 
-                    uid="1000", 
-                    parent_ids=["2000"]
-                )
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="1000",
+                     parent_ids=["2000"])
 
     index = Index(bucket_name=tb.s3_bucket_name, sync=True)
     index.generate_index()
 
-    fail = ['3000']
+    fail = '3000'
 
     with pytest.raises(
-        ValueError, match=re.escape(f"Possible child-parent loop found in "
-                          f"structure at: {fail}. Ending Search")
+        ValueError, match=re.escape(f"Parent-Child loop found at {fail}")
     ):
         index.get_children(gp)
 
 
 def test_get_parents_15_deep(set_up_tb):
-    """Make a parent-child relationship of baskets 15 deep, so like a child
-    with a great*15 grandparent, and return all the grandparents for the child
+    """Make a parent-child relationship of baskets 15 deep, get all the parents
+
+    so a child with a great*15 grandparent, and return all the grandparents
+    for the child
     manually make the data and compare with the result
     """
     tb = set_up_tb
@@ -678,11 +649,9 @@ def test_get_parents_15_deep(set_up_tb):
         child_id = parent_id
         parent_id = str(i)
         tmp = tb.set_up_basket("basket_" + child_id)
-        tb.upload_basket(
-                            tmp_basket_dir=tmp, 
-                            uid=child_id, 
-                            parent_ids=[parent_id]
-                        )
+        tb.upload_basket(tmp_basket_dir=tmp,
+                         uid=child_id, 
+                         parent_ids=[parent_id])
 
     ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
     ind.generate_index()
@@ -711,9 +680,10 @@ def test_get_parents_15_deep(set_up_tb):
 
 
 def test_get_children_15_deep(set_up_tb):
-    """Make a parent-child relationship of baskets 15 deep, so like a child
-    with a great*15 grandparent, and return all the grandchildren for the
-    highest grandparent.
+    """Make a parent-child relationship of baskets 15 deep, get the children.
+
+    so a child with great*15 grandparent, and return all the grandchildren
+    for the highest grandparent.
     manually make the data and compare with the result
     """
     tb = set_up_tb
@@ -725,10 +695,9 @@ def test_get_children_15_deep(set_up_tb):
         parent_id = str(i)
         tmp = tb.set_up_basket("basket_" + child_id)
         tb.upload_basket(
-                        tmp_basket_dir=tmp, 
-                        uid=child_id, 
-                        parent_ids=[parent_id]
-                    )
+            tmp_basket_dir=tmp,
+            uid=child_id,
+            parent_ids=[parent_id])
 
     ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
     ind.generate_index()
@@ -737,7 +706,6 @@ def test_get_children_15_deep(set_up_tb):
     parent_path = index.loc[index["uuid"] == '13']["address"].values[0]
 
     results = ind.get_children(parent_path)
-    print('parent_path:', parent_path)
 
     # Get the anwser to compare to the results we got
     child_ids = ['x','0','1','2','3','4','5','6','7','8','9','10','11','12']
@@ -755,64 +723,103 @@ def test_get_children_15_deep(set_up_tb):
     answer[gen_lvl] = answer[gen_lvl].astype(np.int64)
 
     assert answer.equals(results)
-    
-    
-    
-def test_get_parents_complex(set_up_tb):
+
+
+def test_get_parents_complex_fail(set_up_tb):
     """Make a complicated tree with a loop to test new algorithm
-    
-    Making this to test the basket family tree I drew on the white board on base
     """
     tb = set_up_tb
-    
+
     tmp_dir = tb.set_up_basket("parent_8")
-    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="00083", parent_ids=["0007"])
-    
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="008", parent_ids=["007"])
+
     tmp_dir = tb.set_up_basket("parent_7")
-    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="00073", parent_ids=["0003"])
-    # tb.upload_basket(tmp_basket_dir=tmp_dir, uid="0007")
-    
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="007",
+                     parent_ids=["000"])
+
     tmp_dir = tb.set_up_basket("parent_6")
-    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="00063", parent_ids=["0008"])
-    
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="006", parent_ids=["008"])
+
     tmp_dir = tb.set_up_basket("parent_5")
-    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="00053", parent_ids=["0007"])
-    
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="005", parent_ids=["007"])
+
     tmp_dir = tb.set_up_basket("parent_4")
-    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="00043")
-    
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="004")
+
     tmp_dir = tb.set_up_basket("parent_3")
-    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="00033", parent_ids=["0006"])
-    
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="003", parent_ids=["006"])
+
     tmp_dir = tb.set_up_basket("parent_2")
-    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="00023", parent_ids=["0004", "0005", "0008"])
-    
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="002",
+                     parent_ids=["0004", "005", "008"])
+
     tmp_dir = tb.set_up_basket("parent_1")
-    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="00013", parent_ids=["0004"])
-    
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="001",
+                     parent_ids=["004"])
+
     tmp_dir = tb.set_up_basket("child")
-    child_path = tb.upload_basket(tmp_basket_dir=tmp_dir, uid="00003",parent_ids=["0001", "0002", "0003"])
-    
-    """
-    01, 02, 03 genlvl 1
-    04, 05, 06, 08 genlvl 2
-    07, 08 genlvl 3
-    
-    """
-    
-    
+    child_path = tb.upload_basket(tmp_basket_dir=tmp_dir,
+                                  uid="000",
+                                  parent_ids=["001", "002", "003"])
+
+
     ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
     ind.generate_index()
     index = ind.index_df
-    # print('\n THE INDEX: \n', index)
-    # breakpoint()
-    results = ind.get_parents(child_path)
-    
-    print('\n THE RESULTS FOR GET_PARENTS W/ duplicates: \n', results)
-    print('num of elemenets: ', len(results))
-    
-    results = results.drop_duplicates(subset=["uuid", "generation_level"])
-    # results.loc[["uuid", "upload_time", "basket_type", "label", "address", "storage_type", "generation_level"]].drop_duplicates()
-    
-    print('\n THE RESULTS FOR GET_PARENTS W/OUT duplicates: \n', results)
-    print('num of elemenets: ', len(results))
+
+    with pytest.raises(
+        ValueError, match=re.escape(f"Parent-Child loop found at 000")
+    ):
+        ind.get_parents(child_path)
+
+
+def test_get_children_complex_fail(set_up_tb):
+    """Make a complicated tree with a loop to test new algorithm
+    """
+    tb = set_up_tb
+
+    tmp_dir = tb.set_up_basket("parent_8")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="008", parent_ids=["007"])
+
+    tmp_dir = tb.set_up_basket("parent_7")
+    parent_path = tb.upload_basket(tmp_basket_dir=tmp_dir,
+                                   uid="007",
+                                   parent_ids=["003"])
+
+    tmp_dir = tb.set_up_basket("parent_6")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="006", parent_ids=["008"])
+
+    tmp_dir = tb.set_up_basket("parent_5")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="005", parent_ids=["007"])
+
+    tmp_dir = tb.set_up_basket("parent_4")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="004")
+
+    tmp_dir = tb.set_up_basket("parent_3")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="003", parent_ids=["006"])
+
+    tmp_dir = tb.set_up_basket("parent_2")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="002",
+                     parent_ids=["004", "005", "008"])
+
+    tmp_dir = tb.set_up_basket("parent_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="001", parent_ids=["004"])
+
+    tmp_dir = tb.set_up_basket("child")
+    child_path = tb.upload_basket(tmp_basket_dir=tmp_dir,
+                                  uid="000",
+                                  parent_ids=["001", "002", "003"])
+
+
+    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind.generate_index()
+    index = ind.index_df
+
+    with pytest.raises(
+        ValueError, match=re.escape(f"Parent-Child loop found at 007")
+    ):
+        ind.get_children(parent_path)
