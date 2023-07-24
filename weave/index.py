@@ -315,8 +315,12 @@ class Index():
             descendants.append(current_uid)
 
         parents_index = self.index_df.loc[self.index_df["uuid"].isin(puids), :]
+        
+        if len(parents_index) == 0:
+            return data
 
-        parents_index["generation_level"] = gen_level
+        parents_index = parents_index.copy()
+        parents_index.loc[:, "generation_level"] = gen_level
 
         #add the parents for this generation to the data
         data = pd.concat([data, parents_index])
@@ -409,7 +413,10 @@ class Index():
         else:
             ancestors.append(current_uid)
 
-        child_index["generation_level"] = gen_level
+        # pandas is wanting me to make a copy of itself here 
+        # I'm not exactly sure why
+        child_index = child_index.copy()
+        child_index.loc[:, "generation_level"] = gen_level
 
         # add the children from this generation to the data
         data = pd.concat([data, child_index])

@@ -408,6 +408,9 @@ def test_get_parents_valid(set_up_tb):
     index = ind.index_df
     parent_answer = index.loc[index["uuid"].isin(parent_ids)]
 
+    # pandas wants to make a copy before adding a column
+    # used to remove warning in pytest
+    parent_answer = parent_answer.copy()
     #add the generation levels
     for i, j in zip(parent_ids, parent_gens):
         parent_answer.loc[parent_answer["uuid"] == i, gen_lvl] = j
@@ -546,6 +549,9 @@ def test_get_children_valid(set_up_tb):
     index = ind.index_df
     child_answer = index.loc[index["uuid"].isin(child_ids)]
 
+    # pandas wants to make a copy before adding a column
+    # used to remove warning in pytest
+    child_answer = child_answer.copy()
     #add the generation levels
     for i, j in zip(child_ids, child_gens):
         child_answer.loc[child_answer["uuid"] == i, gen_lvl] = j
@@ -668,6 +674,9 @@ def test_get_parents_15_deep(set_up_tb):
 
     gen_lvl = "generation_level"
 
+    # pandas wants to make a copy before adding a column
+    # used to remove warning in pytest
+    answer = answer.copy()
     for i, j in zip(par_ids, par_gens):
         answer.loc[answer["uuid"] == i, gen_lvl] = j
 
@@ -714,8 +723,12 @@ def test_get_children_15_deep(set_up_tb):
 
     gen_lvl = "generation_level"
 
+    #pandas wants to make a copy before adding a column
+    # used to remove warning in pytest
+    answer = answer.copy()
     for i, j in zip(child_ids, child_gens):
         answer.loc[answer["uuid"] == i, gen_lvl] = j
+        # answer.loc[answer["uuid"] == i, gen_lvl] = j
 
     #format and sort so .equals can be properly used
     answer = answer.sort_values(by="uuid")
@@ -768,10 +781,9 @@ def test_get_parents_complex_fail(set_up_tb):
 
     ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
     ind.generate_index()
-    index = ind.index_df
 
     with pytest.raises(
-        ValueError, match=re.escape(f"Parent-Child loop found at 000")
+        ValueError, match=re.escape("Parent-Child loop found at 000")
     ):
         ind.get_parents(child_path)
 
@@ -810,16 +822,15 @@ def test_get_children_complex_fail(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_dir, uid="001", parent_ids=["004"])
 
     tmp_dir = tb.set_up_basket("child")
-    child_path = tb.upload_basket(tmp_basket_dir=tmp_dir,
-                                  uid="000",
-                                  parent_ids=["001", "002", "003"])
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="000",
+                     parent_ids=["001", "002", "003"])
 
 
     ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
     ind.generate_index()
-    index = ind.index_df
 
     with pytest.raises(
-        ValueError, match=re.escape(f"Parent-Child loop found at 007")
+        ValueError, match=re.escape("Parent-Child loop found at 007")
     ):
         ind.get_children(parent_path)
