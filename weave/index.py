@@ -6,10 +6,12 @@ python create_index.py <root_dir>
 import json
 import os
 import tempfile
+import warnings
 from time import time_ns
-from warnings import warn
 
 import pandas as pd
+import jsonschema
+from jsonschema import validate
 
 from weave import config, upload
 
@@ -22,16 +24,17 @@ def validate_basket_dict(basket_dict, basket_address):
         basket_dict: dictionary read in from basket_manifest.json in minio
         basket_address: basket in question. Passed here to create better error
                         message
+
+    Returns:
+        valid (bool): True if basket has correct schema, false otherwise
     """
 
-    schema = config.index_schema()
+    try:
+        validate(instance=basket_dict, schema=config.manifest_schema)
+        return True
 
-    if list(basket_dict.keys()) != schema:
-        raise ValueError(
-            f"basket found at {basket_address} has invalid schema"
-        )
-
-    # TODO: validate types for each key
+    except jsonschema.exceptions.ValidationError:
+        return False
 
 
 def create_index_from_s3(root_dir):
@@ -68,14 +71,22 @@ def create_index_from_s3(root_dir):
     index_dict["address"] = []
     index_dict["storage_type"] = []
 
+    bad_baskets = []
     for basket_json_address in basket_jsons:
         with fs.open(basket_json_address, "rb") as file:
             basket_dict = json.load(file)
-            validate_basket_dict(basket_dict, basket_json_address)
-            for field in basket_dict.keys():
-                index_dict[field].append(basket_dict[field])
-            index_dict["address"].append(os.path.dirname(basket_json_address))
-            index_dict["storage_type"].append("s3")
+            if validate_basket_dict(basket_dict, basket_json_address):
+                for field in basket_dict.keys():
+                    index_dict[field].append(basket_dict[field])
+                index_dict["address"].append(os.path.dirname(basket_json_address))
+                index_dict["storage_type"].append("s3")
+            else:
+                bad_baskets.append(os.path.dirname(basket_json_address))
+
+    if len(bad_baskets) != 0:
+        warnings.warn('baskets found in the following locations '
+                      'do not follow specified weave schema:\n'
+                      f'{bad_baskets}')
 
     index = pd.DataFrame(index_dict)
     index["uuid"] = index["uuid"].astype(str)
@@ -113,7 +124,7 @@ class Index():
         self.index_json_time = 0 # 0 is essentially same as None in this case
         self.index_df = None
         pass
-    
+
     def sync_index(self):
         '''Gets index from latest index basket'''
         fs = config.get_file_system()
@@ -121,7 +132,7 @@ class Index():
         if len(index_paths) == 0:
             return self.generate_index()
         if len(index_paths) > 20:
-            warn(f"The index basket count is {len(index_paths)}. " +
+            warnings.warn(f"The index basket count is {len(index_paths)}. " +
                  "Consider running weave.Index.clean_up_indices")
         latest_index_path = ""
         for path in index_paths:
@@ -149,7 +160,7 @@ class Index():
 
     def clean_up_indices(self, n=20):
         '''Deletes any index basket except the latest n index baskets.
-        
+
         Parameters
         ----------
         n: [int]
@@ -173,7 +184,7 @@ class Index():
                     uuid = path.split(os.path.sep)[-2]
                     self.delete_basket(basket_uuid=uuid)
                 except ValueError as e:
-                    warn(e)
+                    warnings.warn(e)
 
     def is_index_current(self):
         '''Checks to see if the index in memory is up to date with disk index.
