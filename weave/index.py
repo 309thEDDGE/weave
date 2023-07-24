@@ -192,6 +192,10 @@ class Index():
     def generate_index(self):
         '''Generates index and stores it in a basket'''
         index = create_index_from_s3(self.bucket_name)
+        self._upload_index(index=index)
+
+    def _upload_index(self, index):
+        """Upload a new index"""
         with tempfile.TemporaryDirectory() as out:
             ns = time_ns()
             temp_json_path = os.path.join(out, f"{ns}-index.json")
@@ -239,13 +243,8 @@ class Index():
             ]["address"]
             fs.rm(adr, recursive=True)
 
-    def upload_basket(
-        upload_items,
-        basket_type,
-        parent_ids=[],
-        metadata={},
-        label=""
-    ):
+    def upload_basket(self, upload_items, basket_type, parent_ids=[],
+                      metadata={}, label=""):
         """Upload a basket to the same pantry referenced by the Index
 
         Parameters
@@ -273,6 +272,7 @@ class Index():
         label: optional str,
             Optional user friendly label associated with the basket.
         """
+        self.sync_index()
         up_dir = upload(
             upload_items=upload_items,
             basket_type=basket_type,
@@ -281,13 +281,7 @@ class Index():
             metadata=metadata,
             label=label,
         )
-        self.sync_index()
-        # basket_json_list should be len == 1
         single_indice_index = create_index_from_s3(up_dir)
-        if len(single_indice_index) != 1:
-            raise AssertionError(f"Basket located at {up_dir} contains more " +
-                                 "than one basket_manifest.json " +
-                                 "(perhaps nested baskets exist)")
-        row = single_indice_index.iloc[0]
-        self.index_df.append(row, inplace=True)
-        self._upload_index(self.index_df)
+        self._upload_index(
+            pd.concat([self.index_df, single_indice_index], ignore_index=True)
+        )
