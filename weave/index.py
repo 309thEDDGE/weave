@@ -131,7 +131,8 @@ class Index():
 
     def sync_index(self):
         '''Gets index from latest index basket'''
-        index_paths = self.fs.glob(f"{self.index_basket_dir_path}/**/*-index.json")
+        index_paths = self.fs.glob(f"{self.index_basket_dir_path}"
+                                   "/**/*-index.json")
         if len(index_paths) == 0:
             return self.generate_index()
         if len(index_paths) > 20:
@@ -170,7 +171,8 @@ class Index():
             n is the number of latest index baskets to retain.
         '''
         n = int(n)
-        index_paths = self.fs.glob(f"{self.index_basket_dir_path}/**/*-index.json")
+        index_paths = self.fs.glob(f"{self.index_basket_dir_path}"
+                                   "/**/*-index.json")
         if len(index_paths) <= n:
             return
         index_time_list = [self._get_index_time_from_path(i)
@@ -193,7 +195,8 @@ class Index():
 
         Returns True if index in memory is up to date, else False.
         '''
-        index_paths = self.fs.glob(f"{self.index_basket_dir_path}/**/*-index.json")
+        index_paths = self.fs.glob(f"{self.index_basket_dir_path}"
+                                   "/**/*-index.json")
         if len(index_paths) == 0:
             return False
         index_times = [self._get_index_time_from_path(i)

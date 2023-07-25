@@ -1034,7 +1034,7 @@ def test_upload_basket_check_existing_upload_path(set_up_tb):
         upload_basket(upload_items, upload_path, tb.fs, unique_id, basket_type)
 
     assert (
-        tb.fs.ls(os.path.join(tb.bucket_name, f"{basket_type}")) 
+        tb.fs.ls(os.path.join(tb.bucket_name, f"{basket_type}"))
                              == [upload_path]
     )
 
@@ -1069,14 +1069,18 @@ def test_upload_basket_check_unallowed_file_names(set_up_tb):
 
         basket_type = "test_basket"
         unique_id = uuid.uuid1().hex
-        upload_path = os.path.join(tb.bucket_name, 
+        upload_path = os.path.join(tb.bucket_name,
                                    f"{basket_type}", unique_id)
 
         with pytest.raises(
             ValueError,
             match=f"'{unallowed_file_name}' filename not allowed",
         ):
-            upload_basket(upload_items, upload_path, tb.fs, unique_id, basket_type)
+            upload_basket(upload_items,
+                          upload_path,
+                          tb.fs,
+                          unique_id,
+                          basket_type)
 
     assert not tb.fs.exists(f"{tmp_basket_dir}")
 
