@@ -1,7 +1,7 @@
 import pandas as pd
 from weave import config, Basket
 
-def load_mongo(index_table, file_system, collection='metadata'):
+def load_mongo(index_table, file_system=None, collection='metadata'):
     """Load metadata from baskets into the mongo database.
 
        A metadata.json is created in Baskets when the metadata
@@ -42,7 +42,7 @@ def load_mongo(index_table, file_system, collection='metadata'):
     db = config.get_mongo_db().mongo_metadata
 
     for index, row in index_table.iterrows():
-        basket = Basket(row['address'], file_system)
+        basket = Basket(row['address'], file_system=file_system)
         metadata = basket.get_metadata()
         if metadata is None:
             continue

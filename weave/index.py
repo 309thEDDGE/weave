@@ -43,7 +43,7 @@ def create_index_from_fs(root_dir, file_system):
 
     Parameters:
         root_dir: path to bucket
-        file_system: the file system hosting the bucket to be indexed.
+        file_system: the fsspec file system hosting the bucket to be indexed.
 
     Returns:
         index: a pandas DataFrame with columns
@@ -101,7 +101,7 @@ def _get_list_of_basket_jsons(root_dir, file_system):
 class Index():
     '''Facilitate user interaction with the index of a Weave data warehouse.'''
 
-    def __init__(self, file_system, bucket_name="basket-data", sync=True):
+    def __init__(self, bucket_name="basket-data", file_system=None, sync=True):
         '''Initializes the Index class.
 
         Parameters
@@ -118,7 +118,7 @@ class Index():
             then the Index object may be stale, but operations will perform
             at a higher speed.
         '''
-        self.fs = file_system
+        self.fs = file_system if file_system else config.get_file_system()
         self.bucket_name = str(bucket_name)
         self.index_basket_dir_name = 'index' # AKA basket type
         self.index_basket_dir_path = os.path.join(

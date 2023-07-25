@@ -159,7 +159,7 @@ def test_sync_index_gets_latest_index(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # create index
-    ind = Index(file_system=tb.fs, bucket_name=tb.bucket_name, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
     ind.to_pandas_df()
 
     # add another basket
@@ -167,7 +167,7 @@ def test_sync_index_gets_latest_index(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
 
     # Regenerate index outside of current index object
-    ind2 = Index(file_system=tb.fs, bucket_name=tb.bucket_name, sync=True)
+    ind2 = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
     ind2.generate_index()
 
     # assert length of index includes both baskets
@@ -180,7 +180,7 @@ def test_sync_index_calls_generate_index_if_no_index(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # create index
-    ind = Index(file_system=tb.fs, bucket_name=tb.bucket_name, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
     assert len(ind.to_pandas_df()) == 1
 
 def test_get_index_time_from_path(set_up_tb):
@@ -196,7 +196,7 @@ def test_to_pandas_df(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # create index
-    ind = Index(file_system=tb.fs, bucket_name=tb.bucket_name, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
     df = ind.to_pandas_df()
     assert len(df) == 1 and type(df) is pd.DataFrame
 
@@ -218,7 +218,7 @@ def test_clean_up_indices_leaves_n_indices(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # create index
-    ind = Index(file_system=tb.fs, bucket_name=tb.bucket_name, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
     ind.to_pandas_df()
 
     # add another basket
@@ -238,7 +238,7 @@ def test_clean_up_indices_with_n_greater_than_num_of_indices(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # create index
-    ind = Index(file_system=tb.fs, bucket_name=tb.bucket_name, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
     ind.to_pandas_df()
 
     # add another basket
@@ -259,7 +259,7 @@ def test_is_index_current(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # create index
-    ind = Index(file_system=tb.fs, bucket_name=tb.bucket_name, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
     ind.to_pandas_df()
 
     # add another basket
@@ -267,7 +267,7 @@ def test_is_index_current(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
 
     # Regenerate index outside of current index object
-    ind2 = Index(file_system=tb.fs, bucket_name=tb.bucket_name, sync=True)
+    ind2 = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
     ind2.generate_index()
     assert ind2.is_index_current() is True and ind.is_index_current() is False
 
@@ -278,7 +278,7 @@ def test_generate_index(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # create index
-    ind = Index(file_system=tb.fs, bucket_name=tb.bucket_name, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
     ind.to_pandas_df()
 
     # add another basket
@@ -296,7 +296,7 @@ def test_delete_basket_deletes_basket(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # create index
-    ind = Index(file_system=tb.fs, bucket_name=tb.bucket_name, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
     ind.to_pandas_df()
 
     # add another basket
@@ -317,7 +317,7 @@ def test_delete_basket_fails_if_basket_is_parent(set_up_tb):
     tmp_basket_dir_two = tb.set_up_basket("basket_two")
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two,
                      uid="0002", parent_ids=["0001"])
-    ind = Index(file_system=tb.fs, bucket_name=tb.bucket_name, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
     with pytest.raises(
         ValueError, match=(
             "The provided value for basket_uuid 0001 is listed as a parent " +
