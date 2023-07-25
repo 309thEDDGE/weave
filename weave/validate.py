@@ -5,6 +5,7 @@ from jsonschema import validate
 
 from weave import config
 
+import warnings
 
 def validate_bucket(bucket_name): 
     """Starts the validation process off based off the name of the bucket
@@ -22,13 +23,15 @@ def validate_bucket(bucket_name):
     ----------
     A bool of whether the bucket is valid or not that comes from check_level()
     """
-
+    
     s3fs_client = config.get_file_system()
     
     if not s3fs_client.exists(bucket_name):
-        raise ValueError(
-            f"Invalid Bucket Path. Bucket does not exist at: {bucket_name}"
-        )
+        warnings.warn(
+            f"Invalid Bucket Path. Bucket does not exist at: {bucket_name}\n")
+        # raise ValueError(
+        #     f"Invalid Bucket Path. Bucket does not exist at: {bucket_name}"
+        # )
     
     # call check level, with a path, but since we're just starting, 
     # we just use the bucket_name as the path
@@ -65,9 +68,11 @@ def _check_level(current_dir, in_basket=False):
     s3fs_client = config.get_file_system()
     
     if not s3fs_client.exists(current_dir):
-        raise ValueError(
-            f"Invalid Path. No file or directory found at: {current_dir}"
-        )
+        warnings.warn(
+            f"Invalid Path. No file or directory found at: {current_dir}\n")
+        # raise ValueError(
+        #     f"Invalid Path. No file or directory found at: {current_dir}"
+        # )
 
     manifest_path = os.path.join(current_dir, 'basket_manifest.json')
     
@@ -90,7 +95,7 @@ def _check_level(current_dir, in_basket=False):
         file_type = s3fs_client.info(file_or_dir)['type']
 
         if file_type == 'directory':
-            # if we are in a basket, check evrything under it, for a manifest
+            # if we are in a basket, check everything under it, for a manifest
             # and return true, this will return true to the _validate_basket
             # and throw an error
             if in_basket:
@@ -150,14 +155,18 @@ def _validate_basket(basket_dir):
     # or this function is incorrectly called, 
     # we can say that this isn't a basket. 
     if not s3fs_client.exists(manifest_path):
-        raise FileNotFoundError(
-            f"Invalid Path. No Basket found at: {basket_dir}"
-        )
+        warnings.warn(
+            f"Invalid Path. No Basket found at: {basket_dir}\n")
+        # raise FileNotFoundError(
+        #     f"Invalid Path. No Basket found at: {basket_dir}"
+        # )
     
     if not s3fs_client.exists(supplement_path):
-        raise FileNotFoundError(
-            f"Invalid Basket. No Supplement file found at: {supplement_path}"
-        )
+        warnings.warn(
+            f"Invalid Basket. No Supplement file found at: {supplement_path}\n")
+        # raise FileNotFoundError(
+        #     f"Invalid Basket. No Supplement file found at: {supplement_path}"
+        # )
     
     files_in_basket = s3fs_client.find(
         path=basket_dir, 
@@ -175,16 +184,21 @@ def _validate_basket(basket_dir):
                 validate(instance=data, schema=config.manifest_schema)
                 
             except jsonschema.exceptions.ValidationError:
-                raise ValueError(
-                    f"Invalid Basket. "
-                    f"Manifest Schema does not match at: {file}"
-                )
+                warnings.warn(
+                    f"Invalid Basket. Manifest Schema does not match at: {file}\n")
+                # raise ValueError(
+                #     f"Invalid Basket. "
+                #     f"Manifest Schema does not match at: {file}"
+                # )
             
             except json.decoder.JSONDecodeError:
-                raise ValueError(
-                    f"Invalid Basket. "
-                    f"Manifest could not be loaded into json at: {file}"
-                )
+                warnings.warn(f"Invalid Basket. "
+                              f"Manifest could not be loaded into "
+                              f"json at: {file}\n")
+                # raise ValueError(
+                #     f"Invalid Basket. "
+                #     f"Manifest could not be loaded into json at: {file}"
+                # )
             
             
         if file_name == 'basket_supplement.json':
@@ -194,16 +208,21 @@ def _validate_basket(basket_dir):
                 validate(instance=data, schema=config.supplement_schema)
                 
             except jsonschema.exceptions.ValidationError:
-                raise ValueError(
-                    f"Invalid Basket. "
-                    f"Supplement Schema does not match at: {file}"
-                )
+                warnings.warn(
+                    f"Invalid Basket. Supplement Schema does not match at: {file}\n")
+                # raise ValueError(
+                #     f"Invalid Basket. "
+                #     f"Supplement Schema does not match at: {file}"
+                # )
             
             except json.decoder.JSONDecodeError:
-                raise ValueError(
-                    f"Invalid Basket. "
-                    f"Supplement could not be loaded into json at: {file}"
-                )
+                warnings.warn(f"Invalid Basket. "
+                              f"Supplement could not be loaded into "
+                              f"json at: {file}\n")
+                # raise ValueError(
+                #     f"Invalid Basket. "
+                #     f"Supplement could not be loaded into json at: {file}"
+                # )
             
 
         if file_name == 'basket_metadata.json':
@@ -211,20 +230,26 @@ def _validate_basket(basket_dir):
                 data = json.load(s3fs_client.open(file))
                 
             except json.decoder.JSONDecodeError:
-                raise ValueError(
-                    f"Invalid Basket. "
-                    f"Metadata could not be loaded into json at: {file}"
-                )
+                warnings.warn(f"Invalid Basket. "
+                              f"Metadata could not be loaded into "
+                              f"json at: {file}\n")
+                # raise ValueError(
+                #     f"Invalid Basket. "
+                #     f"Metadata could not be loaded into json at: {file}"
+                # )
 
         # if we find a directory inside this basket, we need to check it
         # if we check it and find a basket, this basket is invalid.
         if s3fs_client.info(file)['type'] == 'directory':
             if _check_level(file, in_basket=True):
-                raise ValueError(
-                    f"Invalid Basket. "
-                    f"Manifest File found in sub directory of "
-                    f"basket at: {basket_dir}"
-                )
+                warnings.warn(f"Invalid Basket. "
+                              f"Manifest File found in sub directory of "
+                              f"basket at: {basket_dir}\n")
+                # raise ValueError(
+                #     f"Invalid Basket. "
+                #     f"Manifest File found in sub directory of "
+                #     f"basket at: {basket_dir}"
+                # )
                 
     # default return true if we don't find any problems with this basket
     return True

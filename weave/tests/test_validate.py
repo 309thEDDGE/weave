@@ -10,7 +10,7 @@ class TestValidate():
     def __init__(self, tmpdir):
         """Initializes the TestValidate class
         assign the tmpdir, initialize the basket_list, 
-        assign the s3fs client, call set_up_bucket
+        assign the s3fs client, call _set_up_bucket
         """
         self.tmpdir = tmpdir
         
@@ -55,13 +55,13 @@ class TestValidate():
         tmp_dir_name: string
             the directory name of where the nested basket will be
         is_man: boolean (optional)
-            a bool that signals if ther should be a manifest file
+            a bool that signals if there should be a manifest file
             defaults to no manifest
         is_sup: boolean (optional)
-            a bool that signals if ther should be a supplement file
+            a bool that signals if there should be a supplement file
             defaults to no supplement
         is_meta: boolean (optional)
-            a bool that signals if ther should be a metadata file
+            a bool that signals if there should be a metadata file
             defaults to no metadata
         man_data: string (optional)
             the json data we want to be put into the manifest file
@@ -195,10 +195,9 @@ def test_validate_bucket_does_not_exist(set_up_TestValidate):
     
     bucket_path = Path("THISisNOTaPROPERbucketNAMEorPATH")
     
-    with pytest.raises(
-        ValueError, match=f"Invalid Bucket Path. "
-        f"Bucket does not exist at: {bucket_path}"
-    ):
+    with pytest.warns(UserWarning, 
+                      match=f"Invalid Bucket Path. "
+                            f"Bucket does not exist at: {bucket_path}\n"):
         validate.validate_bucket(bucket_path)
     
 
@@ -220,12 +219,10 @@ def test_validate_no_supplement_file(set_up_TestValidate):
         )
     
     tv.s3fs_client.rm(supplement_path)
-        
-    with pytest.raises(
-        FileNotFoundError, 
-        match=f"Invalid Basket. "
-        f"No Supplement file found at: {s3_basket_path}"
-    ):
+    
+    with pytest.warns(UserWarning, 
+                      match=f"Invalid Basket. "
+                            f"No Supplement file found at: {supplement_path}\n"):
         validate.validate_bucket(tv.s3_bucket_name)
 
     
@@ -247,7 +244,7 @@ def test_validate_invalid_manifest_schema(set_up_TestValidate):
     """make basket with invalid manifest schema, check that it throws an error
     """
     tv = set_up_TestValidate
-        
+    breakpoint()
     # the 'uuid: 100' is supposed to be a string, not a number, 
     # this is invalid against the schema
     bad_manifest_data = """{
@@ -273,13 +270,16 @@ def test_validate_invalid_manifest_schema(set_up_TestValidate):
     tv.s3fs_client.rm(manifest_path)
     tv.s3fs_client.rm(supplement_path)
     
-    
-    with pytest.raises(
-        ValueError, 
-        match=f"Invalid Basket. "
-        f"Manifest Schema does not match at: {s3_basket_path}"
-    ):
+    with pytest.warns(UserWarning, 
+                      match=f"Invalid Basket. "
+                      f"Manifest Schema does not match at: {s3_basket_path}\n"):
         validate.validate_bucket(tv.s3_bucket_name)
+    # with pytest.raises(
+    #     ValueError, 
+    #     match=f"Invalid Basket. "
+    #     f"Manifest Schema does not match at: {s3_basket_path}"
+    # ):
+    #     validate.validate_bucket(tv.s3_bucket_name)
 
         
 def test_validate_manifest_schema_missing_field(set_up_TestValidate):
