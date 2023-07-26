@@ -1,4 +1,7 @@
+import random
 import os
+import string
+import time
 
 from weave.uploader import upload_basket
 from weave.config import get_file_system
@@ -15,7 +18,10 @@ class BucketForTest():
 
     def _set_up_bucket(self):
         try:
-            self.s3_bucket_name = 'pytest-temp-bucket'
+            ns_since_epoch_string = str(time.time_ns())
+            rand_str = "".join(random.sample(list(string.ascii_lowercase), 7))
+            self.s3_bucket_name = ('pytest-temp-' + rand_str +
+                                   '-' + ns_since_epoch_string)
             self.s3fs_client.mkdir(self.s3_bucket_name)
         except FileExistsError:
             self.cleanup_bucket()

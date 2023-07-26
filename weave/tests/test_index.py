@@ -2,14 +2,15 @@ import json
 import os
 import re
 import warnings
+from unittest.mock import MagicMock
 
 import pandas as pd
 import pytest
 
 from weave.config import get_file_system
-from weave.index import create_index_from_s3
-from weave.index import Index
+from weave.index import create_index_from_s3, Index
 from weave.tests.pytest_resources import BucketForTest
+from weave.uploader_functions import UploadBasket
 
 """Pytest Fixtures Documentation:
 https://docs.pytest.org/en/7.3.x/how-to/fixtures.html
@@ -355,3 +356,27 @@ def test_upload_basket_works_on_empty_basket(set_up_tb):
                                      'stub':False}],
                       basket_type="test")
     assert(len(ind.index_df) == 1)
+
+def test_upload_basket_gracefully_fails(set_up_tb):
+    """
+    In this test an engineered failure to upload the basket occurs.
+    Index.upload_basket() should not add anything to the index_df.
+    Additionally, the basket in question should be deleted from storage (I will
+    make the process fail only after a partial upload).
+    """
+    tb = set_up_tb
+    tmp_basket = tb.set_up_basket("basket_one")
+    ind = Index(tb.s3_bucket_name)
+    with pytest.raises(
+        ValueError,
+        match="This error provided for test_upload_basket_gracefully_fails"
+    ):
+        UploadBasket.upload_basket_supplement_to_s3fs = MagicMock(
+            side_effect = ValueError(
+                "This error provided for test_upload_basket_gracefully_fails"
+            )
+        )
+        ind.upload_basket(upload_items=[{'path':str(tmp_basket.realpath()),
+                                         'stub':False}],
+                          basket_type="test")
+    assert len(tb.s3fs_client.ls(tb.s3_bucket_name)) == 0
