@@ -2,7 +2,7 @@ import json
 import os
 import re
 import warnings
-from unittest.mock import MagicMock
+from unittest.mock import patch
 
 import pandas as pd
 import pytest
@@ -10,7 +10,7 @@ import pytest
 from weave.config import get_file_system
 from weave.index import create_index_from_s3, Index
 from weave.tests.pytest_resources import BucketForTest
-from weave.uploader_functions import UploadBasket
+from weave import uploader_functions
 
 """Pytest Fixtures Documentation:
 https://docs.pytest.org/en/7.3.x/how-to/fixtures.html
@@ -357,7 +357,14 @@ def test_upload_basket_works_on_empty_basket(set_up_tb):
                       basket_type="test")
     assert(len(ind.index_df) == 1)
 
-def test_upload_basket_gracefully_fails(set_up_tb):
+# @patch('uploader_functions.UploadBasket.upload_basket_supplement_to_s3fs',
+#        **{'return_value.pwd.side_effect': ValueError(
+#            "This error provided for test_upload_basket_gracefully_fails"
+#        )})
+@patch(
+    'weave.uploader_functions.UploadBasket.upload_basket_supplement_to_s3fs'
+)
+def test_upload_basket_gracefully_fails(mocked_obj, set_up_tb):
     """
     In this test an engineered failure to upload the basket occurs.
     Index.upload_basket() should not add anything to the index_df.
@@ -371,10 +378,8 @@ def test_upload_basket_gracefully_fails(set_up_tb):
         ValueError,
         match="This error provided for test_upload_basket_gracefully_fails"
     ):
-        UploadBasket.upload_basket_supplement_to_s3fs = MagicMock(
-            side_effect = ValueError(
-                "This error provided for test_upload_basket_gracefully_fails"
-            )
+        mocked_obj.side_effect = ValueError(
+            "This error provided for test_upload_basket_gracefully_fails"
         )
         ind.upload_basket(upload_items=[{'path':str(tmp_basket.realpath()),
                                          'stub':False}],
