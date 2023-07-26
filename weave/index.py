@@ -1,6 +1,6 @@
 """
 USAGE:
-python create_index.py <root_dir> 
+python create_index.py <root_dir>
     root_dir: the root directory of s3 you wish to build your index off of
 """
 import json
@@ -257,6 +257,7 @@ class Index():
         ----------
         basket_address: string
             string that holds the path of the basket
+            can also be the basket uuid
 
         kwargs:
         gen_level: int
@@ -296,24 +297,30 @@ class Index():
 
         fs = config.get_file_system()
 
-        if not fs.exists(basket_address):
-            raise FileNotFoundError(
-                f"basket path does not exist '{basket_address}'"
-            )
-
         if self.sync:
             if not self.is_index_current():
                 self.sync_index()
         elif self.index_df is None:
             self.sync_index()
 
-        #get the current uid of the basket we're getting the parents of
-        current_uid = self.index_df["uuid"].loc[
-            self.index_df["address"] == basket_address
-        ].values[0]
+        # validate the bucket exists. if it does,
+        # make sure we use the address or the uid
+        if (not fs.exists(basket_address) and
+            basket_address not in self.index_df.uuid.values):
+            raise FileNotFoundError(
+                f"basket path or uuid does not exist '{basket_address}'"
+            )
+        else:
+            if fs.exists(basket_address):
+                current_uid = self.index_df["uuid"].loc[
+                    self.index_df["address"] == basket_address
+                ].values[0]
+            if basket_address in self.index_df.uuid.values:
+                current_uid = basket_address
 
+        # get all the parent uuids for the current uid
         puids = self.index_df["parent_uuids"].loc[
-            self.index_df["address"] == basket_address
+            self.index_df["uuid"] == current_uid
         ].to_numpy()[0]
 
         # check if the list is empty return the data how it is
@@ -326,7 +333,7 @@ class Index():
             descendants.append(current_uid)
 
         parents_index = self.index_df.loc[self.index_df["uuid"].isin(puids), :]
-        
+
         if len(parents_index) == 0:
             return data
 
@@ -352,6 +359,7 @@ class Index():
         ----------
         basket_address: string
             string that holds the path of the basket
+            can also be the basket uuid
 
         kwargs:
         gen_level: int
@@ -391,20 +399,26 @@ class Index():
 
         fs = config.get_file_system()
 
-        if not fs.exists(basket_address):
-            raise FileNotFoundError(
-                f"basket path does not exist '{basket_address}'"
-            )
-
         if self.sync:
             if not self.is_index_current():
                 self.sync_index()
         elif self.index_df is None:
             self.sync_index()
 
-        current_uid = self.index_df["uuid"].loc[
-            self.index_df["address"] == basket_address
-        ].values[0]
+        # validate the bucket exists. if it does,
+        # make sure we use the address or the uid
+        if (not fs.exists(basket_address) and
+            basket_address not in self.index_df.uuid.values):
+            raise FileNotFoundError(
+                f"basket path or uuid does not exist '{basket_address}'"
+            )
+        else:
+            if fs.exists(basket_address):
+                current_uid = self.index_df["uuid"].loc[
+                    self.index_df["address"] == basket_address
+                ].values[0]
+            if basket_address in self.index_df.uuid.values:
+                current_uid = basket_address
 
         # this looks at all the baskets and returns a list of baskets who have
         # the the parent id inside their "parent_uuids" list

@@ -323,7 +323,7 @@ def test_delete_basket_fails_if_basket_is_parent(set_up_tb):
 
 
 def test_get_parents_valid(set_up_tb):
-    """setup a valid basket strucurem, validate the returned index
+    """setup a valid basket structure, validate the returned index
     """
     tb = set_up_tb
 
@@ -405,7 +405,8 @@ def test_get_parents_invalid_basket_address(set_up_tb):
     index = Index(bucket_name=tb.s3_bucket_name, sync=True)
 
     with pytest.raises(
-        FileNotFoundError, match=f"basket path does not exist '{basket_path}'"
+        FileNotFoundError, 
+        match=f"basket path or uuid does not exist '{basket_path}'"
     ):
         index.get_parents(basket_path)
 
@@ -467,7 +468,7 @@ def test_get_parents_parent_is_child(set_up_tb):
 
 
 def test_get_children_valid(set_up_tb):
-    """setup a valid basket strucure, validate the returned dataframe
+    """setup a valid basket structure, validate the returned dataframe
     """
     tb = set_up_tb
 
@@ -547,8 +548,9 @@ def test_get_children_invalid_basket_address(set_up_tb):
     index = Index(bucket_name=tb.s3_bucket_name, sync=True)
 
     with pytest.raises(
-        FileNotFoundError, match=f"basket path does not exist '{basket_path}'"
-    ): 
+        FileNotFoundError,
+        match=f"basket path or uuid does not exist '{basket_path}'"
+    ):
         index.get_children(basket_path)
 
 
@@ -802,3 +804,149 @@ def test_get_children_complex_fail(set_up_tb):
         ValueError, match=re.escape("Parent-Child loop found at 007")
     ):
         ind.get_children(parent_path)
+
+
+def test_get_parents_from_uuid(set_up_tb):
+    """setup a valid basket structure, validate the returned index from uuid
+    """
+    tb = set_up_tb
+
+    #setup random strucutre of parents and children 
+    tmp_dir = tb.set_up_basket("great_grandparent_3")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
+
+    tmp_dir = tb.set_up_basket("great_grandparent_3_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3003")
+
+    tmp_dir = tb.set_up_basket("great_grandparent_3_2")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3333")
+
+    tmp_dir = tb.set_up_basket("great_grandparent_3_3")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3303")
+
+    tmp_dir = tb.set_up_basket("grandparent_2")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="2000",
+                     parent_ids=["3000", "3003", "3333"])
+
+    tmp_dir = tb.set_up_basket("grandparent_2_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="2002")
+
+    tmp_dir = tb.set_up_basket("parent_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="1000",
+                     parent_ids=["2000", "2002", "3303"])
+
+    tmp_dir = tb.set_up_basket("parent_1_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="1001")
+
+    tmp_dir = tb.set_up_basket("child_0")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="0000",
+                     parent_ids=["1001", "1000"])
+
+
+    #string to shorten things for ruff
+    gen_lvl = "generation_level"
+
+    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind.generate_index()
+
+    # setup df of the right answer
+    parent_ids = [
+        "1000", "1001", "2000", "2002", "3303", "3000", "3003", "3333"
+    ]
+    parent_gens = [1, 1, 2, 2, 2, 3, 3, 3]
+    index = ind.index_df
+    parent_answer = index.loc[index["uuid"].isin(parent_ids)]
+
+    # pandas wants to make a copy before adding a column
+    # used to remove warning in pytest
+    parent_answer = parent_answer.copy()
+    #add the generation levels
+    for i, j in zip(parent_ids, parent_gens):
+        parent_answer.loc[parent_answer["uuid"] == i, gen_lvl] = j
+
+    # get the results
+    results = ind.get_parents('0000')
+
+    # sort so that they can be properly compared to
+    parent_answer = parent_answer.sort_values(by="uuid")
+    results = results.sort_values(by="uuid")
+
+    #cast to int64 so datatypes match
+    parent_answer[gen_lvl] = parent_answer[gen_lvl].astype(np.int64)
+
+    assert parent_answer.equals(results)
+
+
+def test_get_children_from_uuid(set_up_tb):
+    """setup a valid basket structure, validate the returned index from uuid
+    """
+    tb = set_up_tb
+
+    #setup random strucutre of parents and children 
+    tmp_dir = tb.set_up_basket("great_grandparent_3")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
+
+    tmp_dir = tb.set_up_basket("great_grandparent_3_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3003")
+
+    tmp_dir = tb.set_up_basket("great_grandparent_3_2")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3333")
+
+    tmp_dir = tb.set_up_basket("great_grandparent_3_3")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3303")
+
+    tmp_dir = tb.set_up_basket("grandparent_2")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="2000",
+                     parent_ids=["3000", "3003", "3333"])
+
+    tmp_dir = tb.set_up_basket("grandparent_2_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="2002")
+
+    tmp_dir = tb.set_up_basket("parent_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="1000",
+                     parent_ids=["2000", "2002", "3303"])
+
+    tmp_dir = tb.set_up_basket("parent_1_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="1001")
+
+    tmp_dir = tb.set_up_basket("child_0")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="0000",
+                     parent_ids=["1001", "1000"])
+
+    #string to shorten things for ruff
+    gen_lvl = "generation_level"
+
+    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind.generate_index()
+
+    # setup df of the right answer
+    child_ids = ["2000", "1000", "0000"]
+    child_gens = [-1,-2,-3]
+    index = ind.index_df
+    child_answer = index.loc[index["uuid"].isin(child_ids)]
+
+    # pandas wants to make a copy before adding a column
+    # used to remove warning in pytest
+    child_answer = child_answer.copy()
+    #add the generation levels
+    for i, j in zip(child_ids, child_gens):
+        child_answer.loc[child_answer["uuid"] == i, gen_lvl] = j
+
+
+    # get the results with uid of the great grandparent
+    results = ind.get_children('3000')
+
+    # sort so that they can be properly compared to
+    child_answer = child_answer.sort_values(by="uuid")
+    results = results.sort_values(by="uuid")
+
+    #cast to int64 so datatypes match
+    child_answer[gen_lvl] = child_answer[gen_lvl].astype(np.int64)
+
+    assert child_answer.equals(results)
