@@ -10,7 +10,6 @@ import pytest
 from weave.config import get_file_system
 from weave.index import create_index_from_s3, Index
 from weave.tests.pytest_resources import BucketForTest
-from weave import uploader_functions
 
 """Pytest Fixtures Documentation:
 https://docs.pytest.org/en/7.3.x/how-to/fixtures.html

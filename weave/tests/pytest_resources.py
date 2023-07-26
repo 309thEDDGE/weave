@@ -1,5 +1,4 @@
 import os
-import string
 
 from weave.uploader import upload_basket
 from weave.config import get_file_system
