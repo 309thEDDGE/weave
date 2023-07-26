@@ -357,10 +357,6 @@ def test_upload_basket_works_on_empty_basket(set_up_tb):
                       basket_type="test")
     assert(len(ind.index_df) == 1)
 
-# @patch('uploader_functions.UploadBasket.upload_basket_supplement_to_s3fs',
-#        **{'return_value.pwd.side_effect': ValueError(
-#            "This error provided for test_upload_basket_gracefully_fails"
-#        )})
 @patch(
     'weave.uploader_functions.UploadBasket.upload_basket_supplement_to_s3fs'
 )
