@@ -2,14 +2,14 @@ import json
 import os
 import re
 import warnings
+from unittest.mock import patch
 
 import pandas as pd
 import numpy as np
 import pytest
 
 from weave.config import get_file_system
-from weave.index import create_index_from_s3
-from weave.index import Index
+from weave.index import create_index_from_s3, Index
 from weave.tests.pytest_resources import BucketForTest
 
 """Pytest Fixtures Documentation:
@@ -319,8 +319,6 @@ def test_delete_basket_fails_if_basket_is_parent(set_up_tb):
         )
     ):
         ind.delete_basket(basket_uuid="0001")
-
-
 
 def test_get_parents_valid(set_up_tb):
     """setup a valid basket structure, validate the returned index
@@ -950,3 +948,65 @@ def test_get_children_from_uuid(set_up_tb):
     child_answer[gen_lvl] = child_answer[gen_lvl].astype(np.int64)
 
     assert child_answer.equals(results)
+
+def test_upload_basket_updates_the_index(set_up_tb):
+    """
+    In this test the index already exists with one basket inside of it.
+    This test will add another basket using Index.upload_basket, and then check
+    to ensure that the index_df has been updated.
+    """
+    tb = set_up_tb
+    # Put basket in the temporary bucket
+    tmp_basket_dir_one = tb.set_up_basket("basket_one")
+    tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+
+    # create index
+    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind.generate_index()
+
+    # add another basket
+    tmp_basket_dir_two = tb.set_up_basket("basket_two")
+    ind.upload_basket(upload_items=[{'path':str(tmp_basket_dir_two.realpath()),
+                                     'stub':False}],
+                      basket_type="test")
+    assert(len(ind.index_df) == 2)
+
+def test_upload_basket_works_on_empty_basket(set_up_tb):
+    """
+    In this test the Index object will upload a basket to a pantry that does
+    not have any baskets yet. This test will make sure that this functionality
+    is present, and that the index_df has been updated.
+    """
+    tb = set_up_tb
+    # Put basket in the temporary bucket
+    tmp_basket = tb.set_up_basket("basket_one")
+    ind = Index(tb.s3_bucket_name)
+    ind.upload_basket(upload_items=[{'path':str(tmp_basket.realpath()),
+                                     'stub':False}],
+                      basket_type="test")
+    assert(len(ind.index_df) == 1)
+
+@patch(
+    'weave.uploader_functions.UploadBasket.upload_basket_supplement_to_s3fs'
+)
+def test_upload_basket_gracefully_fails(mocked_obj, set_up_tb):
+    """
+    In this test an engineered failure to upload the basket occurs.
+    Index.upload_basket() should not add anything to the index_df.
+    Additionally, the basket in question should be deleted from storage (I will
+    make the process fail only after a partial upload).
+    """
+    tb = set_up_tb
+    tmp_basket = tb.set_up_basket("basket_one")
+    ind = Index(tb.s3_bucket_name)
+    with pytest.raises(
+        ValueError,
+        match="This error provided for test_upload_basket_gracefully_fails"
+    ):
+        mocked_obj.side_effect = ValueError(
+            "This error provided for test_upload_basket_gracefully_fails"
+        )
+        ind.upload_basket(upload_items=[{'path':str(tmp_basket.realpath()),
+                                         'stub':False}],
+                          basket_type="test")
+    assert len(tb.s3fs_client.ls(tb.s3_bucket_name)) == 0
