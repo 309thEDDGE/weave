@@ -123,7 +123,7 @@ class UploadBasket:
         self,
         upload_items,
         upload_directory,
-        upload_file_system,
+        file_system,
         unique_id,
         basket_type,
         parent_ids,
@@ -149,8 +149,9 @@ class UploadBasket:
             dealing with large files.
         upload_directory: str
             Path where basket is to be uploaded (on the upload FS).
-        upload_file_system: fsspec object
-            The fsspec object to be used (ie, s3fs, local fs, etc)
+        file_system: fsspec object
+            The file system to upload to (ie s3fs, local fs, etc).
+            If None it will use the default fs from the config.
         unique_id: str
             Unique ID to identify the basket once uploaded.
         basket_type: str
@@ -166,7 +167,7 @@ class UploadBasket:
         """
         self.upload_items = upload_items
         self.upload_directory = upload_directory
-        self.fs = upload_file_system
+        self.fs = file_system
         self.unique_id = unique_id
         self.basket_type = basket_type
         self.parent_ids = parent_ids
@@ -386,7 +387,7 @@ class UploadBasket:
 def upload_basket(
     upload_items,
     upload_directory,
-    upload_file_system,
+    file_system,
     unique_id,
     basket_type,
     parent_ids=[],
@@ -441,8 +442,9 @@ def upload_basket(
         dealing with large files.
     upload_directory: str
         Path where basket is to be uploaded.
-    upload_file_system: fsspec object
-        The fsspec object to be used (ie, s3fs, local fs, etc)
+    file_system: fsspec object
+        The file system to upload to (ie s3fs, local fs, etc).
+        If None it will use the default fs from the config.
     unique_id: str
         Unique ID to identify the basket once uploaded.
     basket_type: str
@@ -459,7 +461,7 @@ def upload_basket(
     upload_basket_obj = UploadBasket(
         upload_items,
         upload_directory,
-        upload_file_system,
+        file_system,
         unique_id,
         basket_type,
         parent_ids,

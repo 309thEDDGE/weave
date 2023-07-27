@@ -1,6 +1,6 @@
 """
 USAGE:
-python create_index.py <root_dir> 
+python create_index.py <root_dir>
     root_dir: the root directory of s3 you wish to build your index off of
 """
 import json
@@ -108,6 +108,8 @@ class Index():
         ----------
         file_system: fsspec object
             The fsspec object which hosts the bucket we desire to index.
+            If file_system is None, then the default fs is retrieved from the
+            config.
         bucket_name: [string]
             Name of the bucket which the desired index is associated with.
         sync: [bool]
@@ -212,7 +214,7 @@ class Index():
             index.to_json(temp_json_path)
             upload(upload_items=[{'path':temp_json_path, 'stub':False}],
                    basket_type=self.index_basket_dir_name,
-                   upload_file_system=self.fs,
+                   file_system=self.fs,
                    bucket_name=self.bucket_name)
         self.index_df = index
         self.index_json_time = ns
@@ -236,10 +238,11 @@ class Index():
                 f"The provided value for basket_uuid {basket_uuid} " +
                 "does not exist."
             )
+        # Flatten nested lists into a single list
         parent_uuids = [
             j
             for i in self.index_df["parent_uuids"].to_list()
-            for j  in i
+            for j in i
         ]
         if basket_uuid in parent_uuids:
             raise ValueError(
@@ -250,5 +253,5 @@ class Index():
         else:
             adr = self.index_df[
                 self.index_df["uuid"] == basket_uuid
-            ]["address"]
+            ]["address"].iloc[0]
             self.fs.rm(adr, recursive=True)

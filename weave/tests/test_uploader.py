@@ -9,7 +9,8 @@ from weave import upload
 from weave.uploader import upload_basket
 from weave.uploader_functions import (derive_integrity_data,
                                       validate_upload_item)
-from weave.tests.pytest_resources import BucketForTest
+from weave.tests.pytest_resources import BucketForTest, file_path_in_list
+from fsspec.implementations.local import LocalFileSystem
 
 class UploadForTest(BucketForTest):
     """
@@ -44,11 +45,15 @@ class UploadForTest(BucketForTest):
 
         return self.upload_path
 
-@pytest.fixture
-def set_up_tu(tmpdir):
-    fs = s3fs.S3FileSystem(
-        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-    )
+s3fs = s3fs.S3FileSystem(
+    client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+)
+local_fs = LocalFileSystem()
+
+# Test with two different fsspec file systems (above).
+@pytest.fixture(params=[s3fs, local_fs])
+def set_up_tu(request, tmpdir):
+    fs = request.param
     tu = UploadForTest(tmpdir, fs)
     yield tu
     tu.cleanup_bucket()
@@ -63,9 +68,8 @@ def test_upload_test_txt_in_uploaded_files(set_up_tu):
     tmp_basket_dir = tu.set_up_basket(tmp_basket_dir_name)
     upload_path = tu.run_uploader(tmp_basket_dir)
 
-    assert (
-        os.path.join(upload_path, "test.txt") in tu.uploaded_files
-    )
+    assert file_path_in_list(os.path.join(upload_path, "test.txt"),
+                             tu.uploaded_files)
 
 def test_upload_basket_manifest_in_uploaded_files(set_up_tu):
     """
@@ -77,10 +81,8 @@ def test_upload_basket_manifest_in_uploaded_files(set_up_tu):
     tmp_basket_dir = tu.set_up_basket(tmp_basket_dir_name)
     upload_path = tu.run_uploader(tmp_basket_dir)
 
-    assert (
-        os.path.join(upload_path, "basket_manifest.json")
-        in tu.uploaded_files
-    )
+    assert file_path_in_list(os.path.join(upload_path, "basket_manifest.json"),
+                             tu.uploaded_files)
 
 def test_upload_basket_supplement_in_uploaded_files(set_up_tu):
     """
@@ -93,8 +95,8 @@ def test_upload_basket_supplement_in_uploaded_files(set_up_tu):
     upload_path = tu.run_uploader(tmp_basket_dir)
 
     assert (
-        os.path.join(upload_path, "basket_supplement.json")
-        in tu.uploaded_files
+        file_path_in_list(os.path.join(upload_path, "basket_supplement.json"),
+                          tu.uploaded_files)
     )
 
 def test_upload_basket_metadata_in_uploaded_files(set_up_tu):
@@ -107,10 +109,8 @@ def test_upload_basket_metadata_in_uploaded_files(set_up_tu):
     tmp_basket_dir = tu.set_up_basket(tmp_basket_dir_name)
     upload_path = tu.run_uploader(tmp_basket_dir)
 
-    assert (
-        os.path.join(upload_path, "basket_metadata.json")
-        in tu.uploaded_files
-    )
+    assert file_path_in_list(os.path.join(upload_path, "basket_metadata.json"),
+                             tu.uploaded_files)
 
 def test_upload_nothing_else_in_uploaded_files(set_up_tu):
     """
@@ -144,11 +144,10 @@ def test_upload_bucket_name_is_string(set_up_tu):
     ):
         upload(upload_items, "test_basket", tu.fs, bucket_name=bucket_name)
 
-@pytest.fixture
-def set_up_tb(tmpdir):
-    fs = s3fs.S3FileSystem(
-        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-    )
+# Test with two different fsspec file systems (top of file).
+@pytest.fixture(params=[s3fs, local_fs])
+def set_up_tb(request, tmpdir):
+    fs = request.param
     tb = BucketForTest(tmpdir, fs)
     yield tb
     tb.cleanup_bucket()

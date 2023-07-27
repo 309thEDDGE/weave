@@ -19,6 +19,9 @@ def load_mongo(index_table, file_system=None, collection='metadata'):
                basket_type
                address
 
+        file_system: fsspec object
+            The file system to retrieve the baskets' metadata from.
+
         collection: [string]
             Metadata wil be added to the Mongo collection specified.
             default: 'metadata'

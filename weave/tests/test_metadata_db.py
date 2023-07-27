@@ -3,6 +3,7 @@ import pytest
 import pandas as pd
 import weave
 import s3fs
+from fsspec.implementations.local import LocalFileSystem
 
 from weave.tests.pytest_resources import BucketForTest
 
@@ -37,12 +38,15 @@ class MongoForTest(BucketForTest):
         self.cleanup_bucket()
         self.mongodb[self.test_collection].drop()
 
+s3fs = s3fs.S3FileSystem(
+    client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+)
+local_fs = LocalFileSystem()
 
-@pytest.fixture
-def set_up(tmpdir):
-    fs = s3fs.S3FileSystem(
-        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-    )
+# Test with two different fsspec file systems (above).
+@pytest.fixture(params=[s3fs, local_fs])
+def set_up(request, tmpdir):
+    fs = request.param
     db = MongoForTest(tmpdir, fs)
     yield db
     db.cleanup()

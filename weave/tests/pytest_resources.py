@@ -1,21 +1,48 @@
+import uuid
 import os
 import json
 
+from glob import glob
 from weave.uploader import upload_basket
+from fsspec.implementations.local import LocalFileSystem
 
-# The following code is for testing in an environment with MinIO:
+def file_path_in_list(search_path, search_list):
+    """Check if a file path is in a list (of file paths).
+
+    Parameters
+    ----------
+    search_path: string
+        The file path we want to search for.
+    search_list: [string]
+        A list of strings (presumably file paths)
+
+    Returns True if any of the file paths in the search list end with the
+    file path we're searching for, otherwise False.
+
+    This allows us to determine if a file is in the list regardless of file
+    system dependent prefixes such as /home/user/ which can usually be ignored.
+    For example, if we have a list of file paths:
+    ['/home/user/data/file.txt', '/home/user/data/this/is/test.txt']
+    and we search for 'data/file.txt', we return True as the file exists.
+    """
+    search_path = str(search_path)
+    for file_path in search_list:
+        if str(file_path).endswith(search_path):
+            return True
+
+    return False
 
 class BucketForTest():
     def __init__(self, tmpdir, file_system):
         self.tmpdir = tmpdir
+        self.bucket_name = 'pytest-temp-bucket'
         self.basket_list = []
         self.fs = file_system
-        self.bucket_name = 'pytest-temp-bucket'
         self._set_up_bucket()
 
     def _set_up_bucket(self):
         """
-        Create a temporary S3 Bucket for testing purposes.
+        Create a temporary Bucket for testing purposes.
         """
         try:
             self.fs.mkdir(self.bucket_name)
@@ -51,7 +78,7 @@ class BucketForTest():
                       uid='0000', parent_ids=[],
                       upload_items=None, metadata={}):
         """
-        Upload a temporary (local) basket to the S3 test bucket.
+        Upload a temporary (local) basket to the test bucket.
         """
         b_type = "test_basket"
         up_dir = os.path.join(self.bucket_name, b_type, uid)
@@ -63,7 +90,7 @@ class BucketForTest():
         upload_basket(
             upload_items=upload_items,
             upload_directory=up_dir,
-            upload_file_system=self.fs,
+            file_system=self.fs,
             unique_id=uid,
             basket_type=b_type,
             parent_ids=parent_ids,

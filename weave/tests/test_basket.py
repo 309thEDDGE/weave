@@ -9,17 +9,26 @@ from weave.basket import Basket
 from weave.index import create_index_from_fs
 from weave.tests.pytest_resources import BucketForTest
 
+from fsspec.implementations.local import LocalFileSystem
+
 """Pytest Fixtures Documentation:
 https://docs.pytest.org/en/7.3.x/how-to/fixtures.html
 
 https://docs.pytest.org/en/7.3.x/how-to
-/fixtures.html#teardown-cleanup-aka-fixture-finalization"""
+/fixtures.html#teardown-cleanup-aka-fixture-finalization
 
-@pytest.fixture
-def set_up_tb(tmpdir):
-    fs = s3fs.S3FileSystem(
-        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-    )
+https://docs.pytest.org/en/7.3.x/how-to/fixtures.html#fixture-parametrize
+"""
+
+s3fs = s3fs.S3FileSystem(
+    client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+)
+local_fs = LocalFileSystem()
+
+# Test with two different fsspec file systems (above).
+@pytest.fixture(params=[s3fs, local_fs])
+def set_up_tb(request, tmpdir):
+    fs = request.param
     tb = BucketForTest(tmpdir, fs)
     yield tb
     tb.cleanup_bucket()
@@ -289,7 +298,7 @@ def test_basket_ls(set_up_tb):
     basket = Basket(Path(basket_path), file_system=tb.fs)
 
     uploaded_dir_path = f"{basket_path}/{tmp_basket_dir_name}"
-    assert basket.ls() == [uploaded_dir_path]
+    assert basket.ls()[0].endswith(uploaded_dir_path)
 
 def test_basket_ls_relpath(set_up_tb):
     """
@@ -305,7 +314,7 @@ def test_basket_ls_relpath(set_up_tb):
     basket = Basket(Path(basket_path), file_system=tb.fs)
 
     uploaded_file_path = f"{basket_path}/{tmp_basket_dir_name}/test.txt"
-    assert basket.ls(Path(tmp_basket_dir_name)) == [uploaded_file_path]
+    assert basket.ls(Path(tmp_basket_dir_name))[0].endswith(uploaded_file_path)
 
 def test_basket_ls_relpath_period(set_up_tb):
     """
@@ -321,7 +330,7 @@ def test_basket_ls_relpath_period(set_up_tb):
     basket = Basket(Path(basket_path), file_system=tb.fs)
 
     uploaded_dir_path = f"{basket_path}/{tmp_basket_dir_name}"
-    assert basket.ls(".") == [uploaded_dir_path]
+    assert basket.ls(".")[0].endswith(uploaded_dir_path)
 
 def test_basket_ls_is_pathlike(set_up_tb):
     """
@@ -338,12 +347,15 @@ def test_basket_ls_is_pathlike(set_up_tb):
 
     with pytest.raises(
         TypeError,
-        match="expected str, bytes or os.PathLike object, not int",
+        match="expected str, bytes or os.PathLike object, not int"
     ):
         basket.ls(1)
 
 def test_basket_ls_after_find(set_up_tb):
     """The s3fs.S3FileSystem.ls() func is broken after running {}.find()
+
+    This function is primarily to test s3fs file systems, but we test on local
+    file systems as well, and should yeild the same results regardless of FS.
 
     s3fs.S3FileSystem.find() function is called during index creation. The
     solution to this problem is to ensure Basket.ls() uses the argument
@@ -366,12 +378,22 @@ def test_basket_ls_after_find(set_up_tb):
 
     # Set up basket
     test_b = Basket(basket_path, file_system=tb.fs)
-    what_should_be_in_base_dir_path = {
+
+    expected_base_dir_paths = [
         os.path.join(basket_path, tmp_basket_dir_name, i)
         for i in ["nested_dir", "test.txt"]
-    }
+    ]
+    expected_base_dir_paths.sort() # Sort to zip in same order
+
     ls = test_b.ls(tmp_basket_dir_name)
-    assert set(ls) == what_should_be_in_base_dir_path
+    ls.sort()
+
+    # Get the actual base dir paths (essentially stripping any FS specific
+    # prefixes or conventions, ie in local file systems, the path to where
+    # the script was called might be prepended, we clean stuff like that here)
+    actual_bdp = [x.endswith(z) for x, z in zip(ls, expected_base_dir_paths)]
+
+    assert False not in actual_bdp
 
 def test_basket_init_from_uuid(set_up_tb):
     """
@@ -385,9 +407,9 @@ def test_basket_init_from_uuid(set_up_tb):
     test_b = Basket(basket_address=uuid,
                     bucket_name=tb.bucket_name,
                     file_system=tb.fs)
-    assert test_b.ls("basket_one") == [
-        "pytest-temp-bucket/test_basket/0000/basket_one/test.txt"
-    ]
+    assert test_b.ls("basket_one")[0].endswith(
+        f"{tb.bucket_name}/test_basket/0000/basket_one/test.txt"
+    )
 
 def test_basket_init_fails_if_uuid_does_not_exist(set_up_tb):
     """
@@ -438,6 +460,6 @@ def test_basket_from_uuid_with_many_baskets(set_up_tb):
     test_b = Basket(basket_address=uuid,
                     bucket_name=tb.bucket_name,
                     file_system=tb.fs)
-    assert test_b.ls(f"temp_basket_{uuid}") == [
-        f"pytest-temp-bucket/test_basket/{uuid}/temp_basket_{uuid}/test.txt"
-    ]
+    assert test_b.ls(f"temp_basket_{uuid}")[0].endswith(
+        f"{tb.bucket_name}/test_basket/{uuid}/temp_basket_{uuid}/test.txt"
+    )

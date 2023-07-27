@@ -7,7 +7,7 @@ from weave import config
 def upload(
     upload_items,
     basket_type,
-    upload_file_system=None,
+    file_system=None,
     bucket_name="basket-data",
     parent_ids=[],
     metadata={},
@@ -33,6 +33,9 @@ def upload(
         dealing with large files.
     basket_type: str
         Type of basket being uploaded.
+    file_system: fsspec object
+        The file system to upload to (ie s3fs, local fs, etc).
+        If None it will use the default fs from the config.
     bucket_name : str
         Name of the bucket that the basket will be uploaded to.
     parent_ids: optional [str]
@@ -63,8 +66,8 @@ def upload(
     if "test_prefix" in kwargs.keys():
         prefix = kwargs["test_prefix"]
 
-    if upload_file_system is None:
-        upload_file_system = config.get_file_system()
+    if file_system is None:
+        file_system = config.get_file_system()
 
     # build upload directory of the form
     # bucket_name/basket_type/unique_id
@@ -75,7 +78,7 @@ def upload(
     upload_basket(
         upload_items,
         upload_directory,
-        upload_file_system,
+        file_system,
         unique_id,
         basket_type,
         parent_ids,

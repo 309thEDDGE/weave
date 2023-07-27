@@ -4,6 +4,7 @@ import pytest
 import s3fs
 from weave.uploader_functions import upload_basket
 from weave import validate
+from fsspec.implementations.local import LocalFileSystem
 
 
 class ValidateForTest():
@@ -171,7 +172,7 @@ class ValidateForTest():
             upload_items=[{'path':str(tmp_basket_dir.realpath()),
                            'stub':False}],
             upload_directory=up_dir,
-            upload_file_system=self.fs,
+            file_system=self.fs,
             unique_id=uid,
             basket_type=b_type,
             metadata=metadata
@@ -184,11 +185,15 @@ class ValidateForTest():
 
 
 
-@pytest.fixture
-def set_up_TestValidate(tmpdir):
-    fs = s3fs.S3FileSystem(
-        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-    )
+s3fs = s3fs.S3FileSystem(
+    client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+)
+local_fs = LocalFileSystem()
+
+# Test with two different fsspec file systems (above).
+@pytest.fixture(params=[s3fs, local_fs])
+def set_up_TestValidate(request, tmpdir):
+    fs = request.param
     tv = ValidateForTest(tmpdir, fs)
     yield tv
     tv.cleanup_bucket()
