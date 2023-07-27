@@ -424,7 +424,6 @@ def test_derive_integrity_byte_count(tmp_path):
     """
     Test that derive_integrity_data returns the correct byte count value.
     """
-    tmp_basket_dir_name = "test_basket_tmp_dir"
     text_file_name = "test.txt"
     text_file_content = "0123456789"
 
@@ -438,7 +437,6 @@ def test_derive_integrity_data_max_byte_count_off_by_one(tmp_path):
     Test that derive_integrity_data raises a ValueError when the passed in byte
     count is > 300,000,000 bytes
     """
-    tmp_basket_dir_name = "test_basket_tmp_dir"
     text_file_name = "test.txt"
     text_file_content = "0123456789"
 
@@ -459,7 +457,6 @@ def test_derive_integrity_data_max_byte_count_exact(tmp_path):
     Test that derive_integrity_data runs successfully when the passed in byte
     count is exactly 300,000,000 bytes
     """
-    tmp_basket_dir_name = "test_basket_tmp_dir"
     text_file_name = "test.txt"
     text_file_content = "0123456789"
 
