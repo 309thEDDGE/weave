@@ -145,7 +145,7 @@ def set_up_tb(tmpdir):
     yield tb
     tb.cleanup_bucket()
 
-def test_validate_upload_item_correct_schema_path_key(set_up_tb):
+def test_validate_upload_item_correct_schema_path_key():
     """
     Test that validate_upload_item raises a KeyError when an invalid path key
     is used.
@@ -159,7 +159,7 @@ def test_validate_upload_item_correct_schema_path_key(set_up_tb):
     ):
         validate_upload_item(upload_item)
 
-def test_validate_upload_item_correct_schema_path_type(set_up_tb):
+def test_validate_upload_item_correct_schema_path_type():
     """
     Test that validate_upload_item raises a KeyError when an invalid upload 
     item type is used.
@@ -170,7 +170,7 @@ def test_validate_upload_item_correct_schema_path_type(set_up_tb):
     ):
         validate_upload_item(upload_item)
 
-def test_validate_upload_item_correct_schema_stub_key(set_up_tb):
+def test_validate_upload_item_correct_schema_stub_key():
     """
     Test that validate_upload_item raises a KeyError when an invalid stub key
     is used.
@@ -183,7 +183,7 @@ def test_validate_upload_item_correct_schema_stub_key(set_up_tb):
     ):
         validate_upload_item(upload_item)
 
-def test_validate_upload_item_correct_schema_stub_type(set_up_tb):
+def test_validate_upload_item_correct_schema_stub_type():
     """
     Test that validate_upload_item raises a KeyError when an invalid stub value
     type is used.
@@ -196,7 +196,7 @@ def test_validate_upload_item_correct_schema_stub_type(set_up_tb):
     ):
         validate_upload_item(upload_item)
 
-def test_validate_upload_item_correct_schema_extra_key(set_up_tb):
+def test_validate_upload_item_correct_schema_extra_key():
     """
     Test that validate_upload_item raises a KeyError when an invalid extra key
     is used.
@@ -229,7 +229,7 @@ def test_validate_upload_item_valid_inputs(set_up_tb):
     except Exception as e:
         pytest.fail(f"Unexpected error occurred:{e}")
 
-def test_validate_upload_item_file_exists(set_up_tb):
+def test_validate_upload_item_file_exists():
     """
     Test that validate_upload_item raises a FileExistsError when an invalid
     path value is used.
@@ -260,7 +260,7 @@ def test_validate_upload_item_folder_exists(set_up_tb):
     except Exception as e:
         pytest.fail(f"Unexpected error occurred:{e}")
 
-def test_validate_upload_item_validate_dictionary(set_up_tb):
+def test_validate_upload_item_validate_dictionary():
     """
     Test that validate_upload_item raises a TypeError when upload_item is not a
     dictionary.
@@ -273,7 +273,7 @@ def test_validate_upload_item_validate_dictionary(set_up_tb):
         validate_upload_item(upload_item)
 
 
-def test_derive_integrity_data_file_doesnt_exist(set_up_tb):
+def test_derive_integrity_data_file_doesnt_exist():
     """
     Test that derive_integrity_data raises a FileExistsError when using a file
     path that does not exist.
@@ -284,7 +284,7 @@ def test_derive_integrity_data_file_doesnt_exist(set_up_tb):
     ):
         derive_integrity_data(file_path)
 
-def test_derive_integrity_data_path_is_string(set_up_tb):
+def test_derive_integrity_data_path_is_string():
     """
     Test that derive_integrity_data raises a TypeError when the file path is
     not a string.
