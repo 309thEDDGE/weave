@@ -3,6 +3,7 @@ import os
 import pytest
 import time
 from datetime import datetime
+from unittest.mock import patch
 
 from weave import upload
 from weave.uploader import upload_basket
@@ -590,7 +591,11 @@ def test_upload_basket_upload_items_is_a_list_of_only_dictionaries(set_up_tb):
     ):
         upload_basket(upload_items, upload_path, unique_id, basket_type)
 
-def test_upload_basket_with_bad_upload_items_is_deleted_if_it_fails(set_up_tb):
+@patch(
+    'weave.uploader_functions.UploadBasket.upload_basket_supplement_to_s3fs'
+)
+def test_upload_basket_with_bad_upload_items_is_deleted_if_it_fails(mocked_obj,
+                                                                    set_up_tb):
     """
     Test that upload_basket deletes bad upload items if it fails to upload.
     """
@@ -598,17 +603,24 @@ def test_upload_basket_with_bad_upload_items_is_deleted_if_it_fails(set_up_tb):
 
     # Create a temporary basket with a test file.
     tmp_basket_dir_name = "test_basket_tmp_dir"
-    tb.set_up_basket(tmp_basket_dir_name)
+    tmp_dir = tb.set_up_basket(tmp_basket_dir_name)
 
-    upload_items = [{}, "invalid2"]
+    upload_items = [{"path": tmp_dir.strpath, "stub": False}]
     unique_id = uuid.uuid1().hex
     basket_type = "test_basket"
     upload_path = os.path.join(tb.s3_bucket_name, basket_type, unique_id)
 
-    try:
+    with pytest.raises(
+        ValueError,
+        match="This error provided for"
+        "test_upload_basket_with_bad_upload_items_is_deleted_if_it_fails"
+    ):
+        mocked_obj.side_effect = ValueError(
+            "This error provided for"
+            "test_upload_basket_with_bad_upload_items_is_deleted_if_it_fails"
+        )
         upload_basket(upload_items, upload_path, unique_id, basket_type)
-    except TypeError:
-        assert not tb.s3fs_client.exists(upload_path)
+    assert not tb.s3fs_client.exists(upload_path)
 
 def test_upload_basket_upload_items_invalid_dictionary(set_up_tb):
     """

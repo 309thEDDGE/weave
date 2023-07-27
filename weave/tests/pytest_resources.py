@@ -43,15 +43,13 @@ class BucketForTest():
         return tmp_basket_dir
 
     def upload_basket(self, tmp_basket_dir,
-                      uid='0000', parent_ids=[],
-                      upload_items=None, metadata={}):
+                      uid='0000', parent_ids=[], metadata={}):
         """Upload a temporary (local) basket to the S3 test bucket."""
         b_type = "test_basket"
         up_dir = os.path.join(self.s3_bucket_name, b_type, uid)
 
-        if upload_items is None:
-            upload_items = [{'path':str(tmp_basket_dir.realpath()),
-                           'stub':False}]
+        upload_items = [{'path':str(tmp_basket_dir.realpath()),
+                         'stub':False}]
 
         upload_basket(
             upload_items=upload_items,
