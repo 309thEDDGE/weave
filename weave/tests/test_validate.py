@@ -165,7 +165,6 @@ class TestValidate():
         upload_dir = self.s3_bucket_name
         b_type = "test_basket"
         up_dir = os.path.join(upload_dir, b_type, uid)
-        
         upload_basket(
             upload_items=[{'path':str(tmp_basket_dir.realpath()),
                            'stub':False}],
@@ -195,9 +194,11 @@ def test_validate_bucket_does_not_exist(set_up_TestValidate):
     
     bucket_path = Path("THISisNOTaPROPERbucketNAMEorPATH")
     
-    with pytest.warns(UserWarning, 
-                      match=f"Invalid Bucket Path. "
-                            f"Bucket does not exist at: {bucket_path}\n"):
+    with pytest.warns(
+        UserWarning, 
+        match=f"Invalid Bucket Path. "
+        f"Bucket does not exist at: {bucket_path}"
+    ):
         validate.validate_bucket(bucket_path)
     
 
@@ -220,9 +221,11 @@ def test_validate_no_supplement_file(set_up_TestValidate):
     
     tv.s3fs_client.rm(supplement_path)
     
-    with pytest.warns(UserWarning, 
-                      match=f"Invalid Basket. "
-                            f"No Supplement file found at: {supplement_path}\n"):
+    with pytest.warns(
+        UserWarning, 
+        match=f"Invalid Basket. "
+        f"No Supplement file found at: {supplement_path}"
+    ):
         validate.validate_bucket(tv.s3_bucket_name)
 
     
@@ -244,7 +247,7 @@ def test_validate_invalid_manifest_schema(set_up_TestValidate):
     """make basket with invalid manifest schema, check that it throws an error
     """
     tv = set_up_TestValidate
-    breakpoint()
+    
     # the 'uuid: 100' is supposed to be a string, not a number, 
     # this is invalid against the schema
     bad_manifest_data = """{
@@ -254,7 +257,7 @@ def test_validate_invalid_manifest_schema(set_up_TestValidate):
         "basket_type": "str",
         "label": "str"
     }"""
-
+    
     tmp_basket_dir = tv.set_up_basket(
                             "bad_man_schema", 
                             is_man=True, 
@@ -269,17 +272,13 @@ def test_validate_invalid_manifest_schema(set_up_TestValidate):
     supplement_path = os.path.join(s3_basket_path, "basket_supplement.json")
     tv.s3fs_client.rm(manifest_path)
     tv.s3fs_client.rm(supplement_path)
-    
-    with pytest.warns(UserWarning, 
-                      match=f"Invalid Basket. "
-                      f"Manifest Schema does not match at: {s3_basket_path}\n"):
+
+    with pytest.warns(
+        UserWarning, 
+        match=f"Invalid Basket. "
+        f"Manifest Schema does not match at: {s3_basket_path}"
+    ):
         validate.validate_bucket(tv.s3_bucket_name)
-    # with pytest.raises(
-    #     ValueError, 
-    #     match=f"Invalid Basket. "
-    #     f"Manifest Schema does not match at: {s3_basket_path}"
-    # ):
-    #     validate.validate_bucket(tv.s3_bucket_name)
 
         
 def test_validate_manifest_schema_missing_field(set_up_TestValidate):
@@ -311,8 +310,8 @@ def test_validate_manifest_schema_missing_field(set_up_TestValidate):
     tv.s3fs_client.rm(manifest_path)
     tv.s3fs_client.rm(supplement_path)
 
-    with pytest.raises(
-        ValueError, 
+    with pytest.warns(
+        UserWarning, 
         match=f"Invalid Basket. "
         f"Manifest Schema does not match at: {s3_basket_path}"
     ):
@@ -351,8 +350,8 @@ def test_validate_manifest_schema_additional_field(set_up_TestValidate):
     tv.s3fs_client.rm(manifest_path)
     tv.s3fs_client.rm(supplement_path)
 
-    with pytest.raises(
-        ValueError, 
+    with pytest.warns(
+        UserWarning, 
         match=f"Invalid Basket. "
         f"Manifest Schema does not match at: {s3_basket_path}"
     ):
@@ -380,8 +379,8 @@ def test_validate_invalid_manifest_json(set_up_TestValidate):
     tv.s3fs_client.rm(manifest_path)
     tv.s3fs_client.rm(supplement_path)
     
-    with pytest.raises(
-        ValueError, 
+    with pytest.warns(
+        UserWarning, 
         match=f"Invalid Basket. "
         f"Manifest could not be loaded into json at: {s3_basket_path}"
     ):
@@ -430,8 +429,8 @@ def test_validate_invalid_supplement_schema(set_up_TestValidate):
     tv.s3fs_client.rm(manifest_path)
     tv.s3fs_client.rm(supplement_path)
     
-    with pytest.raises(
-        ValueError, 
+    with pytest.warns(
+        UserWarning, 
         match=f"Invalid Basket. "
         f"Supplement Schema does not match at: {s3_basket_path}"
     ):
@@ -467,8 +466,8 @@ def test_validate_supplement_schema_missing_field(set_up_TestValidate):
     tv.s3fs_client.rm(manifest_path)
     tv.s3fs_client.rm(supplement_path)
 
-    with pytest.raises(
-        ValueError, 
+    with pytest.warns(
+        UserWarning, 
         match=f"Invalid Basket. "
         f"Supplement Schema does not match at: {s3_basket_path}"
     ):
@@ -517,8 +516,8 @@ def test_validate_supplement_schema_missing_array_field(set_up_TestValidate):
     tv.s3fs_client.rm(manifest_path)
     tv.s3fs_client.rm(supplement_path)
 
-    with pytest.raises(
-        ValueError, 
+    with pytest.warns(
+        UserWarning, 
         match=f"Invalid Basket. "
         f"Supplement Schema does not match at: {s3_basket_path}"
     ):
@@ -568,8 +567,8 @@ def test_validate_supplement_schema_missing_array_field_2(set_up_TestValidate):
     tv.s3fs_client.rm(manifest_path)
     tv.s3fs_client.rm(supplement_path)
 
-    with pytest.raises(
-        ValueError, 
+    with pytest.warns(
+        UserWarning, 
         match=f"Invalid Basket. "
         f"Supplement Schema does not match at: {s3_basket_path}"
     ):
@@ -623,8 +622,8 @@ def test_validate_supplement_schema_added_array_field(set_up_TestValidate):
     tv.s3fs_client.rm(manifest_path)
     tv.s3fs_client.rm(supplement_path)
 
-    with pytest.raises(
-        ValueError, 
+    with pytest.warns(
+        UserWarning, 
         match=f"Invalid Basket. "
         f"Supplement Schema does not match at: {s3_basket_path}"
     ):
@@ -678,8 +677,8 @@ def test_validate_supplement_schema_added_array_field_2(set_up_TestValidate):
     tv.s3fs_client.rm(manifest_path)
     tv.s3fs_client.rm(supplement_path)
 
-    with pytest.raises(
-        ValueError, 
+    with pytest.warns(
+        UserWarning, 
         match=f"Invalid Basket. "
         f"Supplement Schema does not match at: {s3_basket_path}"
     ):
@@ -730,8 +729,8 @@ def test_validate_supplement_schema_additional_field(set_up_TestValidate):
     tv.s3fs_client.rm(manifest_path)
     tv.s3fs_client.rm(supplement_path)
 
-    with pytest.raises(
-        ValueError, 
+    with pytest.warns(
+        UserWarning, 
         match=f"Invalid Basket. "
         f"Supplement Schema does not match at: {s3_basket_path}"
     ):
@@ -777,8 +776,8 @@ def test_validate_supplement_schema_empty_upload_items(set_up_TestValidate):
     tv.s3fs_client.rm(manifest_path)
     tv.s3fs_client.rm(supplement_path)
 
-    with pytest.raises(
-        ValueError, 
+    with pytest.warns(
+        UserWarning, 
         match=f"Invalid Basket. "
         f"Supplement Schema does not match at: {s3_basket_path}"
     ):
@@ -816,8 +815,8 @@ def test_validate_supplement_schema_empty_integrity_data(set_up_TestValidate):
     tv.s3fs_client.rm(manifest_path)
     tv.s3fs_client.rm(supplement_path)
 
-    with pytest.raises(
-        ValueError, 
+    with pytest.warns(
+        UserWarning, 
         match=f"Invalid Basket. "
         f"Supplement Schema does not match at: {s3_basket_path}"
     ):
@@ -844,8 +843,8 @@ def test_validate_invalid_supplement_json(set_up_TestValidate):
     tv.s3fs_client.rm(manifest_path)
     tv.s3fs_client.rm(supplement_path)
     
-    with pytest.raises(
-        ValueError, 
+    with pytest.warns(
+        UserWarning, 
         match=f"Invalid Basket. "
         f"Supplement could not be loaded into json at: {s3_basket_path}"
     ):
@@ -872,8 +871,8 @@ def test_validate_invalid_metadata_json(set_up_TestValidate):
     tv.s3fs_client.rm(manifest_path)
     tv.s3fs_client.rm(supplement_path)
     
-    with pytest.raises(
-        ValueError, 
+    with pytest.warns(
+        UserWarning, 
         match=f"Invalid Basket. "
         f"Metadata could not be loaded into json at: {s3_basket_path}"
     ):
@@ -894,8 +893,8 @@ def test_validate_nested_basket(set_up_TestValidate):
     
     s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
       
-    with pytest.raises(
-        ValueError, 
+    with pytest.warns(
+        UserWarning, 
         match=f"Invalid Basket. "
         f"Manifest File found in sub directory of basket at: {s3_basket_path}"
     ):
@@ -943,9 +942,9 @@ def test_validate_deeply_nested(set_up_TestValidate):
     
     s3_basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
     
-    with pytest.raises(
-        ValueError, match=
-        f"Invalid Basket. "
+    with pytest.warns(
+        UserWarning, 
+        match= f"Invalid Basket. "
         f"Manifest File found in sub directory of basket at: {s3_basket_path}"
     ):
         validate.validate_bucket(tv.s3_bucket_name)
@@ -1020,8 +1019,8 @@ def test_validate_fifty_baskets_invalid(set_up_TestValidate):
         uuid = '00' + str(i)
         tv.upload_basket(tmp_basket_dir=tmp_basket_dir, uid=uuid)
 
-    with pytest.raises(
-        ValueError, 
+    with pytest.warns(
+        UserWarning, 
         match=f"Invalid Basket. "
         f"Manifest File found in sub "
         f"directory of basket at: {invalid_basket_path}"
@@ -1077,7 +1076,7 @@ def test_validate_call_check_level(set_up_TestValidate):
         metadata={"Test":1, "test_bool":True}
     )    
     
-    assert validate._check_level(tv.s3_bucket_name)
+    assert validate._check_level(tv.s3_bucket_name, valid_bucket=True)
     
     
 def test_validate_call_validate_basket(set_up_TestValidate):
@@ -1099,9 +1098,9 @@ def test_validate_call_validate_basket(set_up_TestValidate):
     )    
     
         
-    with pytest.raises(
-        FileNotFoundError, 
+    with pytest.warns(
+        UserWarning, 
         match=f"Invalid Path. "
         f"No Basket found at: {tv.s3_bucket_name}"
     ):
-        validate._validate_basket(tv.s3_bucket_name)
+        validate._validate_basket(tv.s3_bucket_name, valid_bucket = True)
