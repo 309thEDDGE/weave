@@ -254,12 +254,12 @@ class Index():
             fs.rm(adr, recursive=True)
 
 
-    def get_parents(self, basket_address, **kwargs):
+    def get_parents(self, basket, **kwargs):
         """Recursively gathers all parents of basket and returns index
 
         Parameters
         ----------
-        basket_address: string
+        basket: string
             string that holds the path of the basket
             can also be the basket uuid
 
@@ -284,17 +284,17 @@ class Index():
         of the previous calls.
         """
         # collect info from kwargs
-        if "gen_level" in kwargs.keys():
+        if "gen_level" in kwargs:
             gen_level = kwargs["gen_level"]
         else:
             gen_level = 1
 
-        if "data" in kwargs.keys():
+        if "data" in kwargs:
             data = kwargs["data"]
         else:
             data = pd.DataFrame()
 
-        if "descendants" in kwargs.keys():
+        if "descendants" in kwargs:
             descendants = kwargs["descendants"]
         else:
             descendants = []
@@ -309,18 +309,18 @@ class Index():
 
         # validate the bucket exists. if it does,
         # make sure we use the address or the uid
-        if (not fs.exists(basket_address) and
-            basket_address not in self.index_df.uuid.values):
+        if (not fs.exists(basket) and
+            basket not in self.index_df.uuid.values):
             raise FileNotFoundError(
-                f"basket path or uuid does not exist '{basket_address}'"
+                f"basket path or uuid does not exist '{basket}'"
             )
-        else:
-            if fs.exists(basket_address):
-                current_uid = self.index_df["uuid"].loc[
-                    self.index_df["address"] == basket_address
-                ].values[0]
-            if basket_address in self.index_df.uuid.values:
-                current_uid = basket_address
+
+        if fs.exists(basket):
+            current_uid = self.index_df["uuid"].loc[
+                self.index_df["address"] == basket
+            ].values[0]
+        elif basket in self.index_df.uuid.values:
+            current_uid = basket
 
         # get all the parent uuids for the current uid
         puids = self.index_df["parent_uuids"].loc[
@@ -336,12 +336,13 @@ class Index():
         else:
             descendants.append(current_uid)
 
-        parents_index = self.index_df.loc[self.index_df["uuid"].isin(puids), :]
+        parents_index = self.index_df.loc[
+            self.index_df["uuid"].isin(puids), :
+        ].copy()
 
         if len(parents_index) == 0:
             return data
 
-        parents_index = parents_index.copy()
         parents_index.loc[:, "generation_level"] = gen_level
 
         #add the parents for this generation to the data
@@ -349,19 +350,19 @@ class Index():
 
         # for every parent, go get their parents
         for basket_addr in parents_index["address"]:
-            data = self.get_parents(basket_address=basket_addr,
+            data = self.get_parents(basket=basket_addr,
                                     gen_level=gen_level+1,
                                     data=data,
                                     descendants=descendants.copy())
         return data
 
 
-    def get_children(self, basket_address, **kwargs):
+    def get_children(self, basket, **kwargs):
         """Recursively gathers all the children of basket and returns an index
 
         Parameters
         ----------
-        basket_address: string
+        basket: string
             string that holds the path of the basket
             can also be the basket uuid
 
@@ -386,17 +387,17 @@ class Index():
         of the previous calls.
         """
         # collect info from kwargs
-        if "gen_level" in kwargs.keys():
+        if "gen_level" in kwargs:
             gen_level = kwargs["gen_level"]
         else:
             gen_level = -1
 
-        if "data" in kwargs.keys():
+        if "data" in kwargs:
             data = kwargs["data"]
         else:
             data = pd.DataFrame()
 
-        if "ancestors" in kwargs.keys():
+        if "ancestors" in kwargs:
             ancestors = kwargs["ancestors"]
         else:
             ancestors = []
@@ -411,18 +412,18 @@ class Index():
 
         # validate the bucket exists. if it does,
         # make sure we use the address or the uid
-        if (not fs.exists(basket_address) and
-            basket_address not in self.index_df.uuid.values):
+        if (not fs.exists(basket) and
+            basket not in self.index_df.uuid.values):
             raise FileNotFoundError(
-                f"basket path or uuid does not exist '{basket_address}'"
+                f"basket path or uuid does not exist '{basket}'"
             )
-        else:
-            if fs.exists(basket_address):
-                current_uid = self.index_df["uuid"].loc[
-                    self.index_df["address"] == basket_address
-                ].values[0]
-            if basket_address in self.index_df.uuid.values:
-                current_uid = basket_address
+
+        if fs.exists(basket):
+            current_uid = self.index_df["uuid"].loc[
+                self.index_df["address"] == basket
+            ].values[0]
+        elif basket in self.index_df.uuid.values:
+            current_uid = basket
 
         # this looks at all the baskets and returns a list of baskets who have
         # the the parent id inside their "parent_uuids" list
@@ -452,7 +453,7 @@ class Index():
 
         # go through all the children and get their children too
         for basket_addr in child_index["address"]:
-            data =  self.get_children(basket_address=basket_addr,
+            data =  self.get_children(basket=basket_addr,
                                       gen_level=gen_level-1,
                                       data=data,
                                       ancestors=ancestors.copy())
