@@ -2,13 +2,13 @@ import json
 import os
 import re
 import warnings
+from unittest.mock import patch
 
 import pandas as pd
 import pytest
 
 from weave.config import get_file_system
-from weave.index import create_index_from_s3
-from weave.index import Index
+from weave.index import create_index_from_s3, Index
 from weave.tests.pytest_resources import BucketForTest
 
 """Pytest Fixtures Documentation:
@@ -71,50 +71,55 @@ def test_correct_index(set_up_tb):
     )
 
 @pytest.fixture
-def set_up_malformed_basket(tmpdir):
+def set_up_malformed_baskets(tmpdir):
     """
     upload a basket with a basket_details.json with incorrect keys.
     """
     tb = BucketForTest(tmpdir)
-    tmp_basket_dir_one = tb.set_up_basket("basket_one")
-    addr_one = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
-    tmp_basket_dir_two = tb.set_up_basket("basket_two")
-    addr_two = tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002",
-                    parent_ids = ['0001'])
+    good_addresses = []
+    bad_addresses= []
+    for i in range(10):
+        tmp_basket_dir = tb.set_up_basket(f"basket_{i}")
+        address = tb.upload_basket(
+            tmp_basket_dir=tmp_basket_dir, uid=f"000{i}"
+        )
 
-    # change a key in this basket_manifest.json
-    basket_dict = {}
-    s3fs_client = tb.s3fs_client
-    with s3fs_client.open(
-        f"{tb.s3_bucket_name}/test_basket/0002/basket_manifest.json",
-        "rb",
-    ) as f:
-        basket_dict = json.load(f)
-        basket_dict.pop("uuid")
-    basket_path = os.path.join(tmp_basket_dir_one, "basket_manifest.json")
-    with open(basket_path, "w") as f:
-        json.dump(basket_dict, f)
-    s3fs_client.upload(
-        basket_path,
-        f"{tb.s3_bucket_name}/test_basket/0002/basket_manifest.json",
-    )
+        #change a key in the bad baske_manifests
+        if (i % 3) == 0:
+            bad_addresses.append(address)
 
-    yield tb, addr_one, addr_two
+            basket_dict = {}
+            manifest_address = (f"{tb.s3_bucket_name}/test_basket/"
+                                f"000{i}/basket_manifest.json")
+
+            with tb.s3fs_client.open(manifest_address,"rb") as f:
+                basket_dict = json.load(f)
+                basket_dict.pop("uuid")
+            basket_path = os.path.join(tmp_basket_dir, "basket_manifest.json")
+            with open(basket_path, "w") as f:
+                json.dump(basket_dict, f)
+
+            tb.s3fs_client.upload(basket_path,manifest_address)
+
+        else:
+            good_addresses.append(address)
+
+    yield tb, good_addresses, bad_addresses
     tb.cleanup_bucket()
 
-def test_create_index_with_malformed_basket_works(set_up_malformed_basket):
+def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
     '''check that the index is made correctly when a malformed basket exists.
     '''
-    tb, addr_one, addr_two = set_up_malformed_basket
+    tb, good_addresses, bad_addresses = set_up_malformed_baskets
 
     truth_index_dict = {
-        "uuid": "0001",
+        "uuid": [f"000{i}" for i in [1,2,4,5,7,8]],
         "upload_time": "whatever",
-        "parent_uuids": [[]],
+        "parent_uuids": [[], [], [], [], [], []],
         "basket_type": "test_basket",
         "label": "",
-        "address": addr_one,
+        "address": good_addresses,
         "storage_type": "s3",
     }
     truth_index = pd.DataFrame(truth_index_dict)
@@ -127,14 +132,17 @@ def test_create_index_with_malformed_basket_works(set_up_malformed_basket):
         .all()
     )
 
-def test_create_index_with_bad_basket_throws_warning(set_up_malformed_basket):
+def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
     '''check that a warning is thrown during index creation
     '''
-    tb, addr_one, addr_two = set_up_malformed_basket
+    tb, good_addresses, bad_addresses = set_up_malformed_baskets
 
     with warnings.catch_warnings(record = True) as w:
         create_index_from_s3(tb.s3_bucket_name)
-        assert (addr_two in str(w[0].message) and len(w) == 1)
+        message = ('baskets found in the following locations '
+                  'do not follow specified weave schema:\n'
+                  f'{bad_addresses}')
+        assert str(w[0].message) == message
 
 def test_sync_index_gets_latest_index(set_up_tb):
     tb = set_up_tb
@@ -310,3 +318,65 @@ def test_delete_basket_fails_if_basket_is_parent(set_up_tb):
         )
     ):
         ind.delete_basket(basket_uuid="0001")
+
+def test_upload_basket_updates_the_index(set_up_tb):
+    """
+    In this test the index already exists with one basket inside of it.
+    This test will add another basket using Index.upload_basket, and then check
+    to ensure that the index_df has been updated.
+    """
+    tb = set_up_tb
+    # Put basket in the temporary bucket
+    tmp_basket_dir_one = tb.set_up_basket("basket_one")
+    tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+
+    # create index
+    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind.generate_index()
+
+    # add another basket
+    tmp_basket_dir_two = tb.set_up_basket("basket_two")
+    ind.upload_basket(upload_items=[{'path':str(tmp_basket_dir_two.realpath()),
+                                     'stub':False}],
+                      basket_type="test")
+    assert(len(ind.index_df) == 2)
+
+def test_upload_basket_works_on_empty_basket(set_up_tb):
+    """
+    In this test the Index object will upload a basket to a pantry that does
+    not have any baskets yet. This test will make sure that this functionality
+    is present, and that the index_df has been updated.
+    """
+    tb = set_up_tb
+    # Put basket in the temporary bucket
+    tmp_basket = tb.set_up_basket("basket_one")
+    ind = Index(tb.s3_bucket_name)
+    ind.upload_basket(upload_items=[{'path':str(tmp_basket.realpath()),
+                                     'stub':False}],
+                      basket_type="test")
+    assert(len(ind.index_df) == 1)
+
+@patch(
+    'weave.uploader_functions.UploadBasket.upload_basket_supplement_to_s3fs'
+)
+def test_upload_basket_gracefully_fails(mocked_obj, set_up_tb):
+    """
+    In this test an engineered failure to upload the basket occurs.
+    Index.upload_basket() should not add anything to the index_df.
+    Additionally, the basket in question should be deleted from storage (I will
+    make the process fail only after a partial upload).
+    """
+    tb = set_up_tb
+    tmp_basket = tb.set_up_basket("basket_one")
+    ind = Index(tb.s3_bucket_name)
+    with pytest.raises(
+        ValueError,
+        match="This error provided for test_upload_basket_gracefully_fails"
+    ):
+        mocked_obj.side_effect = ValueError(
+            "This error provided for test_upload_basket_gracefully_fails"
+        )
+        ind.upload_basket(upload_items=[{'path':str(tmp_basket.realpath()),
+                                         'stub':False}],
+                          basket_type="test")
+    assert len(tb.s3fs_client.ls(tb.s3_bucket_name)) == 0

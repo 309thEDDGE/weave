@@ -7,8 +7,7 @@ from weave import config
 
 
 def validate_bucket(bucket_name): 
-    """
-    Starts the validation process off based off the name of the bucket
+    """Starts the validation process off based off the name of the bucket
     
     Validates that the bucket actually exists at the location given.
     If there is a bucket that exists, check it and every subdirectory by 
@@ -23,7 +22,7 @@ def validate_bucket(bucket_name):
     ----------
     A bool of whether the bucket is valid or not that comes from check_level()
     """
-    
+
     s3fs_client = config.get_file_system()
     
     if not s3fs_client.exists(bucket_name):
@@ -37,7 +36,8 @@ def validate_bucket(bucket_name):
 
 
 def _check_level(current_dir, in_basket=False):    
-    """
+    """Check all immediate subdirs in dir, check for manifest
+    
     Checks all the immediate subdirectories and files in the given directory 
     to see if there is a basket_manifest.json file. If there is a manifest, 
     it's a basket and must be validated.
@@ -81,28 +81,39 @@ def _check_level(current_dir, in_basket=False):
         
     # go through all the other files, if it's a directory, we need to check it
     dirs_and_files = s3fs_client.find(
-        path=current_dir, maxdepth=1, withdirs=True
+        path=current_dir, 
+        maxdepth=1, 
+        withdirs=True
     )
-
+    
     for file_or_dir in dirs_and_files:
         file_type = s3fs_client.info(file_or_dir)['type']
 
         if file_type == 'directory':
-            #we don't want to reutrn check_level here because 
-            #if it's valid, then you still need to 
-            # check the rest of the dirs
-            if not _check_level(file_or_dir, in_basket=in_basket): 
-                return False
+            # if we are in a basket, check evrything under it, for a manifest
+            # and return true, this will return true to the _validate_basket
+            # and throw an error
+            if in_basket:
+                return _check_level(file_or_dir, in_basket=in_basket)
+            # if we aren't in the basket, we want to check all files in our
+            # current dir. If everything is valid, _check_level returns true
+            # if it isn't valid, we go in and return false
+            # we don't want to return _check_level because we want to keep
+            # looking at all the sub-directories
+            else:
+                if not _check_level(file_or_dir, in_basket=in_basket):
+                    return False
     
-    # This is a backup return because if there are no baskets at all,
-    # and no other files, then return true, because the structure is still
-    # valid, but we just didn't find a basket to validate
-    return True
+    # This is the default backup return. 
+    # If we are in a basket, it will be valid if we return false,
+    # because we want to signify that we didn't find another basket
+    # If we are not in a basket, we want to return true, because 
+    # we didn't find a basekt and it was valid to have no baskets
+    return not in_basket
 
 
 def _validate_basket(basket_dir):   
-    """
-    Takes the root directory of a basket and validates it
+    """Takes the root directory of a basket and validates it
     
     Validation means there is a required basket_manifest.json and
     basket_supplment.json. And an optional basket_metadata.json
@@ -149,10 +160,10 @@ def _validate_basket(basket_dir):
         )
     
     files_in_basket = s3fs_client.find(
-                                path=basket_dir, 
-                                maxdepth=1, 
-                                withdirs=True
-                            )
+        path=basket_dir, 
+        maxdepth=1, 
+        withdirs=True
+    )
         
     for file in files_in_basket:   
         basket_dir, file_name = os.path.split(file)
