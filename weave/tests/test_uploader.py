@@ -613,7 +613,7 @@ def test_upload_basket_upload_items_invalid_dictionary(set_up_tb):
     ):
         upload_basket(upload_items, upload_path, tb.fs, unique_id, basket_type)
 
-<<<<<<< HEAD
+
 def test_deletion_when_basket_upload_items_is_an_invalid_dictionary(set_up_tb):
     """
     Test that upload_basket deletes a bad upload basket when upload items is 

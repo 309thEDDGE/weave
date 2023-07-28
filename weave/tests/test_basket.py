@@ -38,16 +38,14 @@ def test_basket_basket_path_is_pathlike():
     Test that we get an error when trying to instantiate a basket with invalid
     basket address type.
     """
-    tb = set_up_tb
-
     basket_path = 1
     with pytest.raises(
         TypeError,
         match="expected str, bytes or os.PathLike object, not int",
     ):
-        Basket(basket_path, file_system=tb.fs)
+        Basket(basket_path)
 
-def test_basket_address_does_not_exist():
+def test_basket_address_does_not_exist(set_up_tb):
     """
     Test that an error is raised when trying to instantiate a basket with an
     invalid basket address.
