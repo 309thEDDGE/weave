@@ -149,7 +149,7 @@ def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
     # We catch the warnings here, as it will warn for bad baskets, but we don't
     # want the warning to drop through to the pytest log in this test.
     # (Checking the warnings are correct is tested in the next unit test.)
-    with warnings.catch_warnings(record = True) as w:
+    with warnings.catch_warnings(record = True):
         actual_index = create_index_from_fs(tb.bucket_name, tb.fs)
 
     assert (
@@ -184,7 +184,9 @@ def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
 
         # Check the addresses returned in the warning are the ones we expect.
         warning_addrs_str = warn_msg[warn_msg.find("\n")+1:]
-        warning_addrs_list = warning_addrs_str.strip("[]").replace("'", '').split(', ')
+        warning_addrs_list = warning_addrs_str.strip("[]") \
+                                              .replace("'", '') \
+                                              .split(', ')
         assert all(
             [a_addr.endswith(e_addr)
              for a_addr, e_addr in zip(warning_addrs_list, bad_addresses)]

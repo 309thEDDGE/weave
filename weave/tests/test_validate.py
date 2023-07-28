@@ -1004,7 +1004,7 @@ def test_validate_no_baskets(set_up_TestValidate):
 
 
 def test_validate_fifty_baskets_invalid(set_up_TestValidate):
-    """create bucket with 50 baskets, and 1 nested, check that it throws error 
+    """Create bucket with 50 baskets, and 1 nested, check that it throws error
     """
     tv = set_up_TestValidate
 
@@ -1031,15 +1031,16 @@ def test_validate_fifty_baskets_invalid(set_up_TestValidate):
 
     with pytest.raises(
         ValueError,
-        match=f"Invalid Basket. "
-        f"Manifest File found in sub "
-        f"directory of basket at: {invalid_basket_path}"
-    ):
+        match="Invalid Basket. "
+        "Manifest File found in sub directory of basket at: "
+    ) as e_info:
         validate.validate_bucket(tv.bucket_name, tv.fs)
 
+    # Check the invalid basket path is what we expect (disregarding FS prefix)
+    assert(e_info.value.args[1].endswith(invalid_basket_path))
 
 def test_validate_fifty_baskets_valid(set_up_TestValidate):
-    """create bucket with 50 baskets, and 0 nested, check that its valid
+    """Create bucket with 50 baskets, and 0 nested, check that its valid
     """
     tv = set_up_TestValidate
 
@@ -1068,7 +1069,7 @@ def test_validate_fifty_baskets_valid(set_up_TestValidate):
 
 
 def test_validate_call_check_level(set_up_TestValidate):
-    """create basket, call _check_level()
+    """Create basket, call _check_level()
 
     create a basket, call _check_level() which is a private function,
     check that it returns true. it returns true, because the _check_level
@@ -1089,7 +1090,7 @@ def test_validate_call_check_level(set_up_TestValidate):
 
 
 def test_validate_call_validate_basket(set_up_TestValidate):
-    """create basket, call _validate_basket, a private function
+    """Create basket, call _validate_basket, a private function
 
     create a basket, call _validate_basket(), which is a private function.
     check that it throws an error. it throws an error because _validate_basket
