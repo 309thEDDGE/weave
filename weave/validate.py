@@ -218,10 +218,9 @@ def _validate_basket(basket_dir, file_system):
         # if we check it and find a basket, this basket is invalid.
         if fs.info(file)['type'] == 'directory':
             if _check_level(file, fs, in_basket=True):
-                raise ValueError(
-                    f"Invalid Basket. "
-                    f"Manifest File found in sub directory of "
-                    f"basket at: {basket_dir}"
+                raise ValueError("Invalid Basket. Manifest File "
+                                 "found in sub directory of basket at: ",
+                                 basket_dir
                 )
 
     # default return true if we don't find any problems with this basket
