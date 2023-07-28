@@ -33,7 +33,7 @@ def set_up_tb(request, tmpdir):
     yield tb
     tb.cleanup_bucket()
 
-def test_basket_basket_path_is_pathlike(set_up_tb):
+def test_basket_basket_path_is_pathlike():
     """
     Test that we get an error when trying to instantiate a basket with invalid
     basket address type.
@@ -47,7 +47,7 @@ def test_basket_basket_path_is_pathlike(set_up_tb):
     ):
         Basket(basket_path, file_system=tb.fs)
 
-def test_basket_address_does_not_exist(set_up_tb):
+def test_basket_address_does_not_exist():
     """
     Test that an error is raised when trying to instantiate a basket with an
     invalid basket address.

@@ -208,6 +208,10 @@ class Index():
     def generate_index(self):
         '''Generates index and stores it in a basket'''
         index = create_index_from_fs(self.bucket_name, self.fs)
+        self._upload_index(index=index)
+
+    def _upload_index(self, index):
+        """Upload a new index"""
         with tempfile.TemporaryDirectory() as out:
             ns = time_ns()
             temp_json_path = os.path.join(out, f"{ns}-index.json")
@@ -255,3 +259,47 @@ class Index():
                 self.index_df["uuid"] == basket_uuid
             ]["address"].iloc[0]
             self.fs.rm(adr, recursive=True)
+
+
+    def upload_basket(self, upload_items, basket_type, parent_ids=[],
+                      metadata={}, label=""):
+        """Upload a basket to the same pantry referenced by the Index
+
+        Parameters
+        ----------
+        upload_items : [dict]
+            List of python dictionaries with the following schema:
+            {
+                'path': path to the file or folder being uploaded (string),
+                'stub': true/false (bool)
+            }
+            'path' can be a file or folder to be uploaded. Every filename
+            and folder name must be unique. If 'stub' is set to True, integrity
+            data will be included without uploading the actual file or folder.
+            Stubs are useful when original file source information is desired
+            without uploading the data itself. This is especially useful when
+            dealing with large files.
+        basket_type: str
+            Type of basket being uploaded.
+        parent_ids: optional [str]
+            List of unique ids associated with the parent baskets
+            used to derive the new basket being uploaded.
+        metadata: optional dict,
+            Python dictionary that will be written to metadata.json
+            and stored in the basket in MinIO.
+        label: optional str,
+            Optional user friendly label associated with the basket.
+        """
+        self.sync_index()
+        up_dir = upload(
+            upload_items=upload_items,
+            basket_type=basket_type,
+            bucket_name=self.bucket_name,
+            parent_ids=parent_ids,
+            metadata=metadata,
+            label=label,
+        )
+        single_indice_index = create_index_from_s3(up_dir)
+        self._upload_index(
+            pd.concat([self.index_df, single_indice_index], ignore_index=True)
+        )
