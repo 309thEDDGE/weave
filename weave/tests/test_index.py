@@ -416,6 +416,7 @@ def test_upload_basket_gracefully_fails(mocked_obj, set_up_tb):
     make the process fail only after a partial upload).
     """
     tb = set_up_tb
+    breakpoint()
     tmp_basket = tb.set_up_basket("basket_one")
     ind = Index(tb.bucket_name, file_system=tb.fs)
     with pytest.raises(
@@ -428,4 +429,5 @@ def test_upload_basket_gracefully_fails(mocked_obj, set_up_tb):
         ind.upload_basket(upload_items=[{'path':str(tmp_basket.realpath()),
                                          'stub':False}],
                           basket_type="test")
+
     assert len(tb.fs.ls(tb.bucket_name)) == 0
