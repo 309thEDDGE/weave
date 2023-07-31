@@ -70,6 +70,7 @@ def _check_level(current_dir, valid_bucket, in_basket=False):
         warnings.warn(
             f"Invalid Path. No file or directory found at: {current_dir}\n")
         valid_bucket = False
+        # return "Invalid Bucket"
     
     manifest_path = os.path.join(current_dir, 'basket_manifest.json')
     
@@ -112,11 +113,11 @@ def _check_level(current_dir, valid_bucket, in_basket=False):
     # If we are in a basket, it will be valid if we return false,
     # because we want to signify that we didn't find another basket
     # If we are not in a basket, we want to return true, because 
-    # we didn't find a basekt and it was valid to have no baskets
+    # we didn't find a basket and it was valid to have no baskets
     # return not in_basket
     if not in_basket:
-        return "Valid Bucket"
-    return "Invalid Bucket"
+        return "Invalid Bucket"
+    return "Valid Bucket"
 
 def _validate_basket(basket_dir, valid_bucket):   
     """Takes the root directory of a basket and validates it
@@ -234,5 +235,3 @@ def _validate_basket(basket_dir, valid_bucket):
     if valid_bucket:
         return "Valid Bucket"
     return "Invalid Bucket"
-
-print(validate_bucket('basket-data'))
