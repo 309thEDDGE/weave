@@ -294,12 +294,13 @@ class Index():
         up_dir = upload(
             upload_items=upload_items,
             basket_type=basket_type,
+            file_system=self.fs,
             bucket_name=self.bucket_name,
             parent_ids=parent_ids,
             metadata=metadata,
             label=label,
         )
-        single_indice_index = create_index_from_s3(up_dir)
+        single_indice_index = create_index_from_fs(up_dir, self.fs)
         self._upload_index(
             pd.concat([self.index_df, single_indice_index], ignore_index=True)
         )

@@ -380,7 +380,7 @@ def test_upload_basket_updates_the_index(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # create index
-    ind = Index(bucket_name=tb.s3_bucket_name, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, sync=True, file_system=tb.fs)
     ind.generate_index()
 
     # add another basket
@@ -399,14 +399,14 @@ def test_upload_basket_works_on_empty_basket(set_up_tb):
     tb = set_up_tb
     # Put basket in the temporary bucket
     tmp_basket = tb.set_up_basket("basket_one")
-    ind = Index(tb.s3_bucket_name)
+    ind = Index(tb.bucket_name, file_system=tb.fs)
     ind.upload_basket(upload_items=[{'path':str(tmp_basket.realpath()),
                                      'stub':False}],
                       basket_type="test")
     assert(len(ind.index_df) == 1)
 
 @patch(
-    'weave.uploader_functions.UploadBasket.upload_basket_supplement_to_s3fs'
+    'weave.uploader_functions.UploadBasket.upload_basket_supplement_to_fs'
 )
 def test_upload_basket_gracefully_fails(mocked_obj, set_up_tb):
     """
@@ -417,7 +417,7 @@ def test_upload_basket_gracefully_fails(mocked_obj, set_up_tb):
     """
     tb = set_up_tb
     tmp_basket = tb.set_up_basket("basket_one")
-    ind = Index(tb.s3_bucket_name)
+    ind = Index(tb.bucket_name, file_system=tb.fs)
     with pytest.raises(
         ValueError,
         match="This error provided for test_upload_basket_gracefully_fails"
@@ -428,4 +428,4 @@ def test_upload_basket_gracefully_fails(mocked_obj, set_up_tb):
         ind.upload_basket(upload_items=[{'path':str(tmp_basket.realpath()),
                                          'stub':False}],
                           basket_type="test")
-    assert len(tb.s3fs_client.ls(tb.s3_bucket_name)) == 0
+    assert len(tb.fs.ls(tb.bucket_name)) == 0
