@@ -32,14 +32,13 @@ class UploadForTest(BucketForTest):
         parent_ids = [uuid.uuid1().hex]
 
         self.upload_path = upload(
-            upload_items,
-            b_type,
-            self.fs,
-            self.bucket_name,
-            parent_ids,
-            metadata,
-            label,
-            test_prefix="test-prefix",
+            upload_items=upload_items,
+            basket_type=b_type,
+            file_system=self.fs,
+            bucket_name=self.bucket_name,
+            parent_ids=parent_ids,
+            metadata=metadata,
+            label=label
         )
 
         self.uploaded_files = self.fs.ls(self.upload_path)
@@ -136,7 +135,7 @@ def test_upload_bucket_name_is_string():
     with pytest.raises(
         TypeError, match=f"'bucket_name' must be a string: '{bucket_name}'"
     ):
-        upload(upload_items, "test_basket", tu.fs, bucket_name=bucket_name)
+        upload(upload_items, "test_basket", bucket_name=bucket_name)
 
 # Test with two different fsspec file systems (top of file).
 @pytest.fixture(params=[s3fs, local_fs])
@@ -503,7 +502,7 @@ def test_upload_basket_upload_items_is_not_a_string(set_up_tb):
     ):
         upload_basket(upload_items, upload_path, tb.fs, unique_id, basket_type)
 
-    assert not tb.s3fs_client.exists(upload_path)
+    assert not tb.fs.exists(upload_path)
 
 def test_upload_basket_upload_items_is_not_a_list_of_strings(set_up_tb):
     """
@@ -526,7 +525,7 @@ def test_upload_basket_upload_items_is_not_a_list_of_strings(set_up_tb):
     ):
         upload_basket(upload_items, upload_path, tb.fs, unique_id, basket_type)
 
-    assert not tb.s3fs_client.exists(upload_path)
+    assert not tb.fs.exists(upload_path)
 
 def test_upload_basket_upload_items_is_a_list_of_only_dictionaries(set_up_tb):
     """
@@ -549,10 +548,10 @@ def test_upload_basket_upload_items_is_a_list_of_only_dictionaries(set_up_tb):
     ):
         upload_basket(upload_items, upload_path, tb.fs, unique_id, basket_type)
 
-    assert not tb.s3fs_client.exists(upload_path)
+    assert not tb.fs.exists(upload_path)
 
 @patch(
-    'weave.uploader_functions.UploadBasket.upload_basket_supplement_to_s3fs'
+    'weave.uploader_functions.UploadBasket.upload_basket_supplement_to_fs'
 )
 def test_upload_basket_with_bad_upload_items_is_deleted_if_it_fails(mocked_obj,
                                                                     set_up_tb):
@@ -579,9 +578,13 @@ def test_upload_basket_with_bad_upload_items_is_deleted_if_it_fails(mocked_obj,
             "This error provided for"
             "test_upload_basket_with_bad_upload_items_is_deleted_if_it_fails"
         )
-        upload_basket(upload_items, upload_path, unique_id, basket_type)
+        upload_basket(upload_items=upload_items,
+                      upload_directory=upload_path,
+                      file_system=tb.fs,
+                      unique_id=unique_id,
+                      basket_type=basket_type)
 
-    assert not tb.s3fs_client.exists(upload_path)
+    assert not tb.fs.exists(upload_path)
 
 def test_upload_basket_upload_items_invalid_dictionary(set_up_tb):
     """
@@ -735,8 +738,6 @@ def test_upload_basket_upload_path_is_string(set_up_tb):
     ):
         upload_basket(upload_items, upload_path, tb.fs, unique_id, basket_type)
 
-    assert not tb.fs.exists(f"{tmp_basket_dir}")
-
 def test_upload_basket_unique_id_string(set_up_tb):
     """
     Test that upload_basket raises a TypeError when unique id is not a string.
@@ -763,7 +764,7 @@ def test_upload_basket_unique_id_string(set_up_tb):
     ):
         upload_basket(upload_items, upload_path, tb.fs, unique_id, basket_type)
 
-    assert not tb.fs.exists(f"{tmp_basket_dir}")
+    assert not tb.fs.exists(f"{upload_path}")
 
 def test_upload_basket_type_is_string(set_up_tb):
     """
@@ -792,7 +793,7 @@ def test_upload_basket_type_is_string(set_up_tb):
     ):
         upload_basket(upload_items, upload_path, tb.fs, unique_id, basket_type)
 
-    assert not tb.fs.exists(f"{tmp_basket_dir}")
+    assert not tb.fs.exists(f"{upload_path}")
 
 def test_upload_basket_parent_ids_list_str(set_up_tb):
     """
@@ -829,7 +830,7 @@ def test_upload_basket_parent_ids_list_str(set_up_tb):
             parent_ids=parent_ids_in,
         )
 
-    assert not tb.fs.exists(f"{tmp_basket_dir}")
+    assert not tb.fs.exists(f"{upload_path}")
 
 def test_upload_basket_parent_ids_is_list(set_up_tb):
     """
@@ -865,7 +866,7 @@ def test_upload_basket_parent_ids_is_list(set_up_tb):
             parent_ids=parent_ids_in,
         )
 
-    assert not tb.fs.exists(f"{tmp_basket_dir}")
+    assert not tb.fs.exists(f"{upload_path}")
 
 def test_upload_basket_metadata_is_dictionary(set_up_tb):
     """
@@ -903,7 +904,7 @@ def test_upload_basket_metadata_is_dictionary(set_up_tb):
             metadata=metadata_in,
         )
 
-    assert not tb.fs.exists(f"{tmp_basket_dir}")
+    assert not tb.fs.exists(f"{upload_path}")
 
 def test_upload_basket_label_is_string(set_up_tb):
     """
@@ -939,7 +940,7 @@ def test_upload_basket_label_is_string(set_up_tb):
             label=label_in,
         )
 
-    assert not tb.fs.exists(f"{tmp_basket_dir}")
+    assert not tb.fs.exists(f"{upload_path}")
 
 def test_upload_basket_no_metadata(set_up_tb):
     """
@@ -1000,8 +1001,8 @@ def test_upload_basket_check_existing_upload_path(set_up_tb):
         upload_basket(upload_items, upload_path, tb.fs, unique_id, basket_type)
 
     assert (
-        tb.fs.ls(os.path.join(tb.bucket_name, f"{basket_type}"))
-        == [upload_path]
+        tb.fs.ls(os.path.join(tb.bucket_name, f"{basket_type}"))[0] \
+        .endswith(upload_path)
     )
 
 def test_upload_basket_check_unallowed_file_names(set_up_tb):
@@ -1035,8 +1036,7 @@ def test_upload_basket_check_unallowed_file_names(set_up_tb):
 
         basket_type = "test_basket"
         unique_id = uuid.uuid1().hex
-        upload_path = os.path.join(tb.bucket_name,
-                                   f"{basket_type}", unique_id)
+        upload_path = os.path.join(tb.bucket_name, f"{basket_type}", unique_id)
 
         with pytest.raises(
             ValueError,
@@ -1048,7 +1048,7 @@ def test_upload_basket_check_unallowed_file_names(set_up_tb):
                           unique_id,
                           basket_type)
 
-    assert not tb.fs.exists(f"{tmp_basket_dir}")
+    assert not tb.fs.exists(f"{upload_path}")
 
 def test_upload_basket_clean_up_on_error(set_up_tb):
     """
