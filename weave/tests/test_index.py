@@ -125,13 +125,18 @@ def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
     }
     truth_index = pd.DataFrame(truth_index_dict)
 
-    minio_index = create_index_from_s3(tb.s3_bucket_name)
-    assert (
-        (truth_index == minio_index)
-        .drop(columns=["upload_time"])
-        .all()
-        .all()
-    )
+    with warnings.catch_warnings(record = True) as w:
+        minio_index = create_index_from_s3(tb.s3_bucket_name)
+        message = ('baskets found in the following locations '
+                  'do not follow specified weave schema:\n'
+                  f'{bad_addresses}')
+        assert (
+            (truth_index == minio_index)
+            .drop(columns=["upload_time"])
+            .all()
+            .all() and
+            str(w[0].message) == message
+        )
 
 def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
     '''check that a warning is thrown during index creation
