@@ -5,7 +5,7 @@ from weave.uploader_functions import upload_basket
 from weave import validate, config
 
 
-class Validate():
+class ValidateForTest():
     """A class to test functions in validate.py"""
     def __init__(self, tmpdir):
         """Initializes the Validate class
@@ -184,7 +184,7 @@ class Validate():
         
 @pytest.fixture
 def set_up_Validate(tmpdir):
-    tv = Validate(tmpdir)
+    tv = ValidateForTest(tmpdir)
     yield tv
     tv.cleanup_bucket()
     
