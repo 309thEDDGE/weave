@@ -701,7 +701,6 @@ def test_get_children_15_deep(set_up_tb):
     answer = answer.copy()
     for i, j in zip(child_ids, child_gens):
         answer.loc[answer["uuid"] == i, gen_lvl] = j
-        # answer.loc[answer["uuid"] == i, gen_lvl] = j
 
     #format and sort so .equals can be properly used
     answer = answer.sort_values(by="uuid")
