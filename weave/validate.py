@@ -156,7 +156,7 @@ def _validate_basket(basket_dir, file_system):
 
     if not fs.exists(supplement_path):
         raise FileNotFoundError(
-            f"Invalid Basket. No Supplement file found at: {supplement_path}"
+            "Invalid Basket. No Supplement file found at: ", basket_dir
         )
 
     files_in_basket = fs.find(
@@ -176,14 +176,13 @@ def _validate_basket(basket_dir, file_system):
 
             except jsonschema.exceptions.ValidationError:
                 raise ValueError(
-                    f"Invalid Basket. "
-                    f"Manifest Schema does not match at: {file}"
+                    "Invalid Basket. Manifest Schema does not match at: ", file
                 )
 
             except json.decoder.JSONDecodeError:
                 raise ValueError(
-                    f"Invalid Basket. "
-                    f"Manifest could not be loaded into json at: {file}"
+                    "Invalid Basket. "
+                    "Manifest could not be loaded into json at: ", file
                 )
 
         if file_name == 'basket_supplement.json':
@@ -194,14 +193,14 @@ def _validate_basket(basket_dir, file_system):
 
             except jsonschema.exceptions.ValidationError:
                 raise ValueError(
-                    f"Invalid Basket. "
-                    f"Supplement Schema does not match at: {file}"
+                    "Invalid Basket. "
+                    "Supplement Schema does not match at: ", file
                 )
 
             except json.decoder.JSONDecodeError:
                 raise ValueError(
-                    f"Invalid Basket. "
-                    f"Supplement could not be loaded into json at: {file}"
+                    "Invalid Basket. "
+                    "Supplement could not be loaded into json at: ", file
                 )
 
         if file_name == 'basket_metadata.json':
@@ -210,8 +209,8 @@ def _validate_basket(basket_dir, file_system):
 
             except json.decoder.JSONDecodeError:
                 raise ValueError(
-                    f"Invalid Basket. "
-                    f"Metadata could not be loaded into json at: {file}"
+                    "Invalid Basket. "
+                    "Metadata could not be loaded into json at: ", file
                 )
 
         # if we find a directory inside this basket, we need to check it
