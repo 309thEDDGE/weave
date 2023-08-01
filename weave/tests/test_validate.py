@@ -303,6 +303,7 @@ def test_validate_invalid_manifest_schema(set_up_TestValidate):
     assert validate.validate_bucket(tv.s3_bucket_name)[0] == "Invalid Bucket"
 
     # Check that the list of invalid basket paths is correctly returned
+    s3_basket_path = os.path.join(s3_basket_path, "bad_man_schema", "basket_manifest.json")
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == [s3_basket_path]
     
         
@@ -347,6 +348,7 @@ def test_validate_manifest_schema_missing_field(set_up_TestValidate):
     assert validate.validate_bucket(tv.s3_bucket_name)[0] == "Invalid Bucket"
     
     # Check that the list of invalid basket paths is correctly returned
+    s3_basket_path = os.path.join(s3_basket_path, "bad_man_schema", "basket_manifest.json")
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == [s3_basket_path]
         
         
@@ -394,6 +396,7 @@ def test_validate_manifest_schema_additional_field(set_up_TestValidate):
     assert validate.validate_bucket(tv.s3_bucket_name)[0] == "Invalid Bucket"
     
     # Check that the list of invalid basket paths is correctly returned
+    s3_basket_path = os.path.join(s3_basket_path, "bad_man_schema", "basket_manifest.json")
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == [s3_basket_path]
 
 
@@ -429,6 +432,7 @@ def test_validate_invalid_manifest_json(set_up_TestValidate):
     assert validate.validate_bucket(tv.s3_bucket_name)[0] == "Invalid Bucket"
     
     # Check that the list of invalid basket paths is correctly returned
+    s3_basket_path = os.path.join(s3_basket_path, "bad_man", "basket_manifest.json")
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == [s3_basket_path]
     
     
@@ -486,6 +490,7 @@ def test_validate_invalid_supplement_schema(set_up_TestValidate):
     assert validate.validate_bucket(tv.s3_bucket_name)[0] == "Invalid Bucket"
     
     # Check that the list of invalid basket paths is correctly returned
+    s3_basket_path = os.path.join(s3_basket_path, "bad_sup_schema", "basket_supplement.json")
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == [s3_basket_path]
     
 
@@ -530,6 +535,7 @@ def test_validate_supplement_schema_missing_field(set_up_TestValidate):
     assert validate.validate_bucket(tv.s3_bucket_name)[0] == "Invalid Bucket"
     
     # Check that the list of invalid basket paths is correctly returned
+    s3_basket_path = os.path.join(s3_basket_path, "bad_sup_schema", "basket_supplement.json")
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == [s3_basket_path]
     
 def test_validate_supplement_schema_missing_array_field(set_up_TestValidate):
@@ -586,6 +592,7 @@ def test_validate_supplement_schema_missing_array_field(set_up_TestValidate):
     assert validate.validate_bucket(tv.s3_bucket_name)[0] == "Invalid Bucket"
     
     # Check that the list of invalid basket paths is correctly returned
+    s3_basket_path = os.path.join(s3_basket_path, "bad_sup_schema", "basket_supplement.json")
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == [s3_basket_path]
     
     
@@ -644,6 +651,7 @@ def test_validate_supplement_schema_missing_array_field_2(set_up_TestValidate):
     assert validate.validate_bucket(tv.s3_bucket_name)[0] == "Invalid Bucket"
     
     # Check that the list of invalid basket paths is correctly returned
+    s3_basket_path = os.path.join(s3_basket_path, "bad_sup_schema", "basket_supplement.json")
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == [s3_basket_path]
     
     
@@ -706,6 +714,7 @@ def test_validate_supplement_schema_added_array_field(set_up_TestValidate):
     assert validate.validate_bucket(tv.s3_bucket_name)[0] == "Invalid Bucket"
     
     # Check that the list of invalid basket paths is correctly returned
+    s3_basket_path = os.path.join(s3_basket_path, "bad_sup_schema", "basket_supplement.json")
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == [s3_basket_path]
     
     
@@ -768,6 +777,7 @@ def test_validate_supplement_schema_added_array_field_2(set_up_TestValidate):
     assert validate.validate_bucket(tv.s3_bucket_name)[0] == "Invalid Bucket"
     
     # Check that the list of invalid basket paths is correctly returned
+    s3_basket_path = os.path.join(s3_basket_path, "bad_sup_schema", "basket_supplement.json")
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == [s3_basket_path]
     
         
@@ -827,6 +837,7 @@ def test_validate_supplement_schema_additional_field(set_up_TestValidate):
     assert validate.validate_bucket(tv.s3_bucket_name)[0] == "Invalid Bucket"
     
     # Check that the list of invalid basket paths is correctly returned
+    s3_basket_path = os.path.join(s3_basket_path, "bad_sup_schema", "basket_supplement.json")
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == [s3_basket_path]
         
     
@@ -881,6 +892,7 @@ def test_validate_supplement_schema_empty_upload_items(set_up_TestValidate):
     assert validate.validate_bucket(tv.s3_bucket_name)[0] == "Invalid Bucket"
     
     # Check that the list of invalid basket paths is correctly returned
+    s3_basket_path = os.path.join(s3_basket_path, "bad_sup_schema", "basket_supplement.json")
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == [s3_basket_path]
         
         
@@ -927,6 +939,7 @@ def test_validate_supplement_schema_empty_integrity_data(set_up_TestValidate):
     assert validate.validate_bucket(tv.s3_bucket_name)[0] == "Invalid Bucket"
     
     # Check that the list of invalid basket paths is correctly returned
+    s3_basket_path = os.path.join(s3_basket_path, "bad_sup_schema", "basket_supplement.json")
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == [s3_basket_path]
         
         
@@ -962,6 +975,7 @@ def test_validate_invalid_supplement_json(set_up_TestValidate):
     assert validate.validate_bucket(tv.s3_bucket_name)[0] == "Invalid Bucket"
     
     # Check that the list of invalid basket paths is correctly returned
+    s3_basket_path = os.path.join(s3_basket_path, "bad_supp", "basket_supplement.json")
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == [s3_basket_path]
     
     
@@ -997,6 +1011,7 @@ def test_validate_invalid_metadata_json(set_up_TestValidate):
     assert validate.validate_bucket(tv.s3_bucket_name)[0] == "Invalid Bucket"
     
     # Check that the list of invalid basket paths is correctly returned
+    s3_basket_path = os.path.join(s3_basket_path, "bad_meta", "basket_metadata.json")
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == [s3_basket_path]
     
       
@@ -1082,7 +1097,7 @@ def test_validate_deeply_nested(set_up_TestValidate):
     assert validate.validate_bucket(tv.s3_bucket_name)[0] == "Invalid Bucket"
     
     # Check that the list of invalid basket paths is correctly returned
-    assert validate.validate_bucket(tv.s3_bucket_name)[0] == [s3_basket_path]
+    assert validate.validate_bucket(tv.s3_bucket_name)[1] == [s3_basket_path]
 
     
 def test_validate_no_files_or_dirs(set_up_TestValidate):
