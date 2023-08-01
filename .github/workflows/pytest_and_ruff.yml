@@ -68,6 +68,6 @@ jobs:
       run: python3.10 -m pip install pylint
    - name: Install Weave and Dependencies
      run: python3.10 -m pip install .
-# If you do not install Weave's dependencies then it will fail PyLint due to import-errors
+   # If you do not install Weave's dependencies then it will fail PyLint due to import-errors
    - name: Run pylint
      run: pylint weave
