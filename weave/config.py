@@ -96,10 +96,9 @@ def index_schema():
 
 def get_file_system():
     """Get the filesystem to be used for storing baskets"""
-    return None
-    # return s3fs.S3FileSystem(
-    #     client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-    # )
+    return s3fs.S3FileSystem(
+        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+    )
 
 def get_mongo_db():
     """Get the mongodb client to be used for metadata search"""

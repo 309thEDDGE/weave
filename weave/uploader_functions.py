@@ -225,7 +225,6 @@ class UploadBasket:
                 "'upload_directory' must be a string: "
                 f"'{self.upload_directory}'"
             )
-
         if not isinstance(self.unique_id, str):
             raise TypeError(
                 f"'unique_id' must be a string: '{self.unique_id}'"

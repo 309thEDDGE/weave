@@ -3,6 +3,7 @@ import os
 import re
 import warnings
 from unittest.mock import patch
+import uuid
 
 import pandas as pd
 import pytest
@@ -405,10 +406,9 @@ def test_upload_basket_works_on_empty_basket(set_up_tb):
                       basket_type="test")
     assert(len(ind.index_df) == 1)
 
-@patch(
-    'weave.uploader_functions.UploadBasket.upload_basket_supplement_to_fs'
-)
-def test_upload_basket_gracefully_fails(mocked_obj, set_up_tb):
+@patch.object(uuid, 'uuid1')
+@patch('weave.uploader_functions.UploadBasket.upload_basket_supplement_to_fs')
+def test_upload_basket_gracefully_fails(mocked_obj_1, mocked_obj_2, set_up_tb):
     """
     In this test an engineered failure to upload the basket occurs.
     Index.upload_basket() should not add anything to the index_df.
@@ -416,18 +416,23 @@ def test_upload_basket_gracefully_fails(mocked_obj, set_up_tb):
     make the process fail only after a partial upload).
     """
     tb = set_up_tb
-    breakpoint()
     tmp_basket = tb.set_up_basket("basket_one")
+
     ind = Index(tb.bucket_name, file_system=tb.fs)
+
+    non_unique_id = "0001"
     with pytest.raises(
         ValueError,
         match="This error provided for test_upload_basket_gracefully_fails"
     ):
-        mocked_obj.side_effect = ValueError(
+        mocked_obj_1.side_effect = ValueError(
             "This error provided for test_upload_basket_gracefully_fails"
         )
+        mocked_obj_2.return_value.hex = non_unique_id
         ind.upload_basket(upload_items=[{'path':str(tmp_basket.realpath()),
                                          'stub':False}],
                           basket_type="test")
 
-    assert len(tb.fs.ls(tb.bucket_name)) == 0
+    assert not tb.fs.exists(
+        os.path.join(tb.bucket_name, "test", non_unique_id)
+    )

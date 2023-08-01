@@ -1,10 +1,7 @@
-import uuid
 import os
 import json
 
-from glob import glob
 from weave.uploader import upload_basket
-from fsspec.implementations.local import LocalFileSystem
 
 def file_path_in_list(search_path, search_list):
     """Check if a file path is in a list (of file paths).
