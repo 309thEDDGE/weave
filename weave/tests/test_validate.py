@@ -5,10 +5,10 @@ from weave.uploader_functions import upload_basket
 from weave import validate, config
 
 
-class TestValidate():
+class ValidateForTest():
     """A class to test functions in validate.py"""
     def __init__(self, tmpdir):
-        """Initializes the TestValidate class
+        """Initializes the Validate class
         assign the tmpdir, initialize the basket_list, 
         assign the s3fs client, call set_up_bucket
         """
@@ -183,13 +183,13 @@ class TestValidate():
         
         
 @pytest.fixture
-def set_up_TestValidate(tmpdir):
-    tv = TestValidate(tmpdir)
+def set_up_Validate(tmpdir):
+    tv = ValidateForTest(tmpdir)
     yield tv
     tv.cleanup_bucket()
     
     
-def test_validate_bucket_does_not_exist(set_up_TestValidate):
+def test_validate_bucket_does_not_exist(set_up_Validate):
     """give a bucket path that does not exist and check that it throws an error
     """
     
@@ -202,10 +202,10 @@ def test_validate_bucket_does_not_exist(set_up_TestValidate):
         validate.validate_bucket(bucket_path)
     
 
-def test_validate_no_supplement_file(set_up_TestValidate):
+def test_validate_no_supplement_file(set_up_Validate):
     """make a basket, remove the supplement file, check that it throws an error
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
     
     tmp_basket_dir = tv.set_up_basket("my_basket")
     
@@ -229,10 +229,10 @@ def test_validate_no_supplement_file(set_up_TestValidate):
         validate.validate_bucket(tv.s3_bucket_name)
 
     
-def test_validate_no_metadata_file(set_up_TestValidate):
+def test_validate_no_metadata_file(set_up_Validate):
     """ make a basket with no metadata, validate that it returns true (valid)
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
     
     tmp_basket_dir = tv.set_up_basket("my_basket")
     
@@ -243,10 +243,10 @@ def test_validate_no_metadata_file(set_up_TestValidate):
     assert validate.validate_bucket(tv.s3_bucket_name)
     
     
-def test_validate_invalid_manifest_schema(set_up_TestValidate):
+def test_validate_invalid_manifest_schema(set_up_Validate):
     """make basket with invalid manifest schema, check that it throws an error
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
         
     # the 'uuid: 100' is supposed to be a string, not a number, 
     # this is invalid against the schema
@@ -282,10 +282,10 @@ def test_validate_invalid_manifest_schema(set_up_TestValidate):
         validate.validate_bucket(tv.s3_bucket_name)
 
         
-def test_validate_manifest_schema_missing_field(set_up_TestValidate):
+def test_validate_manifest_schema_missing_field(set_up_Validate):
     """make basket with invalid manifest schema, check that it throws an error
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
 
     # the manifest is missing the uuid field
     # this is invalid against the schema
@@ -319,10 +319,10 @@ def test_validate_manifest_schema_missing_field(set_up_TestValidate):
         validate.validate_bucket(tv.s3_bucket_name)
         
         
-def test_validate_manifest_schema_additional_field(set_up_TestValidate):
+def test_validate_manifest_schema_additional_field(set_up_Validate):
     """make basket with invalid manifest schema, check that it throws an error
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
 
     # the manifest has the additional "error" field
     # this is invalid against the schema
@@ -360,10 +360,10 @@ def test_validate_manifest_schema_additional_field(set_up_TestValidate):
         
 
 
-def test_validate_invalid_manifest_json(set_up_TestValidate):
+def test_validate_invalid_manifest_json(set_up_Validate):
     """make a basket with invalid manifest json, check that it throws an error
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
     
     tmp_basket_dir = tv.set_up_basket(
         "bad_man", 
@@ -388,10 +388,10 @@ def test_validate_invalid_manifest_json(set_up_TestValidate):
         validate.validate_bucket(tv.s3_bucket_name)
     
     
-def test_validate_invalid_supplement_schema(set_up_TestValidate):
+def test_validate_invalid_supplement_schema(set_up_Validate):
     """make a basket with invalid supplement schema, check that it throws error
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
         
     # the '1231231' is supposed to be a boolean, not a number, 
     # this is invalid against the schema
@@ -438,10 +438,10 @@ def test_validate_invalid_supplement_schema(set_up_TestValidate):
         validate.validate_bucket(tv.s3_bucket_name)
     
     
-def test_validate_supplement_schema_missing_field(set_up_TestValidate):
+def test_validate_supplement_schema_missing_field(set_up_Validate):
     """make a basket with invalid supplement schema, check that it throws error
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
 
     # the supplement is missing the integrity_data field
     # this is invalid against the schema
@@ -475,10 +475,10 @@ def test_validate_supplement_schema_missing_field(set_up_TestValidate):
         validate.validate_bucket(tv.s3_bucket_name)
         
     
-def test_validate_supplement_schema_missing_array_field(set_up_TestValidate):
+def test_validate_supplement_schema_missing_array_field(set_up_Validate):
     """make a basket with invalid supplement schema, check that it throws error
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
 
     # the supplement is missing the upload_path field inside 
     # the integrity_data array
@@ -525,10 +525,10 @@ def test_validate_supplement_schema_missing_array_field(set_up_TestValidate):
         validate.validate_bucket(tv.s3_bucket_name)
     
     
-def test_validate_supplement_schema_missing_array_field_2(set_up_TestValidate):
+def test_validate_supplement_schema_missing_array_field_2(set_up_Validate):
     """make a basket with invalid supplement schema, check that it throws error
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
 
     # the supplement is missing the stub field inside 
     # the upload_items array
@@ -576,10 +576,10 @@ def test_validate_supplement_schema_missing_array_field_2(set_up_TestValidate):
         validate.validate_bucket(tv.s3_bucket_name)
     
     
-def test_validate_supplement_schema_added_array_field(set_up_TestValidate):
+def test_validate_supplement_schema_added_array_field(set_up_Validate):
     """make a basket with invalid supplement schema, check that it throws error
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
 
     # the supplement has an additional field of "error" in  
     # the upload_items array
@@ -631,10 +631,10 @@ def test_validate_supplement_schema_added_array_field(set_up_TestValidate):
         validate.validate_bucket(tv.s3_bucket_name)
     
     
-def test_validate_supplement_schema_added_array_field_2(set_up_TestValidate):
+def test_validate_supplement_schema_added_array_field_2(set_up_Validate):
     """make a basket with invalid supplement schema, check that it throws error
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
 
     # the supplement has an additional field of "error" in
     # the integrity_data array
@@ -686,10 +686,10 @@ def test_validate_supplement_schema_added_array_field_2(set_up_TestValidate):
         validate.validate_bucket(tv.s3_bucket_name)
     
         
-def test_validate_supplement_schema_additional_field(set_up_TestValidate):
+def test_validate_supplement_schema_additional_field(set_up_Validate):
     """make a basket with invalid supplement schema, check that it throws error
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
 
     # the supplement has an additional my_extra_field field
     # this is invalid against the schema
@@ -738,10 +738,10 @@ def test_validate_supplement_schema_additional_field(set_up_TestValidate):
         validate.validate_bucket(tv.s3_bucket_name)
         
     
-def test_validate_supplement_schema_empty_upload_items(set_up_TestValidate):
+def test_validate_supplement_schema_empty_upload_items(set_up_Validate):
     """make a basket with invalid supplement schema, check that it throws error
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
 
     # the supplement has an empty array of "upload_items"
     # this is invalid against the schema
@@ -785,10 +785,10 @@ def test_validate_supplement_schema_empty_upload_items(set_up_TestValidate):
         validate.validate_bucket(tv.s3_bucket_name)
         
         
-def test_validate_supplement_schema_empty_integrity_data(set_up_TestValidate):
+def test_validate_supplement_schema_empty_integrity_data(set_up_Validate):
     """make a basket with invalid supplement schema, check that it throws error
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
 
     # the supplement an empty array of "integrity_data"
     # this is invalid against the schema
@@ -824,10 +824,10 @@ def test_validate_supplement_schema_empty_integrity_data(set_up_TestValidate):
         validate.validate_bucket(tv.s3_bucket_name)
         
         
-def test_validate_invalid_supplement_json(set_up_TestValidate):
+def test_validate_invalid_supplement_json(set_up_Validate):
     """make a basket with invalid supplement json check that it throws an error
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
     
     tmp_basket_dir = tv.set_up_basket(
         "bad_supp", 
@@ -852,10 +852,10 @@ def test_validate_invalid_supplement_json(set_up_TestValidate):
         validate.validate_bucket(tv.s3_bucket_name)
     
     
-def test_validate_invalid_metadata_json(set_up_TestValidate):
+def test_validate_invalid_metadata_json(set_up_Validate):
     """make a basket with invalid metadata json, check that it throws an error
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
     
     tmp_basket_dir = tv.set_up_basket(
         "bad_meta", 
@@ -880,10 +880,10 @@ def test_validate_invalid_metadata_json(set_up_TestValidate):
         validate.validate_bucket(tv.s3_bucket_name)
     
       
-def test_validate_nested_basket(set_up_TestValidate):
+def test_validate_nested_basket(set_up_Validate):
     """make a basket with nested basket, check that it throws an error
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
     
     tmp_basket_dir = tv.set_up_basket(
         "my_nested_basket", 
@@ -902,10 +902,10 @@ def test_validate_nested_basket(set_up_TestValidate):
         validate.validate_bucket(tv.s3_bucket_name)
     
     
-def test_validate_deeply_nested(set_up_TestValidate):
+def test_validate_deeply_nested(set_up_Validate):
     """create basket with basket in a deep sub-dir, check that error is thrown
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
 
     tmp_basket_dir = tv.set_up_basket(
         "my_basket", 
@@ -951,10 +951,10 @@ def test_validate_deeply_nested(set_up_TestValidate):
         validate.validate_bucket(tv.s3_bucket_name)
 
     
-def test_validate_no_files_or_dirs(set_up_TestValidate):
+def test_validate_no_files_or_dirs(set_up_Validate):
     """create an empty bucket with no files, make sure it returns true (valid)
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
     
     tmp_basket_dir = tv.set_up_basket("my_basket")
         
@@ -968,10 +968,10 @@ def test_validate_no_files_or_dirs(set_up_TestValidate):
     assert validate.validate_bucket(tv.s3_bucket_name)
     
     
-def test_validate_no_baskets(set_up_TestValidate):
+def test_validate_no_baskets(set_up_Validate):
     """create a bucket with no baskets, but with files, test that it's valid
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
     
     tmp_basket_dir = tv.set_up_basket("my_basket")
     
@@ -994,10 +994,10 @@ def test_validate_no_baskets(set_up_TestValidate):
 
     
     
-def test_validate_fifty_baskets_invalid(set_up_TestValidate):
+def test_validate_fifty_baskets_invalid(set_up_Validate):
     """create bucket with 50 baskets, and 1 nested, check that it throws error 
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
     
     tmp_basket_dir = tv.set_up_basket("my_basket")
     tv.add_lower_dir_to_temp_basket(tmp_basket_dir=tmp_basket_dir)
@@ -1029,10 +1029,10 @@ def test_validate_fifty_baskets_invalid(set_up_TestValidate):
         validate.validate_bucket(tv.s3_bucket_name)
         
         
-def test_validate_fifty_baskets_valid(set_up_TestValidate):
+def test_validate_fifty_baskets_valid(set_up_Validate):
     """create bucket with 50 baskets, and 0 nested, check that its valid
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
     
     tmp_basket_dir = tv.set_up_basket("my_basket")
     tv.add_lower_dir_to_temp_basket(tmp_basket_dir=tmp_basket_dir)
@@ -1059,7 +1059,7 @@ def test_validate_fifty_baskets_valid(set_up_TestValidate):
         
         
         
-def test_validate_call_check_level(set_up_TestValidate):
+def test_validate_call_check_level(set_up_Validate):
     """create basket, call _check_level()
     
     create a basket, call _check_level() which is a private function, 
@@ -1067,7 +1067,7 @@ def test_validate_call_check_level(set_up_TestValidate):
     function checks all files an directories of the given dir, so it just 
     acts like we are at a random dir instead of the root of the bucket
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
     
     tmp_basket_dir = tv.set_up_basket("my_basket")
     tv.add_lower_dir_to_temp_basket(tmp_basket_dir=tmp_basket_dir)
@@ -1080,7 +1080,7 @@ def test_validate_call_check_level(set_up_TestValidate):
     assert validate._check_level(tv.s3_bucket_name)
     
     
-def test_validate_call_validate_basket(set_up_TestValidate):
+def test_validate_call_validate_basket(set_up_Validate):
     """create basket, call _validate_basket, a private function
     
     create a basket, call _validate_basket(), which is a private function. 
@@ -1088,7 +1088,7 @@ def test_validate_call_validate_basket(set_up_TestValidate):
     assumes it is given a basket dir, not a bucket dir. so there is no
     manifest found inside the bucket dir
     """
-    tv = set_up_TestValidate
+    tv = set_up_Validate
     
     tmp_basket_dir = tv.set_up_basket("my_basket")
     tv.add_lower_dir_to_temp_basket(tmp_basket_dir=tmp_basket_dir)
