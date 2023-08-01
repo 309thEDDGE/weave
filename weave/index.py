@@ -332,7 +332,7 @@ class Index():
             return data
 
         if current_uid in descendants:
-            raise ValueError(f"Parent-Child loop found at {current_uid}")
+            raise ValueError(f"Parent-Child loop found at uuid: {current_uid}")
         else:
             descendants.append(current_uid)
 
@@ -439,7 +439,7 @@ class Index():
         # we are storing all the ancestors in a list, if we find the same
         # ancestor twice, we are in a loop, throw error
         if current_uid in ancestors:
-            raise ValueError(f"Parent-Child loop found at {current_uid}")
+            raise ValueError(f"Parent-Child loop found at uuid: {current_uid}")
         else:
             ancestors.append(current_uid)
 

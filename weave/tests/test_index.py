@@ -465,7 +465,7 @@ def test_get_parents_parent_is_child(set_up_tb):
     fail = '1000'
 
     with pytest.raises(
-        ValueError, match=f"Parent-Child loop found at {fail}"
+        ValueError, match=f"Parent-Child loop found at uuid: {fail}"
     ):
         index.get_parents(child)
 
@@ -608,7 +608,7 @@ def test_get_children_child_is_parent(set_up_tb):
     fail = '3000'
 
     with pytest.raises(
-        ValueError, match=re.escape(f"Parent-Child loop found at {fail}")
+        ValueError, match=re.escape(f"Parent-Child loop found at uuid: {fail}")
     ):
         index.get_children(gp)
 
@@ -755,7 +755,7 @@ def test_get_parents_complex_fail(set_up_tb):
     ind.generate_index()
 
     with pytest.raises(
-        ValueError, match=re.escape("Parent-Child loop found at 000")
+        ValueError, match=re.escape("Parent-Child loop found at uuid: 000")
     ):
         ind.get_parents(child_path)
 
@@ -803,7 +803,7 @@ def test_get_children_complex_fail(set_up_tb):
     ind.generate_index()
 
     with pytest.raises(
-        ValueError, match=re.escape("Parent-Child loop found at 007")
+        ValueError, match=re.escape("Parent-Child loop found at uuid: 007")
     ):
         ind.get_children(parent_path)
 
