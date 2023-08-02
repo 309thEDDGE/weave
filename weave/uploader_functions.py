@@ -256,7 +256,7 @@ class UploadBasket:
 
     def establish_s3fs(self):
         """Establishes the S3FS connection"""
-        self.fs = config.get_file_system()
+        self.file_system = config.get_file_system()
 
     def check_that_upload_dir_does_not_exist(self):
         """Ensure that upload directory does not previously exist
@@ -264,7 +264,7 @@ class UploadBasket:
         This averts some errors with uploading to a directory that already
         exists
         """
-        if self.fs.isdir(self.upload_directory):
+        if self.file_system.isdir(self.upload_directory):
             raise FileExistsError(
                 "'upload_directory' already exists: "
                 f"'{self.upload_directory}''"
@@ -274,7 +274,7 @@ class UploadBasket:
         """Sets up a temporary directory to hold stuff before upload to S3FS"""
         self.upload_path = f"{self.upload_directory}"
         self.temp_dir = tempfile.TemporaryDirectory()
-        self.fs.mkdir(self.upload_path)
+        self.file_system.mkdir(self.upload_path)
         self.temp_dir_path = self.temp_dir.name
 
     def upload_files_and_stubs_to_s3fs(self):
@@ -302,9 +302,10 @@ class UploadBasket:
                             )
                             fid["upload_path"] = str(file_upload_path)
                             base_path = os.path.split(file_upload_path)[0]
-                            if not self.fs.exists(base_path):
-                                self.fs.mkdir(base_path)
-                            self.fs.upload(local_path, file_upload_path)
+                            if not self.file_system.exists(base_path):
+                                self.file_system.mkdir(base_path)
+                            self.file_system.upload(local_path,
+                                                    file_upload_path)
                         else:
                             fid["stub"] = True
                             fid["upload_path"] = "stub"
@@ -318,9 +319,10 @@ class UploadBasket:
                     )
                     fid["upload_path"] = str(file_upload_path)
                     base_path = os.path.split(file_upload_path)[0]
-                    if not self.fs.exists(base_path):
-                        self.fs.mkdir(base_path)
-                    self.fs.upload(str(upload_item_path), file_upload_path)
+                    if not self.file_system.exists(base_path):
+                        self.file_system.mkdir(base_path)
+                    self.file_system.upload(str(upload_item_path),
+                                            file_upload_path)
                 else:
                     fid["stub"] = True
                     fid["upload_path"] = "stub"
@@ -343,7 +345,7 @@ class UploadBasket:
 
         with open(basket_json_path, "w") as outfile:
             json.dump(basket_json, outfile)
-        self.fs.upload(
+        self.file_system.upload(
             basket_json_path,
             os.path.join(self.upload_path, "basket_manifest.json"),
         )
@@ -356,7 +358,7 @@ class UploadBasket:
         if self.metadata != {}:
             with open(metadata_path, "w") as outfile:
                 json.dump(self.metadata, outfile, default=str)
-            self.fs.upload(
+            self.file_system.upload(
                 metadata_path,
                 os.path.join(self.upload_path, "basket_metadata.json"),
             )
@@ -368,18 +370,18 @@ class UploadBasket:
         )
         with open(supplement_json_path, "w") as outfile:
             json.dump(self.supplement_data, outfile)
-        self.fs.upload(
+        self.file_system.upload(
             supplement_json_path,
             os.path.join(self.upload_path, "basket_supplement.json"),
         )
 
     def s3fs_upload_path_exists(self):
         """Returns True if fs upload_path has been created, else False"""
-        return self.fs.exists(self.upload_path)
+        return self.file_system.exists(self.upload_path)
 
     def clean_out_s3fs_upload_dir(self):
         """Removes everything from upload_path inside fs"""
-        self.fs.rm(self.upload_path, recursive=True)
+        self.file_system.rm(self.upload_path, recursive=True)
 
     def tear_down_temp_dir(self):
         """For use at death of class. Cleans up temp_dir."""
