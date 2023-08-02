@@ -1,9 +1,9 @@
 """
 config.py provides configuration settings used by weave.
 """
-import s3fs
 import os
 import pymongo
+import s3fs
 
 # Filenames not allowed to be added to the basket.
 # These files are taken for specific weave purposes.
@@ -39,7 +39,7 @@ manifest_schema = {
     "additionalProperties": False
 }
 
-#basket_supplement must follow this schema 
+#basket_supplement must follow this schema
 supplement_schema = {
     "properties": {
 
@@ -51,7 +51,7 @@ supplement_schema = {
                 "properties": {
                     "path": {"type": "string"},
                     "stub": {"type": "boolean"}
-                }, 
+                },
                 "required": ["path", "stub"],
                 "additionalProperties": False
 
@@ -63,7 +63,7 @@ supplement_schema = {
             "minItems": 1,
             "items": {
                 "type": "object",
-                
+
                 "properties": {
                     "file_size": {"type" : "number" },
                     "hash": {"type" : "string" },
@@ -72,7 +72,7 @@ supplement_schema = {
                     "byte_count": {"type" : "number" },
                     "stub":{"type" : "boolean" }, 
                     "upload_path":{"type" : "string" }
-                }, 
+                },
                 "required": [
                     "file_size", 
                     "hash", 
@@ -87,7 +87,7 @@ supplement_schema = {
             "required": ["type"],
             "additionalProperties": False
         }
-        
+
     },
     "required": ["upload_items", "integrity_data"],
     "additionalProperties": False
@@ -111,8 +111,6 @@ def get_mongo_db():
     # If MONGODB_HOST, USERNAME and PASSWORD are provided as environment
     # variables, initialize the mongo client with the provided
     # credentials. Else defer to default credentials for OPAL.
-    # TODO: remove the default credentials for OPAL, 
-    # once OPAL exposes environment variables
     if "MONGODB_HOST" in os.environ and \
        "MONGODB_USERNAME" in os.environ and \
        "MONGODB_PASSWORD" in os.environ:
@@ -121,6 +119,6 @@ def get_mongo_db():
                                      password = os.environ["MONGODB_PASSWORD"])
     else:
         client = pymongo.MongoClient("mongodb",
-                                     username="root", 
+                                     username="root",
                                      password="example")
     return client
