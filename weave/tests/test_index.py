@@ -6,6 +6,7 @@ from unittest.mock import patch
 import uuid
 
 import pandas as pd
+import numpy as np
 import pytest
 import s3fs
 
@@ -151,15 +152,17 @@ def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
     # We catch the warnings here, as it will warn for bad baskets, but we don't
     # want the warning to drop through to the pytest log in this test.
     # (Checking the warnings are correct is tested in the next unit test.)
-    with warnings.catch_warnings(record = True):
+    with warnings.catch_warnings(record = True) as w:
         actual_index = create_index_from_fs(tb.bucket_name, tb.fs)
-
-    assert (
-        (expected_index == actual_index)
-        .drop(columns=["upload_time", "address"])
-        .all()
-        .all()
-    )
+        message = ('baskets found in the following locations '
+                  'do not follow specified weave schema:\n')
+        assert (
+            (expected_index == actual_index)
+            .drop(columns=["upload_time", "address"])
+            .all()
+            .all()
+            and str(w[0].message).startswith(message)
+        )
 
     # Check the addresses are the same, ignoring any FS dependent prefixes.
     assert all(
@@ -369,6 +372,634 @@ def test_delete_basket_fails_if_basket_is_parent(set_up_tb):
     ):
         ind.delete_basket(basket_uuid="0001")
 
+def test_get_parents_valid(set_up_tb):
+    """setup a valid basket structure, validate the returned index
+    """
+    tb = set_up_tb
+
+    #setup random strucutre of parents and children 
+    tmp_dir = tb.set_up_basket("great_grandparent_3")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
+
+    tmp_dir = tb.set_up_basket("great_grandparent_3_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3003")
+
+    tmp_dir = tb.set_up_basket("great_grandparent_3_2")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3333")
+
+    tmp_dir = tb.set_up_basket("great_grandparent_3_3")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3303")
+
+    tmp_dir = tb.set_up_basket("grandparent_2")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="2000",
+                     parent_ids=["3000", "3003", "3333"])
+
+    tmp_dir = tb.set_up_basket("grandparent_2_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="2002")
+
+    tmp_dir = tb.set_up_basket("parent_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="1000",
+                     parent_ids=["2000", "2002", "3303"])
+
+    tmp_dir = tb.set_up_basket("parent_1_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="1001")
+
+    tmp_dir = tb.set_up_basket("child_0")
+    child = tb.upload_basket(tmp_basket_dir=tmp_dir,
+                             uid="0000",
+                             parent_ids=["1001", "1000"])
+
+
+    #string to shorten things for ruff
+    gen_lvl = "generation_level"
+
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind.generate_index()
+
+    # setup df of the right answer
+    parent_ids = [
+        "1000", "1001", "2000", "2002", "3303", "3000", "3003", "3333"
+    ]
+    parent_gens = [1, 1, 2, 2, 2, 3, 3, 3]
+    index = ind.index_df
+    parent_answer = index.loc[index["uuid"].isin(parent_ids)]
+
+    # pandas wants to make a copy before adding a column
+    # used to remove warning in pytest
+    parent_answer = parent_answer.copy()
+    #add the generation levels
+    for i, j in zip(parent_ids, parent_gens):
+        parent_answer.loc[parent_answer["uuid"] == i, gen_lvl] = j
+
+    # get the results
+    results = ind.get_parents(child)
+
+    # sort so that they can be properly compared to
+    parent_answer = parent_answer.sort_values(by="uuid")
+    results = results.sort_values(by="uuid")
+
+    #cast to int64 so datatypes match
+    parent_answer[gen_lvl] = parent_answer[gen_lvl].astype(np.int64)
+
+    assert parent_answer.equals(results)
+
+
+def test_get_parents_invalid_basket_address(set_up_tb):
+    """try and find the parents of an invalid basket path/address"""
+    tb = set_up_tb
+
+    basket_path = "INVALIDpath"
+
+    index = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+
+    with pytest.raises(
+        FileNotFoundError, 
+        match=f"basket path or uuid does not exist '{basket_path}'"
+    ):
+        index.get_parents(basket_path)
+
+
+def test_get_parents_no_parents(set_up_tb):
+    """try and get all parents of basket with no parent uuids.
+
+    check that it returns an empty dataframe/index
+    """
+    tb = set_up_tb
+
+    no_parents = tb.set_up_basket("no_parents")
+    no_parents_path = tb.upload_basket(tmp_basket_dir=no_parents, uid="0001")
+
+    index = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    index.generate_index()
+
+    parent_indeces = index.get_parents(no_parents_path)
+
+    assert parent_indeces.empty
+
+
+def test_get_parents_parent_is_child(set_up_tb):
+    """set up basket structure with parent-child loop, check that it fails
+
+    set up 3 baskets, child, parent, grandparent, but the grandparent's
+    parent_ids has the child's uid. this causes an infinite loop,
+    check that it throw error
+    """
+    tb = set_up_tb
+
+    # create a basket structure with child, parent, and grandparent, but
+    # the grandparent's parent, is the child, making an loop for the
+    # parent-child relationship
+    tmp_dir = tb.set_up_basket("grandparent")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="3000",
+                     parent_ids=["1000"])
+
+    tmp_dir = tb.set_up_basket("parent")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="2000",
+                     parent_ids=["3000"])
+
+    tmp_dir = tb.set_up_basket("child")
+    child = tb.upload_basket(tmp_basket_dir=tmp_dir,
+                             uid="1000",
+                             parent_ids=["2000"])
+
+    index = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    index.generate_index()
+
+    fail = '1000'
+
+    with pytest.raises(
+        ValueError, match=f"Parent-Child loop found at uuid: {fail}"
+    ):
+        index.get_parents(child)
+
+
+def test_get_children_valid(set_up_tb):
+    """setup a valid basket structure, validate the returned dataframe
+    """
+    tb = set_up_tb
+
+    #setup random strucutre of parents and children 
+    tmp_dir = tb.set_up_basket("great_grandparent_3")
+    great_grandparent = tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
+
+    tmp_dir = tb.set_up_basket("great_grandparent_3_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3003")
+
+    tmp_dir = tb.set_up_basket("great_grandparent_3_2")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3333")
+
+    tmp_dir = tb.set_up_basket("great_grandparent_3_3")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3303")
+
+    tmp_dir = tb.set_up_basket("grandparent_2")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="2000",
+                     parent_ids=["3000", "3003", "3333"])
+
+    tmp_dir = tb.set_up_basket("grandparent_2_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="2002")
+
+    tmp_dir = tb.set_up_basket("parent_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="1000",
+                     parent_ids=["2000", "2002", "3303"])
+
+    tmp_dir = tb.set_up_basket("parent_1_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="1001")
+
+    tmp_dir = tb.set_up_basket("child_0")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="0000",
+                     parent_ids=["1001", "1000"])
+
+    #string to shorten things for ruff
+    gen_lvl = "generation_level"
+
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind.generate_index()
+
+    # setup df of the right answer
+    child_ids = ["2000", "1000", "0000"]
+    child_gens = [-1,-2,-3]
+    index = ind.index_df
+    child_answer = index.loc[index["uuid"].isin(child_ids)]
+
+    # pandas wants to make a copy before adding a column
+    # used to remove warning in pytest
+    child_answer = child_answer.copy()
+    #add the generation levels
+    for i, j in zip(child_ids, child_gens):
+        child_answer.loc[child_answer["uuid"] == i, gen_lvl] = j
+
+
+    # get the results
+    results = ind.get_children(great_grandparent)
+
+    # sort so that they can be properly compared to
+    child_answer = child_answer.sort_values(by="uuid")
+    results = results.sort_values(by="uuid")
+
+    #cast to int64 so datatypes match
+    child_answer[gen_lvl] = child_answer[gen_lvl].astype(np.int64)
+
+    assert child_answer.equals(results)
+
+
+def test_get_children_invalid_basket_address(set_up_tb):
+    """try and find he children of an invalid basket path/address"""
+    tb = set_up_tb
+
+    basket_path = "INVALIDpath"
+
+    index = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+
+    with pytest.raises(
+        FileNotFoundError,
+        match=f"basket path or uuid does not exist '{basket_path}'"
+    ):
+        index.get_children(basket_path)
+
+
+def test_get_children_no_children(set_up_tb):
+    """try and get all children of basket that has no children
+
+    check that it returns an empty dataframe/index
+    """
+    tb = set_up_tb
+
+    no_children = tb.set_up_basket("no_children")
+    no_children_path = tb.upload_basket(tmp_basket_dir=no_children, uid="0001")
+
+    index = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    index.generate_index()
+
+    children_indexes = index.get_children(no_children_path)
+
+    assert children_indexes.empty
+
+
+def test_get_children_child_is_parent(set_up_tb):
+    """set up a basket structure with a parent-child loop, check that it fails
+
+    set up 3 baskets, child, parent, grandparent, but the grandparents's
+    parent_ids has the child's uid. this causes an infinite loop,
+    check that it throw error
+    """
+    tb = set_up_tb
+
+    # create a basket structure with child, parent, and grandparent, but
+    # the grandparent's parent, is the child, making an loop for the
+    # parent-child relationship
+    tmp_dir = tb.set_up_basket("grandparent")
+    gp = tb.upload_basket(tmp_basket_dir=tmp_dir,
+                          uid="3000",
+                          parent_ids=["1000"])
+
+    tmp_dir = tb.set_up_basket("parent")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="2000",
+                     parent_ids=["3000"])
+
+    tmp_dir = tb.set_up_basket("child")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="1000",
+                     parent_ids=["2000"])
+
+    index = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    index.generate_index()
+
+    fail = '3000'
+
+    with pytest.raises(
+        ValueError, match=re.escape(f"Parent-Child loop found at uuid: {fail}")
+    ):
+        index.get_children(gp)
+
+
+def test_get_parents_15_deep(set_up_tb):
+    """Make a parent-child relationship of baskets 15 deep, get all the parents
+
+    so a child with a great*15 grandparent, and return all the grandparents
+    for the child
+    manually make the data and compare with the result
+    """
+    tb = set_up_tb
+
+    parent_id = "x"
+
+    for i in range(15):
+        child_id = parent_id
+        parent_id = str(i)
+        tmp = tb.set_up_basket("basket_" + child_id)
+        tb.upload_basket(tmp_basket_dir=tmp,
+                         uid=child_id, 
+                         parent_ids=[parent_id])
+
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind.generate_index()
+    index = ind.index_df
+
+    child_path = index.loc[index["uuid"] == 'x']["address"].values[0]
+
+    results = ind.get_parents(child_path)
+
+    # Get the anwser to compare to the results we got
+    par_ids = ['0','1','2','3','4','5','6','7','8','9','10','11','12','13']
+    par_gens = [1,2,3,4,5,6,7,8,9,10,11,12,13,14]
+    answer = index.loc[index["uuid"].isin(par_ids)]
+
+    gen_lvl = "generation_level"
+
+    # pandas wants to make a copy before adding a column
+    # used to remove warning in pytest
+    answer = answer.copy()
+    for i, j in zip(par_ids, par_gens):
+        answer.loc[answer["uuid"] == i, gen_lvl] = j
+
+    #format and sort so .equals can be properly used
+    answer = answer.sort_values(by="uuid")
+    results = results.sort_values(by="uuid")
+    answer[gen_lvl] = answer[gen_lvl].astype(np.int64)
+
+    assert answer.equals(results)
+
+
+def test_get_children_15_deep(set_up_tb):
+    """Make a parent-child relationship of baskets 15 deep, get the children.
+
+    so a child with great*15 grandparent, and return all the grandchildren
+    for the highest grandparent.
+    manually make the data and compare with the result
+    """
+    tb = set_up_tb
+
+    parent_id = "x"
+
+    for i in range(15):
+        child_id = parent_id
+        parent_id = str(i)
+        tmp = tb.set_up_basket("basket_" + child_id)
+        tb.upload_basket(
+            tmp_basket_dir=tmp,
+            uid=child_id,
+            parent_ids=[parent_id])
+
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind.generate_index()
+    index = ind.index_df
+
+    parent_path = index.loc[index["uuid"] == '13']["address"].values[0]
+
+    results = ind.get_children(parent_path)
+
+    # Get the anwser to compare to the results we got
+    child_ids = ['x','0','1','2','3','4','5','6','7','8','9','10','11','12']
+    child_gens = [-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1]
+    answer = index.loc[index["uuid"].isin(child_ids)]
+
+    gen_lvl = "generation_level"
+
+    #pandas wants to make a copy before adding a column
+    # used to remove warning in pytest
+    answer = answer.copy()
+    for i, j in zip(child_ids, child_gens):
+        answer.loc[answer["uuid"] == i, gen_lvl] = j
+
+    #format and sort so .equals can be properly used
+    answer = answer.sort_values(by="uuid")
+    results = results.sort_values(by="uuid")
+    answer[gen_lvl] = answer[gen_lvl].astype(np.int64)
+
+    assert answer.equals(results)
+
+
+def test_get_parents_complex_fail(set_up_tb):
+    """Make a complicated tree with a loop to test new algorithm
+    """
+    tb = set_up_tb
+
+    tmp_dir = tb.set_up_basket("parent_8")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="008", parent_ids=["007"])
+
+    tmp_dir = tb.set_up_basket("parent_7")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="007",
+                     parent_ids=["000"])
+
+    tmp_dir = tb.set_up_basket("parent_6")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="006", parent_ids=["008"])
+
+    tmp_dir = tb.set_up_basket("parent_5")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="005", parent_ids=["007"])
+
+    tmp_dir = tb.set_up_basket("parent_4")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="004")
+
+    tmp_dir = tb.set_up_basket("parent_3")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="003", parent_ids=["006"])
+
+    tmp_dir = tb.set_up_basket("parent_2")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="002",
+                     parent_ids=["0004", "005", "008"])
+
+    tmp_dir = tb.set_up_basket("parent_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="001",
+                     parent_ids=["004"])
+
+    tmp_dir = tb.set_up_basket("child")
+    child_path = tb.upload_basket(tmp_basket_dir=tmp_dir,
+                                  uid="000",
+                                  parent_ids=["001", "002", "003"])
+
+
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind.generate_index()
+
+    with pytest.raises(
+        ValueError, match=re.escape("Parent-Child loop found at uuid: 000")
+    ):
+        ind.get_parents(child_path)
+
+
+def test_get_children_complex_fail(set_up_tb):
+    """Make a complicated tree with a loop to test new algorithm
+    """
+    tb = set_up_tb
+
+    tmp_dir = tb.set_up_basket("parent_8")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="008", parent_ids=["007"])
+
+    tmp_dir = tb.set_up_basket("parent_7")
+    parent_path = tb.upload_basket(tmp_basket_dir=tmp_dir,
+                                   uid="007",
+                                   parent_ids=["003"])
+
+    tmp_dir = tb.set_up_basket("parent_6")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="006", parent_ids=["008"])
+
+    tmp_dir = tb.set_up_basket("parent_5")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="005", parent_ids=["007"])
+
+    tmp_dir = tb.set_up_basket("parent_4")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="004")
+
+    tmp_dir = tb.set_up_basket("parent_3")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="003", parent_ids=["006"])
+
+    tmp_dir = tb.set_up_basket("parent_2")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="002",
+                     parent_ids=["004", "005", "008"])
+
+    tmp_dir = tb.set_up_basket("parent_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="001", parent_ids=["004"])
+
+    tmp_dir = tb.set_up_basket("child")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="000",
+                     parent_ids=["001", "002", "003"])
+
+
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind.generate_index()
+
+    with pytest.raises(
+        ValueError, match=re.escape("Parent-Child loop found at uuid: 007")
+    ):
+        ind.get_children(parent_path)
+
+
+def test_get_parents_from_uuid(set_up_tb):
+    """setup a valid basket structure, validate the returned index from uuid
+    """
+    tb = set_up_tb
+
+    #setup random strucutre of parents and children 
+    tmp_dir = tb.set_up_basket("great_grandparent_3")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
+
+    tmp_dir = tb.set_up_basket("great_grandparent_3_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3003")
+
+    tmp_dir = tb.set_up_basket("great_grandparent_3_2")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3333")
+
+    tmp_dir = tb.set_up_basket("great_grandparent_3_3")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3303")
+
+    tmp_dir = tb.set_up_basket("grandparent_2")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="2000",
+                     parent_ids=["3000", "3003", "3333"])
+
+    tmp_dir = tb.set_up_basket("grandparent_2_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="2002")
+
+    tmp_dir = tb.set_up_basket("parent_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="1000",
+                     parent_ids=["2000", "2002", "3303"])
+
+    tmp_dir = tb.set_up_basket("parent_1_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="1001")
+
+    tmp_dir = tb.set_up_basket("child_0")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="0000",
+                     parent_ids=["1001", "1000"])
+
+
+    #string to shorten things for ruff
+    gen_lvl = "generation_level"
+
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind.generate_index()
+
+    # setup df of the right answer
+    parent_ids = [
+        "1000", "1001", "2000", "2002", "3303", "3000", "3003", "3333"
+    ]
+    parent_gens = [1, 1, 2, 2, 2, 3, 3, 3]
+    index = ind.index_df
+    parent_answer = index.loc[index["uuid"].isin(parent_ids)]
+
+    # pandas wants to make a copy before adding a column
+    # used to remove warning in pytest
+    parent_answer = parent_answer.copy()
+    #add the generation levels
+    for i, j in zip(parent_ids, parent_gens):
+        parent_answer.loc[parent_answer["uuid"] == i, gen_lvl] = j
+
+    # get the results
+    results = ind.get_parents('0000')
+
+    # sort so that they can be properly compared to
+    parent_answer = parent_answer.sort_values(by="uuid")
+    results = results.sort_values(by="uuid")
+
+    #cast to int64 so datatypes match
+    parent_answer[gen_lvl] = parent_answer[gen_lvl].astype(np.int64)
+
+    assert parent_answer.equals(results)
+
+
+def test_get_children_from_uuid(set_up_tb):
+    """setup a valid basket structure, validate the returned index from uuid
+    """
+    tb = set_up_tb
+
+    #setup random strucutre of parents and children 
+    tmp_dir = tb.set_up_basket("great_grandparent_3")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
+
+    tmp_dir = tb.set_up_basket("great_grandparent_3_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3003")
+
+    tmp_dir = tb.set_up_basket("great_grandparent_3_2")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3333")
+
+    tmp_dir = tb.set_up_basket("great_grandparent_3_3")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3303")
+
+    tmp_dir = tb.set_up_basket("grandparent_2")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="2000",
+                     parent_ids=["3000", "3003", "3333"])
+
+    tmp_dir = tb.set_up_basket("grandparent_2_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="2002")
+
+    tmp_dir = tb.set_up_basket("parent_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="1000",
+                     parent_ids=["2000", "2002", "3303"])
+
+    tmp_dir = tb.set_up_basket("parent_1_1")
+    tb.upload_basket(tmp_basket_dir=tmp_dir, uid="1001")
+
+    tmp_dir = tb.set_up_basket("child_0")
+    tb.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="0000",
+                     parent_ids=["1001", "1000"])
+
+    #string to shorten things for ruff
+    gen_lvl = "generation_level"
+
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind.generate_index()
+
+    # setup df of the right answer
+    child_ids = ["2000", "1000", "0000"]
+    child_gens = [-1,-2,-3]
+    index = ind.index_df
+    child_answer = index.loc[index["uuid"].isin(child_ids)]
+
+    # pandas wants to make a copy before adding a column
+    # used to remove warning in pytest
+    child_answer = child_answer.copy()
+    #add the generation levels
+    for i, j in zip(child_ids, child_gens):
+        child_answer.loc[child_answer["uuid"] == i, gen_lvl] = j
+
+
+    # get the results with uid of the great grandparent
+    results = ind.get_children('3000')
+
+    # sort so that they can be properly compared to
+    child_answer = child_answer.sort_values(by="uuid")
+    results = results.sort_values(by="uuid")
+
+    #cast to int64 so datatypes match
+    child_answer[gen_lvl] = child_answer[gen_lvl].astype(np.int64)
+
+    assert child_answer.equals(results)
+
 def test_upload_basket_updates_the_index(set_up_tb):
     """
     In this test the index already exists with one basket inside of it.
@@ -381,7 +1012,7 @@ def test_upload_basket_updates_the_index(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # create index
-    ind = Index(bucket_name=tb.bucket_name, sync=True, file_system=tb.fs)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
     ind.generate_index()
 
     # add another basket
