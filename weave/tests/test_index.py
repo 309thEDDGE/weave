@@ -205,7 +205,7 @@ def test_clean_up_indices_n_not_int():
         )
     ):
         ind = Index()
-        ind.clean_up_indices(n=test_str)
+        ind.clean_up_indices(n_ret=test_str)
 
 def test_clean_up_indices_leaves_n_indices(set_up_tb):
     tb = set_up_tb
@@ -223,7 +223,7 @@ def test_clean_up_indices_leaves_n_indices(set_up_tb):
     ind.generate_index()
 
     # Now there should be two index baskets. clean up all but one of them:
-    ind.clean_up_indices(n=1)
+    ind.clean_up_indices(n_ret=1)
     fs = get_file_system()
     index_path = os.path.join(tb.s3_bucket_name, 'index')
     assert len(fs.ls(index_path)) == 1
@@ -245,7 +245,7 @@ def test_clean_up_indices_with_n_greater_than_num_of_indices(set_up_tb):
 
     # Now there should be two index baskets. clean up all but three of them:
     # (this should fail, obvs)
-    ind.clean_up_indices(n=3)
+    ind.clean_up_indices(n_ret=3)
     fs = get_file_system()
     index_path = os.path.join(tb.s3_bucket_name, 'index')
     assert len(fs.ls(index_path)) == 2
@@ -303,7 +303,7 @@ def test_delete_basket_deletes_basket(set_up_tb):
 
     ind.generate_index()
     ind.delete_basket(basket_uuid="0002")
-    ind.clean_up_indices(n=1)
+    ind.clean_up_indices(n_ret=1)
     ind.generate_index()
     assert "0002" not in ind.index_df["uuid"].to_list()
 
