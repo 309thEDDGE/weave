@@ -1,10 +1,13 @@
-import json
-import os
-import hashlib
-import math
-import tempfile
+"""Contains functions and classes used by uploader.py's upload function.
+"""
 from datetime import datetime
+import hashlib
+import json
+import math
+import os
 from pathlib import Path
+import tempfile
+
 from weave import config
 
 
@@ -18,7 +21,7 @@ def validate_upload_item(upload_item):
 
     expected_schema = {"path": str, "stub": bool}
     for key, value in upload_item.items():
-        if key not in expected_schema.keys():
+        if key not in expected_schema:
             raise KeyError(
                 f"Invalid upload_item key: '{key}'"
                 f"\nExpected keys: {list(expected_schema.keys())}"
@@ -76,7 +79,7 @@ def derive_integrity_data(file_path, byte_count=10**8):
     if not isinstance(byte_count, int):
         raise TypeError(f"'byte_count' must be an int: '{byte_count}'")
 
-    if not byte_count > 0:
+    if byte_count <= 0:
         raise ValueError(
             f"'byte_count' must be greater than zero: '{byte_count}'"
         )
@@ -90,10 +93,9 @@ def derive_integrity_data(file_path, byte_count=10**8):
 
     file_size = os.path.getsize(file_path)
 
-    # TODO: Read in small chunks of the file at a
-    #       time to protect from RAM overload
     if file_size <= byte_count * 3:
-        sha256_hash = hashlib.sha256(open(file_path, "rb").read()).hexdigest()
+        with open(file_path, "rb") as file:
+            sha256_hash = hashlib.sha256(file.read()).hexdigest()
     else:
         hasher = hashlib.sha256()
         midpoint = file_size / 2.0
