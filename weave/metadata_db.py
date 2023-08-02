@@ -1,3 +1,6 @@
+"""Wherein scripts concerning mongodb functionality reside.
+"""
+
 import pandas as pd
 from weave import config, Basket
 
@@ -18,30 +21,30 @@ def load_mongo(index_table, collection = 'metadata'):
                uuid
                basket_type
                address
-               
+
         collection: [string]
             Metadata wil be added to the Mongo collection specified.
             default: 'metadata'
         """
-    
+
     if not isinstance(index_table, pd.DataFrame):
         raise TypeError("Invalid datatype for index_table: "
                         "must be Pandas DataFrame")
-        
+
     if not isinstance(collection, str):
         raise TypeError("Invalid datatype for collection: "
                         "must be a string")
-    
+
     required_columns = ['uuid', 'basket_type', 'address']
-    
+
     for required_column in required_columns:
         if required_column not in index_table.columns.values.tolist():
             raise ValueError("Invalid index_table: missing "
                              f"{required_column} column")
-    
-    db = config.get_mongo_db().mongo_metadata
-    
-    for index, row in index_table.iterrows():
+
+    database = config.get_mongo_db().mongo_metadata
+
+    for _, row in index_table.iterrows():
         basket = Basket(row['address'])
         metadata = basket.get_metadata()
         if metadata is None:
@@ -51,8 +54,10 @@ def load_mongo(index_table, collection = 'metadata'):
         mongo_metadata['uuid'] = manifest['uuid']
         mongo_metadata['basket_type'] = manifest['basket_type']
         mongo_metadata.update(metadata)
-        
+
         # If the UUID already has metadata loaded in mongodb,
         # the metadata should not be loaded to mongoDB again.
-        if 0 == db[collection].count_documents({'uuid': manifest['uuid']}):
-            db[collection].insert_one(mongo_metadata)
+        if 0 == database[
+            collection
+        ].count_documents({'uuid': manifest['uuid']}):
+            database[collection].insert_one(mongo_metadata)
