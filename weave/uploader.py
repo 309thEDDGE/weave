@@ -66,8 +66,7 @@ def upload(
     if "test_prefix" in kwargs.keys():
         prefix = kwargs["test_prefix"]
 
-    if file_system is None:
-        file_system = config.get_file_system()
+    file_system = file_system if file_system else config.get_file_system()
 
     # build upload directory of the form
     # bucket_name/basket_type/unique_id

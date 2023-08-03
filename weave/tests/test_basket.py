@@ -389,8 +389,11 @@ def test_basket_ls_after_find(set_up_tb):
     # Get the actual base dir paths (essentially stripping any FS specific
     # prefixes or conventions, ie in local file systems, the path to where
     # the script was called might be prepended, we clean stuff like that here)
-    actual_bdp = [x.endswith(z) for x, z in zip(ls, expected_base_dir_paths)]
+    actual_bdp = [x.endswith(z) for x, z in zip(ls, expected_base_dir_paths,
+                                               strict=True)]
 
+    # Check false is not in actual_bdp--which is a list of booleans that
+    # indicates if the indices match.
     assert False not in actual_bdp
 
 def test_basket_init_from_uuid(set_up_tb):

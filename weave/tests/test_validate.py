@@ -9,7 +9,7 @@ from fsspec.implementations.local import LocalFileSystem
 class ValidateForTest():
     """A class to test functions in validate.py"""
     def __init__(self, tmpdir, fs):
-        """Initializes the TestValidate class
+        """Initializes the ValidateForTest class
         assign the tmpdir, initialize the basket_list,
         assign the fs client, call set_up_bucket
         """
@@ -223,7 +223,7 @@ def test_validate_no_supplement_file(set_up_validate):
         validate.validate_bucket(tv.bucket_name, tv.fs)
 
     # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert(e_info.value.args[1].endswith(basket_path))
+    assert (e_info.value.args[1].endswith(basket_path))
 
 def test_validate_no_metadata_file(set_up_validate):
     """Make a basket with no metadata, validate that it returns true (valid)
@@ -274,7 +274,7 @@ def test_validate_invalid_manifest_schema(set_up_validate):
         validate.validate_bucket(tv.bucket_name, tv.fs)
 
     # Check the invalid file path is what we expect (disregarding FS prefix)
-    assert(
+    assert (
         e_info.value.args[1].endswith(
             os.path.join(basket_path, "bad_man_schema", "basket_manifest.json")
         )
@@ -316,7 +316,7 @@ def test_validate_manifest_schema_missing_field(set_up_validate):
         validate.validate_bucket(tv.bucket_name, tv.fs)
 
     # Check the invalid file path is what we expect (disregarding FS prefix)
-    assert(
+    assert (
         e_info.value.args[1].endswith(
             os.path.join(basket_path, "bad_man_schema", "basket_manifest.json")
         )
@@ -361,7 +361,7 @@ def test_validate_manifest_schema_additional_field(set_up_validate):
         validate.validate_bucket(tv.bucket_name, tv.fs)
 
     # Check the invalid file path is what we expect (disregarding FS prefix)
-    assert(
+    assert (
         e_info.value.args[1].endswith(
             os.path.join(basket_path, "bad_man_schema", "basket_manifest.json")
         )
@@ -394,7 +394,7 @@ def test_validate_invalid_manifest_json(set_up_validate):
         validate.validate_bucket(tv.bucket_name, tv.fs)
 
     # Check the invalid file path is what we expect (disregarding FS prefix)
-    assert(
+    assert (
         e_info.value.args[1].endswith(
             os.path.join(basket_path, "bad_man", "basket_manifest.json")
         )
@@ -449,7 +449,7 @@ def test_validate_invalid_supplement_schema(set_up_validate):
         validate.validate_bucket(tv.bucket_name, tv.fs)
 
     # Check the invalid file path is what we expect (disregarding FS prefix)
-    assert(
+    assert (
         e_info.value.args[1].endswith(
             os.path.join(basket_path, "bad_sup_schema",
                          "basket_supplement.json")
@@ -492,7 +492,7 @@ def test_validate_supplement_schema_missing_field(set_up_validate):
         validate.validate_bucket(tv.bucket_name, tv.fs)
 
     # Check the invalid file path is what we expect (disregarding FS prefix)
-    assert(
+    assert (
         e_info.value.args[1].endswith(
             os.path.join(basket_path, "bad_sup_schema",
                          "basket_supplement.json")
@@ -547,7 +547,7 @@ def test_validate_supplement_schema_missing_array_field(set_up_validate):
         validate.validate_bucket(tv.bucket_name, tv.fs)
 
     # Check the invalid file path is what we expect (disregarding FS prefix)
-    assert(
+    assert (
         e_info.value.args[1].endswith(
             os.path.join(basket_path, "bad_sup_schema",
                          "basket_supplement.json")
@@ -603,7 +603,7 @@ def test_validate_supplement_schema_missing_array_field_2(set_up_validate):
         validate.validate_bucket(tv.bucket_name, tv.fs)
 
     # Check the invalid file path is what we expect (disregarding FS prefix)
-    assert(
+    assert (
         e_info.value.args[1].endswith(
             os.path.join(basket_path, "bad_sup_schema",
                          "basket_supplement.json")
@@ -663,7 +663,7 @@ def test_validate_supplement_schema_added_array_field(set_up_validate):
         validate.validate_bucket(tv.bucket_name, tv.fs)
 
     # Check the invalid file path is what we expect (disregarding FS prefix)
-    assert(
+    assert (
         e_info.value.args[1].endswith(
             os.path.join(basket_path, "bad_sup_schema",
                          "basket_supplement.json")
@@ -723,7 +723,7 @@ def test_validate_supplement_schema_added_array_field_2(set_up_validate):
         validate.validate_bucket(tv.bucket_name, tv.fs)
 
     # Check the invalid file path is what we expect (disregarding FS prefix)
-    assert(
+    assert (
         e_info.value.args[1].endswith(
             os.path.join(basket_path, "bad_sup_schema",
                          "basket_supplement.json")
@@ -782,7 +782,7 @@ def test_validate_supplement_schema_additional_field(set_up_validate):
         validate.validate_bucket(tv.bucket_name, tv.fs)
 
     # Check the invalid file path is what we expect (disregarding FS prefix)
-    assert(
+    assert (
         e_info.value.args[1].endswith(
             os.path.join(basket_path, "bad_sup_schema",
                          "basket_supplement.json")
@@ -835,7 +835,7 @@ def test_validate_supplement_schema_empty_upload_items(set_up_validate):
         validate.validate_bucket(tv.bucket_name, tv.fs)
 
     # Check the invalid file path is what we expect (disregarding FS prefix)
-    assert(
+    assert (
         e_info.value.args[1].endswith(
             os.path.join(basket_path, "bad_sup_schema",
                          "basket_supplement.json")
@@ -880,7 +880,7 @@ def test_validate_supplement_schema_empty_integrity_data(set_up_validate):
         validate.validate_bucket(tv.bucket_name, tv.fs)
 
     # Check the invalid file path is what we expect (disregarding FS prefix)
-    assert(
+    assert (
         e_info.value.args[1].endswith(
             os.path.join(basket_path, "bad_sup_schema",
                          "basket_supplement.json")
@@ -914,7 +914,7 @@ def test_validate_invalid_supplement_json(set_up_validate):
         validate.validate_bucket(tv.bucket_name, tv.fs)
 
     # Check the invalid file path is what we expect (disregarding FS prefix)
-    assert(
+    assert (
         e_info.value.args[1].endswith(
             os.path.join(basket_path, "bad_sup",
                          "basket_supplement.json")
@@ -948,7 +948,7 @@ def test_validate_invalid_metadata_json(set_up_validate):
         validate.validate_bucket(tv.bucket_name, tv.fs)
 
     # Check the invalid file path is what we expect (disregarding FS prefix)
-    assert(
+    assert (
         e_info.value.args[1].endswith(
             os.path.join(basket_path, "bad_meta",
                          "basket_metadata.json")
@@ -977,7 +977,7 @@ def test_validate_nested_basket(set_up_validate):
         validate.validate_bucket(tv.bucket_name, tv.fs)
 
     # Check the invalid file path is what we expect (disregarding FS prefix)
-    assert(
+    assert (
         e_info.value.args[1].endswith(
             os.path.join(basket_path)
         )
@@ -989,31 +989,51 @@ def test_validate_deeply_nested(set_up_validate):
     tv = set_up_validate
 
     tmp_basket_dir = tv.set_up_basket(
-        "bad_sup",
+        "my_basket",
+        is_man=False,
+        is_sup=False,
+        is_meta=False
+    )
+
+    my_nested_dir = tv.add_lower_dir_to_temp_basket(
+        tmp_basket_dir=tmp_basket_dir,
+        new_dir_name='nest_level'
+    )
+
+    # Create a deep directory 10 deep that we can use
+    for i in range(10):
+        nested_dir_name = "nest_level_" + str(i)
+        my_nested_dir = tv.add_lower_dir_to_temp_basket(
+            tmp_basket_dir=my_nested_dir,
+            new_dir_name=nested_dir_name
+        )
+
+    # Using the deep directory, upload a manifest to make it a nested basket
+    my_nested_dir = tv.add_lower_dir_to_temp_basket(
+        tmp_basket_dir=my_nested_dir,
+        new_dir_name="deepest_basket",
+        is_basket=True
+    )
+
+    tv.set_up_basket(
+        "my_nested_basket",
         is_man=True,
-        sup_data='{"Bad":1}}',
         is_sup=True,
         is_meta=False
     )
 
     basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
-    manifest_path = os.path.join(basket_path, "basket_manifest.json")
-    supplement_path = os.path.join(basket_path, "basket_supplement.json")
-    tv.fs.rm(manifest_path)
-    tv.fs.rm(supplement_path)
-
     with pytest.raises(
         ValueError,
-        match="Invalid Basket. Supplement could not be loaded into json at: "
+        match="Invalid Basket. "
+        "Manifest File found in sub directory of basket at: "
     ) as e_info:
         validate.validate_bucket(tv.bucket_name, tv.fs)
 
-    # Check the invalid file path is what we expect (disregarding FS prefix)
-    assert(
+    assert (
         e_info.value.args[1].endswith(
-            os.path.join(basket_path, "bad_sup",
-                         "basket_supplement.json")
+            os.path.join(basket_path)
         )
     )
 
@@ -1091,7 +1111,7 @@ def test_validate_fifty_baskets_invalid(set_up_validate):
         validate.validate_bucket(tv.bucket_name, tv.fs)
 
     # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert(e_info.value.args[1].endswith(invalid_basket_path))
+    assert (e_info.value.args[1].endswith(invalid_basket_path))
 
 def test_validate_fifty_baskets_valid(set_up_validate):
     """Create bucket with 50 baskets, and 0 nested, check that its valid."""

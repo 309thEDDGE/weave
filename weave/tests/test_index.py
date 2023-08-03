@@ -79,7 +79,8 @@ def test_correct_index(set_up_tb):
 
     actual_index = create_index_from_fs(tb.bucket_name, tb.fs)
 
-    # Check that the indexes match, ignoring 'upload_time'
+    # Check that the indexes match, ignoring 'upload_time', and 'address'
+    # (address needs to be checked regardless of FS prefix--see next assert)
     assert (
         (expected_index == actual_index)
         .drop(columns=["upload_time", "address"])
@@ -156,6 +157,9 @@ def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
         actual_index = create_index_from_fs(tb.bucket_name, tb.fs)
         message = ('baskets found in the following locations '
                   'do not follow specified weave schema:\n')
+
+        # Check that the indexes match, ignoring 'upload_time', and 'address'
+        # (address needs to be checked regardless of FS prefix-see next assert)
         assert (
             (expected_index == actual_index)
             .drop(columns=["upload_time", "address"])
