@@ -45,7 +45,9 @@ def validate_bucket(bucket_name):
     # we just use the bucket_name as the path
     # create an empty array where we can store all of our invalid
     # bucket paths
-    validate_bucket_statement = _check_level(bucket_name, valid_bucket, invalid_paths_list) 
+    validate_bucket_statement = _check_level(bucket_name, 
+                                             valid_bucket, 
+                                             invalid_paths_list) 
     
     print(validate_bucket_statement)
     if len(invalid_paths_list) >= 1:
@@ -54,7 +56,8 @@ def validate_bucket(bucket_name):
     return validate_bucket_statement, invalid_paths_list
 
 
-def _check_level(current_dir, valid_bucket, invalid_paths_list, in_basket=False):    
+def _check_level(current_dir, valid_bucket, 
+                 invalid_paths_list, in_basket=False):    
     """Check all immediate subdirs in dir, check for manifest
     
     Checks all the immediate subdirectories and files in the given directory 
@@ -204,13 +207,14 @@ def _validate_basket(basket_dir, valid_bucket, invalid_paths_list):
                 
             except jsonschema.exceptions.ValidationError:
                 warnings.warn(
-                    f"Invalid Basket. Manifest Schema does not match at: {file}\n")
+                    f"Invalid Basket. Manifest Schema does not match at: "
+                    f"{file}\n")
                 invalid_paths_list.append(file)
                 valid_bucket = False
             
             except json.decoder.JSONDecodeError:
-                warnings.warn(f"Invalid Basket. Manifest could not be loaded into "
-                              f"json at: {file}\n")
+                warnings.warn(f"Invalid Basket. Manifest could not be "
+                              f"loaded into json at: {file}\n")
                 invalid_paths_list.append(file)
                 valid_bucket = False
             
@@ -223,7 +227,8 @@ def _validate_basket(basket_dir, valid_bucket, invalid_paths_list):
                 
             except jsonschema.exceptions.ValidationError:
                 warnings.warn(
-                    f"Invalid Basket. Supplement Schema does not match at: {file}\n")
+                    f"Invalid Basket. Supplement Schema does not match at: "
+                    f"{file}\n")
                 invalid_paths_list.append(file)
                 valid_bucket = False
             
@@ -239,15 +244,17 @@ def _validate_basket(basket_dir, valid_bucket, invalid_paths_list):
                 data = json.load(s3fs_client.open(file))
                 
             except json.decoder.JSONDecodeError:
-                warnings.warn(f"Invalid Basket. Metadata could not be loaded into "
-                              f"json at: {file}\n")
+                warnings.warn(f"Invalid Basket. Metadata could not be "
+                              f"loaded into json at: {file}\n")
                 invalid_paths_list.append(file)
                 valid_bucket = False
 
         # if we find a directory inside this basket, we need to check it
         # if we check it and find a basket, this basket is invalid.
         if s3fs_client.info(file)['type'] == 'directory':
-            if _check_level(file, valid_bucket, invalid_paths_list, in_basket=True) == "Valid Bucket":
+            if _check_level(file, valid_bucket, 
+                            invalid_paths_list, 
+                            in_basket=True) == "Valid Bucket":
                 warnings.warn(f"Invalid Basket. Manifest File found in sub "
                               f"directory of basket at: {basket_dir}\n")
                 invalid_paths_list.append(basket_dir)
