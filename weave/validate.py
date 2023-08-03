@@ -186,7 +186,8 @@ def _validate_basket(basket_dir, valid_bucket, invalid_paths_list):
     
     if not s3fs_client.exists(supplement_path):
         warnings.warn(
-            f"Invalid Basket. No Supplement file found at: {supplement_path}\n")
+            f"Invalid Basket. No Supplement file found at: "
+            f"{supplement_path}\n")
         invalid_paths_list.append(supplement_path)
         valid_bucket = False
     
