@@ -1,59 +1,37 @@
 import pytest
 import pandas as pd
 import weave
-from weave.config import get_file_system
+from weave.tests.pytest_resources import BucketForTest
 
-class MongoForTest():
+class MongoForTest(BucketForTest):
+    """Extend the BucketForTest class to support mongodb and custom data
+    loader"""
     def __init__(self, tmpdir):
-        self.tmpdir = tmpdir
-        self.s3fs_client = get_file_system()
-        
+        super().__init__(tmpdir)
         self.test_collection = 'test_collection'
         self.mongodb = weave.config.get_mongo_db().mongo_metadata
-        
-        self.basket_type = "test_basket_type"
-        self.test_bucket = "test-bucket"
-        self._set_up_bucket()
-
-        self.local_dir_path = self.tmpdir.mkdir("test_dir_local")
-        self.tmp_basket_txt_file = self.local_dir_path.join("test.txt")
-        self.tmp_basket_txt_file.write("This is a file for testing purposes.")
         self.load_data()
-    
-    def load_data(self):
-        weave.uploader.upload_basket(
-            [{"path": self.tmp_basket_txt_file.strpath, "stub": False}],
-            f"{self.test_bucket}/{self.basket_type}/1234",
-            "1234",
-            self.basket_type,
-            metadata={'key1': 'value1'}
-        )
 
-        weave.uploader.upload_basket(
-            [{"path": self.tmp_basket_txt_file.strpath, "stub": False}],
-            f"{self.test_bucket}/{self.basket_type}/one_deeper/4321",
-            "4321",
-            self.basket_type,
-            metadata={'key2': 'value2'}
-        )
-        
-        # No Metadata
-        weave.uploader.upload_basket(
-            [{"path": self.tmp_basket_txt_file.strpath, "stub": False}],
-            f"{self.test_bucket}/{self.basket_type}/nometadata",
-            "nometadata",
-            self.basket_type,
-        )
-    
-    def _set_up_bucket(self):
-        try:
-            self.s3fs_client.mkdir(self.test_bucket)
-        except FileExistsError:
-            self.cleanup_bucket()
-            self._set_up_bucket()
-    
-    def cleanup_bucket(self):
-        self.s3fs_client.rm(self.test_bucket, recursive=True)
+    def load_data(self):
+        # Create a temporary basket with a test file.
+        tmp_basket_dir_name = "test_basket_tmp_dir"
+        tmp_basket_dir = self.set_up_basket(tmp_basket_dir_name)
+
+        # Upload the basket with different uuids and metadata.
+        self.upload_basket(tmp_basket_dir,
+                           uid="1234",
+                           metadata={'key1': 'value1'})
+
+        tmp_nested_dir = self.add_lower_dir_to_temp_basket(tmp_basket_dir)
+        self.upload_basket(tmp_nested_dir,
+                           uid="4321",
+                           metadata={'key2': 'value2'})
+
+        self.upload_basket(tmp_basket_dir,
+                           uid="nometadata")
+
+    def cleanup(self):
+        self.cleanup_bucket()
         self.mongodb[self.test_collection].drop()
 
 
@@ -61,19 +39,21 @@ class MongoForTest():
 def set_up(tmpdir):
     db = MongoForTest(tmpdir)
     yield db
-    db.cleanup_bucket()
+    db.cleanup()
 
 def test_load_mongo(set_up):
     """
     Test that load_mongo successfully loads valid metadata to the db.
     """
     db = set_up
-    index_table = weave.index.create_index_from_s3(db.test_bucket)
+    index_table = weave.index.create_index_from_s3(db.s3_bucket_name)
     weave.load_mongo(index_table, db.test_collection)
-    
-    truth_db = [{'uuid': '1234', 'basket_type': 'test_basket_type', 
-                 'key1': 'value1'}, 
-                {'uuid': '4321', 'basket_type': 'test_basket_type', 
+
+    truth_db = [{'uuid': '1234',
+                 'basket_type': 'test_basket',
+                 'key1': 'value1'},
+                {'uuid': '4321',
+                 'basket_type': 'test_basket',
                  'key2': 'value2'}]
 
     db_data = list(db.mongodb[db.test_collection].find({}))
@@ -82,7 +62,7 @@ def test_load_mongo(set_up):
         item.pop('_id')
         compared_data.append(item)
 
-    assert truth_db == compared_data        
+    assert truth_db == compared_data
 
 def test_load_mongo_check_for_dataframe(set_up):
     """
@@ -114,7 +94,7 @@ def test_load_mongo_check_dataframe_for_uuid(set_up):
         ValueError, match="Invalid index_table: "
                           "missing uuid column"
     ):
-        weave.load_mongo(pd.DataFrame({'basket_type': ['type'], 
+        weave.load_mongo(pd.DataFrame({'basket_type': ['type'],
                                        'address': ['path']}),
                          db.test_collection)
 
@@ -127,7 +107,7 @@ def test_load_mongo_check_dataframe_for_address(set_up):
         ValueError, match="Invalid index_table: "
                           "missing address column"
     ):
-        weave.load_mongo(pd.DataFrame({'uuid': ['1234'], 
+        weave.load_mongo(pd.DataFrame({'uuid': ['1234'],
                                        'basket_type': ['type']}),
                          db.test_collection)
 
@@ -140,10 +120,10 @@ def test_load_mongo_check_dataframe_for_basket_type(set_up):
         ValueError, match="Invalid index_table: "
                           "missing basket_type column"
     ):
-        weave.load_mongo(pd.DataFrame({'uuid': ['1234'], 
+        weave.load_mongo(pd.DataFrame({'uuid': ['1234'],
                                        'address': ['path']}),
                          db.test_collection)
-        
+
 def test_load_mongo_check_for_duplicate_uuid(set_up):
     """
     Test duplicate metadata won't be uploaded to mongoDB, based on the UUID.
@@ -152,7 +132,7 @@ def test_load_mongo_check_for_duplicate_uuid(set_up):
     test_uuid = '1234'
 
     # Load metadata twice, and ensure there's only one instance
-    index_table = weave.index.create_index_from_s3(db.test_bucket)
+    index_table = weave.index.create_index_from_s3(db.s3_bucket_name)
     weave.load_mongo(index_table, db.test_collection)
     weave.load_mongo(index_table, db.test_collection)
     count = db.mongodb[db.test_collection].count_documents(

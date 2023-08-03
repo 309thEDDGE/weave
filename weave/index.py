@@ -1,6 +1,6 @@
 """
 USAGE:
-python create_index.py <root_dir> 
+python create_index.py <root_dir>
     root_dir: the root directory of s3 you wish to build your index off of
 """
 import json
@@ -18,8 +18,7 @@ from weave import config, upload
 
 # validate basket keys and value data types on read in
 def validate_basket_dict(basket_dict, basket_address):
-    """
-    validate the basket_manifest.json has the correct structure
+    """validate the basket_manifest.json has the correct structure
 
     Parameters:
         basket_dict: dictionary read in from basket_manifest.json in minio
@@ -203,6 +202,10 @@ class Index():
     def generate_index(self):
         '''Generates index and stores it in a basket'''
         index = create_index_from_s3(self.bucket_name)
+        self._upload_index(index=index)
+
+    def _upload_index(self, index):
+        """Upload a new index"""
         with tempfile.TemporaryDirectory() as out:
             ns = time_ns()
             temp_json_path = os.path.join(out, f"{ns}-index.json")
@@ -249,3 +252,253 @@ class Index():
                 self.index_df["uuid"] == basket_uuid
             ]["address"]
             fs.rm(adr, recursive=True)
+
+
+    def get_parents(self, basket, **kwargs):
+        """Recursively gathers all parents of basket and returns index
+
+        Parameters
+        ----------
+        basket: string
+            string that holds the path of the basket
+            can also be the basket uuid
+
+        kwargs:
+        gen_level: int
+            number the indicates what generation we are on, 1 for parent,
+            2 for grandparent and so forth
+        data: pandas dataframe (optional)
+            this is the index or dataframe we have collected so far
+            when it is initially called, it is empty, every
+            iteration/recursive call we add all the immediate parents for
+            the given basket
+        descendants: list of str
+            this is a list that holds the uids of all the descendents the
+            function has visited. this is used to prevent/detect any
+            parent-child loops found in the basket structure.
+
+        Returns
+        ----------
+        index or dataframe of all the parents of the immediate
+        basket we are given, along with all the previous parents
+        of the previous calls.
+        """
+        # collect info from kwargs
+        if "gen_level" in kwargs:
+            gen_level = kwargs["gen_level"]
+        else:
+            gen_level = 1
+
+        if "data" in kwargs:
+            data = kwargs["data"]
+        else:
+            data = pd.DataFrame()
+
+        if "descendants" in kwargs:
+            descendants = kwargs["descendants"]
+        else:
+            descendants = []
+
+        fs = config.get_file_system()
+
+        if self.sync:
+            if not self.is_index_current():
+                self.sync_index()
+        elif self.index_df is None:
+            self.sync_index()
+
+        # validate the bucket exists. if it does,
+        # make sure we use the address or the uid
+        if (not fs.exists(basket) and
+            basket not in self.index_df.uuid.values):
+            raise FileNotFoundError(
+                f"basket path or uuid does not exist '{basket}'"
+            )
+
+        if fs.exists(basket):
+            current_uid = self.index_df["uuid"].loc[
+                self.index_df["address"] == basket
+            ].values[0]
+        elif basket in self.index_df.uuid.values:
+            current_uid = basket
+
+        # get all the parent uuids for the current uid
+        puids = self.index_df["parent_uuids"].loc[
+            self.index_df["uuid"] == current_uid
+        ].to_numpy()[0]
+
+        # check if the list is empty return the data how it is
+        if len(puids) == 0:
+            return data
+
+        if current_uid in descendants:
+            raise ValueError(f"Parent-Child loop found at uuid: {current_uid}")
+        else:
+            descendants.append(current_uid)
+
+        parents_index = self.index_df.loc[
+            self.index_df["uuid"].isin(puids), :
+        ].copy()
+
+        if len(parents_index) == 0:
+            return data
+
+        parents_index.loc[:, "generation_level"] = gen_level
+
+        #add the parents for this generation to the data
+        data = pd.concat([data, parents_index])
+
+        # for every parent, go get their parents
+        for basket_addr in parents_index["address"]:
+            data = self.get_parents(basket=basket_addr,
+                                    gen_level=gen_level+1,
+                                    data=data,
+                                    descendants=descendants.copy())
+        return data
+
+
+    def get_children(self, basket, **kwargs):
+        """Recursively gathers all the children of basket and returns an index
+
+        Parameters
+        ----------
+        basket: string
+            string that holds the path of the basket
+            can also be the basket uuid
+
+        kwargs:
+        gen_level: int
+            number the indicates what generation we are on, -1 for child.
+            -2 for grandchild and so forth
+        data: pandas dataframe (optional)
+            this is the index or dataframe we have collected so far
+            when it is initially called, it is empty, every
+            iteration/recursive call we add all the immediate children for
+            the given basket
+        ancestors: list of string
+            this is a list of basket uuids of all the ancestors that have been
+            visited. This is being used to detect if there is a parent-child
+            loop inside the basket structure
+
+        Returns
+        ----------
+        index or dataframe of all the children of the immediate
+        basket we are given, along with all the previous children
+        of the previous calls.
+        """
+        # collect info from kwargs
+        if "gen_level" in kwargs:
+            gen_level = kwargs["gen_level"]
+        else:
+            gen_level = -1
+
+        if "data" in kwargs:
+            data = kwargs["data"]
+        else:
+            data = pd.DataFrame()
+
+        if "ancestors" in kwargs:
+            ancestors = kwargs["ancestors"]
+        else:
+            ancestors = []
+
+        fs = config.get_file_system()
+
+        if self.sync:
+            if not self.is_index_current():
+                self.sync_index()
+        elif self.index_df is None:
+            self.sync_index()
+
+        # validate the bucket exists. if it does,
+        # make sure we use the address or the uid
+        if (not fs.exists(basket) and
+            basket not in self.index_df.uuid.values):
+            raise FileNotFoundError(
+                f"basket path or uuid does not exist '{basket}'"
+            )
+
+        if fs.exists(basket):
+            current_uid = self.index_df["uuid"].loc[
+                self.index_df["address"] == basket
+            ].values[0]
+        elif basket in self.index_df.uuid.values:
+            current_uid = basket
+
+        # this looks at all the baskets and returns a list of baskets who have
+        # the the parent id inside their "parent_uuids" list
+        child_index = self.index_df.loc[
+            self.index_df.parent_uuids.apply(lambda a: current_uid in a)
+        ]
+
+        cids = child_index["uuid"].values
+
+        if len(cids) == 0:
+            return data
+
+        # we are storing all the ancestors in a list, if we find the same
+        # ancestor twice, we are in a loop, throw error
+        if current_uid in ancestors:
+            raise ValueError(f"Parent-Child loop found at uuid: {current_uid}")
+        else:
+            ancestors.append(current_uid)
+
+        # pandas is wanting me to make a copy of itself here 
+        # I'm not exactly sure why
+        child_index = child_index.copy()
+        child_index.loc[:, "generation_level"] = gen_level
+
+        # add the children from this generation to the data
+        data = pd.concat([data, child_index])
+
+        # go through all the children and get their children too
+        for basket_addr in child_index["address"]:
+            data =  self.get_children(basket=basket_addr,
+                                      gen_level=gen_level-1,
+                                      data=data,
+                                      ancestors=ancestors.copy())
+        return data
+
+  
+    def upload_basket(self, upload_items, basket_type, parent_ids=[],
+                      metadata={}, label=""):
+        """Upload a basket to the same pantry referenced by the Index
+
+        Parameters
+        ----------
+        upload_items : [dict]
+            List of python dictionaries with the following schema:
+            {
+                'path': path to the file or folder being uploaded (string),
+                'stub': true/false (bool)
+            }
+            'path' can be a file or folder to be uploaded. Every filename
+            and folder name must be unique. If 'stub' is set to True, integrity
+            data will be included without uploading the actual file or folder.
+            Stubs are useful when original file source information is desired
+            without uploading the data itself. This is especially useful when
+            dealing with large files.
+        basket_type: str
+            Type of basket being uploaded.
+        parent_ids: optional [str]
+            List of unique ids associated with the parent baskets
+            used to derive the new basket being uploaded.
+        metadata: optional dict,
+            Python dictionary that will be written to metadata.json
+            and stored in the basket in MinIO.
+        label: optional str,
+            Optional user friendly label associated with the basket.
+        """
+        self.sync_index()
+        up_dir = upload(
+            upload_items=upload_items,
+            basket_type=basket_type,
+            bucket_name=self.bucket_name,
+            parent_ids=parent_ids,
+            metadata=metadata,
+            label=label,
+        )
+        single_indice_index = create_index_from_s3(up_dir)
+        self._upload_index(
+            pd.concat([self.index_df, single_indice_index], ignore_index=True)
+        )
