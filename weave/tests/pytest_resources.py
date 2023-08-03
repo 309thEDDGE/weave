@@ -63,6 +63,5 @@ class BucketForTest():
 
     def cleanup_bucket(self):
         """Delete the temporary test bucket, including any uploaded baskets."""
+
         self.s3fs_client.rm(self.s3_bucket_name, recursive=True)
-
-

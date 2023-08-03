@@ -260,12 +260,12 @@ def test_validate_no_metadata_file(set_up_Validate):
     # Check that the list of invalid basket paths is empty
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == []
     
-    
+
 def test_validate_invalid_manifest_schema(set_up_Validate):
     """make basket with invalid manifest schema, check that it throws an error
     """
     tv = set_up_Validate
-    
+
     # the 'uuid: 100' is supposed to be a string, not a number, 
     # this is invalid against the schema
     bad_manifest_data = """{
@@ -435,7 +435,7 @@ def test_validate_invalid_manifest_json(set_up_Validate):
     s3_basket_path = os.path.join(s3_basket_path, "bad_man", "basket_manifest.json")
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == [s3_basket_path]
     
-    
+
 def test_validate_invalid_supplement_schema(set_up_Validate):
     """make a basket with invalid supplement schema, check that it throws error
     """
@@ -537,6 +537,7 @@ def test_validate_supplement_schema_missing_field(set_up_Validate):
     # Check that the list of invalid basket paths is correctly returned
     s3_basket_path = os.path.join(s3_basket_path, "bad_sup_schema", "basket_supplement.json")
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == [s3_basket_path]
+
     
 def test_validate_supplement_schema_missing_array_field(set_up_Validate):
     """make a basket with invalid supplement schema, check that it throws error
@@ -594,7 +595,7 @@ def test_validate_supplement_schema_missing_array_field(set_up_Validate):
     # Check that the list of invalid basket paths is correctly returned
     s3_basket_path = os.path.join(s3_basket_path, "bad_sup_schema", "basket_supplement.json")
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == [s3_basket_path]
-    
+
     
 def test_validate_supplement_schema_missing_array_field_2(set_up_Validate):
     """make a basket with invalid supplement schema, check that it throws error
@@ -654,7 +655,7 @@ def test_validate_supplement_schema_missing_array_field_2(set_up_Validate):
     s3_basket_path = os.path.join(s3_basket_path, "bad_sup_schema", "basket_supplement.json")
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == [s3_basket_path]
     
-    
+
 def test_validate_supplement_schema_added_array_field(set_up_Validate):
     """make a basket with invalid supplement schema, check that it throws error
     """
@@ -717,7 +718,7 @@ def test_validate_supplement_schema_added_array_field(set_up_Validate):
     s3_basket_path = os.path.join(s3_basket_path, "bad_sup_schema", "basket_supplement.json")
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == [s3_basket_path]
     
-    
+
 def test_validate_supplement_schema_added_array_field_2(set_up_Validate):
     """make a basket with invalid supplement schema, check that it throws error
     """
@@ -978,7 +979,7 @@ def test_validate_invalid_supplement_json(set_up_Validate):
     s3_basket_path = os.path.join(s3_basket_path, "bad_supp", "basket_supplement.json")
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == [s3_basket_path]
     
-    
+
 def test_validate_invalid_metadata_json(set_up_Validate):
     """make a basket with invalid metadata json, check that it throws an error
     """
@@ -1224,7 +1225,7 @@ def test_validate_fifty_baskets_valid(set_up_Validate):
     # Check that the list of invalid basket paths is empty
     assert validate.validate_bucket(tv.s3_bucket_name)[1] == []
         
-                
+
 def test_validate_call_check_level(set_up_Validate):
     """create basket, call _check_level()
     
