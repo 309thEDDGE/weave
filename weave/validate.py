@@ -209,8 +209,7 @@ def _validate_basket(basket_dir, valid_bucket, invalid_paths_list):
                 valid_bucket = False
             
             except json.decoder.JSONDecodeError:
-                warnings.warn(f"Invalid Basket. "
-                              f"Manifest could not be loaded into "
+                warnings.warn(f"Invalid Basket. Manifest could not be loaded into "
                               f"json at: {file}\n")
                 invalid_paths_list.append(file)
                 valid_bucket = False
@@ -229,9 +228,8 @@ def _validate_basket(basket_dir, valid_bucket, invalid_paths_list):
                 valid_bucket = False
             
             except json.decoder.JSONDecodeError:
-                warnings.warn(f"Invalid Basket. "
-                              f"Supplement could not be loaded into "
-                              f"json at: {file}\n")
+                warnings.warn(f"Invalid Basket. Supplement could not be "
+                              f"loaded into json at: {file}\n")
                 invalid_paths_list.append(file)
                 valid_bucket = False
             
@@ -241,8 +239,7 @@ def _validate_basket(basket_dir, valid_bucket, invalid_paths_list):
                 data = json.load(s3fs_client.open(file))
                 
             except json.decoder.JSONDecodeError:
-                warnings.warn(f"Invalid Basket. "
-                              f"Metadata could not be loaded into "
+                warnings.warn(f"Invalid Basket. Metadata could not be loaded into "
                               f"json at: {file}\n")
                 invalid_paths_list.append(file)
                 valid_bucket = False
@@ -251,9 +248,8 @@ def _validate_basket(basket_dir, valid_bucket, invalid_paths_list):
         # if we check it and find a basket, this basket is invalid.
         if s3fs_client.info(file)['type'] == 'directory':
             if _check_level(file, valid_bucket, invalid_paths_list, in_basket=True) == "Valid Bucket":
-                warnings.warn(f"Invalid Basket. "
-                              f"Manifest File found in sub directory of "
-                              f"basket at: {basket_dir}\n")
+                warnings.warn(f"Invalid Basket. Manifest File found in sub "
+                              f"directory of basket at: {basket_dir}\n")
                 invalid_paths_list.append(basket_dir)
                 valid_bucket = False
                 
