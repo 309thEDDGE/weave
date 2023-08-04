@@ -182,7 +182,7 @@ class Index():
                         f"{index_time}-index.json"
                     )[0]
                     uuid = path.split(os.path.sep)[-2]
-                    self.delete_basket(basket_uuid=uuid)
+                    self._delete_basket(basket_uuid=uuid, upload_index=False)
                 except ValueError as e:
                     warnings.warn(e)
 
@@ -227,6 +227,24 @@ class Index():
         basket_uuid: [int]
             The uuid of the basket to delete.
         '''
+        return self._delete_basket(basket_uuid, True)
+
+    def _delete_basket(self, basket_uuid, upload_index):
+        '''Deletes basket of given UUID.
+
+        Note that the given basket will not be deleted if the basket is listed
+        as the parent uuid for any of the baskets in the index.
+
+        This is a protected function so external delete_basket calls always
+        updload the new index, but internal calls can choose to do so.
+
+        Parameters:
+        -----------
+        basket_uuid: [int]
+            The uuid of the basket to delete.
+        upload_index: [bool]
+            Flag to upload the new index to the file system
+        '''
         fs = config.get_file_system()
         basket_uuid = str(basket_uuid)
         if self.index_df is None:
@@ -252,7 +270,11 @@ class Index():
                 self.index_df["uuid"] == basket_uuid
             ]["address"]
             fs.rm(adr, recursive=True)
-
+            remove_idx = self.index_df[self.index_df.uuid == basket_uuid].index
+            self.index_df.drop(remove_idx, inplace=True)
+            self.index_df.reset_index(drop=True, inplace=True)
+            if upload_index:
+                self._upload_index(self.index_df)
 
     def get_parents(self, basket, **kwargs):
         """Recursively gathers all parents of basket and returns index
