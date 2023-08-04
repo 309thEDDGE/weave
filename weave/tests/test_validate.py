@@ -275,7 +275,6 @@ def test_validate_invalid_manifest_schema(set_up_Validate):
         "basket_type": "str",
         "label": "str"
     }"""
-    
     tmp_basket_dir = tv.set_up_basket(
                             "bad_man_schema", 
                             is_man=True, 

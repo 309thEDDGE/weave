@@ -1,18 +1,17 @@
+import warnings
 import os
 import json
 import jsonschema
 from jsonschema import validate
-
 from weave import config
 
-import warnings
 
 def validate_bucket(bucket_name): 
     """Starts the validation process off based off the name of the bucket
     
     Validates that the bucket actually exists at the location given.
     If there is a bucket that exists, check it and every subdirectory by 
-    calling check_level
+    calling _check_level
     
     Parameters
     ----------
@@ -21,9 +20,9 @@ def validate_bucket(bucket_name):
         
     Returns
     ----------
-    A bool of whether the bucket is valid or not that comes from check_level()
+    A string of whether the bucket is valid or not 
+    that comes from _check_level()
     """
-    
     s3fs_client = config.get_file_system()
     
     # valid_bucket is a boolean to describe whether the current bucket is 
@@ -64,24 +63,30 @@ def _check_level(current_dir, valid_bucket,
     to see if there is a basket_manifest.json file. If there is a manifest, 
     it's a basket and must be validated.
     If there is a directory found, then recursively call check_level with that
-    found directory to find if there is a basket in any directory
+    found directory to find if there is a basket in any directory.
     
     Parameters
     ----------
     current_dir: string
         the current directory that we want to search all files and 
-        directories of
+        directories of the bucket
+    valid_bucket: bool
+        keeps track of whether the bucket is still valid or not. Default is
+        True but will be set to False if any warning is raised.
+    invalid_paths_list: list
+        list of all of the invalid bucket locations. New invalid bucket 
+        locations found in the function will be appended to this list.
     in_basket: bool
         optional parameter. This is a flag to signify that we are in a basket
-        and we are looking for a nested basket now. 
+        and we are looking for a nested basket now.
     
     Returns
     ----------
-    bool that comes from:
-        a validate_basket() if there is a basket found
-        a check_level() if there is a directory found
-        a true if we found a manifest while inside another basket
-        a default true if no basket is found
+    str that comes from:
+        a _validate_basket() if there is a basket found
+        a _check_level() if there is a directory found
+        Valid Basket if we found a manifest while inside another basket
+        a default Valid Basket if no basket is found
     """
     
     s3fs_client = config.get_file_system()
@@ -153,22 +158,29 @@ def _validate_basket(basket_dir, valid_bucket, invalid_paths_list):
     
     If there are any directories found inside this basket, run check_basket()
     on them to see if there is another basket inside this basket. If there is
-    another basket, raise error for invalid bucket.
+    another basket, raise warning for invalid bucket.
     
-    If the Basket is ever invalid, raise an error
-    If the basket is valid return true
+    If the Basket is ever invalid, raise a warning and change valid_bucket
+    to False
+    If the basket is valid return Valid Bucket
     
     Parameters
     ----------
     basket_dir: string
         the path in s3fs to the basket root directory
+    valid_bucket: bool
+        keeps track of whether the bucket is still valid or not. Default is
+        True but will be set to False if any warning is raised.
+    invalid_paths_list: list
+        list of all of the invalid bucket locations. New invalid bucket 
+        locations found in the function will be appended to this list.
         
     Returns
     ----------
-    boolean that is true when the Basket is valid
-        if the Basket is invalid, raise an error
+    str that is Valid Bucket when the Basket is valid
+        if the Basket is invalid, raise a warning
+        and change valid_bucket to False
     """
-    
     s3fs_client = config.get_file_system()
     
     manifest_path = os.path.join(basket_dir, 'basket_manifest.json')
@@ -261,8 +273,7 @@ def _validate_basket(basket_dir, valid_bucket, invalid_paths_list):
                 invalid_paths_list.append(basket_dir)
                 valid_bucket = False
                 
-    # default return true if we don't find any problems with this basket
-    # return True
+    # default return Valid Bucket if we don't find any problems with this basket
     if valid_bucket:
         return "Valid Bucket"
     return "Invalid Bucket"
