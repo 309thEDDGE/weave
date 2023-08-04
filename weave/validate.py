@@ -273,7 +273,8 @@ def _validate_basket(basket_dir, valid_bucket, invalid_paths_list):
                 invalid_paths_list.append(basket_dir)
                 valid_bucket = False
                 
-    # default return Valid Bucket if we don't find any problems with this basket
+    # default return Valid Bucket if we don't find any problems 
+    # with this basket
     if valid_bucket:
         return "Valid Bucket"
     return "Invalid Bucket"
