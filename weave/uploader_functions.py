@@ -187,8 +187,7 @@ class UploadBasket:
                     f"must be type {kwargs_schema[key]}'"
                 )
         self.test_clean_up = self.kwargs.get("test_clean_up", False)
-        self.fs = (self.kwargs['file_system'] if 'file_system' in self.kwargs
-                   else config.get_file_system())
+        self.fs = self.kwargs.get("file_system", config.get_file_system())
 
     def sanitize_upload_basket_non_kwargs(self):
         """Sanitize upload_basket's non kwargs args"""
