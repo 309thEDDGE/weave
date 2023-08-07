@@ -224,7 +224,7 @@ class Index():
 
         Parameters:
         -----------
-        basket_uuid: [int]
+        basket_uuid: int
             The uuid of the basket to delete.
         '''
         return self._delete_basket(basket_uuid, True)
@@ -240,9 +240,9 @@ class Index():
 
         Parameters:
         -----------
-        basket_uuid: [int]
+        basket_uuid: int
             The uuid of the basket to delete.
-        upload_index: [bool]
+        upload_index: bool
             Flag to upload the new index to the file system
         '''
         fs = config.get_file_system()
@@ -265,16 +265,13 @@ class Index():
                 "is listed as a parent UUID for another basket. Please " +
                 "delete that basket before deleting it's parent basket."
             )
-        else:
-            adr = self.index_df[
-                self.index_df["uuid"] == basket_uuid
-            ]["address"]
-            fs.rm(adr, recursive=True)
-            remove_idx = self.index_df[self.index_df.uuid == basket_uuid].index
-            self.index_df.drop(remove_idx, inplace=True)
-            self.index_df.reset_index(drop=True, inplace=True)
-            if upload_index:
-                self._upload_index(self.index_df)
+
+        remove_item = self.index_df[self.index_df["uuid"] == basket_uuid]
+        fs.rm(remove_item["address"], recursive=True)
+        self.index_df.drop(remove_item.index, inplace=True)
+        self.index_df.reset_index(drop=True, inplace=True)
+        if upload_index:
+            self._upload_index(self.index_df)
 
     def get_parents(self, basket, **kwargs):
         """Recursively gathers all parents of basket and returns index
