@@ -121,8 +121,7 @@ class Index():
             If file_system is None, then the default fs is retrieved from the
             config.
         '''
-        self.fs = (kwargs['file_system'] if 'file_system' in kwargs
-                   else config.get_file_system())
+        self.fs = kwargs.get("file_system", config.get_file_system())
 
         self.bucket_name = str(bucket_name)
         self.index_basket_dir_name = 'index' # AKA basket type
