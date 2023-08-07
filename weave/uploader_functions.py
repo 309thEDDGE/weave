@@ -123,7 +123,6 @@ class UploadBasket:
         self,
         upload_items,
         upload_directory,
-        file_system,
         unique_id,
         basket_type,
         parent_ids,
@@ -149,9 +148,6 @@ class UploadBasket:
             dealing with large files.
         upload_directory: str
             Path where basket is to be uploaded (on the upload FS).
-        file_system: fsspec object
-            The file system to upload to (ie s3fs, local fs, etc).
-            If None it will use the default fs from the config.
         unique_id: str
             Unique ID to identify the basket once uploaded.
         basket_type: str
@@ -164,10 +160,14 @@ class UploadBasket:
             and stored in the basket in the upload FS.
         label: optional str,
             Optional user friendly label associated with the basket.
+
+        kwargs:
+        file_system: fsspec object
+            The file system to upload to (ie s3fs, local fs, etc).
+            If None it will use the default fs from the config.
         """
         self.upload_items = upload_items
         self.upload_directory = upload_directory
-        self.fs = file_system
         self.unique_id = unique_id
         self.basket_type = basket_type
         self.parent_ids = parent_ids
@@ -177,7 +177,7 @@ class UploadBasket:
 
     def sanitize_upload_basket_kwargs(self):
         """Sanitizes kwargs for upload_basket"""
-        kwargs_schema = {"test_clean_up": bool}
+        kwargs_schema = {"test_clean_up": bool, "file_system": object}
         for key, value in self.kwargs.items():
             if key not in kwargs_schema.keys():
                 raise KeyError(f"Invalid kwargs argument: '{key}'")
@@ -187,6 +187,8 @@ class UploadBasket:
                     f"must be type {kwargs_schema[key]}'"
                 )
         self.test_clean_up = self.kwargs.get("test_clean_up", False)
+        self.fs = (self.kwargs['file_system'] if 'file_system' in self.kwargs
+                   else config.get_file_system())
 
     def sanitize_upload_basket_non_kwargs(self):
         """Sanitize upload_basket's non kwargs args"""
@@ -386,7 +388,6 @@ class UploadBasket:
 def upload_basket(
     upload_items,
     upload_directory,
-    file_system,
     unique_id,
     basket_type,
     parent_ids=[],
@@ -441,9 +442,6 @@ def upload_basket(
         dealing with large files.
     upload_directory: str
         Path where basket is to be uploaded.
-    file_system: fsspec object
-        The file system to upload to (ie s3fs, local fs, etc).
-        If None it will use the default fs from the config.
     unique_id: str
         Unique ID to identify the basket once uploaded.
     basket_type: str
@@ -456,11 +454,15 @@ def upload_basket(
         and stored in the basket in upload FS.
     label: optional str,
         Optional user friendly label associated with the basket.
+
+    kwargs:
+    file_system: fsspec object
+        The file system to upload to (ie s3fs, local fs, etc).
+        If None it will use the default fs from the config.
     """
     upload_basket_obj = UploadBasket(
         upload_items,
         upload_directory,
-        file_system,
         unique_id,
         basket_type,
         parent_ids,

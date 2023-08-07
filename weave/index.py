@@ -100,7 +100,7 @@ def _get_list_of_basket_jsons(root_dir, file_system):
 class Index():
     '''Facilitate user interaction with the index of a Weave data warehouse.'''
 
-    def __init__(self, bucket_name="basket-data", file_system=None, sync=True):
+    def __init__(self, bucket_name="basket-data", sync=True, **kwargs):
         '''Initializes the Index class.
 
         Parameters
@@ -118,8 +118,14 @@ class Index():
             object has the same information as the index on the disk. If False,
             then the Index object may be stale, but operations will perform
             at a higher speed.
+
+        kwargs:
+        file_system: fsspec object
+            The fsspec filesystem to be used for retrieving and uploading.
         '''
-        self.fs = file_system if file_system else config.get_file_system()
+        self.fs = (kwargs['file_system'] if 'file_system' in kwargs
+                   else config.get_file_system())
+
         self.bucket_name = str(bucket_name)
         self.index_basket_dir_name = 'index' # AKA basket type
         self.index_basket_dir_path = os.path.join(

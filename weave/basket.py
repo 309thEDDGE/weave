@@ -9,8 +9,7 @@ class Basket:
     """This class provides convenience functions for accessing basket contents.
     """
 
-    def __init__(self, basket_address, bucket_name="basket-data",
-                 file_system=None):
+    def __init__(self, basket_address, bucket_name="basket-data", **kwargs):
         """Initializes the Basket_Class.
 
         Parameters
@@ -20,10 +19,14 @@ class Basket:
             directory, or the UUID of the basket.
         bucket_name: string
             Name of the bucket which the desired index is associated with.
+
+        kwargs:
         file_system: fsspec object
             The fsspec filesystem to be used for retrieving and uploading.
         """
-        self.fs = file_system if file_system else config.get_file_system()
+        self.fs = (kwargs['file_system'] if 'file_system' in kwargs
+                   else config.get_file_system())
+
         try:
             self.set_up_basket_from_path(basket_address)
         except ValueError as e:

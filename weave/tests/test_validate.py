@@ -1,31 +1,21 @@
 import os
 from pathlib import Path
+
 import pytest
 import s3fs
-from weave.uploader_functions import upload_basket
-from weave import validate
 from fsspec.implementations.local import LocalFileSystem
 
-class ValidateForTest():
+from weave import validate
+from weave.uploader_functions import upload_basket
+from weave.tests.pytest_resources import BucketForTest
+
+class ValidateForTest(BucketForTest):
     """A class to test functions in validate.py"""
     def __init__(self, tmpdir, fs):
         """Initializes the ValidateForTest class
-        assign the tmpdir, initialize the basket_list,
-        assign the fs client, call set_up_bucket
+        call the super (BucketForTest) init.
         """
-        self.tmpdir = tmpdir
-        self.basket_list = []
-        self.fs = fs
-        self._set_up_bucket()
-
-    def _set_up_bucket(self):
-        """Make a temp directory with the bucket name"""
-        try:
-            self.bucket_name = 'pytest-temp-bucket'
-            self.fs.mkdir(self.bucket_name)
-        except Exception:
-            self.cleanup_bucket()
-            self._set_up_bucket()
+        super().__init__(tmpdir, fs)
 
     def set_up_basket(
             self,
@@ -37,7 +27,9 @@ class ValidateForTest():
             sup_data='',
             meta_data='',
         ):
-        """Sets up the basket with a nested basket depending on the values of
+        """Overrides BucketForTest's set_up_basket to better test validate.py
+
+        Sets up the basket with a nested basket depending on the values of
         the boolean params when this is called. if the is_man is true, a
         nested manifest file will be put in the basket, same with is_sup for
         supplement and is_meta for metadata. We can also input our own data
@@ -155,28 +147,6 @@ class ValidateForTest():
             }''')
 
         return nd
-
-    def upload_basket(self, tmp_basket_dir, uid='0000', metadata={}):
-        """Upload a basket with metadata if needed"""
-        upload_dir = self.bucket_name
-        b_type = "test_basket"
-        up_dir = os.path.join(upload_dir, b_type, uid)
-
-        upload_basket(
-            upload_items=[{'path':str(tmp_basket_dir.realpath()),
-                           'stub':False}],
-            upload_directory=up_dir,
-            file_system=self.fs,
-            unique_id=uid,
-            basket_type=b_type,
-            metadata=metadata
-        )
-        return up_dir
-
-
-    def cleanup_bucket(self):
-        self.fs.rm(self.bucket_name, recursive=True)
-
 
 s3fs = s3fs.S3FileSystem(
     client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}

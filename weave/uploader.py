@@ -2,12 +2,10 @@ import uuid
 import os
 
 from .uploader_functions import upload_basket
-from weave import config
 
 def upload(
     upload_items,
     basket_type,
-    file_system=None,
     bucket_name="basket-data",
     parent_ids=[],
     metadata={},
@@ -33,9 +31,6 @@ def upload(
         dealing with large files.
     basket_type: str
         Type of basket being uploaded.
-    file_system: fsspec object
-        The file system to upload to (ie s3fs, local fs, etc).
-        If None it will use the default fs from the config.
     bucket_name : str
         Name of the bucket that the basket will be uploaded to.
     parent_ids: optional [str]
@@ -46,6 +41,11 @@ def upload(
         and stored in the basket in MinIO.
     label: optional str,
         Optional user friendly label associated with the basket.
+
+    kwargs:
+    file_system: fsspec object
+        The file system to upload to (ie s3fs, local fs, etc).
+        If None it will use the default fs from the config.
 
     Returns
     -------
@@ -66,8 +66,6 @@ def upload(
     if "test_prefix" in kwargs.keys():
         prefix = kwargs["test_prefix"]
 
-    file_system = file_system if file_system else config.get_file_system()
-
     # build upload directory of the form
     # bucket_name/basket_type/unique_id
     upload_directory = os.path.join(
@@ -77,12 +75,12 @@ def upload(
     upload_basket(
         upload_items,
         upload_directory,
-        file_system,
         unique_id,
         basket_type,
         parent_ids,
         metadata,
         label,
+        **kwargs
     )
 
     return upload_directory
