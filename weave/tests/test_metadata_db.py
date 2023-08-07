@@ -1,13 +1,17 @@
+import os
 import pytest
 import pandas as pd
 import weave
+import s3fs
+from fsspec.implementations.local import LocalFileSystem
+
 from weave.tests.pytest_resources import BucketForTest
 
 class MongoForTest(BucketForTest):
     """Extend the BucketForTest class to support mongodb and custom data
     loader"""
-    def __init__(self, tmpdir):
-        super().__init__(tmpdir)
+    def __init__(self, tmpdir, fs):
+        super().__init__(tmpdir, fs)
         self.test_collection = 'test_collection'
         self.mongodb = weave.config.get_mongo_db().mongo_metadata
         self.load_data()
@@ -34,10 +38,16 @@ class MongoForTest(BucketForTest):
         self.cleanup_bucket()
         self.mongodb[self.test_collection].drop()
 
+s3fs = s3fs.S3FileSystem(
+    client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+)
+local_fs = LocalFileSystem()
 
-@pytest.fixture
-def set_up(tmpdir):
-    db = MongoForTest(tmpdir)
+# Test with two different fsspec file systems (above).
+@pytest.fixture(params=[s3fs, local_fs])
+def set_up(request, tmpdir):
+    fs = request.param
+    db = MongoForTest(tmpdir, fs)
     yield db
     db.cleanup()
 
@@ -46,8 +56,10 @@ def test_load_mongo(set_up):
     Test that load_mongo successfully loads valid metadata to the db.
     """
     db = set_up
-    index_table = weave.index.create_index_from_s3(db.s3_bucket_name)
-    weave.load_mongo(index_table, db.test_collection)
+    index_table = weave.index.create_index_from_fs(db.bucket_name, db.fs)
+    weave.load_mongo(index_table,
+                     file_system=db.fs,
+                     collection=db.test_collection)
 
     truth_db = [{'uuid': '1234',
                  'basket_type': 'test_basket',
@@ -73,17 +85,22 @@ def test_load_mongo_check_for_dataframe(set_up):
         TypeError, match="Invalid datatype for index_table: "
                          "must be Pandas DataFrame"
     ):
-        weave.load_mongo("", db.test_collection)
+        weave.load_mongo("",
+                         file_system=db.fs,
+                         collection=db.test_collection)
 
 def test_load_mongo_check_collection_for_string(set_up):
     """
     Test that load_mongo prevents loading data with an invalid db collection.
     """
+    db = set_up
     with pytest.raises(
         TypeError, match="Invalid datatype for collection: "
                          "must be a string"
     ):
-        weave.load_mongo(pd.DataFrame(), 1)
+        weave.load_mongo(pd.DataFrame(),
+                         file_system=db.fs,
+                         collection=1)
 
 def test_load_mongo_check_dataframe_for_uuid(set_up):
     """
@@ -96,7 +113,8 @@ def test_load_mongo_check_dataframe_for_uuid(set_up):
     ):
         weave.load_mongo(pd.DataFrame({'basket_type': ['type'],
                                        'address': ['path']}),
-                         db.test_collection)
+                         file_system=db.fs,
+                         collection=db.test_collection)
 
 def test_load_mongo_check_dataframe_for_address(set_up):
     """
@@ -109,7 +127,8 @@ def test_load_mongo_check_dataframe_for_address(set_up):
     ):
         weave.load_mongo(pd.DataFrame({'uuid': ['1234'],
                                        'basket_type': ['type']}),
-                         db.test_collection)
+                         file_system=db.fs,
+                         collection=db.test_collection)
 
 def test_load_mongo_check_dataframe_for_basket_type(set_up):
     """
@@ -122,7 +141,8 @@ def test_load_mongo_check_dataframe_for_basket_type(set_up):
     ):
         weave.load_mongo(pd.DataFrame({'uuid': ['1234'],
                                        'address': ['path']}),
-                         db.test_collection)
+                         file_system=db.fs,
+                         collection=db.test_collection)
 
 def test_load_mongo_check_for_duplicate_uuid(set_up):
     """
@@ -132,9 +152,13 @@ def test_load_mongo_check_for_duplicate_uuid(set_up):
     test_uuid = '1234'
 
     # Load metadata twice, and ensure there's only one instance
-    index_table = weave.index.create_index_from_s3(db.s3_bucket_name)
-    weave.load_mongo(index_table, db.test_collection)
-    weave.load_mongo(index_table, db.test_collection)
+    index_table = weave.index.create_index_from_fs(db.bucket_name, db.fs)
+    weave.load_mongo(index_table,
+                     file_system=db.fs,
+                     collection=db.test_collection)
+    weave.load_mongo(index_table,
+                     file_system=db.fs,
+                     collection=db.test_collection)
     count = db.mongodb[db.test_collection].count_documents(
         {'uuid': test_uuid})
     assert count == 1, "duplicate uuid inserted"
