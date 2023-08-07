@@ -24,8 +24,7 @@ class Basket:
         file_system: fsspec object
             The fsspec filesystem to be used for retrieving and uploading.
         """
-        self.fs = (kwargs['file_system'] if 'file_system' in kwargs
-                   else config.get_file_system())
+        self.fs = kwargs.get("file_system", config.get_file_system())
 
         try:
             self.set_up_basket_from_path(basket_address)
