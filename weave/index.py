@@ -236,7 +236,7 @@ class Index():
         as the parent uuid for any of the baskets in the index.
 
         This is a protected function so external delete_basket calls always
-        updload the new index, but internal calls can choose to do so.
+        upload the new index, but internal calls can choose to do so.
 
         Parameters:
         -----------
