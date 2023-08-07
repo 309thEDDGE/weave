@@ -21,7 +21,7 @@ def validate_basket_dict(basket_dict, basket_address):
     """validate the basket_manifest.json has the correct structure
 
     Parameters:
-        basket_dict: dictionary read in from basket_manifest.json in minio
+        basket_dict: dictionary read in from basket_manifest.json in fs
         basket_address: basket in question. Passed here to create better error
                         message
 
@@ -491,7 +491,7 @@ class Index():
             used to derive the new basket being uploaded.
         metadata: optional dict,
             Python dictionary that will be written to metadata.json
-            and stored in the basket in MinIO.
+            and stored in the basket in upload fs.
         label: optional str,
             Optional user friendly label associated with the basket.
         """

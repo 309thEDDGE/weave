@@ -32,7 +32,7 @@ def file_path_in_list(search_path, search_list):
 class BucketForTest():
     def __init__(self, tmpdir, file_system):
         self.tmpdir = tmpdir
-        self.bucket_name = 'pytest-temp-bucket-jon'
+        self.bucket_name = 'pytest-temp-bucket'
         self.basket_list = []
         self.fs = file_system
         self._set_up_bucket()

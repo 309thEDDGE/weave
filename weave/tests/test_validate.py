@@ -6,7 +6,6 @@ import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
 from weave import validate
-from weave.uploader_functions import upload_basket
 from weave.tests.pytest_resources import BucketForTest
 
 class ValidateForTest(BucketForTest):

@@ -13,7 +13,7 @@ def upload(
     **kwargs,
 ):
     """
-    Upload a basket of data to specified bucket in minio.
+    Upload a basket of data to specified bucket in the upload fs.
 
     Parameters
     ----------
@@ -38,7 +38,7 @@ def upload(
         used to derive the new basket being uploaded.
     metadata: optional dict,
         Python dictionary that will be written to metadata.json
-        and stored in the basket in MinIO.
+        and stored in the basket in the upload fs.
     label: optional str,
         Optional user friendly label associated with the basket.
 
@@ -50,7 +50,7 @@ def upload(
     Returns
     -------
     upload_directory : str
-        Minio path to the basket after it has been uploaded.
+        The path to the basket after it has been uploaded.
         This path will be of the form:
             bucket_name/basket_type/unique_id
     """
