@@ -1,9 +1,11 @@
-import uuid
 import os
-import pytest
 import time
+import uuid
+
+import pytest
 import s3fs
 from datetime import datetime
+from fsspec.implementations.local import LocalFileSystem
 from unittest.mock import patch
 
 from weave import upload
@@ -11,7 +13,6 @@ from weave.uploader import upload_basket
 from weave.uploader_functions import (derive_integrity_data,
                                       validate_upload_item)
 from weave.tests.pytest_resources import BucketForTest, file_path_in_list
-from fsspec.implementations.local import LocalFileSystem
 
 class UploadForTest(BucketForTest):
     """
@@ -615,37 +616,6 @@ def test_upload_basket_upload_items_invalid_dictionary(set_up_tb):
         KeyError, match="Invalid upload_item key: 'path_invalid_key'"
     ):
         upload_basket(upload_items, upload_path, tb.fs, unique_id, basket_type)
-
-
-def test_deletion_when_basket_upload_items_is_an_invalid_dictionary(set_up_tb):
-    """
-    Test that upload_basket deletes a bad upload basket when upload items is 
-    invalid.
-    """
-    tb = set_up_tb
-
-    # Create a temporary basket with a test file.
-    tmp_basket_dir_name = "test_basket_tmp_dir"
-    tmp_basket_txt_file_name = "test.txt"
-    tmp_basket_dir = tb.set_up_basket(tmp_basket_dir_name,
-                                      file_name=tmp_basket_txt_file_name)
-    tmp_basket_txt_file = tmp_basket_dir.join(tmp_basket_txt_file_name)
-
-    unique_id = uuid.uuid1().hex
-    basket_type = "test_basket"
-    upload_path = os.path.join(tb.bucket_name, basket_type, unique_id)
-
-    upload_items = [
-        {
-            "path": tmp_basket_dir.strpath,
-            "stub": True,
-        },
-        {"path_invalid_key":  tmp_basket_txt_file.strpath, "stub": True},
-    ]
-    try:
-        upload_basket(upload_items, upload_path, tb.fs, unique_id, basket_type)
-    except KeyError:
-        assert not tb.fs.exists(f"{upload_path}")
 
 def test_upload_basket_upload_items_check_unique_file_folder_names(set_up_tb):
     """

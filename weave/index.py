@@ -105,12 +105,12 @@ class Index():
 
         Parameters
         ----------
+        bucket_name: [string]
+            Name of the bucket which the desired index is associated with.
         file_system: fsspec object
             The fsspec object which hosts the bucket we desire to index.
             If file_system is None, then the default fs is retrieved from the
             config.
-        bucket_name: [string]
-            Name of the bucket which the desired index is associated with.
         sync: [bool]
             Whether or not to check the index on disk to ensure this Index
             object stays current. If True, then some operations may take
