@@ -1,3 +1,7 @@
+"""Contains upload function, which accesses uploader_functions to tie together
+all uploading functionality (outside of that exposed by index.py)
+"""
+
 import uuid
 import os
 
@@ -8,9 +12,6 @@ def upload(
     upload_items,
     basket_type,
     bucket_name="basket-data",
-    parent_ids=[],
-    metadata={},
-    label="",
     **kwargs,
 ):
     """
@@ -58,9 +59,7 @@ def upload(
     # generate unique id
     unique_id = uuid.uuid1().hex
 
-    prefix = ""
-    if "test_prefix" in kwargs.keys():
-        prefix = kwargs["test_prefix"]
+    prefix = kwargs.get("test_prefix", "")
 
     # build upload directory of the form
     # bucket_name/basket_type/unique_id
@@ -73,9 +72,7 @@ def upload(
         upload_directory,
         unique_id,
         basket_type,
-        parent_ids,
-        metadata,
-        label,
+        **kwargs
     )
 
     return upload_directory
