@@ -355,8 +355,17 @@ def test_delete_basket_deletes_basket(set_up_tb):
 
     ind.generate_index()
     ind.delete_basket(basket_uuid="0002")
-    ind.clean_up_indices(n=1)
-    ind.generate_index()
+
+    # fs_baskets: Baskets in the file system
+    fs_baskets = tb.fs.ls(f"{tb.bucket_name}/test_basket")
+    # index_baskets: Baskets in the index object
+    index_baskets = ind.index_df[ind.index_df["basket_type"]=='test_basket']
+
+    # Verify basket removed from the index object
+    assert len(index_baskets) == 1
+    # Verify index object still tracks the file system
+    assert len(fs_baskets) == len(index_baskets)
+    # Verify the correct basket was deleted
     assert "0002" not in ind.index_df["uuid"].to_list()
 
 def test_delete_basket_fails_if_basket_is_parent(set_up_tb):

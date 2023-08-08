@@ -191,7 +191,7 @@ class Index():
                         f"{index_time}-index.json"
                     )[0]
                     uuid = path.split(os.path.sep)[-2]
-                    self.delete_basket(basket_uuid=uuid)
+                    self.delete_basket(basket_uuid=uuid, upload_index=False)
                 except ValueError as e:
                     warnings.warn(e)
 
@@ -240,7 +240,7 @@ class Index():
         return weave.Basket(basket_address, self.bucket_name,
                             file_system=self.fs)
 
-    def delete_basket(self, basket_uuid):
+    def delete_basket(self, basket_uuid, **kwargs):
         '''Deletes basket of given UUID.
 
         Note that the given basket will not be deleted if the basket is listed
@@ -248,9 +248,14 @@ class Index():
 
         Parameters:
         -----------
-        basket_uuid: [int]
+        basket_uuid: int
             The uuid of the basket to delete.
+        kwargs:
+        upload_index: bool
+            Flag to upload the new index to the file system
         '''
+        upload_index = kwargs.get("upload_index", True)
+
         basket_uuid = str(basket_uuid)
         if self.index_df is None:
             self.sync_index()
@@ -271,11 +276,13 @@ class Index():
                 "is listed as a parent UUID for another basket. Please " +
                 "delete that basket before deleting it's parent basket."
             )
-        else:
-            adr = self.index_df[
-                self.index_df["uuid"] == basket_uuid
-            ]["address"].iloc[0]
-            self.fs.rm(adr, recursive=True)
+
+        remove_item = self.index_df[self.index_df["uuid"] == basket_uuid]
+        self.fs.rm(remove_item['address'].values[0], recursive=True)
+        self.index_df.drop(remove_item.index, inplace=True)
+        self.index_df.reset_index(drop=True, inplace=True)
+        if upload_index:
+            self._upload_index(self.index_df)
 
     def get_parents(self, basket, **kwargs):
         """Recursively gathers all parents of basket and returns index
