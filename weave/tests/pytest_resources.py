@@ -32,7 +32,8 @@ def file_path_in_list(search_path, search_list):
 class BucketForTest():
     def __init__(self, tmpdir, file_system):
         self.tmpdir = tmpdir
-        self.bucket_name = 'pytest-temp-bucket'
+        self.bucket_name = ("pytest-temp-bucket"
+                            f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}")
         self.basket_list = []
         self.fs = file_system
         self._set_up_bucket()
@@ -66,9 +67,9 @@ class BucketForTest():
         return tmp_basket_dir
 
     def upload_basket(self, tmp_basket_dir,
-                      uid='0000', parent_ids=[], metadata={}):
+                      uid='0000', parent_ids=[], metadata={},
+                      b_type="test_basket"):
         """Upload a temporary (local) basket to the S3 test bucket."""
-        b_type = "test_basket"
         up_dir = os.path.join(self.bucket_name, b_type, uid)
 
         upload_items = [{'path':str(tmp_basket_dir.realpath()),
