@@ -1,5 +1,7 @@
-import os
 import json
+import os
+import warnings
+
 import jsonschema
 from jsonschema import validate
 
@@ -32,7 +34,11 @@ def validate_bucket(bucket_name, file_system):
 
     # call check level, with a path, but since we're just starting,
     # we just use the bucket_name as the path
-    return _check_level(bucket_name, fs)
+    with warnings.catch_warnings(record=True) as w:
+        _check_level(bucket_name, fs)
+    if len(w) > 0:
+        return w
+    return True
 
 
 def _check_level(current_dir, file_system, in_basket=False):
@@ -150,14 +156,11 @@ def _validate_basket(basket_dir, file_system):
     # or this function is incorrectly called, 
     # we can say that this isn't a basket. 
     if not fs.exists(manifest_path):
-        raise FileNotFoundError(
-            f"Invalid Path. No Basket found at: {basket_dir}"
-        )
+        warnings.warn(f"Invalid Path. No Basket found at: {basket_dir}")
 
     if not fs.exists(supplement_path):
-        raise FileNotFoundError(
-            "Invalid Basket. No Supplement file found at: ", basket_dir
-        )
+        warnings.warn(
+            f"Invalid Basket. No Supplement file found at: {basket_dir}")
 
     files_in_basket = fs.find(
         path=basket_dir,
@@ -175,14 +178,15 @@ def _validate_basket(basket_dir, file_system):
                 validate(instance=data, schema=config.manifest_schema)
 
             except jsonschema.exceptions.ValidationError:
-                raise ValueError(
-                    "Invalid Basket. Manifest Schema does not match at: ", file
+                warnings.warn(
+                    f"Invalid Basket. "
+                    f"Manifest Schema does not match at: {file}"
                 )
 
             except json.decoder.JSONDecodeError:
-                raise ValueError(
-                    "Invalid Basket. "
-                    "Manifest could not be loaded into json at: ", file
+                warnings.warn(
+                    f"Invalid Basket. "
+                    f"Manifest could not be loaded into json at: {file}"
                 )
 
         if file_name == 'basket_supplement.json':
@@ -192,15 +196,15 @@ def _validate_basket(basket_dir, file_system):
                 validate(instance=data, schema=config.supplement_schema)
 
             except jsonschema.exceptions.ValidationError:
-                raise ValueError(
-                    "Invalid Basket. "
-                    "Supplement Schema does not match at: ", file
+                warnings.warn(
+                    f"Invalid Basket. "
+                    f"Supplement Schema does not match at: {file}"
                 )
 
             except json.decoder.JSONDecodeError:
-                raise ValueError(
-                    "Invalid Basket. "
-                    "Supplement could not be loaded into json at: ", file
+                warnings.warn(
+                    f"Invalid Basket. "
+                    f"Supplement could not be loaded into json at: {file}"
                 )
 
         if file_name == 'basket_metadata.json':
@@ -208,18 +212,18 @@ def _validate_basket(basket_dir, file_system):
                 data = json.load(fs.open(file))
 
             except json.decoder.JSONDecodeError:
-                raise ValueError(
-                    "Invalid Basket. "
-                    "Metadata could not be loaded into json at: ", file
+                warnings.warn(
+                    f"Invalid Basket. "
+                    f"Metadata could not be loaded into json at: {file}"
                 )
 
         # if we find a directory inside this basket, we need to check it
         # if we check it and find a basket, this basket is invalid.
         if fs.info(file)['type'] == 'directory':
             if _check_level(file, fs, in_basket=True):
-                raise ValueError("Invalid Basket. Manifest File "
-                                 "found in sub directory of basket at: ",
-                                 basket_dir
+                warnings.warn(f"Invalid Basket. Manifest File "
+                              f"found in sub directory of basket at: "
+                              f"{basket_dir}"
                 )
 
     # default return true if we don't find any problems with this basket

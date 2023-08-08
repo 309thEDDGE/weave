@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import warnings
 
 import pytest
 import s3fs
@@ -185,14 +186,13 @@ def test_validate_no_supplement_file(set_up_validate):
     supplement_path = os.path.join(basket_path, "basket_supplement.json")
     tv.fs.rm(supplement_path)
 
-    with pytest.raises(
-        FileNotFoundError,
-        match="Invalid Basket. No Supplement file found at: "
-    ) as e_info:
-        validate.validate_bucket(tv.bucket_name, tv.fs)
+    w_info = validate.validate_bucket(tv.bucket_name, tv.fs)
 
     # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert (e_info.value.args[1].endswith(basket_path))
+    # assert (e_info[0].endswith(basket_path))
+    assert len(w_info) == 1
+    assert str(w_info[-1].message) == f"Invalid Basket. No Supplement file "
+                                      f"found at: {basket_path}"
 
 def test_validate_no_metadata_file(set_up_validate):
     """Make a basket with no metadata, validate that it returns true (valid)
