@@ -499,7 +499,6 @@ class Index():
         label: optional str,
             Optional user friendly label associated with the basket.
         """
-        breakpoint()
         self.sync_index()
         up_dir = upload(
             upload_items=upload_items,
