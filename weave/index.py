@@ -14,6 +14,7 @@ import jsonschema
 from jsonschema import validate
 
 from weave import config, upload
+import weave.basket
 
 
 # validate basket keys and value data types on read in
@@ -121,8 +122,7 @@ class Index():
             If file_system is None, then the default fs is retrieved from the
             config.
         '''
-        self.fs = (kwargs['file_system'] if 'file_system' in kwargs
-                   else config.get_file_system())
+        self.fs = kwargs.get("file_system", config.get_file_system())
 
         self.bucket_name = str(bucket_name)
         self.index_basket_dir_name = 'index' # AKA basket type
@@ -226,6 +226,20 @@ class Index():
         self.index_df = index
         self.index_json_time = ns
 
+    def get_basket(self, basket_address):
+        """Retrieves a basket of given UUID or path.
+
+        Parameters
+        ----------
+        basket_address: string
+            Argument can take one of two forms: either a path to the Basket
+            directory, or the UUID of the basket.
+        """
+        # Create a Basket from the given address, and the index's fs and bucket
+        # name. Basket will catch invalid inputs and raise appropriate errors.
+        return weave.Basket(basket_address, self.bucket_name,
+                            file_system=self.fs)
+
     def delete_basket(self, basket_uuid):
         '''Deletes basket of given UUID.
 
@@ -262,8 +276,6 @@ class Index():
                 self.index_df["uuid"] == basket_uuid
             ]["address"].iloc[0]
             self.fs.rm(adr, recursive=True)
-
-
 
     def get_parents(self, basket, **kwargs):
         """Recursively gathers all parents of basket and returns index
@@ -364,7 +376,6 @@ class Index():
                                     data=data,
                                     descendants=descendants.copy())
         return data
-
 
     def get_children(self, basket, **kwargs):
         """Recursively gathers all the children of basket and returns an index

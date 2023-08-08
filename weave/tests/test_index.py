@@ -11,6 +11,7 @@ import pytest
 import s3fs
 
 from weave.index import create_index_from_fs, Index
+from weave.basket import Basket
 
 from weave.tests.pytest_resources import BucketForTest
 from fsspec.implementations.local import LocalFileSystem
@@ -1071,3 +1072,55 @@ def test_upload_basket_gracefully_fails(mocked_obj_1, mocked_obj_2, set_up_tb):
     assert not tb.fs.exists(
         os.path.join(tb.bucket_name, "test", non_unique_id)
     )
+
+def test_index_get_basket_works_correctly(set_up_tb):
+    """Test that Index.get_basket() returns a Basket object with correct values
+    """
+    tb = set_up_tb
+
+    uid = "0001"
+    tmp_basket_name = "basket_one"
+    tmp_basket_type = "test_basket"
+    txt_file_name = "test.txt"
+
+    tmp_basket_dir = tb.set_up_basket(tmp_basket_name, file_name=txt_file_name)
+    tb.upload_basket(tmp_basket_dir=tmp_basket_dir,
+                     uid=uid,
+                     b_type=tmp_basket_type)
+
+    expected_basket = Basket(uid, tb.bucket_name, file_system=tb.fs)
+
+    ind = Index(tb.bucket_name, file_system=tb.fs)
+    retrieved_basket = ind.get_basket(uid)
+
+    expected_file_path = os.path.join(tb.bucket_name, tmp_basket_type, uid,
+                                      tmp_basket_name, txt_file_name)
+
+    assert (
+        retrieved_basket.ls(tmp_basket_name)[0].endswith(expected_file_path)
+    )
+
+    assert expected_basket.manifest_path == retrieved_basket.manifest_path
+    assert expected_basket.supplement_path == retrieved_basket.supplement_path
+    assert expected_basket.metadata_path == retrieved_basket.metadata_path
+
+    assert expected_basket.get_manifest() == retrieved_basket.get_manifest()
+    assert (
+        expected_basket.get_supplement() == retrieved_basket.get_supplement()
+    )
+    assert expected_basket.get_metadata() == retrieved_basket.get_metadata()
+
+
+def test_index_get_basket_graceful_fail(set_up_tb):
+    """Test Index.get_basket() throws proper ValueErrors with invalid inputs.
+    """
+    tb = set_up_tb
+
+    bad_uid = "DOESNT EXIST LOL"
+    ind = Index(tb.bucket_name, file_system=tb.fs)
+
+    with pytest.raises(
+        ValueError,
+        match=f"Basket does not exist: {bad_uid}"
+    ):
+        retrieved_basket = ind.get_basket(bad_uid)

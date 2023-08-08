@@ -2,7 +2,8 @@ import os
 import json
 from pathlib import Path
 
-from weave import config, Index
+import weave
+from weave import config
 
 
 class Basket:
@@ -24,8 +25,7 @@ class Basket:
         file_system: fsspec object
             The fsspec filesystem to be used for retrieving and uploading.
         """
-        self.fs = (kwargs['file_system'] if 'file_system' in kwargs
-                   else config.get_file_system())
+        self.fs = kwargs.get("file_system", config.get_file_system())
 
         try:
             self.set_up_basket_from_path(basket_address)
@@ -48,7 +48,7 @@ class Basket:
 
     def set_up_basket_from_uuid(self, basket_address, bucket_name):
         try:
-            ind = Index(bucket_name=bucket_name, file_system=self.fs)
+            ind = weave.Index(bucket_name=bucket_name, file_system=self.fs)
             ind_df = ind.to_pandas_df()
             path = ind_df["address"][ind_df["uuid"] == basket_address].iloc[0]
             self.set_up_basket_from_path(basket_address=path)
