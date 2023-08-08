@@ -225,7 +225,6 @@ class Index():
         self.index_df = index
         self.index_json_time = ns
 
-
     def delete_basket(self, basket_uuid, **kwargs):
         '''Deletes basket of given UUID.
 
