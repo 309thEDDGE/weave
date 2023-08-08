@@ -1119,7 +1119,6 @@ def test_index_get_basket_works_correctly(set_up_tb):
     )
     assert expected_basket.get_metadata() == retrieved_basket.get_metadata()
 
-
 def test_index_get_basket_graceful_fail(set_up_tb):
     """Test Index.get_basket() throws proper ValueErrors with invalid inputs.
     """
@@ -1132,4 +1131,4 @@ def test_index_get_basket_graceful_fail(set_up_tb):
         ValueError,
         match=f"Basket does not exist: {bad_uid}"
     ):
-        retrieved_basket = ind.get_basket(bad_uid)
+        ind.get_basket(bad_uid)
