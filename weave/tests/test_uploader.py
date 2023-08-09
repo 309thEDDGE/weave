@@ -9,9 +9,9 @@ from fsspec.implementations.local import LocalFileSystem
 from unittest.mock import patch
 
 from weave import upload
-from weave.uploader import upload_basket
 from weave.uploader_functions import (derive_integrity_data,
-                                      validate_upload_item)
+                                      validate_upload_item,
+                                      UploadBasket)
 from weave.tests.pytest_resources import BucketForTest, file_path_in_list
 
 class UploadForTest(BucketForTest):
@@ -501,7 +501,7 @@ def test_upload_basket_upload_items_is_not_a_string(set_up_tb):
         match="'upload_items' must be a list of "
         + f"dictionaries: '{upload_items}'",
     ):
-        upload_basket(
+        UploadBasket(
             upload_items,
             upload_path,
             unique_id,
@@ -529,7 +529,7 @@ def test_upload_basket_upload_items_is_not_a_list_of_strings(set_up_tb):
     with pytest.raises(
         TypeError, match="'upload_items' must be a list of dictionaries:"
     ):
-        upload_basket(
+        UploadBasket(
             upload_items,
             upload_path,
             unique_id,
@@ -557,7 +557,7 @@ def test_upload_basket_upload_items_is_a_list_of_only_dictionaries(set_up_tb):
     with pytest.raises(
         TypeError, match="'upload_items' must be a list of dictionaries:"
     ):
-        upload_basket(
+        UploadBasket(
             upload_items,
             upload_path,
             unique_id,
@@ -594,7 +594,7 @@ def test_upload_basket_with_bad_upload_items_is_deleted_if_it_fails(mocked_obj,
             "This error provided for"
             "test_upload_basket_with_bad_upload_items_is_deleted_if_it_fails"
         )
-        upload_basket(
+        UploadBasket(
             upload_items,
             upload_path,
             unique_id,
@@ -631,7 +631,7 @@ def test_upload_basket_upload_items_invalid_dictionary(set_up_tb):
     with pytest.raises(
         KeyError, match="Invalid upload_item key: 'path_invalid_key'"
     ):
-        upload_basket(
+        UploadBasket(
             upload_items,
             upload_path,
             unique_id,
@@ -673,7 +673,7 @@ def test_upload_basket_upload_items_check_unique_file_folder_names(set_up_tb):
         match="'upload_item' folder and file names must be unique:"
         " Duplicate Name = test.txt",
     ):
-        upload_basket(
+        UploadBasket(
             upload_items,
             upload_path,
             unique_id,
@@ -690,7 +690,7 @@ def test_upload_basket_upload_items_check_unique_file_folder_names(set_up_tb):
         match="'upload_item' folder and file names must be unique:"
         " Duplicate Name = test_basket_tmp_dir",
     ):
-        upload_basket(
+        UploadBasket(
             upload_items,
             upload_path,
             unique_id,
@@ -707,7 +707,7 @@ def test_upload_basket_upload_items_check_unique_file_folder_names(set_up_tb):
         match="'upload_item' folder and file names must be unique:"
         " Duplicate Name = test.txt",
     ):
-        upload_basket(
+        UploadBasket(
             upload_items,
             upload_path,
             unique_id,
@@ -742,7 +742,7 @@ def test_upload_basket_upload_path_is_string(set_up_tb):
         TypeError,
         match=f"'upload_directory' must be a string: '{upload_path}'",
     ):
-        upload_basket(
+        UploadBasket(
             upload_items,
             upload_path,
             unique_id,
@@ -773,7 +773,7 @@ def test_upload_basket_unique_id_string(set_up_tb):
     with pytest.raises(
         TypeError, match=f"'unique_id' must be a string: '{unique_id}'"
     ):
-        upload_basket(
+        UploadBasket(
             upload_items,
             upload_path,
             unique_id,
@@ -807,7 +807,7 @@ def test_upload_basket_type_is_string(set_up_tb):
     with pytest.raises(
         TypeError, match=f"'basket_type' must be a string: '{basket_type}'"
     ):
-        upload_basket(
+        UploadBasket(
             upload_items,
             upload_path,
             unique_id,
@@ -842,7 +842,7 @@ def test_upload_basket_parent_ids_list_str(set_up_tb):
     with pytest.raises(
         TypeError, match="'parent_ids' must be a list of strings:"
     ):
-        upload_basket(
+        UploadBasket(
             upload_items,
             upload_path,
             unique_id,
@@ -878,7 +878,7 @@ def test_upload_basket_parent_ids_is_list(set_up_tb):
     with pytest.raises(
         TypeError, match="'parent_ids' must be a list of strings:"
     ):
-        upload_basket(
+        UploadBasket(
             upload_items,
             upload_path,
             unique_id,
@@ -916,7 +916,7 @@ def test_upload_basket_metadata_is_dictionary(set_up_tb):
         TypeError,
         match=f"'metadata' must be a dictionary: '{metadata_in}'",
     ):
-        upload_basket(
+        UploadBasket(
             upload_items,
             upload_path,
             unique_id,
@@ -952,7 +952,7 @@ def test_upload_basket_label_is_string(set_up_tb):
     with pytest.raises(
         TypeError, match=f"'label' must be a string: '{label_in}'"
     ):
-        upload_basket(
+        UploadBasket(
             upload_items,
             upload_path,
             unique_id,
@@ -984,7 +984,7 @@ def test_upload_basket_no_metadata(set_up_tb):
     unique_id = uuid.uuid1().hex
     upload_path = os.path.join(tb.bucket_name, f"{basket_type}", unique_id)
 
-    upload_basket(
+    UploadBasket(
         upload_items,
         upload_path,
         unique_id,
@@ -1024,7 +1024,7 @@ def test_upload_basket_check_existing_upload_path(set_up_tb):
         FileExistsError,
         match=f"'upload_directory' already exists: '{upload_path}''",
     ):
-        upload_basket(
+        UploadBasket(
             upload_items,
             upload_path,
             unique_id,
@@ -1073,7 +1073,7 @@ def test_upload_basket_check_unallowed_file_names(set_up_tb):
             ValueError,
             match=f"'{unallowed_file_name}' filename not allowed",
         ):
-            upload_basket(
+            UploadBasket(
                 upload_items,
                 upload_path,
                 unique_id,
@@ -1105,7 +1105,7 @@ def test_upload_basket_clean_up_on_error(set_up_tb):
     upload_path = os.path.join(tb.bucket_name, f"{basket_type}", unique_id)
 
     with pytest.raises(Exception, match="Test Clean Up"):
-        upload_basket(
+        UploadBasket(
             upload_items,
             upload_path,
             unique_id,
@@ -1139,7 +1139,7 @@ def test_upload_basket_invalid_optional_argument(set_up_tb):
     upload_path = os.path.join(tb.bucket_name, f"{basket_type}", unique_id)
 
     with pytest.raises(KeyError, match="Invalid kwargs argument: 'junk'"):
-        upload_basket(
+        UploadBasket(
             upload_items,
             upload_path,
             unique_id,
@@ -1176,7 +1176,7 @@ def test_upload_basket_invalid_test_clean_up_datatype(set_up_tb):
         TypeError,
         match="Invalid datatype: 'test_clean_up: must be type <class 'bool'>'"
     ):
-        upload_basket(
+        UploadBasket(
             upload_items,
             upload_path,
             unique_id,
@@ -1212,7 +1212,7 @@ def test_upload_basket_file_contents_identical(set_up_tb):
                                     tmp_basket_dir_name,
                                     test_file_name)
 
-    upload_basket(
+    UploadBasket(
         upload_items,
         upload_path,
         unique_id,

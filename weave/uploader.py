@@ -5,7 +5,7 @@ all uploading functionality (outside of that exposed by index.py)
 import uuid
 import os
 
-from .uploader_functions import upload_basket
+from .uploader_functions import UploadBasket
 
 def upload(
     upload_items,
@@ -71,7 +71,7 @@ def upload(
         prefix, bucket_name, basket_type, unique_id
     )
 
-    upload_basket(
+    UploadBasket(
         upload_items,
         upload_directory,
         unique_id,

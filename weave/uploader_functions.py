@@ -127,9 +127,9 @@ class UploadBasket:
         upload_directory,
         unique_id,
         basket_type,
-        parent_ids,
-        metadata,
-        label,
+        parent_ids=[],
+        metadata={},
+        label="",
         **kwargs,
     ):
         """Initializes the Basket_Class.
@@ -176,6 +176,29 @@ class UploadBasket:
         self.metadata = metadata
         self.label = label
         self.kwargs = kwargs
+        self.run_logic()
+        
+    def run_logic(self):
+        self.sanitize_args()
+        self.check_that_upload_dir_does_not_exist()
+
+        try:
+            self.setup_temp_dir_for_staging_prior_to_fs()
+            self.upload_files_and_stubs_to_fs()
+            self.create_and_upload_basket_json_to_fs()
+            self.upload_basket_metadata_to_fs()
+            self.upload_basket_supplement_to_fs()
+
+            if self.test_clean_up:
+                raise Exception("Test Clean Up")
+
+        except Exception as the_exception:
+            if self.fs_upload_path_exists():
+                self.clean_out_fs_upload_dir()
+            raise the_exception
+
+        finally:
+            self.tear_down_temp_dir()
 
     def sanitize_upload_basket_kwargs(self):
         """Sanitizes kwargs for upload_basket"""
@@ -389,109 +412,109 @@ class UploadBasket:
         """For use at death of class. Cleans up temp_dir."""
         self.temp_dir.cleanup()
 
-def upload_basket(
-    upload_items,
-    upload_directory,
-    unique_id,
-    basket_type,
-    parent_ids=[],
-    metadata={},
-    label="",
-    **kwargs
-):
-    """
-    Upload files and directories to the upload FS.
+# def upload_basket(
+#     upload_items,
+#     upload_directory,
+#     unique_id,
+#     basket_type,
+#     parent_ids=[],
+#     metadata={},
+#     label="",
+#     **kwargs
+# ):
+#     """
+#     Upload files and directories to the upload FS.
 
-    This function takes in a list of items to upload, along with
-    identifying tags, and uploads the data together with three
-    json files: basket_manifest.json, basket_metadata.json, and
-    supplement.json. The contents of the three files are specified
-    below. These three files together with the data specified by
-    upload_items are uploaded to the upload_directory path within
-    the upload FS as a basket of data.
+#     This function takes in a list of items to upload, along with
+#     identifying tags, and uploads the data together with three
+#     json files: basket_manifest.json, basket_metadata.json, and
+#     supplement.json. The contents of the three files are specified
+#     below. These three files together with the data specified by
+#     upload_items are uploaded to the upload_directory path within
+#     the upload FS as a basket of data.
 
-    basket_manifest.json contains:
-        1) unique_id
-        2) list of parent ids
-        3) basket type
-        4) label
-        5) upload date
+#     basket_manifest.json contains:
+#         1) unique_id
+#         2) list of parent ids
+#         3) basket type
+#         4) label
+#         5) upload date
 
-    basket_metadata.json contains:
-        1) dictionary passed in through the metadata parameter
+#     basket_metadata.json contains:
+#         1) dictionary passed in through the metadata parameter
 
-    basket_supplement.json contains:
-        1) the upload_items object that was passed as an input parameter
-        2) integrity_data for every file uploaded
-            a) file checksum
-            b) upload date
-            c) file size (bytes)
-            d) source path (original file location)
-            e) stub (true/false)
-            f) upload path (path where the file is uploaded in the upload FS)
+#     basket_supplement.json contains:
+#         1) the upload_items object that was passed as an input parameter
+#         2) integrity_data for every file uploaded
+#             a) file checksum
+#             b) upload date
+#             c) file size (bytes)
+#             d) source path (original file location)
+#             e) stub (true/false)
+#             f) upload path (path where the file is uploaded in the upload FS)
 
-    Parameters
-    ----------
-    upload_items : [dict]
-        List of python dictionaries with the following schema:
-        {
-            'path': path to the file or folder being uploaded (string),
-            'stub': true/false (bool)
-        }
-        'path' can be a file or folder to be uploaded. Every filename
-        and folder name must be unique. If 'stub' is set to True, integrity
-        data will be included without uploading the actual file or folder.
-        Stubs are useful when original file source information is desired
-        without uploading the data itself. This is especially useful when
-        dealing with large files.
-    upload_directory: str
-        Path where basket is to be uploaded.
-    unique_id: str
-        Unique ID to identify the basket once uploaded.
-    basket_type: str
-        Type of basket being uploaded.
-    parent_ids: optional [str]
-        List of unique ids associated with the parent baskets
-        used to derive the new basket being uploaded.
-    metadata: optional dict,
-        Python dictionary that will be written to metadata.json
-        and stored in the basket in upload FS.
-    label: optional str,
-        Optional user friendly label associated with the basket.
+#     Parameters
+#     ----------
+#     upload_items : [dict]
+#         List of python dictionaries with the following schema:
+#         {
+#             'path': path to the file or folder being uploaded (string),
+#             'stub': true/false (bool)
+#         }
+#         'path' can be a file or folder to be uploaded. Every filename
+#         and folder name must be unique. If 'stub' is set to True, integrity
+#         data will be included without uploading the actual file or folder.
+#         Stubs are useful when original file source information is desired
+#         without uploading the data itself. This is especially useful when
+#         dealing with large files.
+#     upload_directory: str
+#         Path where basket is to be uploaded.
+#     unique_id: str
+#         Unique ID to identify the basket once uploaded.
+#     basket_type: str
+#         Type of basket being uploaded.
+#     parent_ids: optional [str]
+#         List of unique ids associated with the parent baskets
+#         used to derive the new basket being uploaded.
+#     metadata: optional dict,
+#         Python dictionary that will be written to metadata.json
+#         and stored in the basket in upload FS.
+#     label: optional str,
+#         Optional user friendly label associated with the basket.
 
-    kwargs:
-    file_system: fsspec object
-        The file system to upload to (ie s3fs, local fs, etc).
-        If None it will use the default fs from the config.
-    """
-    upload_basket_obj = UploadBasket(
-        upload_items,
-        upload_directory,
-        unique_id,
-        basket_type,
-        parent_ids,
-        metadata,
-        label,
-        **kwargs
-    )
+#     kwargs:
+#     file_system: fsspec object
+#         The file system to upload to (ie s3fs, local fs, etc).
+#         If None it will use the default fs from the config.
+#     """
+#     upload_basket_obj = UploadBasket(
+#         upload_items,
+#         upload_directory,
+#         unique_id,
+#         basket_type,
+#         parent_ids,
+#         metadata,
+#         label,
+#         **kwargs
+#     )
 
-    upload_basket_obj.sanitize_args()
-    upload_basket_obj.check_that_upload_dir_does_not_exist()
+#     upload_basket_obj.sanitize_args()
+#     upload_basket_obj.check_that_upload_dir_does_not_exist()
 
-    try:
-        upload_basket_obj.setup_temp_dir_for_staging_prior_to_fs()
-        upload_basket_obj.upload_files_and_stubs_to_fs()
-        upload_basket_obj.create_and_upload_basket_json_to_fs()
-        upload_basket_obj.upload_basket_metadata_to_fs()
-        upload_basket_obj.upload_basket_supplement_to_fs()
+#     try:
+#         upload_basket_obj.setup_temp_dir_for_staging_prior_to_fs()
+#         upload_basket_obj.upload_files_and_stubs_to_fs()
+#         upload_basket_obj.create_and_upload_basket_json_to_fs()
+#         upload_basket_obj.upload_basket_metadata_to_fs()
+#         upload_basket_obj.upload_basket_supplement_to_fs()
 
-        if upload_basket_obj.test_clean_up:
-            raise Exception("Test Clean Up")
+#         if upload_basket_obj.test_clean_up:
+#             raise Exception("Test Clean Up")
 
-    except Exception as e:
-        if upload_basket_obj.fs_upload_path_exists():
-            upload_basket_obj.clean_out_fs_upload_dir()
-        raise e
+#     except Exception as e:
+#         if upload_basket_obj.fs_upload_path_exists():
+#             upload_basket_obj.clean_out_fs_upload_dir()
+#         raise e
 
-    finally:
-        upload_basket_obj.tear_down_temp_dir()
+#     finally:
+#         upload_basket_obj.tear_down_temp_dir()
