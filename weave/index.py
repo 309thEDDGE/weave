@@ -13,6 +13,7 @@ import pandas as pd
 import jsonschema
 from jsonschema import validate
 
+import weave
 from weave import config, upload
 
 
@@ -225,6 +226,24 @@ class Index():
         self.index_df = index
         self.index_json_time = ns
 
+    def get_basket(self, basket_address):
+        """Retrieves a basket of given UUID or path.
+
+        Parameters
+        ----------
+        basket_address: string
+            Argument can take one of two forms: either a path to the Basket
+            directory, or the UUID of the basket.
+
+        Returns
+        ----------
+        The Basket object associated with the given UUID or path.
+        """
+        # Create a Basket from the given address, and the index's fs and bucket
+        # name. Basket will catch invalid inputs and raise appropriate errors.
+        return weave.Basket(basket_address, self.bucket_name,
+                            file_system=self.fs)
+
     def delete_basket(self, basket_uuid, **kwargs):
         '''Deletes basket of given UUID.
 
@@ -368,7 +387,6 @@ class Index():
                                     data=data,
                                     descendants=descendants.copy())
         return data
-
 
     def get_children(self, basket, **kwargs):
         """Recursively gathers all the children of basket and returns an index
