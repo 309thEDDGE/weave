@@ -234,6 +234,10 @@ class Index():
         basket_address: string
             Argument can take one of two forms: either a path to the Basket
             directory, or the UUID of the basket.
+
+        Returns
+        ----------
+        The Basket object associated with the given UUID or path.
         """
         # Create a Basket from the given address, and the index's fs and bucket
         # name. Basket will catch invalid inputs and raise appropriate errors.
