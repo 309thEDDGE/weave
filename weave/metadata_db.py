@@ -4,7 +4,7 @@
 import pandas as pd
 from weave import config, Basket
 
-def load_mongo(index_table, collection = 'metadata'):
+def load_mongo(index_table, collection='metadata', **kwargs):
     """Load metadata from baskets into the mongo database.
 
        A metadata.json is created in Baskets when the metadata
@@ -16,15 +16,18 @@ def load_mongo(index_table, collection = 'metadata'):
         Parameters
         ----------
         index_table: [Pandas Dataframe]
-            Weave index dataframe fetched using the Index class. 
+            Weave index dataframe fetched using the Index class.
             The dataframe must include the following columns.
                uuid
                basket_type
                address
-
         collection: [string]
             Metadata wil be added to the Mongo collection specified.
             default: 'metadata'
+
+        kwargs:
+        file_system: fsspec object
+            The file system to retrieve the baskets' metadata from.
         """
 
     if not isinstance(index_table, pd.DataFrame):
@@ -42,10 +45,11 @@ def load_mongo(index_table, collection = 'metadata'):
             raise ValueError("Invalid index_table: missing "
                              f"{required_column} column")
 
+    file_system = kwargs.get("file_system", config.get_file_system())
     database = config.get_mongo_db().mongo_metadata
 
     for _, row in index_table.iterrows():
-        basket = Basket(row['address'])
+        basket = Basket(row['address'], file_system=file_system)
         metadata = basket.get_metadata()
         if metadata is None:
             continue

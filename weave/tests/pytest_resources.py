@@ -1,23 +1,47 @@
 import os
 import json
 
-from weave.uploader import upload_basket
-from weave.config import get_file_system
+import weave
 
-# The following code is for testing in an environment with MinIO:
+def file_path_in_list(search_path, search_list):
+    """Check if a file path is in a list (of file paths).
+
+    Parameters
+    ----------
+    search_path: string
+        The file path we want to search for.
+    search_list: [string]
+        A list of strings (presumably file paths)
+
+    Returns True if any of the file paths in the search list end with the
+    file path we're searching for, otherwise False.
+
+    This allows us to determine if a file is in the list regardless of file
+    system dependent prefixes such as /home/user/ which can usually be ignored.
+    For example, if we have a list of file paths:
+    ['/home/user/data/file.txt', '/home/user/data/this/is/test.txt']
+    and we search for 'data/file.txt', we return True as the file exists.
+    """
+    search_path = str(search_path)
+    for file_path in search_list:
+        if str(file_path).endswith(search_path):
+            return True
+
+    return False
 
 class BucketForTest():
-    def __init__(self, tmpdir):
+    def __init__(self, tmpdir, file_system):
         self.tmpdir = tmpdir
+        self.bucket_name = ("pytest-temp-bucket"
+                            f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}")
         self.basket_list = []
-        self.s3fs_client = get_file_system()
+        self.fs = file_system
         self._set_up_bucket()
 
     def _set_up_bucket(self):
-        """Create a temporary S3 Bucket for testing purposes."""
+        """Create a temporary Bucket for testing purposes."""
         try:
-            self.s3_bucket_name = 'pytest-temp-bucket'
-            self.s3fs_client.mkdir(self.s3_bucket_name)
+            self.fs.mkdir(self.bucket_name)
         except FileExistsError:
             self.cleanup_bucket()
             self._set_up_bucket()
@@ -43,24 +67,25 @@ class BucketForTest():
         return tmp_basket_dir
 
     def upload_basket(self, tmp_basket_dir,
-                      uid='0000', parent_ids=[], metadata={}):
+                      uid='0000', parent_ids=[], metadata={},
+                      basket_type="test_basket"):
         """Upload a temporary (local) basket to the S3 test bucket."""
-        b_type = "test_basket"
-        up_dir = os.path.join(self.s3_bucket_name, b_type, uid)
+        up_dir = os.path.join(self.bucket_name, basket_type, uid)
 
         upload_items = [{'path':str(tmp_basket_dir.realpath()),
                          'stub':False}]
 
-        upload_basket(
+        weave.uploader.upload_basket(
             upload_items=upload_items,
             upload_directory=up_dir,
             unique_id=uid,
-            basket_type=b_type,
+            basket_type=basket_type,
             parent_ids=parent_ids,
-            metadata=metadata
+            metadata=metadata,
+            file_system=self.fs
         )
         return up_dir
 
     def cleanup_bucket(self):
         """Delete the temporary test bucket, including any uploaded baskets."""
-        self.s3fs_client.rm(self.s3_bucket_name, recursive=True)
+        self.fs.rm(self.bucket_name, recursive=True)

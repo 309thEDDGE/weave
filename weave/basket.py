@@ -5,7 +5,8 @@ import os
 import json
 from pathlib import Path
 
-from weave import config, Index
+import weave
+from weave import config
 
 
 class BasketInitializer:
@@ -72,22 +73,25 @@ class Basket(BasketInitializer):
     """This class provides convenience functions for accessing basket contents.
     """
 
-    def __init__(self, basket_address, bucket_name="basket-data"):
+    def __init__(self, basket_address, bucket_name="basket-data", **kwargs):
         """Initializes the Basket_Class.
 
         Parameters
         ----------
         basket_address: string
-            Argument can take one of two forms: either a path to the Basket 
+            Argument can take one of two forms: either a path to the Basket
             directory, or the UUID of the basket.
         bucket_name: string
             Name of the bucket which the desired index is associated with.
+
+        kwargs:
+        file_system: fsspec object
+            The fsspec filesystem to be used for retrieving and uploading.
         """
         super().__init__(basket_address, bucket_name)
         self.manifest = None
         self.supplement = None
         self.metadata = None
-
 
     def get_manifest(self):
         """Return basket_manifest.json as a python dictionary"""

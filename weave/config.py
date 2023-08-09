@@ -42,7 +42,6 @@ manifest_schema = {
 #basket_supplement must follow this schema
 supplement_schema = {
     "properties": {
-
         "upload_items": {
             "type": "array",
             "minItems": 1,
@@ -54,32 +53,29 @@ supplement_schema = {
                 },
                 "required": ["path", "stub"],
                 "additionalProperties": False
-
             }
         },
-
          "integrity_data": {
             "type": "array",
             "minItems": 1,
             "items": {
                 "type": "object",
-
                 "properties": {
                     "file_size": {"type" : "number" },
                     "hash": {"type" : "string" },
                     "access_date":{"type" : "string" },
                     "source_path": {"type" : "string" },
                     "byte_count": {"type" : "number" },
-                    "stub":{"type" : "boolean" }, 
+                    "stub":{"type" : "boolean" },
                     "upload_path":{"type" : "string" }
                 },
                 "required": [
-                    "file_size", 
-                    "hash", 
-                    "access_date", 
-                    "source_path", 
-                    "byte_count", 
-                    "stub", 
+                    "file_size",
+                    "hash",
+                    "access_date",
+                    "source_path",
+                    "byte_count",
+                    "stub",
                     "upload_path"
                 ],
                 "additionalProperties": False
@@ -87,7 +83,6 @@ supplement_schema = {
             "required": ["type"],
             "additionalProperties": False
         }
-
     },
     "required": ["upload_items", "integrity_data"],
     "additionalProperties": False
