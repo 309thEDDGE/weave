@@ -13,8 +13,8 @@ import pandas as pd
 import jsonschema
 from jsonschema import validate
 
+import weave
 from weave import config, upload
-import weave.basket
 
 
 # validate basket keys and value data types on read in
