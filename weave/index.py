@@ -174,7 +174,6 @@ class Index():
         n_ret: [int]
             n is the number of latest index baskets to retain.
         '''
-<<<<<<< HEAD
         n_ret = int(n_ret)
         index_paths = self.file_system.glob(f"{self.index_basket_dir_path}"
                                             "/**/*-index.json")

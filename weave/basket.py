@@ -12,9 +12,9 @@ from weave import config
 class BasketInitializer:
     """Initializes basket class. Validates input args.
     """
-    def __init__(self, basket_address, bucket_name):
+    def __init__(self, basket_address, bucket_name, **kwargs):
         """Handles set up of basket. Calls validation."""
-        self.file_system = config.get_file_system()
+        self.file_system = kwargs.get("file_system", config.get_file_system())
         try:
             self.set_up_basket_from_path(basket_address)
         except ValueError as error:
@@ -38,7 +38,8 @@ class BasketInitializer:
         set up the basket from a filepath will be made.
         """
         try:
-            ind = Index(bucket_name=bucket_name)
+            ind = weave.Index(bucket_name=bucket_name,
+                              file_system=self.file_system)
             ind_df = ind.to_pandas_df()
             path = ind_df["address"][ind_df["uuid"] == basket_address].iloc[0]
             self.set_up_basket_from_path(basket_address=path)
@@ -88,7 +89,7 @@ class Basket(BasketInitializer):
         file_system: fsspec object
             The fsspec filesystem to be used for retrieving and uploading.
         """
-        super().__init__(basket_address, bucket_name)
+        super().__init__(basket_address, bucket_name, **kwargs)
         self.manifest = None
         self.supplement = None
         self.metadata = None
