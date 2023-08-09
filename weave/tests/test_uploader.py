@@ -27,14 +27,14 @@ class UploadForTest(BucketForTest):
         """
         upload_items = [{'path': str(os.path.join(tmp_basket_dir, "test.txt")),
                          'stub': False}]
-        b_type = "test-basket"
+        basket_type = "test-basket"
         metadata = {"oh": "i don't know", "something": "stupid"}
         label = "my label"
         parent_ids = [uuid.uuid1().hex]
 
         self.upload_path = upload(
             upload_items=upload_items,
-            basket_type=b_type,
+            basket_type=basket_type,
             bucket_name=self.bucket_name,
             parent_ids=parent_ids,
             metadata=metadata,

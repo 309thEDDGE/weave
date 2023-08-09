@@ -11,7 +11,7 @@ import pytest
 import s3fs
 
 from weave.index import create_index_from_fs, Index
-from weave.basket import Basket
+from weave import Basket
 
 from weave.tests.pytest_resources import BucketForTest
 from fsspec.implementations.local import LocalFileSystem
@@ -1095,7 +1095,7 @@ def test_index_get_basket_works_correctly(set_up_tb):
     tmp_basket_dir = tb.set_up_basket(tmp_basket_name, file_name=txt_file_name)
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir,
                      uid=uid,
-                     b_type=tmp_basket_type)
+                     basket_type=tmp_basket_type)
 
     expected_basket = Basket(uid, tb.bucket_name, file_system=tb.fs)
 

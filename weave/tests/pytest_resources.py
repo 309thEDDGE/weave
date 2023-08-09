@@ -1,7 +1,7 @@
 import os
 import json
 
-from weave.uploader import upload_basket
+import weave
 
 def file_path_in_list(search_path, search_list):
     """Check if a file path is in a list (of file paths).
@@ -68,18 +68,18 @@ class BucketForTest():
 
     def upload_basket(self, tmp_basket_dir,
                       uid='0000', parent_ids=[], metadata={},
-                      b_type="test_basket"):
+                      basket_type="test_basket"):
         """Upload a temporary (local) basket to the S3 test bucket."""
-        up_dir = os.path.join(self.bucket_name, b_type, uid)
+        up_dir = os.path.join(self.bucket_name, basket_type, uid)
 
         upload_items = [{'path':str(tmp_basket_dir.realpath()),
                          'stub':False}]
 
-        upload_basket(
+        weave.uploader.upload_basket(
             upload_items=upload_items,
             upload_directory=up_dir,
             unique_id=uid,
-            basket_type=b_type,
+            basket_type=basket_type,
             parent_ids=parent_ids,
             metadata=metadata,
             file_system=self.fs
