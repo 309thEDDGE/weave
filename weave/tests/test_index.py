@@ -73,7 +73,7 @@ def test_correct_index(set_up_tb):
         "basket_type": "test_basket",
         "label": "",
         "address": addresses,
-        "storage_type": "s3",
+        "storage_type": tb.fs.__class__.__name__,
     }
     expected_index = pd.DataFrame(truth_index_dict)
 
@@ -146,7 +146,7 @@ def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
         "basket_type": "test_basket",
         "label": "",
         "address": good_addresses,
-        "storage_type": "s3",
+        "storage_type": tb.fs.__class__.__name__,
     }
     expected_index = pd.DataFrame(truth_index_dict)
 
