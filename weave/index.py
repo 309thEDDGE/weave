@@ -80,7 +80,7 @@ def create_index_from_fs(root_dir, file_system):
                 for field in basket_dict.keys():
                     index_dict[field].append(basket_dict[field])
                 index_dict["address"].append(os.path.dirname(basket_json_address))
-                index_dict["storage_type"].append("s3")
+                index_dict["storage_type"].append(fs.__class__.__name__)
             else:
                 bad_baskets.append(os.path.dirname(basket_json_address))
 
