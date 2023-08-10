@@ -1,4 +1,5 @@
-"""Contains functions and classes used by uploader.py's upload function.
+"""
+Contains functions and classes concerning the upload functionality.
 """
 from datetime import datetime
 import hashlib
@@ -9,7 +10,7 @@ from pathlib import Path
 import tempfile
 import uuid
 
-from weave import config
+import weave
 
 
 def validate_upload_item(upload_item):
@@ -167,19 +168,19 @@ class UploadBasket:
         kwargs:
         file_system: fsspec object
             The file system to upload to (ie s3fs, local fs, etc).
-            If None it will use the default fs from the config.
+            If None it will use the default fs from the weave.config.
         """
         self.upload_items = upload_items
-        # self.upload_directory = upload_directory
-        # self.unique_id = unique_id
-        # self.basket_type = basket_type
-        # self.parent_ids = parent_ids
-        # self.metadata = metadata
-        # self.label = label
         self.kwargs = kwargs
+        # We cannot use with in this case, as we want the temp dir to persist
+        # beyond this function.
+        # pylint: disable-next=consider-using-with
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.temp_dir_path = self.temp_dir.name
         self.run_logic()
 
     def run_logic(self):
+        """Handles running the funcs that make up the class. Do the stuff."""
         self.sanitize_args()
         self.check_that_upload_dir_does_not_exist()
 
@@ -191,15 +192,14 @@ class UploadBasket:
             self.upload_basket_supplement_to_fs()
 
             if self.kwargs.get("test_clean_up", False):
-                raise Exception("Test Clean Up")
+                class TestException(Exception):
+                    """Custom exception for test excepting purposes."""
+                raise TestException("Test Clean Up")
 
         except Exception as the_exception:
             if self.fs_upload_path_exists():
                 self.clean_out_fs_upload_dir()
             raise the_exception
-
-#         finally:
-#             self.tear_down_temp_dir()
 
     def sanitize_upload_basket_kwargs(self):
         """Sanitizes kwargs for upload_basket"""
@@ -214,7 +214,7 @@ class UploadBasket:
                          "bucket_name": str,
                          "test_prefix": str}
         for key, value in self.kwargs.items():
-            if key not in kwargs_schema.keys():
+            if key not in kwargs_schema:
                 raise KeyError(f"Invalid kwargs argument: '{key}'")
             if not isinstance(value, kwargs_schema[key]):
                 raise TypeError(
@@ -226,13 +226,16 @@ class UploadBasket:
         if (
             (parent_ids is not None)
             and
-            (not (all(isinstance(x, str) for x in parent_ids)))
+            not (all(isinstance(x, str) for x in parent_ids))
         ):
             raise TypeError(
                 f"'parent_ids' must be a list of strings: '{parent_ids}'"
             )
+        # I think it is wise to ignore pylint here because we should only
+        # set self.file_system *after* we have sanitized it.
+        # pylint: disable-next=attribute-defined-outside-init
         self.file_system = self.kwargs.get("file_system",
-                                           config.get_file_system())
+                                           weave.config.get_file_system())
 
     def sanitize_upload_basket_non_kwargs(self):
         """Sanitize upload_basket's non kwargs args"""
@@ -253,7 +256,7 @@ class UploadBasket:
         for upload_item in self.upload_items:
             validate_upload_item(upload_item)
             local_path_basename = os.path.basename(Path(upload_item["path"]))
-            if local_path_basename in config.prohibited_filenames:
+            if local_path_basename in weave.config.prohibited_filenames:
                 raise ValueError(
                     f"'{local_path_basename}' " "filename not allowed"
                 )
@@ -263,8 +266,7 @@ class UploadBasket:
                     f"'upload_item' folder and file names must be unique:"
                     f" Duplicate Name = {local_path_basename}"
                 )
-            else:
-                local_path_basenames.append(local_path_basename)
+            local_path_basenames.append(local_path_basename)
 
     def sanitize_args(self):
         """Sanitize all args with one call, that's all"""
@@ -273,14 +275,14 @@ class UploadBasket:
 
     def _get_path(self):
         """Either make sure upload_path is in kwargs or make it"""
-        if not "upload_directory" in self.kwargs:
+        if "upload_directory" not in self.kwargs:
             if not ("bucket_name" and "basket_type" in self.kwargs):
                 raise ValueError(
                     "Please provide either the 'upload_directory' or a "
                     "combination of 'bucket_name' and 'basket_type' as kwargs "
                     "for UploadBasket"
                 )
-            if not "unique_id" in self.kwargs:
+            if "unique_id" not in self.kwargs:
                 self.kwargs["unique_id"] = uuid.uuid1().hex
             self.kwargs["upload_directory"] = os.path.join(
                 self.kwargs.get("test_prefix", ""),
@@ -304,9 +306,7 @@ class UploadBasket:
 
     def setup_temp_dir_for_staging_prior_to_fs(self):
         """Sets up a temporary directory to hold stuff before upload to FS"""
-        self.temp_dir = tempfile.TemporaryDirectory()
         self.file_system.mkdir(self.kwargs.get("upload_directory"))
-        self.temp_dir_path = self.temp_dir.name
 
     def upload_files_and_stubs_to_fs(self):
         """Method to upload both files and stubs to fs"""
@@ -314,10 +314,12 @@ class UploadBasket:
         supplement_data["upload_items"] = self.upload_items
         supplement_data["integrity_data"] = []
 
+        # I cannot figure out how to appease pylint on this one:
+        # pylint: disable-next=too-many-nested-blocks
         for upload_item in self.upload_items:
             upload_item_path = Path(upload_item["path"])
             if upload_item_path.is_dir():
-                for root, dirs, files in os.walk(upload_item_path):
+                for root, _, files in os.walk(upload_item_path):
                     for name in files:
                         local_path = os.path.join(root, name)
                         # fid means "file integrity data"
@@ -375,7 +377,7 @@ class UploadBasket:
         basket_json["basket_type"] = self.kwargs.get("basket_type")
         basket_json["label"] = self.kwargs.get("label","")
 
-        with open(basket_json_path, "w") as outfile:
+        with open(basket_json_path, "w", encoding="utf-8") as outfile:
             json.dump(basket_json, outfile)
         self.file_system.upload(
             basket_json_path,
@@ -389,7 +391,7 @@ class UploadBasket:
             self.temp_dir_path, "basket_metadata.json"
         )
         if "metadata" in self.kwargs:
-            with open(metadata_path, "w") as outfile:
+            with open(metadata_path, "w", encoding="utf-8") as outfile:
                 json.dump(self.kwargs.get("metadata"), outfile, default=str)
             self.file_system.upload(
                 metadata_path,
@@ -402,7 +404,7 @@ class UploadBasket:
         supplement_json_path = os.path.join(
             self.temp_dir_path, "basket_supplement.json"
         )
-        with open(supplement_json_path, "w") as outfile:
+        with open(supplement_json_path, "w", encoding="utf-8") as outfile:
             json.dump(self.kwargs.get("supplement_data"), outfile)
         self.file_system.upload(
             supplement_json_path,
@@ -418,120 +420,10 @@ class UploadBasket:
         """Removes everything from upload_path inside fs"""
         self.file_system.rm(self.kwargs.get("upload_directory"),
                             recursive=True)
-    
+
     def get_upload_path(self):
         """Gets upload path from kwargs and returns it."""
         upload_path = self.kwargs.get("upload_directory")
         if upload_path is not None:
             return upload_path
-
-    # def tear_down_temp_dir(self):
-    #     """For use at death of class. Cleans up temp_dir."""
-    #     self.temp_dir.cleanup()
-
-# def upload_basket(
-#     upload_items,
-#     upload_directory,
-#     unique_id,
-#     basket_type,
-#     parent_ids=[],
-#     metadata={},
-#     label="",
-#     **kwargs
-# ):
-#     """
-#     Upload files and directories to the upload FS.
-
-#     This function takes in a list of items to upload, along with
-#     identifying tags, and uploads the data together with three
-#     json files: basket_manifest.json, basket_metadata.json, and
-#     supplement.json. The contents of the three files are specified
-#     below. These three files together with the data specified by
-#     upload_items are uploaded to the upload_directory path within
-#     the upload FS as a basket of data.
-
-#     basket_manifest.json contains:
-#         1) unique_id
-#         2) list of parent ids
-#         3) basket type
-#         4) label
-#         5) upload date
-
-#     basket_metadata.json contains:
-#         1) dictionary passed in through the metadata parameter
-
-#     basket_supplement.json contains:
-#         1) the upload_items object that was passed as an input parameter
-#         2) integrity_data for every file uploaded
-#             a) file checksum
-#             b) upload date
-#             c) file size (bytes)
-#             d) source path (original file location)
-#             e) stub (true/false)
-#             f) upload path (path where the file is uploaded in the upload FS)
-
-#     Parameters
-#     ----------
-#     upload_items : [dict]
-#         List of python dictionaries with the following schema:
-#         {
-#             'path': path to the file or folder being uploaded (string),
-#             'stub': true/false (bool)
-#         }
-#         'path' can be a file or folder to be uploaded. Every filename
-#         and folder name must be unique. If 'stub' is set to True, integrity
-#         data will be included without uploading the actual file or folder.
-#         Stubs are useful when original file source information is desired
-#         without uploading the data itself. This is especially useful when
-#         dealing with large files.
-#     upload_directory: str
-#         Path where basket is to be uploaded.
-#     unique_id: str
-#         Unique ID to identify the basket once uploaded.
-#     basket_type: str
-#         Type of basket being uploaded.
-#     parent_ids: optional [str]
-#         List of unique ids associated with the parent baskets
-#         used to derive the new basket being uploaded.
-#     metadata: optional dict,
-#         Python dictionary that will be written to metadata.json
-#         and stored in the basket in upload FS.
-#     label: optional str,
-#         Optional user friendly label associated with the basket.
-
-#     kwargs:
-#     file_system: fsspec object
-#         The file system to upload to (ie s3fs, local fs, etc).
-#         If None it will use the default fs from the config.
-#     """
-#     upload_basket_obj = UploadBasket(
-#         upload_items,
-#         upload_directory,
-#         unique_id,
-#         basket_type,
-#         parent_ids,
-#         metadata,
-#         label,
-#         **kwargs
-#     )
-
-#     upload_basket_obj.sanitize_args()
-#     upload_basket_obj.check_that_upload_dir_does_not_exist()
-
-#     try:
-#         upload_basket_obj.setup_temp_dir_for_staging_prior_to_fs()
-#         upload_basket_obj.upload_files_and_stubs_to_fs()
-#         upload_basket_obj.create_and_upload_basket_json_to_fs()
-#         upload_basket_obj.upload_basket_metadata_to_fs()
-#         upload_basket_obj.upload_basket_supplement_to_fs()
-
-#         if upload_basket_obj.test_clean_up:
-#             raise Exception("Test Clean Up")
-
-#     except Exception as e:
-#         if upload_basket_obj.fs_upload_path_exists():
-#             upload_basket_obj.clean_out_fs_upload_dir()
-#         raise e
-
-#     finally:
-#         upload_basket_obj.tear_down_temp_dir()
+        raise ValueError("Somehow 'upload_path' is not available in kwargs")
