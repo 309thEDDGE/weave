@@ -125,7 +125,7 @@ class UploadBasket:
     def __init__(
         self,
         upload_items,
-        basket_type,
+        # basket_type,
         # upload_directory,
         # unique_id,
         # parent_ids=[],
@@ -172,7 +172,7 @@ class UploadBasket:
         self.upload_items = upload_items
         # self.upload_directory = upload_directory
         # self.unique_id = unique_id
-        self.basket_type = basket_type
+        # self.basket_type = basket_type
         # self.parent_ids = parent_ids
         # self.metadata = metadata
         # self.label = label
@@ -247,10 +247,6 @@ class UploadBasket:
                 "'upload_items' must be a list of dictionaries: "
                 f"'{self.upload_items}'"
             )
-        
-        if not isinstance(self.basket_type, str):
-            raise TypeError("'basket_type' must be a string: "
-                            f"'{self.basket_type}'")
 
         # Validate self.upload_items
         local_path_basenames = []
@@ -278,7 +274,7 @@ class UploadBasket:
     def _get_path(self):
         """Either make sure upload_path is in kwargs or make it"""
         if not "upload_directory" in self.kwargs:
-            if not "bucket_name" and "basket_type" in self.kwargs:
+            if not ("bucket_name" and "basket_type" in self.kwargs):
                 raise ValueError(
                     "Please provide either the 'upload_directory' or a "
                     "combination of 'bucket_name' and 'basket_type' as kwargs "
@@ -376,7 +372,7 @@ class UploadBasket:
             "%m/%d/%Y %H:%M:%S"
         )
         basket_json["parent_uuids"] = self.kwargs.get("parent_ids", [])
-        basket_json["basket_type"] = self.basket_type
+        basket_json["basket_type"] = self.kwargs.get("basket_type")
         basket_json["label"] = self.kwargs.get("label","")
 
         with open(basket_json_path, "w") as outfile:
@@ -422,6 +418,12 @@ class UploadBasket:
         """Removes everything from upload_path inside fs"""
         self.file_system.rm(self.kwargs.get("upload_directory"),
                             recursive=True)
+    
+    def get_upload_path(self):
+        """Gets upload path from kwargs and returns it."""
+        upload_path = self.kwargs.get("upload_directory")
+        if upload_path is not None:
+            return upload_path
 
     # def tear_down_temp_dir(self):
     #     """For use at death of class. Cleans up temp_dir."""

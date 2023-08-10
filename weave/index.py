@@ -14,7 +14,6 @@ import jsonschema
 from jsonschema import validate
 
 import weave
-from weave import config, upload
 
 
 # validate basket keys and value data types on read in
@@ -29,7 +28,7 @@ def validate_basket_dict(basket_dict):
     """
 
     try:
-        validate(instance=basket_dict, schema=config.manifest_schema)
+        validate(instance=basket_dict, schema=weave.config.manifest_schema)
         return True
 
     except jsonschema.exceptions.ValidationError:
@@ -59,7 +58,7 @@ def create_index_from_fs(root_dir, file_system):
 
     basket_jsons = _get_list_of_basket_jsons(root_dir, file_system)
 
-    schema = config.index_schema()
+    schema = weave.config.index_schema()
 
     index_dict = {}
 
@@ -121,7 +120,8 @@ class Index():
             If file_system is None, then the default fs is retrieved from the
             config.
         '''
-        self.file_system = kwargs.get("file_system", config.get_file_system())
+        self.file_system = kwargs.get("file_system",
+                                      weave.config.get_file_system())
 
         self.bucket_name = str(bucket_name)
         self.index_basket_dir_name = 'index' # AKA basket type
@@ -219,10 +219,12 @@ class Index():
             n_secs = time_ns()
             temp_json_path = os.path.join(out, f"{n_secs}-index.json")
             index.to_json(temp_json_path)
-            upload(upload_items=[{'path':temp_json_path, 'stub':False}],
-                   basket_type=self.index_basket_dir_name,
-                   file_system=self.file_system,
-                   bucket_name=self.bucket_name)
+            weave.uploader_functions.UploadBasket(
+                upload_items=[{'path':temp_json_path, 'stub':False}],
+                basket_type=self.index_basket_dir_name,
+                file_system=self.file_system,
+                bucket_name=self.bucket_name
+            )
         self.index_df = index
         self.index_json_time = n_secs
 
@@ -497,7 +499,7 @@ class Index():
         label = kwargs.get("label", "")
 
         self.sync_index()
-        up_dir = upload(
+        up_dir = weave.uploader_functions.UploadBasket(
             upload_items=upload_items,
             basket_type=basket_type,
             file_system=self.file_system,
@@ -505,7 +507,7 @@ class Index():
             parent_ids=parent_ids,
             metadata=metadata,
             label=label,
-        )
+        ).get_upload_path()
         single_indice_index = create_index_from_fs(up_dir, self.file_system)
         self._upload_index(
             pd.concat([self.index_df, single_indice_index], ignore_index=True)

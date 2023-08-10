@@ -13,6 +13,7 @@ from weave.uploader_functions import (derive_integrity_data,
                                       validate_upload_item,
                                       UploadBasket)
 from weave.tests.pytest_resources import BucketForTest, file_path_in_list
+import weave
 
 class UploadForTest(BucketForTest):
     """
@@ -32,7 +33,7 @@ class UploadForTest(BucketForTest):
         label = "my label"
         parent_ids = [uuid.uuid1().hex]
 
-        self.upload_path = upload(
+        self.upload_path = weave.uploader_functions.UploadBasket(
             upload_items=upload_items,
             basket_type=basket_type,
             bucket_name=self.bucket_name,
@@ -40,7 +41,7 @@ class UploadForTest(BucketForTest):
             metadata=metadata,
             label=label,
             file_system=self.fs
-        )
+        ).get_upload_path()
 
         self.uploaded_files = self.fs.ls(self.upload_path)
 
@@ -134,9 +135,12 @@ def test_upload_bucket_name_is_string():
                      'stub': False}]
 
     with pytest.raises(
-        TypeError, match=f"'bucket_name' must be a string: '{bucket_name}'"
+        TypeError,
+        match="Invalid datatype: 'bucket_name: must be type <class 'str'>'"
     ):
-        upload(upload_items, "test_basket", bucket_name=bucket_name)
+        weave.uploader_functions.UploadBasket(
+            upload_items, basket_type="test_basket", bucket_name=bucket_name
+        )
 
 # Test with two different fsspec file systems (top of file).
 @pytest.fixture(params=[s3fs, local_fs])
@@ -817,7 +821,8 @@ def test_upload_basket_type_is_string(set_up_tb):
 
 
     with pytest.raises(
-        TypeError, match=f"'basket_type' must be a string: '{basket_type}'"
+        TypeError,
+        match="Invalid datatype: 'basket_type: must be type <class 'str'>'"
     ):
         UploadBasket(
             upload_items=upload_items,
