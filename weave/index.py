@@ -39,8 +39,10 @@ def create_index_from_fs(root_dir, file_system):
     """Recursively parse an bucket and create an index
 
     Parameters:
-        root_dir: path to bucket
-        file_system: the fsspec file system hosting the bucket to be indexed.
+        root_dir: str
+            path to bucket
+        file_system: fsspec object
+            the fsspec file system hosting the bucket to be indexed.
 
     Returns:
         index: a pandas DataFrame with columns
