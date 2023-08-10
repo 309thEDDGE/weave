@@ -73,7 +73,6 @@ def test_load_mongo(set_up):
     for item in db_data:
         item.pop('_id')
         compared_data.append(item)
-
     assert truth_db == compared_data
 
 def test_load_mongo_check_for_dataframe(set_up):

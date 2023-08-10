@@ -73,9 +73,9 @@ def upload(
 
     UploadBasket(
         upload_items,
-        upload_directory,
-        unique_id,
-        basket_type,
+        upload_directory=upload_directory,
+        unique_id=unique_id,
+        basket_type=basket_type,
         **kwargs
     )
 
