@@ -2,19 +2,18 @@ import json
 import os
 import re
 import warnings
-from unittest.mock import patch
 import uuid
 
 import pandas as pd
 import numpy as np
 import pytest
 import s3fs
-
-from weave.index import create_index_from_fs, Index
-from weave import Basket
-
-from weave.tests.pytest_resources import BucketForTest
+from unittest.mock import patch
 from fsspec.implementations.local import LocalFileSystem
+
+from weave import Basket
+from weave.index import create_index_from_fs, Index
+from weave.tests.pytest_resources import BucketForTest
 
 """Pytest Fixtures Documentation:
 https://docs.pytest.org/en/7.3.x/how-to/fixtures.html
