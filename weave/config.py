@@ -2,6 +2,7 @@
 config.py provides configuration settings used by weave.
 """
 import os
+
 import pymongo
 import s3fs
 

@@ -9,7 +9,7 @@ from fsspec.implementations.local import LocalFileSystem
 from unittest.mock import patch
 
 from weave import upload
-from weave.uploader_functions import (derive_integrity_data,
+from weave.upload import (derive_integrity_data,
                                       validate_upload_item,
                                       UploadBasket)
 from weave.tests.pytest_resources import BucketForTest, file_path_in_list
@@ -33,7 +33,7 @@ class UploadForTest(BucketForTest):
         label = "my label"
         parent_ids = [uuid.uuid1().hex]
 
-        self.upload_path = weave.uploader_functions.UploadBasket(
+        self.upload_path = weave.upload.UploadBasket(
             upload_items=upload_items,
             basket_type=basket_type,
             bucket_name=self.bucket_name,
@@ -138,7 +138,7 @@ def test_upload_bucket_name_is_string():
         TypeError,
         match="Invalid datatype: 'bucket_name: must be type <class 'str'>'"
     ):
-        weave.uploader_functions.UploadBasket(
+        weave.upload.UploadBasket(
             upload_items, basket_type="test_basket", bucket_name=bucket_name
         )
 
@@ -574,7 +574,7 @@ def test_upload_basket_upload_items_is_a_list_of_only_dictionaries(set_up_tb):
     assert not tb.fs.exists(upload_path)
 
 @patch(
-    'weave.uploader_functions.UploadBasket.upload_basket_supplement_to_fs'
+    'weave.upload.UploadBasket.upload_basket_supplement_to_fs'
 )
 def test_upload_basket_with_bad_upload_items_is_deleted_if_it_fails(mocked_obj,
                                                                     set_up_tb):

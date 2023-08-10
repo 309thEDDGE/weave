@@ -74,7 +74,7 @@ class BucketForTest():
         upload_items = [{'path':str(tmp_basket_dir.realpath()),
                          'stub':False}]
 
-        weave.uploader_functions.UploadBasket(
+        weave.upload.UploadBasket(
             upload_items=upload_items,
             upload_directory=up_dir,
             unique_id=uid,

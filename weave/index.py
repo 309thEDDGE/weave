@@ -219,7 +219,7 @@ class Index():
             n_secs = time_ns()
             temp_json_path = os.path.join(out, f"{n_secs}-index.json")
             index.to_json(temp_json_path)
-            weave.uploader_functions.UploadBasket(
+            weave.upload.UploadBasket(
                 upload_items=[{'path':temp_json_path, 'stub':False}],
                 basket_type=self.index_basket_dir_name,
                 file_system=self.file_system,
@@ -499,7 +499,7 @@ class Index():
         label = kwargs.get("label", "")
 
         self.sync_index()
-        up_dir = weave.uploader_functions.UploadBasket(
+        up_dir = weave.upload.UploadBasket(
             upload_items=upload_items,
             basket_type=basket_type,
             file_system=self.file_system,

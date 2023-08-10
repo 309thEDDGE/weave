@@ -1052,7 +1052,7 @@ def test_upload_basket_works_on_empty_basket(set_up_tb):
     assert(len(ind.index_df) == 1)
 
 @patch.object(uuid, 'uuid1')
-@patch('weave.uploader_functions.UploadBasket.upload_basket_supplement_to_fs')
+@patch('weave.upload.UploadBasket.upload_basket_supplement_to_fs')
 def test_upload_basket_gracefully_fails(mocked_obj_1, mocked_obj_2, set_up_tb):
     """
     In this test an engineered failure to upload the basket occurs.

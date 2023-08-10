@@ -2,6 +2,7 @@
 """
 
 import pandas as pd
+
 from weave import config, Basket
 
 def load_mongo(index_table, collection='metadata', **kwargs):
