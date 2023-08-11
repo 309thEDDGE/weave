@@ -168,59 +168,6 @@ def _validate_basket(basket_dir, file_system):
             "basket_supplement.json": handle_supplement,
             "basket_metadata.json": handle_metadata
         }.get(file_name, handle_none_of_the_above)(file, file_system)
-#         if file_name == 'basket_manifest.json':
-#             try:
-#                 # these two lines make sure it can be read and is valid schema
-#                 data = json.load(file_system.open(file))
-#                 validate(instance=data, schema=config.manifest_schema)
-
-#             except jsonschema.exceptions.ValidationError as exc:
-#                 raise ValueError(
-#                     "Invalid Basket. Manifest Schema does not match at: ", file
-#                 ) from exc
-
-#             except json.decoder.JSONDecodeError as exc:
-#                 raise ValueError(
-#                     "Invalid Basket. "
-#                     "Manifest could not be loaded into json at: ", file
-#                 ) from exc
-
-#         if file_name == 'basket_supplement.json':
-#             try:
-#                 # these two lines make sure it can be read and is valid schema
-#                 data = json.load(file_system.open(file))
-#                 validate(instance=data, schema=config.supplement_schema)
-
-#             except jsonschema.exceptions.ValidationError as exc:
-#                 raise ValueError(
-#                     "Invalid Basket. "
-#                     "Supplement Schema does not match at: ", file
-#                 ) from exc
-
-#             except json.decoder.JSONDecodeError as exc:
-#                 raise ValueError(
-#                     "Invalid Basket. "
-#                     "Supplement could not be loaded into json at: ", file
-#                 ) from exc
-
-#         if file_name == 'basket_metadata.json':
-#             try:
-#                 data = json.load(file_system.open(file))
-
-#             except json.decoder.JSONDecodeError as exc:
-#                 raise ValueError(
-#                     "Invalid Basket. "
-#                     "Metadata could not be loaded into json at: ", file
-#                 ) from exc
-
-        # if we find a directory inside this basket, we need to check it
-        # if we check it and find a basket, this basket is invalid.
-        # if file_system.info(file)['type'] == 'directory':
-        #     if _check_level(file, file_system, in_basket=True):
-        #         raise ValueError("Invalid Basket. Manifest File "
-        #                          "found in sub directory of basket at: ",
-        #                          basket_dir
-        #         )
 
     # default return true if we don't find any problems with this basket
     return True
