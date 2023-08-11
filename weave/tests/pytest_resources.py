@@ -1,3 +1,6 @@
+"""
+Resources for use in pytest.
+"""
 import os
 import json
 
@@ -30,18 +33,19 @@ def file_path_in_list(search_path, search_list):
     return False
 
 class BucketForTest():
+    """Handles resources for much of weave testing."""
     def __init__(self, tmpdir, file_system):
         self.tmpdir = tmpdir
         self.bucket_name = ("pytest-temp-bucket"
                             f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}")
         self.basket_list = []
-        self.fs = file_system
+        self.file_system = file_system
         self._set_up_bucket()
 
     def _set_up_bucket(self):
         """Create a temporary Bucket for testing purposes."""
         try:
-            self.fs.mkdir(self.bucket_name)
+            self.file_system.mkdir(self.bucket_name)
         except FileExistsError:
             self.cleanup_bucket()
             self._set_up_bucket()
@@ -53,7 +57,7 @@ class BucketForTest():
         tmp_basket_txt_file = tmp_basket_dir.join(file_name)
 
         if file_name[file_name.rfind('.'):] == ".json":
-            with open(tmp_basket_txt_file, "w") as outfile:
+            with open(tmp_basket_txt_file, "w", encoding="utf-8") as outfile:
                 json.dump(file_content, outfile)
         else:
             tmp_basket_txt_file.write(file_content)
@@ -62,8 +66,8 @@ class BucketForTest():
 
     def add_lower_dir_to_temp_basket(self, tmp_basket_dir):
         """Add a nested directory inside the temporary basket."""
-        nd = tmp_basket_dir.mkdir("nested_dir")
-        nd.join("another_test.txt").write("more test text")
+        nested_dir = tmp_basket_dir.mkdir("nested_dir")
+        nested_dir.join("another_test.txt").write("more test text")
         return tmp_basket_dir
 
     def upload_basket(self, tmp_basket_dir, uid='0000',
@@ -79,11 +83,11 @@ class BucketForTest():
             upload_directory=up_dir,
             unique_id=uid,
             basket_type=basket_type,
-            file_system=self.fs,
+            file_system=self.file_system,
             **kwargs
         )
         return up_dir
 
     def cleanup_bucket(self):
         """Delete the temporary test bucket, including any uploaded baskets."""
-        self.fs.rm(self.bucket_name, recursive=True)
+        self.file_system.rm(self.bucket_name, recursive=True)
