@@ -5,8 +5,7 @@ import json
 import jsonschema
 from jsonschema import validate
 
-from weave import config
-
+from .config import manifest_schema, supplement_schema
 
 def validate_bucket(bucket_name, file_system):
     """Starts the validation process off based off the name of the bucket
@@ -178,7 +177,7 @@ def handle_manifest(file, file_system):
     try:
         # these two lines make sure it can be read and is valid schema
         data = json.load(file_system.open(file))
-        validate(instance=data, schema=config.manifest_schema)
+        validate(instance=data, schema=manifest_schema)
 
     except jsonschema.exceptions.ValidationError as exc:
         raise ValueError(
@@ -196,7 +195,7 @@ def handle_supplement(file, file_system):
     try:
         # these two lines make sure it can be read and is valid schema
         data = json.load(file_system.open(file))
-        validate(instance=data, schema=config.supplement_schema)
+        validate(instance=data, schema=supplement_schema)
 
     except jsonschema.exceptions.ValidationError as exc:
         raise ValueError(

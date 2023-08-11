@@ -10,7 +10,7 @@ from pathlib import Path
 import tempfile
 import uuid
 
-import weave
+from .config import get_file_system, prohibited_filenames
 
 
 def validate_upload_item(upload_item):
@@ -234,8 +234,7 @@ class UploadBasket:
         # I think it is wise to ignore pylint here because we should only
         # set self.file_system *after* we have sanitized it.
         # pylint: disable-next=attribute-defined-outside-init
-        self.file_system = self.kwargs.get("file_system",
-                                           weave.config.get_file_system())
+        self.file_system = self.kwargs.get("file_system", get_file_system())
 
     def sanitize_upload_basket_non_kwargs(self):
         """Sanitize upload_basket's non kwargs args"""
@@ -256,7 +255,7 @@ class UploadBasket:
         for upload_item in self.upload_items:
             validate_upload_item(upload_item)
             local_path_basename = os.path.basename(Path(upload_item["path"]))
-            if local_path_basename in weave.config.prohibited_filenames:
+            if local_path_basename in prohibited_filenames:
                 raise ValueError(
                     f"'{local_path_basename}' " "filename not allowed"
                 )

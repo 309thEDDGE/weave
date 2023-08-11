@@ -3,7 +3,9 @@
 
 import pandas as pd
 
-from weave import config, Basket
+from .basket import Basket
+from .config import get_file_system, get_mongo_db
+
 
 def load_mongo(index_table, collection='metadata', **kwargs):
     """Load metadata from baskets into the mongo database.
@@ -46,8 +48,8 @@ def load_mongo(index_table, collection='metadata', **kwargs):
             raise ValueError("Invalid index_table: missing "
                              f"{required_column} column")
 
-    file_system = kwargs.get("file_system", config.get_file_system())
-    database = config.get_mongo_db().mongo_metadata
+    file_system = kwargs.get("file_system", get_file_system())
+    database = get_mongo_db().mongo_metadata
 
     for _, row in index_table.iterrows():
         basket = Basket(row['address'], file_system=file_system)

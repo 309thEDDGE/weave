@@ -5,8 +5,8 @@ import os
 import json
 from pathlib import Path
 
-import weave
-from weave import config
+from .config import get_file_system, prohibited_filenames
+# from .index import Index
 
 
 class BasketInitializer:
@@ -14,7 +14,7 @@ class BasketInitializer:
     """
     def __init__(self, basket_address, bucket_name, **kwargs):
         """Handles set up of basket. Calls validation."""
-        self.file_system = kwargs.get("file_system", config.get_file_system())
+        self.file_system = kwargs.get("file_system", get_file_system())
         try:
             self.set_up_basket_from_path(basket_address)
         except ValueError as error:
@@ -37,18 +37,16 @@ class BasketInitializer:
         Note that if the basket cannot be set up from a uuid then an attempt to
         set up the basket from a filepath will be made.
         """
-        try:
-            ind = weave.Index(bucket_name=bucket_name,
-                              file_system=self.file_system)
-            ind_df = ind.to_pandas_df()
-            path = ind_df["address"][ind_df["uuid"] == basket_address].iloc[0]
-            self.set_up_basket_from_path(basket_address=path)
-        except BaseException as error:
-            self.basket_address = basket_address
-            self.validate_basket_path()
-            # the above line should raise an exception
-            # the below line is more or less a fail safe and will raise the ex.
-            raise error
+        # ind = Index(bucket_name=bucket_name, file_system=self.file_system)
+        # ind_df = ind.to_pandas_df()
+        # path = ind_df["address"][ind_df["uuid"] == basket_address].iloc[0]
+        paths = self.file_system.glob(f"{bucket_name}/**/{basket_address}/")
+        if len(paths) == 0:
+            breakpoint()
+            raise ValueError(f"Basket does not exist: {self.basket_address}")
+        elif len(paths) > 1:
+            raise ValueError(f"Multiple baskets with the uuid of '{self.basket_address}' exist.")
+        self.set_up_basket_from_path(basket_address=paths[0])
 
     def validate_basket_path(self):
         """Validates basket exists"""
@@ -170,7 +168,7 @@ class Basket(BasketInitializer):
             return [
                 x
                 for x in ls_results
-                if os.path.basename(Path(x)) not in config.prohibited_filenames
+                if os.path.basename(Path(x)) not in prohibited_filenames
             ]
         # Note that file_system.ls can have unpredictable behavior if
         # not passing refresh=True

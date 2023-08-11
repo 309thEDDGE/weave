@@ -13,7 +13,9 @@ import pandas as pd
 import jsonschema
 from jsonschema import validate
 
-import weave
+from .basket import Basket
+from .config import manifest_schema, index_schema, get_file_system
+from .upload import UploadBasket
 
 
 # validate basket keys and value data types on read in
@@ -28,7 +30,7 @@ def validate_basket_dict(basket_dict):
     """
 
     try:
-        validate(instance=basket_dict, schema=weave.config.manifest_schema)
+        validate(instance=basket_dict, schema=manifest_schema)
         return True
 
     except jsonschema.exceptions.ValidationError:
@@ -60,7 +62,7 @@ def create_index_from_fs(root_dir, file_system):
 
     basket_jsons = _get_list_of_basket_jsons(root_dir, file_system)
 
-    schema = weave.config.index_schema()
+    schema = index_schema()
 
     index_dict = {}
 
@@ -122,8 +124,7 @@ class Index():
             If file_system is None, then the default fs is retrieved from the
             config.
         '''
-        self.file_system = kwargs.get("file_system",
-                                      weave.config.get_file_system())
+        self.file_system = kwargs.get("file_system", get_file_system())
 
         self.bucket_name = str(bucket_name)
         self.index_basket_dir_name = 'index' # AKA basket type
@@ -221,7 +222,7 @@ class Index():
             n_secs = time_ns()
             temp_json_path = os.path.join(out, f"{n_secs}-index.json")
             index.to_json(temp_json_path)
-            weave.upload.UploadBasket(
+            UploadBasket(
                 upload_items=[{'path':temp_json_path, 'stub':False}],
                 basket_type=self.index_basket_dir_name,
                 file_system=self.file_system,
@@ -246,7 +247,7 @@ class Index():
         # Create a Basket from the given address, and the index's file_system
         # and bucket name. Basket will catch invalid inputs and raise
         # appropriate errors.
-        return weave.Basket(basket_address, self.bucket_name,
+        return Basket(basket_address, self.bucket_name,
                             file_system=self.file_system)
 
     def delete_basket(self, basket_uuid, **kwargs):
@@ -501,7 +502,7 @@ class Index():
         label = kwargs.get("label", "")
 
         self.sync_index()
-        up_dir = weave.upload.UploadBasket(
+        up_dir = UploadBasket(
             upload_items=upload_items,
             basket_type=basket_type,
             file_system=self.file_system,
