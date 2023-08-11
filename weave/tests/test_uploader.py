@@ -10,8 +10,8 @@ from unittest.mock import patch
 
 from weave import upload
 from weave.upload import (derive_integrity_data,
-                                      validate_upload_item,
-                                      UploadBasket)
+                          validate_upload_item,
+                          UploadBasket)
 from weave.tests.pytest_resources import BucketForTest, file_path_in_list
 import weave
 

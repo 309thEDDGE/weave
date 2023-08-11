@@ -19,12 +19,13 @@ it's Index.
 also upload new Baskets to the Pantry using Index.upload_basket().
 """
 
-from .index import Index
 from .basket import Basket
+from .index.index import Index
 from .metadata_db import load_mongo
 
+
 __all__ = [
-    "Index",
     "Basket",
+    "Index",
     "load_mongo",
 ]

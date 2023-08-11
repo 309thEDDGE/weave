@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 from .config import get_file_system, prohibited_filenames
-# from .index import Index
+from .index.index_pandas import _Index
 
 
 class BasketInitializer:
@@ -37,16 +37,18 @@ class BasketInitializer:
         Note that if the basket cannot be set up from a uuid then an attempt to
         set up the basket from a filepath will be made.
         """
-        # ind = Index(bucket_name=bucket_name, file_system=self.file_system)
-        # ind_df = ind.to_pandas_df()
-        # path = ind_df["address"][ind_df["uuid"] == basket_address].iloc[0]
-        paths = self.file_system.glob(f"{bucket_name}/**/{basket_address}/")
-        if len(paths) == 0:
-            breakpoint()
-            raise ValueError(f"Basket does not exist: {self.basket_address}")
-        elif len(paths) > 1:
-            raise ValueError(f"Multiple baskets with the uuid of '{self.basket_address}' exist.")
-        self.set_up_basket_from_path(basket_address=paths[0])
+        try:
+            ind = _Index(bucket_name=bucket_name,
+                              file_system=self.file_system)
+            ind_df = ind.to_pandas_df()
+            path = ind_df["address"][ind_df["uuid"] == basket_address].iloc[0]
+            self.set_up_basket_from_path(basket_address=path)
+        except BaseException as error:
+            self.basket_address = basket_address
+            self.validate_basket_path()
+            # the above line should raise an exception
+            # the below line is more or less a fail safe and will raise the ex.
+            raise error
 
     def validate_basket_path(self):
         """Validates basket exists"""

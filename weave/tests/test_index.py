@@ -10,7 +10,8 @@ import numpy as np
 import pytest
 import s3fs
 
-from weave.index import create_index_from_fs, Index
+from weave.index.create_index import create_index_from_fs
+from weave.index.index import Index
 from weave import Basket
 
 from weave.tests.pytest_resources import BucketForTest
