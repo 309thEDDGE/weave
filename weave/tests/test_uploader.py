@@ -8,7 +8,6 @@ from datetime import datetime
 from fsspec.implementations.local import LocalFileSystem
 from unittest.mock import patch
 
-from weave import upload
 from weave.upload import (derive_integrity_data,
                           validate_upload_item,
                           UploadBasket)
