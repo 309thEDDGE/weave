@@ -126,12 +126,6 @@ class UploadBasket:
     def __init__(
         self,
         upload_items,
-        # basket_type,
-        # upload_directory,
-        # unique_id,
-        # parent_ids=[],
-        # metadata={},
-        # label="",
         **kwargs,
     ):
         """Initializes the Basket_Class.
