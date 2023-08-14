@@ -392,7 +392,7 @@ def test_get_parents_valid(set_up_tb):
     """
     tb = set_up_tb
 
-    #setup random strucutre of parents and children 
+    #setup random strucutre of parents and children
     tmp_dir = tb.set_up_basket("great_grandparent_3")
     tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
 
@@ -470,7 +470,7 @@ def test_get_parents_invalid_basket_address(set_up_tb):
     index = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
 
     with pytest.raises(
-        FileNotFoundError, 
+        FileNotFoundError,
         match=f"basket path or uuid does not exist '{basket_path}'"
     ):
         index.get_parents(basket_path)
@@ -537,7 +537,7 @@ def test_get_children_valid(set_up_tb):
     """
     tb = set_up_tb
 
-    #setup random strucutre of parents and children 
+    #setup random strucutre of parents and children
     tmp_dir = tb.set_up_basket("great_grandparent_3")
     great_grandparent = tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
 
@@ -691,7 +691,7 @@ def test_get_parents_15_deep(set_up_tb):
         parent_id = str(i)
         tmp = tb.set_up_basket("basket_" + child_id)
         tb.upload_basket(tmp_basket_dir=tmp,
-                         uid=child_id, 
+                         uid=child_id,
                          parent_ids=[parent_id])
 
     ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
@@ -875,7 +875,7 @@ def test_get_parents_from_uuid(set_up_tb):
     """
     tb = set_up_tb
 
-    #setup random strucutre of parents and children 
+    #setup random strucutre of parents and children
     tmp_dir = tb.set_up_basket("great_grandparent_3")
     tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
 
@@ -949,7 +949,7 @@ def test_get_children_from_uuid(set_up_tb):
     """
     tb = set_up_tb
 
-    #setup random strucutre of parents and children 
+    #setup random strucutre of parents and children
     tmp_dir = tb.set_up_basket("great_grandparent_3")
     tb.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
 
