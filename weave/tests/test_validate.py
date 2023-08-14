@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-import warnings
 
 import pytest
 import s3fs
