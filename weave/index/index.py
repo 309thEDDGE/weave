@@ -1,7 +1,7 @@
 """
-USAGE:
-python create_index.py <root_dir>
-    root_dir: the root directory of s3 you wish to build your index off of
+This class builds the user-facing Index class. It pulls from the _Index class
+which uses Pandas as it's backend to build and interface with the on disk
+Index baskets.
 """
 from ..basket import Basket
 from .index_pandas import _Index
