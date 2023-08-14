@@ -23,16 +23,11 @@ class ValidateForTest(BucketForTest):
     # Well I think we probably need different args for the below function,
     # which is over-riding BucketForTest.set_up_basket. Pylint hates it, but
     # here we are:
-    # pylint: disable-next=arguments-renamed
+    # pylint: disable-next=arguments-differ
     def set_up_basket(
         self,
         tmp_dir_name,
-        is_man=False,
-        is_sup=False,
-        is_meta=False,
-        man_data="",
-        sup_data="",
-        meta_data="",
+        **kwargs
     ):
         """Overrides BucketForTest's set_up_basket to better test validate.py
 
@@ -51,22 +46,25 @@ class ValidateForTest(BucketForTest):
         ----------
         tmp_dir_name: string
             the directory name of where the nested basket will be
-        is_man: boolean (optional)
+        
+        Key-word Arguments:
+        -------------------
+        is_man: boolean
             a bool that signals if ther should be a manifest file
             defaults to no manifest
-        is_sup: boolean (optional)
+        is_sup: boolean
             a bool that signals if ther should be a supplement file
             defaults to no supplement
-        is_meta: boolean (optional)
+        is_meta: boolean
             a bool that signals if ther should be a metadata file
             defaults to no metadata
-        man_data: string (optional)
+        man_data: string
             the json data we want to be put into the manifest file
             defaults to a valid manifest schema
-        sup_data: string (optional)
+        sup_data: string
             the json data we want to be put into the supplement file
             defaults to a valid supplement schema
-        meta_data: string (optional)
+        meta_data: string
             the json data we want to be put into the metadata file
             defaults to a valid json object
 
@@ -74,6 +72,12 @@ class ValidateForTest(BucketForTest):
         ----------
         A string of the directory where the basket was uploaded
         """
+        is_man=kwargs.get("is_man", False)
+        is_sup=kwargs.get("is_sup", False)
+        is_meta=kwargs.get("is_meta", False)
+        man_data=kwargs.get("man_data", "")
+        sup_data=kwargs.get("sup_data", "")
+        meta_data=kwargs.get("meta_data", "")
         tmp_basket_dir = self.tmpdir.mkdir(tmp_dir_name)
 
         if is_man:
