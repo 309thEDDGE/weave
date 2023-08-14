@@ -80,23 +80,23 @@ class _Index():
             self.sync_index()
         return self.index_df
 
-    def clean_up_indices(self, n_ret=20):
+    def clean_up_indices(self, n_keep=20):
         '''Deletes any index basket except the latest n index baskets.
 
         Parameters
         ----------
-        n_ret: [int]
-            n is the number of latest index baskets to retain.
+        n_keep: [int]
+            n is the number of latest index baskets to keep.
         '''
-        n_ret = int(n_ret)
+        n_keep = int(n_keep)
         index_paths = self.file_system.glob(f"{self.index_basket_dir_path}"
                                             "/**/*-index.json")
-        if len(index_paths) <= n_ret:
+        if len(index_paths) <= n_keep:
             return
         index_time_list = [self._get_index_time_from_path(i)
                            for i in index_paths]
         index_times_to_keep = sorted(index_time_list,
-                                     reverse=True)[:n_ret]
+                                     reverse=True)[:n_keep]
         for index_time in index_time_list:
             if index_time not in index_times_to_keep:
                 try:
