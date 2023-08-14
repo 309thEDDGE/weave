@@ -17,14 +17,15 @@ from weave import Basket
 from weave.tests.pytest_resources import BucketForTest
 from fsspec.implementations.local import LocalFileSystem
 
-"""Pytest Fixtures Documentation:
-https://docs.pytest.org/en/7.3.x/how-to/fixtures.html
-
-https://docs.pytest.org/en/7.3.x/how-to
-/fixtures.html#teardown-cleanup-aka-fixture-finalization
-
-https://docs.pytest.org/en/7.3.x/how-to/fixtures.html#fixture-parametrize
-"""
+###############################################################################
+#                      Pytest Fixtures Documentation:                         #
+#            https://docs.pytest.org/en/7.3.x/how-to/fixtures.html            #
+#                                                                             #
+#                  https://docs.pytest.org/en/7.3.x/how-to/                   #
+#          fixtures.html#teardown-cleanup-aka-fixture-finalization            #
+#                                                                             #
+#  https://docs.pytest.org/en/7.3.x/how-to/fixtures.html#fixture-parametrize  #
+###############################################################################
 
 s3fs = s3fs.S3FileSystem(
     client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
@@ -34,6 +35,7 @@ local_fs = LocalFileSystem()
 # Test with two different fsspec file systems (above).
 @pytest.fixture(params=[s3fs, local_fs])
 def set_up_tb(request, tmpdir):
+    """Sets up test bucket for the tests"""
     fs = request.param
     tb = BucketForTest(tmpdir, fs)
     yield tb
@@ -50,13 +52,13 @@ def test_root_dir_does_not_exist(set_up_tb):
     ):
         create_index_from_fs(
             os.path.join(tmp_basket_dir_one, "NOT-A-BUCKET"),
-            tb.fs
+            tb.file_system
         )
 
 def test_root_dir_is_string(set_up_tb):
     tb = set_up_tb
     with pytest.raises(TypeError, match="'root_dir' must be a string"):
-        create_index_from_fs(765, tb.fs)
+        create_index_from_fs(765, tb.file_system)
 
 def test_correct_index(set_up_tb):
     tb = set_up_tb
@@ -75,11 +77,11 @@ def test_correct_index(set_up_tb):
         "basket_type": "test_basket",
         "label": "",
         "address": addresses,
-        "storage_type": tb.fs.__class__.__name__,
+        "storage_type": tb.file_system.__class__.__name__,
     }
     expected_index = pd.DataFrame(truth_index_dict)
 
-    actual_index = create_index_from_fs(tb.bucket_name, tb.fs)
+    actual_index = create_index_from_fs(tb.bucket_name, tb.file_system)
 
     # Check that the indexes match, ignoring 'upload_time', and 'address'
     # (address needs to be checked regardless of FS prefix--see next assert)
@@ -121,14 +123,14 @@ def set_up_malformed_baskets(request, tmpdir):
             manifest_address = (f"{tb.bucket_name}/test_basket/"
                                 f"000{i}/basket_manifest.json")
 
-            with tb.fs.open(manifest_address,"rb") as f:
+            with tb.file_system.open(manifest_address,"rb") as f:
                 basket_dict = json.load(f)
                 basket_dict.pop("uuid")
             basket_path = os.path.join(tmp_basket_dir, "basket_manifest.json")
             with open(basket_path, "w") as f:
                 json.dump(basket_dict, f)
 
-            tb.fs.upload(basket_path,manifest_address)
+            tb.file_system.upload(basket_path,manifest_address)
 
         else:
             good_addresses.append(address)
@@ -148,7 +150,7 @@ def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
         "basket_type": "test_basket",
         "label": "",
         "address": good_addresses,
-        "storage_type": tb.fs.__class__.__name__,
+        "storage_type": tb.file_system.__class__.__name__,
     }
     expected_index = pd.DataFrame(truth_index_dict)
 
@@ -156,7 +158,7 @@ def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
     # want the warning to drop through to the pytest log in this test.
     # (Checking the warnings are correct is tested in the next unit test.)
     with warnings.catch_warnings(record = True) as w:
-        actual_index = create_index_from_fs(tb.bucket_name, tb.fs)
+        actual_index = create_index_from_fs(tb.bucket_name, tb.file_system)
         message = ('baskets found in the following locations '
                   'do not follow specified weave schema:\n')
 
@@ -181,7 +183,7 @@ def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
     tb, good_addresses, bad_addresses = set_up_malformed_baskets
 
     with warnings.catch_warnings(record = True) as w:
-        create_index_from_fs(tb.bucket_name, tb.fs)
+        create_index_from_fs(tb.bucket_name, tb.file_system)
         message = ('baskets found in the following locations '
                   'do not follow specified weave schema:')
         # {bad_addresses} would be included in the message, but we can't do a
@@ -210,7 +212,7 @@ def test_sync_index_gets_latest_index(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # Create index
-    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     ind.to_pandas_df()
 
     # Add another basket
@@ -218,7 +220,7 @@ def test_sync_index_gets_latest_index(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
 
     # Regenerate index outside of current index object
-    ind2 = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind2 = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     ind2.generate_index()
 
     # assert length of index includes both baskets
@@ -231,13 +233,13 @@ def test_sync_index_calls_generate_index_if_no_index(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # Create index
-    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     assert len(ind.to_pandas_df()) == 1
 
 def test_get_index_time_from_path(set_up_tb):
     tb = set_up_tb
     path = "C:/asdf/gsdjls/1234567890-index.json"
-    time = Index(file_system=tb.fs)._get_index_time_from_path(path=path)
+    time = Index(file_system=tb.file_system)._get_index_time_from_path(path=path)
     assert time == 1234567890
 
 def test_to_pandas_df(set_up_tb):
@@ -247,7 +249,7 @@ def test_to_pandas_df(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # Create index
-    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     df = ind.to_pandas_df()
     assert len(df) == 1 and type(df) is pd.DataFrame
 
@@ -259,7 +261,7 @@ def test_clean_up_indices_n_not_int(set_up_tb):
             "invalid literal for int() with base 10: 'the test'"
         )
     ):
-        ind = Index(file_system=tb.fs)
+        ind = Index(file_system=tb.file_system)
         ind.clean_up_indices(n_ret=test_str)
 
 def test_clean_up_indices_leaves_n_indices(set_up_tb):
@@ -269,7 +271,7 @@ def test_clean_up_indices_leaves_n_indices(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # Create index
-    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     ind.to_pandas_df()
 
     # Add another basket
@@ -280,7 +282,7 @@ def test_clean_up_indices_leaves_n_indices(set_up_tb):
     # Now there should be two index baskets. clean up all but one of them:
     ind.clean_up_indices(n_ret=1)
     index_path = os.path.join(tb.bucket_name, 'index')
-    assert len(tb.fs.ls(index_path)) == 1
+    assert len(tb.file_system.ls(index_path)) == 1
 
 def test_clean_up_indices_with_n_greater_than_num_of_indices(set_up_tb):
     tb = set_up_tb
@@ -289,7 +291,7 @@ def test_clean_up_indices_with_n_greater_than_num_of_indices(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # Create index
-    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     ind.to_pandas_df()
 
     # Add another basket
@@ -301,7 +303,7 @@ def test_clean_up_indices_with_n_greater_than_num_of_indices(set_up_tb):
     # (this should fail, obvs)
     ind.clean_up_indices(n_ret=3)
     index_path = os.path.join(tb.bucket_name, 'index')
-    assert len(tb.fs.ls(index_path)) == 2
+    assert len(tb.file_system.ls(index_path)) == 2
 
 def test_is_index_current(set_up_tb):
     tb = set_up_tb
@@ -310,7 +312,7 @@ def test_is_index_current(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # Create index
-    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     ind.to_pandas_df()
 
     # Add another basket
@@ -318,7 +320,7 @@ def test_is_index_current(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
 
     # Regenerate index outside of current index object
-    ind2 = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind2 = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     ind2.generate_index()
     assert ind2.is_index_current() is True and ind.is_index_current() is False
 
@@ -329,7 +331,7 @@ def test_generate_index(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # Create index
-    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     ind.to_pandas_df()
 
     # Add another basket
@@ -347,7 +349,7 @@ def test_delete_basket_deletes_basket(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # Create index
-    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     ind.to_pandas_df()
 
     # Add another basket
@@ -358,7 +360,7 @@ def test_delete_basket_deletes_basket(set_up_tb):
     ind.delete_basket(basket_uuid="0002")
 
     # fs_baskets: Baskets in the file system
-    fs_baskets = tb.fs.ls(f"{tb.bucket_name}/test_basket")
+    fs_baskets = tb.file_system.ls(f"{tb.bucket_name}/test_basket")
     # index_baskets: Baskets in the index object
     index_baskets = ind.index_df[ind.index_df["basket_type"]=='test_basket']
 
@@ -377,7 +379,7 @@ def test_delete_basket_fails_if_basket_is_parent(set_up_tb):
     tmp_basket_dir_two = tb.set_up_basket("basket_two")
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two,
                      uid="0002", parent_ids=["0001"])
-    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     with pytest.raises(
         ValueError, match=(
             "The provided value for basket_uuid 0001 is listed as a parent " +
@@ -430,7 +432,7 @@ def test_get_parents_valid(set_up_tb):
     #string to shorten things for ruff
     gen_lvl = "generation_level"
 
-    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     ind.generate_index()
 
     # setup df of the right answer
@@ -467,7 +469,7 @@ def test_get_parents_invalid_basket_address(set_up_tb):
 
     basket_path = "INVALIDpath"
 
-    index = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    index = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
 
     with pytest.raises(
         FileNotFoundError, 
@@ -486,7 +488,7 @@ def test_get_parents_no_parents(set_up_tb):
     no_parents = tb.set_up_basket("no_parents")
     no_parents_path = tb.upload_basket(tmp_basket_dir=no_parents, uid="0001")
 
-    index = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    index = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     index.generate_index()
 
     parent_indeces = index.get_parents(no_parents_path)
@@ -521,7 +523,7 @@ def test_get_parents_parent_is_child(set_up_tb):
                              uid="1000",
                              parent_ids=["2000"])
 
-    index = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    index = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     index.generate_index()
 
     fail = '1000'
@@ -574,7 +576,7 @@ def test_get_children_valid(set_up_tb):
     #string to shorten things for ruff
     gen_lvl = "generation_level"
 
-    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     ind.generate_index()
 
     # setup df of the right answer
@@ -610,7 +612,7 @@ def test_get_children_invalid_basket_address(set_up_tb):
 
     basket_path = "INVALIDpath"
 
-    index = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    index = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
 
     with pytest.raises(
         FileNotFoundError,
@@ -629,7 +631,7 @@ def test_get_children_no_children(set_up_tb):
     no_children = tb.set_up_basket("no_children")
     no_children_path = tb.upload_basket(tmp_basket_dir=no_children, uid="0001")
 
-    index = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    index = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     index.generate_index()
 
     children_indexes = index.get_children(no_children_path)
@@ -664,7 +666,7 @@ def test_get_children_child_is_parent(set_up_tb):
                      uid="1000",
                      parent_ids=["2000"])
 
-    index = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    index = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     index.generate_index()
 
     fail = '3000'
@@ -694,7 +696,7 @@ def test_get_parents_15_deep(set_up_tb):
                          uid=child_id, 
                          parent_ids=[parent_id])
 
-    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     ind.generate_index()
     index = ind.index_df
 
@@ -743,7 +745,7 @@ def test_get_children_15_deep(set_up_tb):
             uid=child_id,
             parent_ids=[parent_id])
 
-    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     ind.generate_index()
     index = ind.index_df
 
@@ -813,7 +815,7 @@ def test_get_parents_complex_fail(set_up_tb):
                                   parent_ids=["001", "002", "003"])
 
 
-    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     ind.generate_index()
 
     with pytest.raises(
@@ -861,7 +863,7 @@ def test_get_children_complex_fail(set_up_tb):
                      parent_ids=["001", "002", "003"])
 
 
-    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     ind.generate_index()
 
     with pytest.raises(
@@ -913,7 +915,7 @@ def test_get_parents_from_uuid(set_up_tb):
     #string to shorten things for ruff
     gen_lvl = "generation_level"
 
-    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     ind.generate_index()
 
     # setup df of the right answer
@@ -986,7 +988,7 @@ def test_get_children_from_uuid(set_up_tb):
     #string to shorten things for ruff
     gen_lvl = "generation_level"
 
-    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     ind.generate_index()
 
     # setup df of the right answer
@@ -1027,7 +1029,7 @@ def test_upload_basket_updates_the_index(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # create index
-    ind = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
+    ind = Index(bucket_name=tb.bucket_name, file_system=tb.file_system, sync=True)
     ind.generate_index()
 
     # add another basket
@@ -1046,7 +1048,7 @@ def test_upload_basket_works_on_empty_basket(set_up_tb):
     tb = set_up_tb
     # Put basket in the temporary bucket
     tmp_basket = tb.set_up_basket("basket_one")
-    ind = Index(tb.bucket_name, file_system=tb.fs)
+    ind = Index(tb.bucket_name, file_system=tb.file_system)
     ind.upload_basket(upload_items=[{'path':str(tmp_basket.realpath()),
                                      'stub':False}],
                       basket_type="test")
@@ -1064,7 +1066,7 @@ def test_upload_basket_gracefully_fails(mocked_obj_1, mocked_obj_2, set_up_tb):
     tb = set_up_tb
     tmp_basket = tb.set_up_basket("basket_one")
 
-    ind = Index(tb.bucket_name, file_system=tb.fs)
+    ind = Index(tb.bucket_name, file_system=tb.file_system)
 
     non_unique_id = "0001"
     with pytest.raises(
@@ -1079,7 +1081,7 @@ def test_upload_basket_gracefully_fails(mocked_obj_1, mocked_obj_2, set_up_tb):
                                          'stub':False}],
                           basket_type="test")
 
-    assert not tb.fs.exists(
+    assert not tb.file_system.exists(
         os.path.join(tb.bucket_name, "test", non_unique_id)
     )
 
@@ -1098,9 +1100,9 @@ def test_index_get_basket_works_correctly(set_up_tb):
                      uid=uid,
                      basket_type=tmp_basket_type)
 
-    expected_basket = Basket(uid, tb.bucket_name, file_system=tb.fs)
+    expected_basket = Basket(uid, tb.bucket_name, file_system=tb.file_system)
 
-    ind = Index(tb.bucket_name, file_system=tb.fs)
+    ind = Index(tb.bucket_name, file_system=tb.file_system)
     retrieved_basket = ind.get_basket(uid)
 
     expected_file_path = os.path.join(tb.bucket_name, tmp_basket_type, uid,
@@ -1126,7 +1128,7 @@ def test_index_get_basket_graceful_fail(set_up_tb):
     tb = set_up_tb
 
     bad_uid = "DOESNT EXIST LOL"
-    ind = Index(tb.bucket_name, file_system=tb.fs)
+    ind = Index(tb.bucket_name, file_system=tb.file_system)
 
     with pytest.raises(
         ValueError,

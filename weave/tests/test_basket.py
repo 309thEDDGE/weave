@@ -1,3 +1,5 @@
+"""Tests for basket module"""
+
 import json
 import os
 from pathlib import Path
@@ -11,14 +13,15 @@ from weave.tests.pytest_resources import BucketForTest
 
 from fsspec.implementations.local import LocalFileSystem
 
-"""Pytest Fixtures Documentation:
-https://docs.pytest.org/en/7.3.x/how-to/fixtures.html
-
-https://docs.pytest.org/en/7.3.x/how-to
-/fixtures.html#teardown-cleanup-aka-fixture-finalization
-
-https://docs.pytest.org/en/7.3.x/how-to/fixtures.html#fixture-parametrize
-"""
+###############################################################################
+#                      Pytest Fixtures Documentation:                         #
+#            https://docs.pytest.org/en/7.3.x/how-to/fixtures.html            #
+#                                                                             #
+#                  https://docs.pytest.org/en/7.3.x/how-to/                   #
+#          fixtures.html#teardown-cleanup-aka-fixture-finalization            #
+#                                                                             #
+#  https://docs.pytest.org/en/7.3.x/how-to/fixtures.html#fixture-parametrize  #
+###############################################################################
 
 s3fs = s3fs.S3FileSystem(
     client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
