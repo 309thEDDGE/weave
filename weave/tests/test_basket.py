@@ -21,6 +21,11 @@ from weave.tests.pytest_resources import BucketForTest
 #  https://docs.pytest.org/en/7.3.x/how-to/fixtures.html#fixture-parametrize  #
 ###############################################################################
 
+# Pylint doesn't like that we are redefining the test fixture here from
+# test_basket, but I think this is the right way to do this in case at some
+# point in the future we need to differentiate the two.
+# pylint: disable=duplicate-code
+
 s3fs = s3fs.S3FileSystem(
     client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
 )
