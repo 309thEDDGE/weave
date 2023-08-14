@@ -147,7 +147,9 @@ def set_up_malformed_baskets(request, tmpdir):
                 f"000{i}/basket_manifest.json"
             )
 
-            with test_pantry.file_system.open(manifest_address, "rb") as tp_file:
+            with test_pantry.file_system.open(
+                manifest_address, "rb"
+            ) as tp_file:
                 basket_dict = json.load(tp_file)
                 basket_dict.pop("uuid")
             basket_path = os.path.join(tmp_basket_dir, "basket_manifest.json")
@@ -164,7 +166,8 @@ def set_up_malformed_baskets(request, tmpdir):
 
 
 def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
-    """Check that the index is made correctly when a malformed basket exists."""
+    """Check that the index is made correctly when a malformed basket
+    exists."""
     test_pantry, good_addresses, _ = set_up_malformed_baskets
 
     truth_index_dict = {
@@ -270,7 +273,7 @@ def test_sync_index_gets_latest_index(test_pantry):
 
 
 def test_sync_index_calls_generate_index_if_no_index(test_pantry):
-    """Test to make sure that if there isn't a index available then 
+    """Test to make sure that if there isn't a index available then
     generate_index will still be called."""
     # Put basket in the temporary bucket
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
