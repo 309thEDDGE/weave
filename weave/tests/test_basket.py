@@ -3,14 +3,13 @@ import json
 import os
 from pathlib import Path
 
-from fsspec.implementations.local import LocalFileSystem
 import pytest
 import s3fs
+from fsspec.implementations.local import LocalFileSystem
 
 from weave.basket import Basket
 from weave.index.create_index import create_index_from_fs
 from weave.tests.pytest_resources import BucketForTest
-
 
 ###############################################################################
 #                      Pytest Fixtures Documentation:                         #

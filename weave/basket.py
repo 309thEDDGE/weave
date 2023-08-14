@@ -1,8 +1,8 @@
 """Wherein scripts concerning the Basket class reside
 """
 
-import os
 import json
+import os
 from pathlib import Path
 
 from .config import get_file_system, prohibited_filenames

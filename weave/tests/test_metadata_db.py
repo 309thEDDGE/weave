@@ -1,11 +1,13 @@
 import os
-import pytest
+
 import pandas as pd
-import weave
+import pytest
 import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
+import weave
 from weave.tests.pytest_resources import BucketForTest
+
 
 class MongoForTest(BucketForTest):
     """Extend the BucketForTest class to support mongodb and custom data

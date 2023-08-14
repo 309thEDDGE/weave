@@ -1,11 +1,13 @@
 """Contains functions and classes used by uploader.py's upload function.
 """
-import os
 import json
+import os
+
 import jsonschema
 from jsonschema import validate
 
 from .config import manifest_schema, supplement_schema
+
 
 def validate_bucket(bucket_name, file_system):
     """Starts the validation process off based off the name of the bucket

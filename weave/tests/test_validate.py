@@ -8,6 +8,7 @@ from fsspec.implementations.local import LocalFileSystem
 from weave import validate
 from weave.tests.pytest_resources import BucketForTest
 
+
 class ValidateForTest(BucketForTest):
     """A class to test functions in validate.py"""
     def __init__(self, tmpdir, fs):

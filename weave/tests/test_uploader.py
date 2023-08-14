@@ -1,18 +1,18 @@
 import os
 import time
 import uuid
+from datetime import datetime
+from unittest.mock import patch
 
 import pytest
 import s3fs
-from datetime import datetime
 from fsspec.implementations.local import LocalFileSystem
-from unittest.mock import patch
 
-from weave.upload import (derive_integrity_data,
-                          validate_upload_item,
-                          UploadBasket)
-from weave.tests.pytest_resources import BucketForTest, file_path_in_list
 import weave
+from weave.tests.pytest_resources import BucketForTest, file_path_in_list
+from weave.upload import (UploadBasket, derive_integrity_data,
+                          validate_upload_item)
+
 
 class UploadForTest(BucketForTest):
     """

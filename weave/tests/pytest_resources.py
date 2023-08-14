@@ -1,10 +1,11 @@
 """
 Resources for use in pytest.
 """
-import os
 import json
+import os
 
 from weave.upload import UploadBasket
+
 
 def file_path_in_list(search_path, search_list):
     """Check if a file path is in a list (of file paths).

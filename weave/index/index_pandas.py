@@ -11,6 +11,7 @@ from ..config import get_file_system
 from ..upload import UploadBasket
 from .create_index import create_index_from_fs
 
+
 class _Index():
     '''Handles Pandas based functionality of the Index'''
 

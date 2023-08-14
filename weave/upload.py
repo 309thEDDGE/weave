@@ -1,14 +1,14 @@
 """
 Contains functions and classes concerning the upload functionality.
 """
-from datetime import datetime
 import hashlib
 import json
 import math
 import os
-from pathlib import Path
 import tempfile
 import uuid
+from datetime import datetime
+from pathlib import Path
 
 from .config import get_file_system, prohibited_filenames
 
