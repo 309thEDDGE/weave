@@ -26,6 +26,7 @@ s3fs = s3fs.S3FileSystem(
 )
 local_fs = LocalFileSystem()
 
+
 # Test with two different fsspec file systems (above).
 @pytest.fixture(params=[s3fs, local_fs])
 def test_pantry(request, tmpdir):
@@ -34,6 +35,7 @@ def test_pantry(request, tmpdir):
     test_bucket = BucketForTest(tmpdir, file_system)
     yield test_bucket
     test_bucket.cleanup_bucket()
+
 
 def test_basket_basket_path_is_pathlike():
     """
@@ -47,9 +49,11 @@ def test_basket_basket_path_is_pathlike():
     ):
         Basket(basket_path)
 
+
 # We need to ignore pylint's warning "redefined-outer-name" as this is simply
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
+
 
 def test_basket_address_does_not_exist(test_pantry):
     """
@@ -61,6 +65,7 @@ def test_basket_address_does_not_exist(test_pantry):
         ValueError, match=f"Basket does not exist: {basket_path}"
     ):
         Basket(Path(basket_path), file_system=test_pantry.file_system)
+
 
 def test_basket_no_manifest_file(test_pantry):
     """
@@ -86,6 +91,7 @@ def test_basket_no_manifest_file(test_pantry):
     ):
         Basket(Path(basket_path), file_system=test_pantry.file_system)
 
+
 def test_basket_no_suppl_file(test_pantry):
     """
     Test that an error is raised when attempting to instantiate a basket with a
@@ -110,9 +116,10 @@ def test_basket_no_suppl_file(test_pantry):
     ):
         Basket(Path(basket_path), file_system=test_pantry.file_system)
 
+
 def test_basket_get_manifest(test_pantry):
     """
-    Test that the manifest of an uploaded basket is correctly retrieved using 
+    Test that the manifest of an uploaded basket is correctly retrieved using
     the get_manifest function.
     """
     # Create a temporary basket with a test file, and upload it.
@@ -129,6 +136,7 @@ def test_basket_get_manifest(test_pantry):
         "label": "",
         "upload_time": manifest["upload_time"],
     }
+
 
 def test_basket_get_manifest_cached(test_pantry):
     """
@@ -160,6 +168,7 @@ def test_basket_get_manifest_cached(test_pantry):
         "upload_time": manifest["upload_time"],
     }
 
+
 def test_basket_get_supplement(test_pantry):
     """
     Test that the get_supplement function returns the expected values.
@@ -180,6 +189,7 @@ def test_basket_get_supplement(test_pantry):
         "upload_items": upload_items,
         "integrity_data": supplement["integrity_data"],
     }
+
 
 def test_basket_get_supplement_cached(test_pantry):
     """
@@ -209,6 +219,7 @@ def test_basket_get_supplement_cached(test_pantry):
         "integrity_data": original_supplement["integrity_data"],
     }
 
+
 def test_basket_get_metadata(test_pantry):
     """
     Test that the get_metadata function returns the expected values.
@@ -218,13 +229,16 @@ def test_basket_get_metadata(test_pantry):
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
-    basket_path = test_pantry.upload_basket(tmp_basket_dir, metadata=metadata_in)
+    basket_path = test_pantry.upload_basket(
+        tmp_basket_dir, metadata=metadata_in
+    )
 
     basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
 
     # Check get_metadata returns the same values we used during the upload.
     metadata = basket.get_metadata()
     assert metadata_in == metadata
+
 
 def test_basket_get_metadata_cached(test_pantry):
     """
@@ -236,7 +250,9 @@ def test_basket_get_metadata_cached(test_pantry):
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
-    basket_path = test_pantry.upload_basket(tmp_basket_dir, metadata=metadata_in)
+    basket_path = test_pantry.upload_basket(
+        tmp_basket_dir, metadata=metadata_in
+    )
 
     basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
 
@@ -253,6 +269,7 @@ def test_basket_get_metadata_cached(test_pantry):
     metadata = basket.get_metadata()
     assert metadata_in == metadata
 
+
 def test_basket_get_metadata_none(test_pantry):
     """
     Test that get_metadata returns None when no metadata was uploaded.
@@ -268,6 +285,7 @@ def test_basket_get_metadata_none(test_pantry):
     # No metadata was added to the upload, so it should be None.
     assert metadata is None
 
+
 def test_basket_ls(test_pantry):
     """
     Test that the basket ls function returns the expected values.
@@ -281,6 +299,7 @@ def test_basket_ls(test_pantry):
 
     uploaded_dir_path = f"{basket_path}/{tmp_basket_dir_name}"
     assert basket.ls()[0].endswith(uploaded_dir_path)
+
 
 def test_basket_ls_relpath(test_pantry):
     """
@@ -296,6 +315,7 @@ def test_basket_ls_relpath(test_pantry):
     uploaded_file_path = f"{basket_path}/{tmp_basket_dir_name}/test.txt"
     assert basket.ls(Path(tmp_basket_dir_name))[0].endswith(uploaded_file_path)
 
+
 def test_basket_ls_relpath_period(test_pantry):
     """
     Test that the basket ls function works when using the relative path '.'
@@ -310,6 +330,7 @@ def test_basket_ls_relpath_period(test_pantry):
     uploaded_dir_path = f"{basket_path}/{tmp_basket_dir_name}"
     assert basket.ls(".")[0].endswith(uploaded_dir_path)
 
+
 def test_basket_ls_is_pathlike(test_pantry):
     """
     Test that the basket ls function only works with the expected value types.
@@ -322,10 +343,10 @@ def test_basket_ls_is_pathlike(test_pantry):
     basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
 
     with pytest.raises(
-        TypeError,
-        match="expected str, bytes or os.PathLike object, not int"
+        TypeError, match="expected str, bytes or os.PathLike object, not int"
     ):
         basket.ls(1)
+
 
 def test_basket_ls_after_find(test_pantry):
     """The s3fs.S3FileSystem.ls() func is broken after running {}.find()
@@ -358,7 +379,7 @@ def test_basket_ls_after_find(test_pantry):
         os.path.join(basket_path, tmp_basket_dir_name, i)
         for i in ["nested_dir", "test.txt"]
     ]
-    expected_base_dir_paths.sort() # Sort to zip in same order
+    expected_base_dir_paths.sort()  # Sort to zip in same order
 
     ls_test = test_b.ls(tmp_basket_dir_name)
     ls_test.sort()
@@ -366,12 +387,15 @@ def test_basket_ls_after_find(test_pantry):
     # Get the actual base dir paths (essentially stripping any FS specific
     # prefixes or conventions, ie in local file systems, the path to where
     # the script was called might be prepended, we clean stuff like that here)
-    actual_bdp = [x.endswith(z) for x, z
-                  in zip(ls_test, expected_base_dir_paths, strict=True)]
+    actual_bdp = [
+        x.endswith(z)
+        for x, z in zip(ls_test, expected_base_dir_paths, strict=True)
+    ]
 
     # Check false is not in actual_bdp--which is a list of booleans that
     # indicates if the indices match.
     assert False not in actual_bdp
+
 
 def test_basket_init_from_uuid(test_pantry):
     """
@@ -381,12 +405,15 @@ def test_basket_init_from_uuid(test_pantry):
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     uuid = "0000"
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
-    test_b = Basket(basket_address=uuid,
-                    bucket_name=test_pantry.bucket_name,
-                    file_system=test_pantry.file_system)
+    test_b = Basket(
+        basket_address=uuid,
+        bucket_name=test_pantry.bucket_name,
+        file_system=test_pantry.file_system,
+    )
     assert test_b.ls("basket_one")[0].endswith(
         f"{test_pantry.bucket_name}/test_basket/0000/basket_one/test.txt"
     )
+
 
 def test_basket_init_fails_if_uuid_does_not_exist(test_pantry):
     """
@@ -398,12 +425,13 @@ def test_basket_init_fails_if_uuid_does_not_exist(test_pantry):
     uuid = "0000"
     bad_uuid = "a bad uuid"
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
-    with pytest.raises(
-        ValueError, match=f"Basket does not exist: {bad_uuid}"
-    ):
-        Basket(basket_address=bad_uuid,
-               bucket_name=test_pantry.bucket_name,
-               file_system=test_pantry.file_system)
+    with pytest.raises(ValueError, match=f"Basket does not exist: {bad_uuid}"):
+        Basket(
+            basket_address=bad_uuid,
+            bucket_name=test_pantry.bucket_name,
+            file_system=test_pantry.file_system,
+        )
+
 
 def test_basket_bucket_name_does_not_exist(test_pantry):
     """
@@ -414,12 +442,13 @@ def test_basket_bucket_name_does_not_exist(test_pantry):
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     uuid = "0000"
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
-    with pytest.raises(
-        ValueError, match=f"Basket does not exist: {uuid}"
-    ):
-        Basket(basket_address=uuid,
-               bucket_name="the wrong basket 007",
-               file_system=test_pantry.file_system)
+    with pytest.raises(ValueError, match=f"Basket does not exist: {uuid}"):
+        Basket(
+            basket_address=uuid,
+            bucket_name="the wrong basket 007",
+            file_system=test_pantry.file_system,
+        )
+
 
 def test_basket_from_uuid_with_many_baskets(test_pantry):
     """
@@ -431,9 +460,11 @@ def test_basket_from_uuid_with_many_baskets(test_pantry):
         tmp_basket_dir = test_pantry.set_up_basket(f"temp_basket_{uuid}")
         test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir, uid=uuid)
 
-    test_b = Basket(basket_address=uuid,
-                    bucket_name=test_pantry.bucket_name,
-                    file_system=test_pantry.file_system)
+    test_b = Basket(
+        basket_address=uuid,
+        bucket_name=test_pantry.bucket_name,
+        file_system=test_pantry.file_system,
+    )
     assert test_b.ls(f"temp_basket_{uuid}")[0].endswith(
         f"{test_pantry.bucket_name}/test_basket/{uuid}/temp_basket_{uuid}/test.txt"
     )
