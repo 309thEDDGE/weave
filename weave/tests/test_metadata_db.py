@@ -104,7 +104,8 @@ def test_load_mongo_check_for_dataframe(set_up):
 
 def test_load_mongo_check_collection_for_string(set_up):
     """
-    Test that load_mongo prevents loading data with an invalid set_up collection.
+    Test that load_mongo prevents loading data with an invalid set_up
+    collection.
     """
     with pytest.raises(
         TypeError, match="Invalid datatype for collection: " "must be a string"

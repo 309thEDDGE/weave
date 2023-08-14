@@ -1303,7 +1303,9 @@ def test_upload_basket_gracefully_fails(
 
 
 def test_index_get_basket_works_correctly(test_pantry):
-    """Test that Index.get_basket() returns a Basket object with correct values"""
+    """Test that Index.get_basket() returns a Basket object with correct
+    values
+    """
 
     uid = "0001"
     tmp_basket_name = "basket_one"
@@ -1346,7 +1348,9 @@ def test_index_get_basket_works_correctly(test_pantry):
 
 
 def test_index_get_basket_graceful_fail(test_pantry):
-    """Test Index.get_basket() throws proper ValueErrors with invalid inputs."""
+    """Test Index.get_basket() throws proper ValueErrors with invalid
+    inputs.
+    """
 
     bad_uid = "DOESNT EXIST LOL"
     ind = Index(test_pantry.bucket_name, file_system=test_pantry.file_system)
