@@ -322,7 +322,7 @@ def test_clean_up_indices_n_not_int(test_pantry):
         match=re.escape("invalid literal for int() with base 10: 'the test'"),
     ):
         ind = Index(file_system=test_pantry.file_system)
-        ind.clean_up_indices(n_ret=test_str)
+        ind.clean_up_indices(n_keep=test_str)
 
 
 def test_clean_up_indices_leaves_n_indices(test_pantry):
@@ -346,7 +346,7 @@ def test_clean_up_indices_leaves_n_indices(test_pantry):
     ind.generate_index()
 
     # Now there should be two index baskets. clean up all but one of them:
-    ind.clean_up_indices(n_ret=1)
+    ind.clean_up_indices(n_keep=1)
     index_path = os.path.join(test_pantry.bucket_name, "index")
     assert len(test_pantry.file_system.ls(index_path)) == 1
 
@@ -373,7 +373,7 @@ def test_clean_up_indices_with_n_greater_than_num_of_indices(test_pantry):
 
     # Now there should be two index baskets. clean up all but three of them:
     # (this should fail, obvs)
-    ind.clean_up_indices(n_ret=3)
+    ind.clean_up_indices(n_keep=3)
     index_path = os.path.join(test_pantry.bucket_name, "index")
     assert len(test_pantry.file_system.ls(index_path)) == 2
 

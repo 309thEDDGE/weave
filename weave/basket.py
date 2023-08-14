@@ -38,8 +38,7 @@ class BasketInitializer:
         set up the basket from a filepath will be made.
         """
         try:
-            ind = _Index(bucket_name=bucket_name,
-                              file_system=self.file_system)
+            ind = _Index(bucket_name=bucket_name, file_system=self.file_system)
             ind_df = ind.to_pandas_df()
             path = ind_df["address"][ind_df["uuid"] == basket_address].iloc[0]
             self.set_up_basket_from_path(basket_address=path)

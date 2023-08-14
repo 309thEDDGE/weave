@@ -126,12 +126,6 @@ class UploadBasket:
     def __init__(
         self,
         upload_items,
-        # basket_type,
-        # upload_directory,
-        # unique_id,
-        # parent_ids=[],
-        # metadata={},
-        # label="",
         **kwargs,
     ):
         """Initializes the Basket_Class.
@@ -150,6 +144,8 @@ class UploadBasket:
             Stubs are useful when original file source information is desired
             without uploading the data itself. This is especially useful when
             dealing with large files.
+
+        kwargs:
         upload_directory: str
             Path where basket is to be uploaded (on the upload FS).
         unique_id: str
@@ -164,11 +160,14 @@ class UploadBasket:
             and stored in the basket in the upload FS.
         label: optional str,
             Optional user friendly label associated with the basket.
-
-        kwargs:
         file_system: fsspec object
             The file system to upload to (ie s3fs, local fs, etc).
             If None it will use the default fs from the weave.config.
+        
+        Please note that either the upload_directory OR the basket_type must
+        be provided. IT IS RECOMMENDED that the user simply provide the
+        basket_type as this will allow the library to choose a good unique_id,
+        and keep the pantry organized.
         """
         self.upload_items = upload_items
         self.kwargs = kwargs
