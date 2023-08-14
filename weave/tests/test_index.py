@@ -34,6 +34,11 @@ from weave.tests.pytest_resources import BucketForTest
 # script.
 # pylint: disable=too-many-lines
 
+# Pylint doesn't like that we are redefining the test fixture here from
+# test_basket, but I think this is the right way to do this in case at some
+# point in the future we need to differentiate the two.
+# pylint: disable-next=duplicate-code
+
 s3fs = s3fs.S3FileSystem(
     client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
 )
@@ -113,10 +118,10 @@ def test_correct_index(test_pantry):
 
     # Check the addresses are the same, ignoring any FS dependent prefixes.
     assert all(
-        [
+        (
             actual_index["address"].iloc[i].endswith(addr)
             for i, addr in enumerate(addresses)
-        ]
+        )
     )
 
 
@@ -201,10 +206,10 @@ def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
 
     # Check the addresses are the same, ignoring any FS dependent prefixes.
     assert all(
-        [
+        (
             actual_index["address"].iloc[i].endswith(addr)
             for i, addr in enumerate(good_addresses)
-        ]
+        )
     )
 
 
@@ -233,10 +238,10 @@ def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
             warning_addrs_str.strip("[]").replace("'", "").split(", ")
         )
         assert all(
-            [
+            (
                 a_addr.endswith(e_addr)
                 for a_addr, e_addr in zip(warning_addrs_list, bad_addresses)
-            ]
+            )
         )
 
 
