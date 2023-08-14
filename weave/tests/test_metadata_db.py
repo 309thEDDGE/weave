@@ -70,10 +70,12 @@ def test_load_mongo(set_up):
     Test that load_mongo successfully loads valid metadata to the set_up.
     """
     index_table = weave.index.create_index.create_index_from_fs(
-        set_up.bucket_name, set_up.fs
+        set_up.bucket_name, set_up.file_system
     )
     weave.load_mongo(
-        index_table, file_system=set_up.fs, collection=set_up.test_collection
+        index_table,
+        file_system=set_up.file_system,
+        collection=set_up.test_collection,
     )
 
     truth_db = [
@@ -98,7 +100,9 @@ def test_load_mongo_check_for_dataframe(set_up):
         match="Invalid datatype for index_table: " "must be Pandas DataFrame",
     ):
         weave.load_mongo(
-            "", file_system=set_up.fs, collection=set_up.test_collection
+            "",
+            file_system=set_up.file_system,
+            collection=set_up.test_collection,
         )
 
 
@@ -110,7 +114,9 @@ def test_load_mongo_check_collection_for_string(set_up):
     with pytest.raises(
         TypeError, match="Invalid datatype for collection: " "must be a string"
     ):
-        weave.load_mongo(pd.DataFrame(), file_system=set_up.fs, collection=1)
+        weave.load_mongo(
+            pd.DataFrame(), file_system=set_up.file_system, collection=1
+        )
 
 
 def test_load_mongo_check_dataframe_for_uuid(set_up):
@@ -122,7 +128,7 @@ def test_load_mongo_check_dataframe_for_uuid(set_up):
     ):
         weave.load_mongo(
             pd.DataFrame({"basket_type": ["type"], "address": ["path"]}),
-            file_system=set_up.fs,
+            file_system=set_up.file_system,
             collection=set_up.test_collection,
         )
 
@@ -136,7 +142,7 @@ def test_load_mongo_check_dataframe_for_address(set_up):
     ):
         weave.load_mongo(
             pd.DataFrame({"uuid": ["1234"], "basket_type": ["type"]}),
-            file_system=set_up.fs,
+            file_system=set_up.file_system,
             collection=set_up.test_collection,
         )
 
@@ -150,7 +156,7 @@ def test_load_mongo_check_dataframe_for_basket_type(set_up):
     ):
         weave.load_mongo(
             pd.DataFrame({"uuid": ["1234"], "address": ["path"]}),
-            file_system=set_up.fs,
+            file_system=set_up.file_system,
             collection=set_up.test_collection,
         )
 
@@ -163,13 +169,17 @@ def test_load_mongo_check_for_duplicate_uuid(set_up):
 
     # Load metadata twice, and ensure there's only one instance
     index_table = weave.index.create_index.create_index_from_fs(
-        set_up.bucket_name, set_up.fs
+        set_up.bucket_name, set_up.file_system
     )
     weave.load_mongo(
-        index_table, file_system=set_up.fs, collection=set_up.test_collection
+        index_table,
+        file_system=set_up.file_system,
+        collection=set_up.test_collection,
     )
     weave.load_mongo(
-        index_table, file_system=set_up.fs, collection=set_up.test_collection
+        index_table,
+        file_system=set_up.file_system,
+        collection=set_up.test_collection,
     )
     count = set_up.mongodb[set_up.test_collection].count_documents(
         {"uuid": test_uuid}
