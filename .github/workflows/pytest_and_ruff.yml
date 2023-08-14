@@ -1,6 +1,6 @@
 # This workflow will install Python dependencies, and run tests.
 
-name: pytest_and_ruff
+name: Weave CI/CD
 
 on:
   push:
@@ -70,4 +70,4 @@ jobs:
       run: python3.10 -m pip install .
     # If you do not install Weave's dependencies then it will fail PyLint due to import-errors
     - name: Run pylint
-      run: pylint weave
+      run: pylint weave weave/tests
