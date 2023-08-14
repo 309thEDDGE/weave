@@ -179,15 +179,6 @@ def test_upload_bucket_name_is_string():
         )
 
 
-# Test with two different fsspec file systems (top of file).
-@pytest.fixture(params=[s3fs, local_fs])
-def set_up_tb(request, tmpdir):
-    """Sets up pytest fixture"""
-    file_system = request.param
-    test_bucket = BucketForTest(tmpdir, file_system)
-    yield test_bucket
-    test_bucket.cleanup_bucket()
-
 
 def test_validate_upload_item_correct_schema_path_key():
     """
@@ -551,6 +542,15 @@ def test_derive_integrity_data_max_byte_count_exact(tmp_path):
     except Exception as error:
         pytest.fail(f"Unexpected error occurred:{error}")
 
+
+# Test with two different fsspec file systems (top of file).
+@pytest.fixture(params=[s3fs, local_fs])
+def test_basket(request, tmpdir):
+    """Sets up pytest fixture"""
+    file_system = request.param
+    test_bucket = BucketForTest(tmpdir, file_system)
+    yield test_bucket
+    test_bucket.cleanup_bucket()
 
 def test_upload_basket_upload_items_is_not_a_string(test_basket):
     """
