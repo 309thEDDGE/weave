@@ -3,12 +3,12 @@ import os
 import re
 import warnings
 import uuid
+from unittest.mock import patch
 
 import pandas as pd
 import numpy as np
 import pytest
 import s3fs
-from unittest.mock import patch
 from fsspec.implementations.local import LocalFileSystem
 
 from weave import Basket

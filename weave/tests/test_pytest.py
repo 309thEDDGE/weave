@@ -26,7 +26,7 @@ def set_up_tb_no_cleanup(request, tmpdir):
     fs = request.param
     tb = BucketForTest(tmpdir, fs)
     yield tb
-    # Purposefully don't cleanup bucket here, we will clean up in the test.
+    # Purposefully don't clean up bucket here, we will clean up in the test.
 
 def test_weave_pytest_suffix(set_up_tb_no_cleanup):
     """Test that env var suffix works, and buckets are still deleted."""
@@ -42,5 +42,5 @@ def test_weave_pytest_suffix(set_up_tb_no_cleanup):
     # Cleanup the bucket.
     tb.cleanup_bucket()
 
-    # Check the bucket is actually deleted
+    # Check the bucket is actually deleted.
     assert not tb.fs.exists(tb.bucket_name)
