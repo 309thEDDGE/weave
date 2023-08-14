@@ -1,3 +1,4 @@
+"""PyTest Tests for basket.py related functionality"""
 import json
 import os
 from pathlib import Path
@@ -46,6 +47,10 @@ def test_basket_basket_path_is_pathlike():
         match="expected str, bytes or os.PathLike object, not int",
     ):
         Basket(basket_path)
+
+# We need to ignore pylint's warning "redefined-outer-name" as this is simply
+# how pytest works when it comes to pytest fixtures.
+# pylint: disable=redefined-outer-name
 
 def test_basket_address_does_not_exist(test_pantry):
     """
