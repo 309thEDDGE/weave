@@ -28,7 +28,7 @@ from weave.tests.pytest_resources import BucketForTest
 ###############################################################################
 
 # This module is long and has many tests. Pylint is complaining that it is too
-# long. I don't nesicarily think that is bad in this case, as the alternative
+# long. I don't necessarily think that is bad in this case, as the alternative
 # would be to write the tests continuuing in a different script, which I think
 # is unnecesarily complex. Therefor, I am disabling this warning for this
 # script.
