@@ -162,7 +162,8 @@ def set_up_validate(request, tmpdir):
     tv.cleanup_bucket()
 
 def test_validate_bucket_does_not_exist(set_up_validate):
-    """Give a bucket path that does not exist and check that it throws an error
+    """Give a bucket path that does not exist and check that it throws
+       an error.
     """
     tv = set_up_validate
 
@@ -175,8 +176,8 @@ def test_validate_bucket_does_not_exist(set_up_validate):
         validate.validate_bucket(bucket_path, tv.fs)
 
 def test_validate_no_supplement_file(set_up_validate):
-    """Make a basket, remove the supplement file, check that it throws
-       a warning
+    """Make a basket, remove the supplement file, check that it collects one
+       warning.
     """
     tv = set_up_validate
 
@@ -192,13 +193,13 @@ def test_validate_no_supplement_file(set_up_validate):
     # Check that there is only one warning raised
     assert len(w_info) == 1
     # Check that the correct warning is raised
-    assert str(w_info[0].message).startswith("Invalid Basket. "
+    assert str(w_info[0]).startswith("Invalid Basket. "
     "No Supplement file found at: ")
     # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert str(w_info[0].message).endswith(basket_path)
+    assert str(w_info[0]).endswith(basket_path)
 
 def test_validate_no_metadata_file(set_up_validate):
-    """Make a basket with no metadata, validate that it returns true (valid)
+    """Make a basket with no metadata, validate that it returns true (valid).
     """
     tv = set_up_validate
 
@@ -209,7 +210,8 @@ def test_validate_no_metadata_file(set_up_validate):
     assert validate.validate_bucket(tv.bucket_name, tv.fs)
 
 def test_validate_invalid_manifest_schema(set_up_validate):
-    """Make basket with invalid manifest schema, check that it throws an error
+    """Make basket with invalid manifest schema, check that it colllects one
+       warning.
     """
     tv = set_up_validate
 
@@ -243,15 +245,16 @@ def test_validate_invalid_manifest_schema(set_up_validate):
     # Check that there is only one warning raised
     assert len(w_info) == 1
     # Check that the correct warning is raised
-    assert str(w_info[0].message).startswith("Invalid Basket. "
+    assert str(w_info[0]).startswith("Invalid Basket. "
     "Manifest Schema does not match at: ")
     # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert str(w_info[0].message).endswith(os.path.join(basket_path,
-                                           "bad_man_schema",
-                                           "basket_manifest.json"))
+    assert str(w_info[0]).endswith(os.path.join(basket_path,
+                                                "bad_man_schema",
+                                                "basket_manifest.json"))
 
 def test_validate_manifest_schema_missing_field(set_up_validate):
-    """Make basket with invalid manifest schema, check that it throws an error
+    """Make basket with invalid manifest schema, check that it collects one
+       warning.
     """
     tv = set_up_validate
 
@@ -284,15 +287,16 @@ def test_validate_manifest_schema_missing_field(set_up_validate):
     # Check that there is only one warning raised
     assert len(w_info) == 1
     # Check that the correct warning is raised
-    assert str(w_info[0].message).startswith("Invalid Basket. "
+    assert str(w_info[0]).startswith("Invalid Basket. "
     "Manifest Schema does not match at: ")
     # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert str(w_info[0].message).endswith(os.path.join(basket_path,
-                                           "bad_man_schema",
-                                           "basket_manifest.json"))
+    assert str(w_info[0]).endswith(os.path.join(basket_path,
+                                                "bad_man_schema",
+                                                "basket_manifest.json"))
 
 def test_validate_manifest_schema_additional_field(set_up_validate):
-    """Make basket with invalid manifest schema, check that it throws an error
+    """Make basket with invalid manifest schema, check that it collects one
+       warning.
     """
     tv = set_up_validate
 
@@ -328,15 +332,16 @@ def test_validate_manifest_schema_additional_field(set_up_validate):
     # Check that there is only one warning raised
     assert len(w_info) == 1
     # Check that the correct warning is raised
-    assert str(w_info[0].message).startswith("Invalid Basket. "
+    assert str(w_info[0]).startswith("Invalid Basket. "
     "Manifest Schema does not match at: ")
     # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert str(w_info[0].message).endswith(os.path.join(basket_path,
-                                           "bad_man_schema",
-                                           "basket_manifest.json"))
+    assert str(w_info[0]).endswith(os.path.join(basket_path,
+                                                "bad_man_schema",
+                                                "basket_manifest.json"))
 
 def test_validate_invalid_manifest_json(set_up_validate):
-    """Make a basket with invalid manifest json, check that it throws an error
+    """Make a basket with invalid manifest json, check that it collects
+       one warning.
     """
     tv = set_up_validate
 
@@ -360,15 +365,16 @@ def test_validate_invalid_manifest_json(set_up_validate):
     # Check that there is only one warning raised
     assert len(w_info) == 1
     # Check that the correct warning is raised
-    assert str(w_info[0].message).startswith("Invalid Basket. "
+    assert str(w_info[0]).startswith("Invalid Basket. "
     "Manifest could not be loaded into json at: ")
     # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert str(w_info[0].message).endswith(os.path.join(basket_path,
-                                           "bad_man",
-                                           "basket_manifest.json"))
+    assert str(w_info[0]).endswith(os.path.join(basket_path,
+                                                "bad_man",
+                                                "basket_manifest.json"))
 
 def test_validate_invalid_supplement_schema(set_up_validate):
-    """Make a basket with invalid supplement schema, check that it throws error
+    """Make a basket with invalid supplement schema, check that it collects
+       one warning.
     """
     tv = set_up_validate
 
@@ -414,15 +420,16 @@ def test_validate_invalid_supplement_schema(set_up_validate):
     # Check that there is only one warning raised
     assert len(w_info) == 1
     # Check that the correct warning is raised
-    assert str(w_info[0].message).startswith("Invalid Basket. "
+    assert str(w_info[0]).startswith("Invalid Basket. "
     "Supplement Schema does not match at: ")
     # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert str(w_info[0].message).endswith(os.path.join(basket_path,
-                                           "bad_sup_schema",
-                                           "basket_supplement.json"))
+    assert str(w_info[0]).endswith(os.path.join(basket_path,
+                                                "bad_sup_schema",
+                                                "basket_supplement.json"))
 
 def test_validate_supplement_schema_missing_field(set_up_validate):
-    """Make a basket with invalid supplement schema, check that it throws error
+    """Make a basket with invalid supplement schema, check that it collects
+       one warning.
     """
     tv = set_up_validate
 
@@ -455,15 +462,16 @@ def test_validate_supplement_schema_missing_field(set_up_validate):
     # Check that there is only one warning raised
     assert len(w_info) == 1
     # Check that the correct warning is raised
-    assert str(w_info[0].message).startswith("Invalid Basket. "
+    assert str(w_info[0]).startswith("Invalid Basket. "
     "Supplement Schema does not match at: ")
     # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert str(w_info[0].message).endswith(os.path.join(basket_path,
-                                           "bad_sup_schema",
-                                           "basket_supplement.json"))
+    assert str(w_info[0]).endswith(os.path.join(basket_path,
+                                                "bad_sup_schema",
+                                                "basket_supplement.json"))
 
 def test_validate_supplement_schema_missing_array_field(set_up_validate):
-    """Make a basket with invalid supplement schema, check that it throws error
+    """Make a basket with invalid supplement schema, check that it collects
+       one warning.
     """
     tv = set_up_validate
 
@@ -508,15 +516,16 @@ def test_validate_supplement_schema_missing_array_field(set_up_validate):
     # Check that there is only one warning raised
     assert len(w_info) == 1
     # Check that the correct warning is raised
-    assert str(w_info[0].message).startswith("Invalid Basket. "
+    assert str(w_info[0]).startswith("Invalid Basket. "
     "Supplement Schema does not match at: ")
     # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert str(w_info[0].message).endswith(os.path.join(basket_path,
-                                           "bad_sup_schema",
-                                           "basket_supplement.json"))
+    assert str(w_info[0]).endswith(os.path.join(basket_path,
+                                                "bad_sup_schema",
+                                                "basket_supplement.json"))
 
 def test_validate_supplement_schema_missing_array_field_2(set_up_validate):
-    """Make a basket with invalid supplement schema, check that it throws error
+    """Make a basket with invalid supplement schema, check that it collects
+       one warning.
     """
     tv = set_up_validate
 
@@ -562,15 +571,16 @@ def test_validate_supplement_schema_missing_array_field_2(set_up_validate):
     # Check that there is only one warning raised
     assert len(w_info) == 1
     # Check that the correct warning is raised
-    assert str(w_info[0].message).startswith("Invalid Basket. "
+    assert str(w_info[0]).startswith("Invalid Basket. "
     "Supplement Schema does not match at: ")
     # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert str(w_info[0].message).endswith(os.path.join(basket_path,
-                                           "bad_sup_schema",
-                                           "basket_supplement.json"))
+    assert str(w_info[0]).endswith(os.path.join(basket_path,
+                                                "bad_sup_schema",
+                                                "basket_supplement.json"))
 
 def test_validate_supplement_schema_added_array_field(set_up_validate):
-    """Make a basket with invalid supplement schema, check that it throws error
+    """Make a basket with invalid supplement schema, check that it collects
+       one warning.
     """
     tv = set_up_validate
 
@@ -620,15 +630,16 @@ def test_validate_supplement_schema_added_array_field(set_up_validate):
     # Check that there is only one warning raised
     assert len(w_info) == 1
     # Check that the correct warning is raised
-    assert str(w_info[0].message).startswith("Invalid Basket. "
+    assert str(w_info[0]).startswith("Invalid Basket. "
     "Supplement Schema does not match at: ")
     # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert str(w_info[0].message).endswith(os.path.join(basket_path,
-                                           "bad_sup_schema",
-                                           "basket_supplement.json"))
+    assert str(w_info[0]).endswith(os.path.join(basket_path,
+                                                "bad_sup_schema",
+                                                "basket_supplement.json"))
 
 def test_validate_supplement_schema_added_array_field_2(set_up_validate):
-    """Make a basket with invalid supplement schema, check that it throws error
+    """Make a basket with invalid supplement schema, check that it collects
+       one warning.
     """
     tv = set_up_validate
 
@@ -678,16 +689,16 @@ def test_validate_supplement_schema_added_array_field_2(set_up_validate):
     # Check that there is only one warning raised
     assert len(w_info) == 1
     # Check that the correct warning is raised
-    assert str(w_info[0].message).startswith("Invalid Basket. "
+    assert str(w_info[0]).startswith("Invalid Basket. "
     "Supplement Schema does not match at: ")
     # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert str(w_info[0].message).endswith(os.path.join(basket_path,
-                                           "bad_sup_schema",
-                                           "basket_supplement.json"))
+    assert str(w_info[0]).endswith(os.path.join(basket_path,
+                                                "bad_sup_schema",
+                                                "basket_supplement.json"))
 
 def test_validate_supplement_schema_additional_field(set_up_validate):
-    """Make a basket with invalid supplement schema, check that it throws error
-
+    """Make a basket with invalid supplement schema, check that it collects
+       one warning.
     """
     tv = set_up_validate
 
@@ -735,15 +746,16 @@ def test_validate_supplement_schema_additional_field(set_up_validate):
     # Check that there is only one warning raised
     assert len(w_info) == 1
     # Check that the correct warning is raised
-    assert str(w_info[0].message).startswith("Invalid Basket. "
+    assert str(w_info[0]).startswith("Invalid Basket. "
     "Supplement Schema does not match at: ")
     # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert str(w_info[0].message).endswith(os.path.join(basket_path,
-                                           "bad_sup_schema",
-                                           "basket_supplement.json"))
+    assert str(w_info[0]).endswith(os.path.join(basket_path,
+                                                "bad_sup_schema",
+                                                "basket_supplement.json"))
 
 def test_validate_supplement_schema_empty_upload_items(set_up_validate):
-    """Make a basket with invalid supplement schema, check that it throws error
+    """Make a basket with invalid supplement schema, check that it collects
+       one warning.
     """
     tv = set_up_validate
 
@@ -786,15 +798,16 @@ def test_validate_supplement_schema_empty_upload_items(set_up_validate):
     # Check that there is only one warning raised
     assert len(w_info) == 1
     # Check that the correct warning is raised
-    assert str(w_info[0].message).startswith("Invalid Basket. "
+    assert str(w_info[0]).startswith("Invalid Basket. "
     "Supplement Schema does not match at: ")
     # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert str(w_info[0].message).endswith(os.path.join(basket_path,
-                                           "bad_sup_schema",
-                                           "basket_supplement.json"))
+    assert str(w_info[0]).endswith(os.path.join(basket_path,
+                                                "bad_sup_schema",
+                                                "basket_supplement.json"))
 
 def test_validate_supplement_schema_empty_integrity_data(set_up_validate):
-    """Make a basket with invalid supplement schema, check that it throws error
+    """Make a basket with invalid supplement schema, check that it collects
+       one warning.
     """
     tv = set_up_validate
 
@@ -829,15 +842,16 @@ def test_validate_supplement_schema_empty_integrity_data(set_up_validate):
     # Check that there is only one warning raised
     assert len(w_info) == 1
     # Check that the correct warning is raised
-    assert str(w_info[0].message).startswith("Invalid Basket. "
+    assert str(w_info[0]).startswith("Invalid Basket. "
     "Supplement Schema does not match at: ")
     # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert str(w_info[0].message).endswith(os.path.join(basket_path,
-                                           "bad_sup_schema",
-                                           "basket_supplement.json"))
+    assert str(w_info[0]).endswith(os.path.join(basket_path,
+                                                "bad_sup_schema",
+                                                "basket_supplement.json"))
 
 def test_validate_invalid_supplement_json(set_up_validate):
-    """Make a basket with invalid supplement json check that it throws an error
+    """Make a basket with invalid supplement json check that it collects
+       one warning.
     """
     tv = set_up_validate
 
@@ -861,15 +875,16 @@ def test_validate_invalid_supplement_json(set_up_validate):
     # Check that there is only one warning raised
     assert len(w_info) == 1
     # Check that the correct warning is raised
-    assert str(w_info[0].message).startswith("Invalid Basket. "
+    assert str(w_info[0]).startswith("Invalid Basket. "
     "Supplement could not be loaded into json at: ")
     # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert str(w_info[0].message).endswith(os.path.join(basket_path,
-                                           "bad_sup",
-                                           "basket_supplement.json"))
+    assert str(w_info[0]).endswith(os.path.join(basket_path,
+                                                "bad_sup",
+                                                "basket_supplement.json"))
 
 def test_validate_invalid_metadata_json(set_up_validate):
-    """Make a basket with invalid metadata json, check that it throws an error
+    """Make a basket with invalid metadata json, check that it collects
+       one warning.
     """
     tv = set_up_validate
 
@@ -893,15 +908,15 @@ def test_validate_invalid_metadata_json(set_up_validate):
     # Check that there is only one warning raised
     assert len(w_info) == 1
     # Check that the correct warning is raised
-    assert str(w_info[0].message).startswith("Invalid Basket. "
+    assert str(w_info[0]).startswith("Invalid Basket. "
     "Metadata could not be loaded into json at: ")
     # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert str(w_info[0].message).endswith(os.path.join(basket_path,
-                                           "bad_meta",
-                                           "basket_metadata.json"))
+    assert str(w_info[0]).endswith(os.path.join(basket_path,
+                                                "bad_meta",
+                                                "basket_metadata.json"))
 
 def test_validate_nested_basket(set_up_validate):
-    """Make a basket with nested basket, check that it throws an error
+    """Make a basket with nested basket, check that it collects one warning.
     """
     tv = set_up_validate
 
@@ -919,13 +934,14 @@ def test_validate_nested_basket(set_up_validate):
     # Check that there is only one warning raised
     assert len(w_info) == 1
     # Check that the correct warning is raised
-    assert str(w_info[0].message).startswith("Invalid Basket. "
+    assert str(w_info[0]).startswith("Invalid Basket. "
     "Manifest File found in sub directory of basket at: ")
     # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert str(w_info[0].message).endswith(basket_path)
+    assert str(w_info[0]).endswith(basket_path)
 
 def test_validate_deeply_nested(set_up_validate):
-    """Create basket with basket in a deep sub-dir, check that error is thrown
+    """Create basket with basket in a deep sub-dir, check that it collects
+       one warning.
     """
     tv = set_up_validate
 
@@ -970,10 +986,10 @@ def test_validate_deeply_nested(set_up_validate):
     # Check that there is only one warning raised
     assert len(w_info) == 1
     # Check that the correct warning is raised
-    assert str(w_info[0].message).startswith("Invalid Basket. "
+    assert str(w_info[0]).startswith("Invalid Basket. "
     "Manifest File found in sub directory of basket at: ")
     # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert str(w_info[0].message).endswith(basket_path)
+    assert str(w_info[0]).endswith(basket_path)
 
 def test_validate_no_files_or_dirs(set_up_validate):
     """Create an empty bucket with no files, make sure it returns true (valid).
@@ -992,7 +1008,8 @@ def test_validate_no_files_or_dirs(set_up_validate):
     assert validate.validate_bucket(tv.bucket_name, tv.fs)
 
 def test_validate_no_baskets(set_up_validate):
-    """Create a bucket with no baskets, but with files, test that it's valid.
+    """Create a bucket with no baskets, but with files, test that it
+       returns true (valid).
     """
     tv = set_up_validate
 
@@ -1016,7 +1033,8 @@ def test_validate_no_baskets(set_up_validate):
     assert validate.validate_bucket(tv.bucket_name, tv.fs)
 
 def test_validate_fifty_baskets_invalid(set_up_validate):
-    """Create bucket with 50 baskets, and 1 nested, check that it throws error.
+    """Create bucket with 50 baskets, and 1 nested, check that it collects
+       one warning.
     """
     tv = set_up_validate
 
@@ -1046,13 +1064,15 @@ def test_validate_fifty_baskets_invalid(set_up_validate):
     # Check that there is only one warning raised
     assert len(w_info) == 1
     # Check that the correct warning is raised
-    assert str(w_info[0].message).startswith("Invalid Basket. "
+    assert str(w_info[0]).startswith("Invalid Basket. "
     "Manifest File found in sub directory of basket at: ")
     # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert str(w_info[0].message).endswith(invalid_basket_path)
+    assert str(w_info[0]).endswith(invalid_basket_path)
 
 def test_validate_fifty_baskets_valid(set_up_validate):
-    """Create bucket with 50 baskets, and 0 nested, check that its valid."""
+    """Create bucket with 50 baskets, and 0 nested, check that it
+       returns true (valid).
+    """
     tv = set_up_validate
 
     tmp_basket_dir = tv.set_up_basket("my_basket")
@@ -1084,7 +1104,7 @@ def test_validate_call_check_level(set_up_validate):
     Create a basket, call _check_level() which is a private function,
     check that it returns true. it returns true, because the _check_level
     function checks all files an directories of the given dir, so it just
-    acts like we are at a random dir instead of the root of the bucket
+    acts like we are at a random dir instead of the root of the bucket.
     """
     tv = set_up_validate
 
@@ -1102,9 +1122,9 @@ def test_validate_call_validate_basket(set_up_validate):
     """Create basket, call _validate_basket, a private function
 
     Create a basket, call _validate_basket(), which is a private function.
-    check that it throws an error. it throws an error because _validate_basket
-    assumes it is given a basket dir, not a bucket dir. so there is no
-    manifest found inside the bucket dir
+    check that an error is thrown. it throws an error because
+    _validate_basket assumes it is given a basket dir, not a bucket dir.
+    so there is no manifest found inside the bucket dir.
     """
     tv = set_up_validate
 
@@ -1122,3 +1142,131 @@ def test_validate_call_validate_basket(set_up_validate):
         f"No Basket found at: {tv.bucket_name}"
     ):
         validate._validate_basket(tv.bucket_name, tv.fs)
+
+def test_validate_bad_manifest_and_supplement_schema(set_up_validate):
+    """Create a basket with invalid manifest and supplement schema,
+       and check that two warnings are collected.
+    """
+    tv = set_up_validate
+
+    # The manifest is missing the uuid field
+    # this is invalid against the schema.
+    bad_manifest_data = """{
+        "upload_time": "str",
+        "parent_uuids": [ "str1", "str2", "str3" ],
+        "basket_type": "str",
+        "label": "str"
+    }"""
+
+    # The supplement has an additional my_extra_field field
+    # this is invalid against the schema.
+    bad_supplement_data = '''{
+        "upload_items":
+        [
+        { "path": "str", "stub": false}
+        ],
+
+        "integrity_data":
+        [
+        {
+            "file_size": 33,
+            "hash": "string",
+            "access_date":"string",
+            "source_path": "string",
+            "byte_count": 1,
+            "stub":false,
+            "upload_path":"string"
+        }
+        ],
+
+        "my_extra_field":"HAHA-ERROR"
+    }'''
+
+    tmp_basket_dir = tv.set_up_basket(
+        "bad_sup_and_man_schema",
+        is_man=True,
+        man_data=bad_manifest_data,
+        is_sup=True,
+        sup_data=bad_supplement_data,
+        is_meta=False
+    )
+
+    basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
+
+    manifest_path = os.path.join(basket_path, "basket_manifest.json")
+    supplement_path = os.path.join(basket_path, "basket_supplement.json")
+    tv.fs.rm(manifest_path)
+    tv.fs.rm(supplement_path)
+
+    w_info = validate.validate_bucket(tv.bucket_name, tv.fs)
+
+    # Check that there are two warnings raised
+    assert len(w_info) == 2
+    # Check that the first warning raised is correct with the correct
+    # invalid basket path (disregarding FS prefix)
+    assert str(w_info[0]).startswith("Invalid Basket. "
+    "Manifest Schema does not match at: ")
+    assert str(w_info[0]).endswith(os.path.join(basket_path,
+                                                "bad_sup_and_man_schema",
+                                                "basket_manifest.json"))
+    # Check that the second warning raised is correct with the correct
+    # invalid basket path (disregarding FS prefix)
+    assert str(w_info[1]).startswith("Invalid Basket. "
+    "Supplement Schema does not match at: ")
+    assert str(w_info[1]).endswith(os.path.join(basket_path,
+                                                "bad_sup_and_man_schema",
+                                                "basket_supplement.json"))
+
+def test_validate_bad_metadata_and_supplement_schema_with_nested_basket(
+                                                        set_up_validate):
+    """Create a basket with invalid metadata and supplement schemas, along
+       with an additional manifest file in a nested basket. Check that
+       three warnings are collected
+    """
+    tv = set_up_validate
+
+    tmp_basket_dir = tv.set_up_basket(
+        "my_basket",
+        is_man=True,
+        is_sup=True,
+        sup_data='{"Bad":1}}',
+        is_meta=True,
+        meta_data='{"Bad":1}}'
+    )
+
+    tv.add_lower_dir_to_temp_basket(
+        tmp_basket_dir=tmp_basket_dir,
+        new_dir_name="nested_basket",
+        is_basket=True
+    )
+
+    basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
+
+    manifest_path = os.path.join(basket_path, "basket_manifest.json")
+    supplement_path = os.path.join(basket_path, "basket_supplement.json")
+    tv.fs.rm(manifest_path)
+    tv.fs.rm(supplement_path)
+
+    w_info = validate.validate_bucket(tv.bucket_name, tv.fs)
+
+    # Check that there are three warnings raised
+    assert len(w_info) == 3
+    # Check that the first warning raised is correct with the correct
+    # invalid basket path (disregarding FS prefix)
+    assert str(w_info[0]).startswith("Invalid Basket. "
+    "Metadata could not be loaded into json at: ")
+    assert str(w_info[0]).endswith(os.path.join(basket_path,
+                                                "my_basket",
+                                                "basket_metadata.json"))
+    # Check that the second warning raised is correct with the correct
+    # invalid basket path (disregarding FS prefix)
+    assert str(w_info[1]).startswith("Invalid Basket. "
+    "Supplement could not be loaded into json at: ")
+    assert str(w_info[1]).endswith(os.path.join(basket_path,
+                                                "my_basket",
+                                                "basket_supplement.json"))
+    # Check that the third warning raised is correct with the correct
+    # invalid basket path (disregarding FS prefix)
+    assert str(w_info[2]).startswith("Invalid Basket. "
+    "Manifest File found in sub directory of basket at: ")
+    assert str(w_info[2]).endswith(os.path.join(basket_path, "my_basket"))

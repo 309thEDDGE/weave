@@ -19,10 +19,14 @@ def validate_bucket(bucket_name, file_system):
     ----------
     bucket_name: string
         the name of the bucket in s3fs
+    file_system: string
+        the local file system bucket
 
     Returns
     ----------
     A bool of whether the bucket is valid or not that comes from check_level()
+    OR
+    A list of all invalid basket locations if the bucket is invalid
     """
 
     fs = file_system
@@ -36,16 +40,24 @@ def validate_bucket(bucket_name, file_system):
     # we just use the bucket_name as the path
     with warnings.catch_warnings(record=True) as w:
         _check_level(bucket_name, fs)
+
+    # iterate through w and return the warning messages if there is
+    # at least one message
     if len(w) > 0:
-        return w
+        warning_list = []
+        for i in range(len(w)):
+            warning_list.append(w[i].message)
+        return warning_list
+
+    # default return True
     return True
 
 
 def _check_level(current_dir, file_system, in_basket=False):
     """Check all immediate subdirs in dir, check for manifest
 
-    Checks all the immediate subdirectories and files in the given directory 
-    to see if there is a basket_manifest.json file. If there is a manifest, 
+    Checks all the immediate subdirectories and files in the given directory
+    to see if there is a basket_manifest.json file. If there is a manifest,
     it's a basket and must be validated.
     If there is a directory found, then recursively call check_level with that
     found directory to find if there is a basket in any directory
@@ -53,8 +65,11 @@ def _check_level(current_dir, file_system, in_basket=False):
     Parameters
     ----------
     current_dir: string
-        the current directory that we want to search all files and 
+        the current directory that we want to search all files and
         directories of
+    file_system: string
+        the local file system directory that we want to search all files
+        and directories of
     in_basket: bool
         optional parameter. This is a flag to signify that we are in a basket
         and we are looking for a nested basket now. 
@@ -125,20 +140,22 @@ def _validate_basket(basket_dir, file_system):
     basket_supplment.json. And an optional basket_metadata.json
     The manifest and supplement are required to follow a certain schema,
     which is defined in config.py.
-    All three, manifest, supplement, and metadata are also verified by being 
+    All three, manifest, supplement, and metadata are also verified by being
     able to be read into a python dictionary
 
     If there are any directories found inside this basket, run check_basket()
     on them to see if there is another basket inside this basket. If there is
     another basket, raise error for invalid bucket.
 
-    If the Basket is ever invalid, raise an error
+    If the basket is ever invalid, raise an error
     If the basket is valid return true
 
     Parameters
     ----------
     basket_dir: string
         the path in s3fs to the basket root directory
+    file_system: string
+        the local file system path to the basket root directory
 
     Returns
     ----------
@@ -156,7 +173,8 @@ def _validate_basket(basket_dir, file_system):
     # or this function is incorrectly called, 
     # we can say that this isn't a basket. 
     if not fs.exists(manifest_path):
-        warnings.warn(f"Invalid Path. No Basket found at: {basket_dir}")
+        raise FileNotFoundError(f"Invalid Path. "
+                                f"No Basket found at: {basket_dir}")
 
     if not fs.exists(supplement_path):
         warnings.warn(
