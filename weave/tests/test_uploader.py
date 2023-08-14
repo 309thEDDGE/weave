@@ -577,10 +577,10 @@ def test_upload_basket_upload_items_is_not_a_string(test_basket):
             upload_directory=upload_path,
             unique_id=unique_id,
             basket_type=basket_type,
-            file_system=test_basket.fs,
+            file_system=test_basket.file_system,
         )
 
-    assert not test_basket.fs.exists(upload_path)
+    assert not test_basket.file_system.exists(upload_path)
 
 
 def test_upload_basket_upload_items_is_not_a_list_of_strings(test_basket):
@@ -606,10 +606,10 @@ def test_upload_basket_upload_items_is_not_a_list_of_strings(test_basket):
             upload_directory=upload_path,
             unique_id=unique_id,
             basket_type=basket_type,
-            file_system=test_basket.fs,
+            file_system=test_basket.file_system,
         )
 
-    assert not test_basket.fs.exists(upload_path)
+    assert not test_basket.file_system.exists(upload_path)
 
 
 def test_upload_basket_upload_items_is_a_list_of_only_dictionaries(
@@ -637,10 +637,10 @@ def test_upload_basket_upload_items_is_a_list_of_only_dictionaries(
             upload_directory=upload_path,
             unique_id=unique_id,
             basket_type=basket_type,
-            file_system=test_basket.fs,
+            file_system=test_basket.file_system,
         )
 
-    assert not test_basket.fs.exists(upload_path)
+    assert not test_basket.file_system.exists(upload_path)
 
 
 @patch("weave.upload.UploadBasket.upload_basket_supplement_to_fs")
@@ -674,10 +674,10 @@ def test_upload_basket_with_bad_upload_items_is_deleted_if_it_fails(
             upload_directory=upload_path,
             unique_id=unique_id,
             basket_type=basket_type,
-            file_system=test_basket.fs,
+            file_system=test_basket.file_system,
         )
 
-    assert not test_basket.fs.exists(upload_path)
+    assert not test_basket.file_system.exists(upload_path)
 
 
 def test_upload_basket_upload_items_invalid_dictionary(test_basket):
@@ -713,7 +713,7 @@ def test_upload_basket_upload_items_invalid_dictionary(test_basket):
             upload_directory=upload_path,
             unique_id=unique_id,
             basket_type=basket_type,
-            file_system=test_basket.fs,
+            file_system=test_basket.file_system,
         )
 
 
@@ -760,7 +760,7 @@ def test_upload_basket_upload_items_check_unique_file_folder_names(
             upload_directory=upload_path,
             unique_id=unique_id,
             basket_type=basket_type,
-            file_system=test_basket.fs,
+            file_system=test_basket.file_system,
         )
 
     # Test same dirname
@@ -778,7 +778,7 @@ def test_upload_basket_upload_items_check_unique_file_folder_names(
             upload_directory=upload_path,
             unique_id=unique_id,
             basket_type=basket_type,
-            file_system=test_basket.fs,
+            file_system=test_basket.file_system,
         )
 
     # Test same dirname same file
@@ -796,10 +796,10 @@ def test_upload_basket_upload_items_check_unique_file_folder_names(
             upload_directory=upload_path,
             unique_id=unique_id,
             basket_type=basket_type,
-            file_system=test_basket.fs,
+            file_system=test_basket.file_system,
         )
 
-    assert not test_basket.fs.exists(f"{upload_path}")
+    assert not test_basket.file_system.exists(f"{upload_path}")
 
 
 def test_upload_basket_upload_path_is_string(test_basket):
@@ -833,7 +833,7 @@ def test_upload_basket_upload_path_is_string(test_basket):
             upload_directory=upload_path,
             unique_id=unique_id,
             basket_type=basket_type,
-            file_system=test_basket.fs,
+            file_system=test_basket.file_system,
         )
 
 
@@ -868,10 +868,10 @@ def test_upload_basket_unique_id_string(test_basket):
             upload_directory=upload_path,
             unique_id=unique_id,
             basket_type=basket_type,
-            file_system=test_basket.fs,
+            file_system=test_basket.file_system,
         )
 
-    assert not test_basket.fs.exists(f"{upload_path}")
+    assert not test_basket.file_system.exists(f"{upload_path}")
 
 
 def test_upload_basket_type_is_string(test_basket):
@@ -905,10 +905,10 @@ def test_upload_basket_type_is_string(test_basket):
             upload_directory=upload_path,
             unique_id=unique_id,
             basket_type=basket_type,
-            file_system=test_basket.fs,
+            file_system=test_basket.file_system,
         )
 
-    assert not test_basket.fs.exists(f"{upload_path}")
+    assert not test_basket.file_system.exists(f"{upload_path}")
 
 
 def test_upload_basket_parent_ids_list_str(test_basket):
@@ -944,10 +944,10 @@ def test_upload_basket_parent_ids_list_str(test_basket):
             unique_id=unique_id,
             basket_type=basket_type,
             parent_ids=parent_ids_in,
-            file_system=test_basket.fs,
+            file_system=test_basket.file_system,
         )
 
-    assert not test_basket.fs.exists(f"{upload_path}")
+    assert not test_basket.file_system.exists(f"{upload_path}")
 
 
 def test_upload_basket_parent_ids_is_list(test_basket):
@@ -983,10 +983,10 @@ def test_upload_basket_parent_ids_is_list(test_basket):
             unique_id=unique_id,
             basket_type=basket_type,
             parent_ids=parent_ids_in,
-            file_system=test_basket.fs,
+            file_system=test_basket.file_system,
         )
 
-    assert not test_basket.fs.exists(f"{upload_path}")
+    assert not test_basket.file_system.exists(f"{upload_path}")
 
 
 def test_upload_basket_metadata_is_dictionary(test_basket):
@@ -1023,10 +1023,10 @@ def test_upload_basket_metadata_is_dictionary(test_basket):
             unique_id=unique_id,
             basket_type=basket_type,
             metadata=metadata_in,
-            file_system=test_basket.fs,
+            file_system=test_basket.file_system,
         )
 
-    assert not test_basket.fs.exists(f"{upload_path}")
+    assert not test_basket.file_system.exists(f"{upload_path}")
 
 
 def test_upload_basket_label_is_string(test_basket):
@@ -1062,10 +1062,10 @@ def test_upload_basket_label_is_string(test_basket):
             unique_id=unique_id,
             basket_type=basket_type,
             label=label_in,
-            file_system=test_basket.fs,
+            file_system=test_basket.file_system,
         )
 
-    assert not test_basket.fs.exists(f"{upload_path}")
+    assert not test_basket.file_system.exists(f"{upload_path}")
 
 
 def test_upload_basket_no_metadata(test_basket):
@@ -1095,11 +1095,11 @@ def test_upload_basket_no_metadata(test_basket):
         upload_directory=upload_path,
         unique_id=unique_id,
         basket_type=basket_type,
-        file_system=test_basket.fs,
+        file_system=test_basket.file_system,
     )
 
     # Assert metadata.json was not written
-    assert not test_basket.fs.exists(f"{upload_path}/metadata.json")
+    assert not test_basket.file_system.exists(f"{upload_path}/metadata.json")
 
 
 def test_upload_basket_check_existing_upload_path(test_basket):
@@ -1125,7 +1125,7 @@ def test_upload_basket_check_existing_upload_path(test_basket):
         test_basket.bucket_name, f"{basket_type}", unique_id
     )
 
-    test_basket.fs.upload(
+    test_basket.file_system.upload(
         tmp_basket_dir.strpath, f"{upload_path}", recursive=True
     )
 
@@ -1138,10 +1138,10 @@ def test_upload_basket_check_existing_upload_path(test_basket):
             upload_directory=upload_path,
             unique_id=unique_id,
             basket_type=basket_type,
-            file_system=test_basket.fs,
+            file_system=test_basket.file_system,
         )
 
-    assert test_basket.fs.ls(
+    assert test_basket.file_system.ls(
         os.path.join(test_basket.bucket_name, f"{basket_type}")
     )[0].endswith(upload_path)
 
@@ -1191,10 +1191,10 @@ def test_upload_basket_check_unallowed_file_names(test_basket):
                 upload_directory=upload_path,
                 unique_id=unique_id,
                 basket_type=basket_type,
-                file_system=test_basket.fs,
+                file_system=test_basket.file_system,
             )
 
-    assert not test_basket.fs.exists(f"{upload_path}")
+    assert not test_basket.file_system.exists(f"{upload_path}")
 
 
 def test_upload_basket_clean_up_on_error(test_basket):
@@ -1226,11 +1226,11 @@ def test_upload_basket_clean_up_on_error(test_basket):
             upload_directory=upload_path,
             unique_id=unique_id,
             basket_type=basket_type,
-            file_system=test_basket.fs,
+            file_system=test_basket.file_system,
             test_clean_up=True,
         )
 
-    assert not test_basket.fs.exists(upload_path)
+    assert not test_basket.file_system.exists(upload_path)
 
 
 def test_upload_basket_invalid_optional_argument(test_basket):
@@ -1262,11 +1262,11 @@ def test_upload_basket_invalid_optional_argument(test_basket):
             upload_directory=upload_path,
             unique_id=unique_id,
             basket_type=basket_type,
-            file_system=test_basket.fs,
+            file_system=test_basket.file_system,
             junk=True,
         )
 
-    assert not test_basket.fs.exists(upload_path)
+    assert not test_basket.file_system.exists(upload_path)
 
 
 def test_upload_basket_invalid_test_clean_up_datatype(test_basket):
@@ -1301,11 +1301,11 @@ def test_upload_basket_invalid_test_clean_up_datatype(test_basket):
             upload_directory=upload_path,
             unique_id=unique_id,
             basket_type=basket_type,
-            file_system=test_basket.fs,
+            file_system=test_basket.file_system,
             test_clean_up="a",
         )
 
-    assert not test_basket.fs.exists(upload_path)
+    assert not test_basket.file_system.exists(upload_path)
 
 
 def test_upload_basket_file_contents_identical(test_basket):
@@ -1340,12 +1340,12 @@ def test_upload_basket_file_contents_identical(test_basket):
         upload_directory=upload_path,
         unique_id=unique_id,
         basket_type=basket_type,
-        file_system=test_basket.fs,
+        file_system=test_basket.file_system,
     )
 
     # Read the file data, then assert the uploaded contents are the same.
     with open(tmp_basket_file_path, "r", encoding="UTF-8") as r_file:
         local_file_data = r_file.read()
 
-    with test_basket.fs.open(upload_file_path, "r") as r_file:
+    with test_basket.file_system.open(upload_file_path, "r") as r_file:
         assert r_file.read() == local_file_data
