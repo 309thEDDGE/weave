@@ -33,12 +33,15 @@ def file_path_in_list(search_path, search_list):
 
     return False
 
-class BucketForTest():
+
+class BucketForTest:
     """Handles resources for much of weave testing."""
+
     def __init__(self, tmpdir, file_system):
         self.tmpdir = tmpdir
-        self.bucket_name = ("pytest-temp-bucket"
-                            f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}")
+        self.bucket_name = (
+            "pytest-temp-bucket" f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
+        )
         self.basket_list = []
         self.file_system = file_system
         self._set_up_bucket()
@@ -51,13 +54,14 @@ class BucketForTest():
             self.cleanup_bucket()
             self._set_up_bucket()
 
-    def set_up_basket(self, tmp_dir_name,
-                      file_name="test.txt", file_content="This is a test"):
+    def set_up_basket(
+        self, tmp_dir_name, file_name="test.txt", file_content="This is a test"
+    ):
         """Create a temporary (local) basket, with a single text file."""
         tmp_basket_dir = self.tmpdir.mkdir(tmp_dir_name)
         tmp_basket_txt_file = tmp_basket_dir.join(file_name)
 
-        if file_name[file_name.rfind('.'):] == ".json":
+        if file_name[file_name.rfind(".") :] == ".json":
             with open(tmp_basket_txt_file, "w", encoding="utf-8") as outfile:
                 json.dump(file_content, outfile)
         else:
@@ -71,13 +75,15 @@ class BucketForTest():
         nested_dir.join("another_test.txt").write("more test text")
         return tmp_basket_dir
 
-    def upload_basket(self, tmp_basket_dir, uid='0000',
-                      basket_type="test_basket", **kwargs):
+    def upload_basket(
+        self, tmp_basket_dir, uid="0000", basket_type="test_basket", **kwargs
+    ):
         """Upload a temporary (local) basket to the S3 test bucket."""
         up_dir = os.path.join(self.bucket_name, basket_type, uid)
 
-        upload_items = [{'path':str(tmp_basket_dir.realpath()),
-                         'stub':False}]
+        upload_items = [
+            {"path": str(tmp_basket_dir.realpath()), "stub": False}
+        ]
 
         UploadBasket(
             upload_items=upload_items,
@@ -85,7 +91,7 @@ class BucketForTest():
             unique_id=uid,
             basket_type=basket_type,
             file_system=self.file_system,
-            **kwargs
+            **kwargs,
         )
         return up_dir
 
