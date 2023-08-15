@@ -78,6 +78,8 @@ def create_index_from_fs(root_dir, file_system):
             basket_dict = json.load(file)
             if validate_basket_dict(basket_dict, basket_json_address):
                 for field in basket_dict.keys():
+                    print(type(field), end = ' ')
+                    print(field, end = '\n')
                     index_dict[field].append(basket_dict[field])
                 index_dict["address"].append(os.path.dirname(basket_json_address))
                 index_dict["storage_type"].append(fs.__class__.__name__)
