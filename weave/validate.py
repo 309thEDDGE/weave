@@ -19,14 +19,14 @@ def validate_bucket(bucket_name, file_system):
     ----------
     bucket_name: string
         the name of the bucket in s3fs
-    file_system: string
-        the local file system bucket
+    file_system: fsspec object
+        the file system (s3fs, local fs, etc.) of the pantry
+        to validate
 
     Returns
     ----------
-    A bool of whether the bucket is valid or not that comes from check_level()
-    OR
-    A list of all invalid basket locations if the bucket is invalid
+    A list of all invalid basket locations (will return an empty list if
+    no warnings are raised)
     """
 
     fs = file_system
@@ -38,19 +38,13 @@ def validate_bucket(bucket_name, file_system):
 
     # call check level, with a path, but since we're just starting,
     # we just use the bucket_name as the path
-    with warnings.catch_warnings(record=True) as w:
+    with warnings.catch_warnings(record=True) as warn:
         _check_level(bucket_name, fs)
-
-    # iterate through w and return the warning messages if there is
-    # at least one message
-    if len(w) > 0:
+        # iterate through warn and return the list of warning messages
         warning_list = []
-        for i in range(len(w)):
-            warning_list.append(w[i].message)
+        for i in range(len(warn)):
+            warning_list.append(warn[i].message)
         return warning_list
-
-    # default return True
-    return True
 
 
 def _check_level(current_dir, file_system, in_basket=False):
@@ -67,8 +61,8 @@ def _check_level(current_dir, file_system, in_basket=False):
     current_dir: string
         the current directory that we want to search all files and
         directories of
-    file_system: string
-        the local file system directory that we want to search all files
+    file_system: fsspec object
+        the file system (s3fs, local fs, etc.) that we want to search all files
         and directories of
     in_basket: bool
         optional parameter. This is a flag to signify that we are in a basket
@@ -154,13 +148,14 @@ def _validate_basket(basket_dir, file_system):
     ----------
     basket_dir: string
         the path in s3fs to the basket root directory
-    file_system: string
-        the local file system path to the basket root directory
+    file_system: fsspec object
+        the file system (s3fs, local fs, etc.) where
+        the pantry resides
 
     Returns
     ----------
     boolean that is true when the Basket is valid
-        if the Basket is invalid, raise an error
+        if the Basket is invalid, raise a warning
     """
 
     fs = file_system
