@@ -76,7 +76,7 @@ def create_index_from_fs(root_dir, file_system):
     for basket_json_address in basket_jsons:
         with fs.open(basket_json_address, "rb") as file:
             basket_dict = json.load(file)
-            if validate_basket_dict(basket_dict, basket_json_address) && basket_dict["basket_type"] != "index":
+            if validate_basket_dict(basket_dict, basket_json_address) and basket_dict["basket_type"] != "index":
                 for field in basket_dict.keys():
                     index_dict[field].append(basket_dict[field])
                 index_dict["address"].append(os.path.dirname(basket_json_address))
