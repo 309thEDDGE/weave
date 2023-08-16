@@ -34,10 +34,14 @@ def test_weave_pytest_suffix(set_up_tb_no_cleanup):
     assert set_up_tb_no_cleanup.bucket_name == f"pytest-temp-bucket{suffix}"
 
     # Check the bucket was made.
-    assert set_up_tb_no_cleanup.fs.exists(set_up_tb_no_cleanup.bucket_name)
+    assert set_up_tb_no_cleanup.file_system.exists(
+        set_up_tb_no_cleanup.bucket_name
+    )
 
     # Cleanup the bucket.
     set_up_tb_no_cleanup.cleanup_bucket()
 
     # Check the bucket is actually deleted.
-    assert not set_up_tb_no_cleanup.fs.exists(set_up_tb_no_cleanup.bucket_name)
+    assert not set_up_tb_no_cleanup.file_system.exists(
+        set_up_tb_no_cleanup.bucket_name
+    )
