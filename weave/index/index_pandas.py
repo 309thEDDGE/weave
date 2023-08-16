@@ -12,6 +12,7 @@ from ..upload import UploadBasket
 from .create_index import create_index_from_fs
 
 
+<<<<<<< HEAD
 # validate basket keys and value data types on read in
 def validate_basket_dict(basket_dict, basket_address):
     """validate the basket_manifest.json has the correct structure
@@ -96,6 +97,10 @@ def _get_list_of_basket_jsons(root_dir, file_system):
 
 class Index():
     '''Facilitate user interaction with the index of a Weave data warehouse.'''
+=======
+class _Index():
+    '''Handles Pandas based functionality of the Index'''
+>>>>>>> 82e591f06b832e23125bbabd5b59d45e804886fb
 
     def __init__(self, bucket_name="basket-data", sync=True, **kwargs):
         '''Initializes the Index class.

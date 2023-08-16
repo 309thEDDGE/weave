@@ -8,8 +8,8 @@ import warnings
 
 import pandas as pd
 
-from .list_baskets import _get_list_of_basket_jsons
 from ..config import index_schema
+from .list_baskets import _get_list_of_basket_jsons
 from .validate_basket import validate_basket_dict
 
 
