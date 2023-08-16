@@ -172,8 +172,8 @@ def _validate_basket(basket_dir, file_system):
                                 f"No Basket found at: {basket_dir}")
 
     if not fs.exists(supplement_path):
-        warnings.warn(
-            f"Invalid Basket. No Supplement file found at: {basket_dir}")
+        warnings.warn(UserWarning(
+            "Invalid Basket. No Supplement file found at: ", basket_dir))
 
     files_in_basket = fs.find(
         path=basket_dir,
@@ -191,16 +191,16 @@ def _validate_basket(basket_dir, file_system):
                 validate(instance=data, schema=config.manifest_schema)
 
             except jsonschema.exceptions.ValidationError:
-                warnings.warn(
-                    f"Invalid Basket. "
-                    f"Manifest Schema does not match at: {file}"
-                )
+                warnings.warn(UserWarning(
+                    "Invalid Basket. "
+                    "Manifest Schema does not match at: ", file
+                ))
 
             except json.decoder.JSONDecodeError:
-                warnings.warn(
-                    f"Invalid Basket. "
-                    f"Manifest could not be loaded into json at: {file}"
-                )
+                warnings.warn(UserWarning(
+                    "Invalid Basket. "
+                    "Manifest could not be loaded into json at: ", file
+                ))
 
         if file_name == 'basket_supplement.json':
             try:
@@ -209,35 +209,35 @@ def _validate_basket(basket_dir, file_system):
                 validate(instance=data, schema=config.supplement_schema)
 
             except jsonschema.exceptions.ValidationError:
-                warnings.warn(
-                    f"Invalid Basket. "
-                    f"Supplement Schema does not match at: {file}"
-                )
+                warnings.warn(UserWarning(
+                    "Invalid Basket. "
+                    "Supplement Schema does not match at: ", file
+                ))
 
             except json.decoder.JSONDecodeError:
-                warnings.warn(
-                    f"Invalid Basket. "
-                    f"Supplement could not be loaded into json at: {file}"
-                )
+                warnings.warn(UserWarning(
+                    "Invalid Basket. "
+                    "Supplement could not be loaded into json at: ", file
+                ))
 
         if file_name == 'basket_metadata.json':
             try:
                 data = json.load(fs.open(file))
 
             except json.decoder.JSONDecodeError:
-                warnings.warn(
-                    f"Invalid Basket. "
-                    f"Metadata could not be loaded into json at: {file}"
-                )
+                warnings.warn(UserWarning(
+                    "Invalid Basket. "
+                    "Metadata could not be loaded into json at: ", file
+                ))
 
         # if we find a directory inside this basket, we need to check it
         # if we check it and find a basket, this basket is invalid.
         if fs.info(file)['type'] == 'directory':
             if _check_level(file, fs, in_basket=True):
-                warnings.warn(f"Invalid Basket. Manifest File "
-                              f"found in sub directory of basket at: "
-                              f"{basket_dir}"
-                )
+                warnings.warn(UserWarning(
+                    "Invalid Basket. Manifest File "
+                    "found in sub directory of basket at: ", basket_dir
+                ))
 
     # default return true if we don't find any problems with this basket
     return True
