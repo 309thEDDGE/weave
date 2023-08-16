@@ -220,8 +220,8 @@ def test_sync_index_gets_latest_index(set_up_tb):
     ind2 = Index(bucket_name=tb.bucket_name, file_system=tb.fs, sync=True)
     ind2.generate_index()
 
-    # assert length of index includes both baskets
-    assert len(ind.to_pandas_df()) == 3
+    # assert length of index includes both baskets and does not include the index
+    assert len(ind.to_pandas_df()) == 2
 
 def test_sync_index_calls_generate_index_if_no_index(set_up_tb):
     tb = set_up_tb
@@ -336,8 +336,8 @@ def test_generate_index(set_up_tb):
     tb.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
     ind.generate_index()
 
-    # Assert length of index includes both baskets
-    assert len(ind.to_pandas_df()) == 3
+    # Assert length of index includes both baskets and does not include the index
+    assert len(ind.to_pandas_df()) == 2
 
 def test_delete_basket_deletes_basket(set_up_tb):
     tb = set_up_tb

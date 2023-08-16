@@ -4,7 +4,7 @@ name: pytest_and_ruff
 
 on:
   push:
-    branches: [ "main"]
+    branches: [ "main","OPAL-262"]
   pull_request:
     branches: [ "main"]
 
