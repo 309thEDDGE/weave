@@ -25,8 +25,8 @@ local_fs = LocalFileSystem()
 def set_up_tb_no_cleanup(request, tmpdir):
     fs = request.param
     tb = BucketForTest(tmpdir, fs)
-    yield tb
-    # Purposefully don't clean up bucket here, we will clean up in the test.
+    # Purposefully don't clean up bucket, we will clean up in the test.
+    return tb
 
 def test_weave_pytest_suffix(set_up_tb_no_cleanup):
     """Test that env var suffix works, and buckets are still deleted."""
