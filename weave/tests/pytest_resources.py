@@ -1,7 +1,11 @@
-import os
+"""
+Resources for use in pytest.
+"""
 import json
+import os
 
 from weave.upload import UploadBasket
+
 
 def file_path_in_list(search_path, search_list):
     """Check if a file path is in a list (of file paths).
@@ -29,31 +33,36 @@ def file_path_in_list(search_path, search_list):
 
     return False
 
-class BucketForTest():
+
+class BucketForTest:
+    """Handles resources for much of weave testing."""
+
     def __init__(self, tmpdir, file_system):
         self.tmpdir = tmpdir
-        self.bucket_name = ("pytest-temp-bucket"
-                            f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}")
+        self.bucket_name = (
+            "pytest-temp-bucket" f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
+        )
         self.basket_list = []
-        self.fs = file_system
+        self.file_system = file_system
         self._set_up_bucket()
 
     def _set_up_bucket(self):
         """Create a temporary Bucket for testing purposes."""
         try:
-            self.fs.mkdir(self.bucket_name)
+            self.file_system.mkdir(self.bucket_name)
         except FileExistsError:
             self.cleanup_bucket()
             self._set_up_bucket()
 
-    def set_up_basket(self, tmp_dir_name,
-                      file_name="test.txt", file_content="This is a test"):
+    def set_up_basket(
+        self, tmp_dir_name, file_name="test.txt", file_content="This is a test"
+    ):
         """Create a temporary (local) basket, with a single text file."""
         tmp_basket_dir = self.tmpdir.mkdir(tmp_dir_name)
         tmp_basket_txt_file = tmp_basket_dir.join(file_name)
 
-        if file_name[file_name.rfind('.'):] == ".json":
-            with open(tmp_basket_txt_file, "w") as outfile:
+        if file_name[file_name.rfind(".") :] == ".json":
+            with open(tmp_basket_txt_file, "w", encoding="utf-8") as outfile:
                 json.dump(file_content, outfile)
         else:
             tmp_basket_txt_file.write(file_content)
@@ -62,28 +71,30 @@ class BucketForTest():
 
     def add_lower_dir_to_temp_basket(self, tmp_basket_dir):
         """Add a nested directory inside the temporary basket."""
-        nd = tmp_basket_dir.mkdir("nested_dir")
-        nd.join("another_test.txt").write("more test text")
+        nested_dir = tmp_basket_dir.mkdir("nested_dir")
+        nested_dir.join("another_test.txt").write("more test text")
         return tmp_basket_dir
 
-    def upload_basket(self, tmp_basket_dir, uid='0000',
-                      basket_type="test_basket", **kwargs):
+    def upload_basket(
+        self, tmp_basket_dir, uid="0000", basket_type="test_basket", **kwargs
+    ):
         """Upload a temporary (local) basket to the S3 test bucket."""
         up_dir = os.path.join(self.bucket_name, basket_type, uid)
 
-        upload_items = [{'path':str(tmp_basket_dir.realpath()),
-                         'stub':False}]
+        upload_items = [
+            {"path": str(tmp_basket_dir.realpath()), "stub": False}
+        ]
 
         UploadBasket(
             upload_items=upload_items,
             upload_directory=up_dir,
             unique_id=uid,
             basket_type=basket_type,
-            file_system=self.fs,
-            **kwargs
+            file_system=self.file_system,
+            **kwargs,
         )
         return up_dir
 
     def cleanup_bucket(self):
         """Delete the temporary test bucket, including any uploaded baskets."""
-        self.fs.rm(self.bucket_name, recursive=True)
+        self.file_system.rm(self.bucket_name, recursive=True)
