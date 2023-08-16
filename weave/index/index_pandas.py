@@ -92,7 +92,6 @@ class _Index():
         n_keep = int(n_keep)
         index_paths = self.file_system.glob(f"{self.index_basket_dir_path}"
                                             "/**/*-index.json")
-        print(index_paths)
         if len(index_paths) <= n_keep:
             return
         index_time_list = [self._get_index_time_from_path(i)
@@ -106,9 +105,6 @@ class _Index():
                         f"{self.index_basket_dir_path}/**/" +
                         f"{index_time}-index.json"
                     )[0]
-                    print(path)
-                    #uuid = path.split(os.path.sep)[-2]
-                    #self.delete_basket(basket_uuid=uuid, upload_index=False)
                     self.file_system.rm(path,recursive = True)
                 except ValueError as error:
                     warnings.warn(error)
