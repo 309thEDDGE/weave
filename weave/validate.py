@@ -99,7 +99,7 @@ def _check_level(current_dir, file_system, in_basket=False):
             # we don't want to return _check_level because we want to keep
             # looking at all the sub-directories
             if not _check_level(file_or_dir, file_system,
-                                  in_basket=in_basket):
+                                in_basket=in_basket):
                 return False
 
     # This is the default backup return.
@@ -175,7 +175,15 @@ def _validate_basket(basket_dir, file_system):
 
 
 def handle_manifest(file, file_system):
-    """Handles case if manifest"""
+    """Handles case if manifest
+    
+    Parameters:
+    -----------
+    file: str
+        Path to the file.
+    file_system: fsspec-like obj
+        The file system to use.
+    """
     try:
         # these two lines make sure it can be read and is valid schema
         data = json.load(file_system.open(file))
@@ -193,7 +201,15 @@ def handle_manifest(file, file_system):
 
 
 def handle_supplement(file, file_system):
-    """Handles case if supplement"""
+    """Handles case if supplement
+    
+    Parameters:
+    -----------
+    file: str
+        Path to the file.
+    file_system: fsspec-like obj
+        The file system to use.
+    """
     try:
         # these two lines make sure it can be read and is valid schema
         data = json.load(file_system.open(file))
@@ -212,7 +228,15 @@ def handle_supplement(file, file_system):
         ) from exc
 
 def handle_metadata(file, file_system):
-    """Handles case if metadata"""
+    """Handles case if metadata
+    
+    Parameters:
+    -----------
+    file: str
+        Path to the file.
+    file_system: fsspec-like obj
+        The file system to use.
+    """
     try:
         json.load(file_system.open(file))
 
@@ -224,7 +248,15 @@ def handle_metadata(file, file_system):
 
 
 def handle_none_of_the_above(file, file_system):
-    """Handles case if none of the above"""
+    """Handles case if none of the above
+    
+    Parameters:
+    -----------
+    file: str
+        Path to the file.
+    file_system: fsspec-like obj
+        The file system to use.
+    """
     basket_dir, _ = os.path.split(file)
     if file_system.info(file)['type'] == 'directory':
         if _check_level(file, file_system, in_basket=True):
