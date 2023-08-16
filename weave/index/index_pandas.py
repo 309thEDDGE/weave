@@ -180,7 +180,8 @@ class _Index():
                 )
 
             remove_item = self.index_df[self.index_df["uuid"] == basket_uuid]
-            self.file_system.rm(remove_item['address'].values[0], recursive=True)
+            self.file_system.rm(
+                remove_item['address'].values[0], recursive=True)
             self.index_df.drop(remove_item.index, inplace=True)
             self.index_df.reset_index(drop=True, inplace=True)
 
