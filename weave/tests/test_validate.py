@@ -1,3 +1,4 @@
+"""Pytests for the validate functionality."""
 import os
 from pathlib import Path
 
@@ -8,25 +9,27 @@ from fsspec.implementations.local import LocalFileSystem
 from weave import validate
 from weave.tests.pytest_resources import BucketForTest
 
+# This module is long and has many tests. Pylint is complaining that it is too
+# long. I don't necessarily think that is bad in this case, as the alternative
+# would be to write the tests continuuing in a different script, which I think
+# is unnecesarily complex. Therefor, I am disabling this warning for this
+# script.
+# pylint: disable=too-many-lines
+
+
 class ValidateForTest(BucketForTest):
     """A class to test functions in validate.py"""
-    def __init__(self, tmpdir, fs):
-        """Initializes the ValidateForTest class
-        call the super (BucketForTest) init.
-        """
-        super().__init__(tmpdir, fs)
 
+    # Well I think we probably need different args for the below function,
+    # which is over-riding BucketForTest.set_up_basket. Pylint hates it, but
+    # here we are:
+    # pylint: disable-next=arguments-differ
     def set_up_basket(
-            self,
-            tmp_dir_name,
-            is_man=False,
-            is_sup=False,
-            is_meta=False,
-            man_data='',
-            sup_data='',
-            meta_data='',
-        ):
-        """Overrides BucketForTest's set_up_basket to better test validate.py
+        self,
+        tmp_dir_name,
+        **kwargs
+    ):
+        """Overrides BucketForTest's set_up_basket to better test_validate.py
 
         Sets up the basket with a nested basket depending on the values of
         the boolean params when this is called. if the is_man is true, a
@@ -43,22 +46,25 @@ class ValidateForTest(BucketForTest):
         ----------
         tmp_dir_name: string
             the directory name of where the nested basket will be
-        is_man: boolean (optional)
+
+        Key-word Arguments:
+        -------------------
+        is_man: boolean
             a bool that signals if ther should be a manifest file
             defaults to no manifest
-        is_sup: boolean (optional)
+        is_sup: boolean
             a bool that signals if ther should be a supplement file
             defaults to no supplement
-        is_meta: boolean (optional)
+        is_meta: boolean
             a bool that signals if ther should be a metadata file
             defaults to no metadata
-        man_data: string (optional)
+        man_data: string
             the json data we want to be put into the manifest file
             defaults to a valid manifest schema
-        sup_data: string (optional)
+        sup_data: string
             the json data we want to be put into the supplement file
             defaults to a valid supplement schema
-        meta_data: string (optional)
+        meta_data: string
             the json data we want to be put into the metadata file
             defaults to a valid json object
 
@@ -66,20 +72,26 @@ class ValidateForTest(BucketForTest):
         ----------
         A string of the directory where the basket was uploaded
         """
+        is_man=kwargs.get("is_man", False)
+        is_sup=kwargs.get("is_sup", False)
+        is_meta=kwargs.get("is_meta", False)
+        man_data=kwargs.get("man_data", "")
+        sup_data=kwargs.get("sup_data", "")
+        meta_data=kwargs.get("meta_data", "")
         tmp_basket_dir = self.tmpdir.mkdir(tmp_dir_name)
 
         if is_man:
             tmp_manifest = tmp_basket_dir.join("basket_manifest.json")
 
             # This gives a default valid manifest json schema
-            if man_data == '':
-                man_data = '''{
+            if man_data == "":
+                man_data = """{
                     "uuid": "str",
                     "upload_time": "uploadtime string",
                     "parent_uuids": [ "string1", "string2", "string3" ],
                     "basket_type": "basket type string",
                     "label": "label string"
-                }'''
+                }"""
 
             tmp_manifest.write(man_data)
 
@@ -87,8 +99,8 @@ class ValidateForTest(BucketForTest):
             tmp_supplement = tmp_basket_dir.join("basket_supplement.json")
 
             # This gives a default valid supplement json schema
-            if sup_data == '':
-                sup_data = '''{
+            if sup_data == "":
+                sup_data = """{
                     "upload_items":
                     [
                     { "path": "str", "stub": false}
@@ -106,7 +118,7 @@ class ValidateForTest(BucketForTest):
                         "upload_path":"string"
                     }
                     ]
-                }'''
+                }"""
 
             tmp_supplement.write(sup_data)
 
@@ -114,8 +126,8 @@ class ValidateForTest(BucketForTest):
             tmp_metadata = tmp_basket_dir.join("basket_metadata.json")
 
             # This gives a default valid metadata json structure
-            if meta_data == '':
-                meta_data = '''{"Test":1, "test_bool":55}'''
+            if meta_data == "":
+                meta_data = """{"Test":1, "test_bool":55}"""
 
             tmp_metadata.write(meta_data)
 
@@ -131,64 +143,81 @@ class ValidateForTest(BucketForTest):
         because I couldn't get it to upload one using the set_up_basket
         or upload_basket function
         """
-        nd = tmp_basket_dir.mkdir(new_dir_name)
-        nd.join("nested_file.txt").write(
+        new_directory = tmp_basket_dir.mkdir(new_dir_name)
+        new_directory.join("nested_file.txt").write(
             "this is a nested file to ensure the directory is created"
         )
 
         if is_basket:
-            nd.join("basket_manifest.json").write('''{
+            new_directory.join("basket_manifest.json").write(
+                """{
                 "uuid": "str",
                 "upload_time": "uploadtime string",
                 "parent_uuids": [ "string1", "string2", "string3" ],
                 "basket_type": "basket type string",
                 "label": "label string"
-            }''')
+            }"""
+            )
 
-        return nd
+        return new_directory
+
+# Pylint doesn't like that we are redefining the test fixture here from
+# test_basket, but I think this is the right way to do this in case at some
+# point in the future we need to differentiate the two.
+# pylint: disable=duplicate-code
 
 s3fs = s3fs.S3FileSystem(
     client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
 )
 local_fs = LocalFileSystem()
 
+
 # Test with two different fsspec file systems (above).
 @pytest.fixture(params=[s3fs, local_fs])
-def set_up_validate(request, tmpdir):
-    fs = request.param
-    tv = ValidateForTest(tmpdir, fs)
-    yield tv
-    tv.cleanup_bucket()
+def test_validate(request, tmpdir):
+    """Pytest fixture for testing validate"""
+    file_system = request.param
+    test_validate_obj = ValidateForTest(tmpdir, file_system)
+    yield test_validate_obj
+    test_validate_obj.cleanup_bucket()
 
-def test_validate_bucket_does_not_exist(set_up_validate):
+
+# We need to ignore pylint's warning "redefined-outer-name" as this is simply
+# how pytest works when it comes to pytest fixtures.
+# pylint: disable=redefined-outer-name
+
+
+def test_validate_bucket_does_not_exist(test_validate):
     """Give a bucket path that does not exist and check that it throws
        an error.
     """
-    tv = set_up_validate
 
     bucket_path = Path("THISisNOTaPROPERbucketNAMEorPATH")
 
     # Check that the correct error is raised
     with pytest.raises(
-        ValueError, match=f"Invalid Bucket Path. "
+        ValueError,
+        match=f"Invalid Bucket Path. "
         f"Bucket does not exist at: {bucket_path}"
     ):
-        validate.validate_bucket(bucket_path, tv.fs)
+        validate.validate_bucket(bucket_path, test_validate.file_system)
 
-def test_validate_no_supplement_file(set_up_validate):
+
+def test_validate_no_supplement_file(test_validate):
     """Make a basket, remove the supplement file, check that it collects one
        warning.
     """
-    tv = set_up_validate
 
-    tmp_basket_dir = tv.set_up_basket("my_basket")
-    basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir,
-                                   metadata={"Test":1, "test_bool":True})
+    tmp_basket_dir = test_validate.set_up_basket("my_basket")
+    basket_path = test_validate.upload_basket(
+        tmp_basket_dir=tmp_basket_dir, metadata={"Test":1, "test_bool":True}
+    )
 
     supplement_path = os.path.join(basket_path, "basket_supplement.json")
-    tv.fs.rm(supplement_path)
+    test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(tv.bucket_name, tv.fs)
+    warn_info = validate.validate_bucket(test_validate.bucket_name,
+                                         test_validate.file_system)
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -196,30 +225,31 @@ def test_validate_no_supplement_file(set_up_validate):
 
     # Check that the correct warning is raised
     assert warning_1.args[0] == ("Invalid Basket. "
-    "No Supplement file found at: ")
+                                 "No Supplement file found at: ")
     # Check the invalid basket path is what we expect (disregarding FS prefix)
     assert warning_1.args[1].endswith(basket_path)
 
-def test_validate_no_metadata_file(set_up_validate):
+
+def test_validate_no_metadata_file(test_validate):
     """Make a basket with no metadata, validate that it returns
        an empty list (valid).
     """
-    tv = set_up_validate
 
-    tmp_basket_dir = tv.set_up_basket("my_basket")
-    tv.add_lower_dir_to_temp_basket(tmp_basket_dir=tmp_basket_dir)
-    tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
+    tmp_basket_dir = test_validate.set_up_basket("my_basket")
+    test_validate.add_lower_dir_to_temp_basket(tmp_basket_dir=tmp_basket_dir)
+    test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
-    warn_info = validate.validate_bucket(tv.bucket_name, tv.fs)
+    warn_info = validate.validate_bucket(test_validate.bucket_name,
+                                         test_validate.file_system)
 
     # Check that no warnings are collected
     assert len(warn_info) == 0
 
-def test_validate_invalid_manifest_schema(set_up_validate):
+
+def test_validate_invalid_manifest_schema(test_validate):
     """Make basket with invalid manifest schema, check that it colllects one
        warning.
     """
-    tv = set_up_validate
 
     # The 'uuid: 100' is supposed to be a string, not a number,
     # this is invalid against the schema.
@@ -231,22 +261,23 @@ def test_validate_invalid_manifest_schema(set_up_validate):
         "label": "str"
     }"""
 
-    tmp_basket_dir = tv.set_up_basket(
-                            "bad_man_schema",
-                            is_man=True,
-                            man_data=bad_manifest_data,
-                            is_sup=True,
-                            is_meta=False
-                        )
+    tmp_basket_dir = test_validate.set_up_basket(
+        "bad_man_schema",
+        is_man=True,
+        man_data=bad_manifest_data,
+        is_sup=True,
+        is_meta=False
+    )
 
-    basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
+    basket_path = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
     manifest_path = os.path.join(basket_path, "basket_manifest.json")
     supplement_path = os.path.join(basket_path, "basket_supplement.json")
-    tv.fs.rm(manifest_path)
-    tv.fs.rm(supplement_path)
+    test_validate.file_system.rm(manifest_path)
+    test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(tv.bucket_name, tv.fs)
+    warn_info = validate.validate_bucket(test_validate.bucket_name,
+                                         test_validate.file_system)
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -260,11 +291,11 @@ def test_validate_invalid_manifest_schema(set_up_validate):
                                                    "bad_man_schema",
                                                    "basket_manifest.json"))
 
-def test_validate_manifest_schema_missing_field(set_up_validate):
+
+def test_validate_manifest_schema_missing_field(test_validate):
     """Make basket with invalid manifest schema, check that it collects one
        warning.
     """
-    tv = set_up_validate
 
     # The manifest is missing the uuid field
     # this is invalid against the schema.
@@ -275,22 +306,23 @@ def test_validate_manifest_schema_missing_field(set_up_validate):
         "label": "str"
     }"""
 
-    tmp_basket_dir = tv.set_up_basket(
-                            "bad_man_schema",
-                            is_man=True,
-                            man_data=bad_manifest_data,
-                            is_sup=True,
-                            is_meta=False
-                        )
+    tmp_basket_dir = test_validate.set_up_basket(
+        "bad_man_schema",
+        is_man=True,
+        man_data=bad_manifest_data,
+        is_sup=True,
+        is_meta=False
+    )
 
-    basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
+    basket_path = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
     manifest_path = os.path.join(basket_path, "basket_manifest.json")
     supplement_path = os.path.join(basket_path, "basket_supplement.json")
-    tv.fs.rm(manifest_path)
-    tv.fs.rm(supplement_path)
+    test_validate.file_system.rm(manifest_path)
+    test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(tv.bucket_name, tv.fs)
+    warn_info = validate.validate_bucket(test_validate.bucket_name,
+                                         test_validate.file_system)
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -304,15 +336,15 @@ def test_validate_manifest_schema_missing_field(set_up_validate):
                                                    "bad_man_schema",
                                                    "basket_manifest.json"))
 
-def test_validate_manifest_schema_additional_field(set_up_validate):
+
+def test_validate_manifest_schema_additional_field(test_validate):
     """Make basket with invalid manifest schema, check that it collects one
        warning.
     """
-    tv = set_up_validate
 
     # The manifest has the additional "error" field
     # this is invalid against the schema.
-    bad_manifest_data = '''{
+    bad_manifest_data = """{
         "uuid": "str",
         "upload_time": "uploadtime string",
         "parent_uuids": [ "string1", "string2", "string3" ],
@@ -320,24 +352,25 @@ def test_validate_manifest_schema_additional_field(set_up_validate):
         "label": "label string",
 
         "error": "this is an additional field"
-    }'''
+    }"""
 
-    tmp_basket_dir = tv.set_up_basket(
-                            "bad_man_schema",
-                            is_man=True,
-                            man_data=bad_manifest_data,
-                            is_sup=True,
-                            is_meta=False
-                        )
+    tmp_basket_dir = test_validate.set_up_basket(
+        "bad_man_schema",
+        is_man=True,
+        man_data=bad_manifest_data,
+        is_sup=True,
+        is_meta=False
+    )
 
-    basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
+    basket_path = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
     manifest_path = os.path.join(basket_path, "basket_manifest.json")
     supplement_path = os.path.join(basket_path, "basket_supplement.json")
-    tv.fs.rm(manifest_path)
-    tv.fs.rm(supplement_path)
+    test_validate.file_system.rm(manifest_path)
+    test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(tv.bucket_name, tv.fs)
+    warn_info = validate.validate_bucket(test_validate.bucket_name,
+                                         test_validate.file_system)
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -351,13 +384,13 @@ def test_validate_manifest_schema_additional_field(set_up_validate):
                                                    "bad_man_schema",
                                                    "basket_manifest.json"))
 
-def test_validate_invalid_manifest_json(set_up_validate):
+
+def test_validate_invalid_manifest_json(test_validate):
     """Make a basket with invalid manifest json, check that it collects
        one warning.
     """
-    tv = set_up_validate
 
-    tmp_basket_dir = tv.set_up_basket(
+    tmp_basket_dir = test_validate.set_up_basket(
         "bad_man",
         is_man=True,
         man_data='{"Bad":1}}',
@@ -365,14 +398,15 @@ def test_validate_invalid_manifest_json(set_up_validate):
         is_meta=False
     )
 
-    basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
+    basket_path = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
     manifest_path = os.path.join(basket_path, "basket_manifest.json")
     supplement_path = os.path.join(basket_path, "basket_supplement.json")
-    tv.fs.rm(manifest_path)
-    tv.fs.rm(supplement_path)
+    test_validate.file_system.rm(manifest_path)
+    test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(tv.bucket_name, tv.fs)
+    warn_info = validate.validate_bucket(test_validate.bucket_name,
+                                         test_validate.file_system)
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -386,11 +420,10 @@ def test_validate_invalid_manifest_json(set_up_validate):
                                                    "bad_man",
                                                    "basket_manifest.json"))
 
-def test_validate_invalid_supplement_schema(set_up_validate):
+def test_validate_invalid_supplement_schema(test_validate):
     """Make a basket with invalid supplement schema, check that it collects
        one warning.
     """
-    tv = set_up_validate
 
     # The stub ('1231231') is supposed to be a boolean, not a number,
     # this is invalid against the schema.
@@ -414,22 +447,23 @@ def test_validate_invalid_supplement_schema(set_up_validate):
         ]
     }"""
 
-    tmp_basket_dir = tv.set_up_basket(
-                            "bad_sup_schema",
-                            is_man=True,
-                            is_sup=True,
-                            sup_data=bad_supplement_data,
-                            is_meta=False
-                        )
+    tmp_basket_dir = test_validate.set_up_basket(
+        "bad_sup_schema",
+        is_man=True,
+        is_sup=True,
+        sup_data=bad_supplement_data,
+        is_meta=False
+    )
 
-    basket_path = tv.upload_basket(tmp_basket_dir=tmp_basket_dir)
+    basket_path = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
     manifest_path = os.path.join(basket_path, "basket_manifest.json")
     supplement_path = os.path.join(basket_path, "basket_supplement.json")
-    tv.fs.rm(manifest_path)
-    tv.fs.rm(supplement_path)
+    test_validate.file_system.rm(manifest_path)
+    test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(tv.bucket_name, tv.fs)
+    warn_info = validate.validate_bucket(test_validate.bucket_name,
+                                         test_validate.file_system)
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -443,7 +477,8 @@ def test_validate_invalid_supplement_schema(set_up_validate):
                                                    "bad_sup_schema",
                                                    "basket_supplement.json"))
 
-def test_validate_supplement_schema_missing_field(set_up_validate):
+
+def test_validate_supplement_schema_missing_field(test_validate):
     """Make a basket with invalid supplement schema, check that it collects
        one warning.
     """
