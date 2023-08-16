@@ -6,7 +6,7 @@ import pytest
 import s3fs
 
 from weave.basket import Basket
-from weave.index import create_index_from_fs
+from weave.index.create_index import create_index_from_fs
 from weave.tests.pytest_resources import BucketForTest
 
 from fsspec.implementations.local import LocalFileSystem
