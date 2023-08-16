@@ -13,7 +13,20 @@ class BasketInitializer:
     """Initializes basket class. Validates input args.
     """
     def __init__(self, basket_address, bucket_name, **kwargs):
-        """Handles set up of basket. Calls validation."""
+        """Handles set up of basket. Calls validation.
+        
+        Parameters
+        ----------
+        basket_address: string
+            Argument can take one of two forms: either a path to the Basket
+            directory, or the UUID of the basket.
+        bucket_name: string
+            Name of the bucket which the desired index is associated with.
+
+        kwargs:
+        file_system: fsspec object
+            The fsspec filesystem to be used for retrieving and uploading.
+        """
         self.file_system = kwargs.get("file_system", get_file_system())
         try:
             self.set_up_basket_from_path(basket_address)
@@ -27,7 +40,15 @@ class BasketInitializer:
         self.validate()
 
     def set_up_basket_from_path(self, basket_address):
-        """Attempts to set up a basket from a filepath"""
+        """Attempts to set up a basket from a filepath.
+        
+        Paramters
+        ---------
+        basket_address: string
+            Argument can take one of two forms: either a path to the Basket
+            directory, or the UUID of the basket. In this case it is assumed to
+            be a path to the Basket directory.
+        """
         self.basket_address = os.fspath(basket_address)
         self.validate_basket_path()
 
@@ -36,6 +57,13 @@ class BasketInitializer:
 
         Note that if the basket cannot be set up from a uuid then an attempt to
         set up the basket from a filepath will be made.
+        
+        basket_address: string
+            Argument can take one of two forms: either a path to the Basket
+            directory, or the UUID of the basket. In this case it is assumed to
+            be the UUID of the basket.
+        bucket_name: string
+            Name of the bucket which the desired index is associated with.
         """
         try:
             ind = _Index(bucket_name=bucket_name, file_system=self.file_system)

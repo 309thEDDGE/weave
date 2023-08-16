@@ -8,7 +8,7 @@ from .index_pandas import _Index
 
 
 class Index(_Index):
-    '''Facilitate user interaction with the index of a Weave data warehouse.'''
+    """Facilitate user interaction with the index of a Weave data warehouse."""
     def get_basket(self, basket_address):
         """Retrieves a basket of given UUID or path.
 
