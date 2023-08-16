@@ -737,7 +737,7 @@ def test_get_children_15_deep(set_up_tb):
         child_id = parent_id
         parent_id = str(i)
         tmp = tb.set_up_basket("basket_" + child_id)
-        tb.upload_basket(h
+        tb.upload_basket(
             tmp_basket_dir=tmp,
             uid=child_id,
             parent_ids=[parent_id])
