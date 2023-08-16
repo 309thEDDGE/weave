@@ -105,8 +105,9 @@ class _Index():
                         f"{self.index_basket_dir_path}/**/" +
                         f"{index_time}-index.json"
                     )[0]
-                    uuid = path.split(os.path.sep)[-2]
-                    self.delete_basket(basket_uuid=uuid, upload_index=False)
+                    #uuid = path.split(os.path.sep)[-2]
+                    #self.delete_basket(basket_uuid=uuid, upload_index=False)
+                    self.file_system.rm(path,recursive = True)
                 except ValueError as error:
                     warnings.warn(error)
 
@@ -162,31 +163,30 @@ class _Index():
         if self.index_df is None:
             self.sync_index()
         if basket_uuid not in self.index_df["uuid"].to_list():
-            remove_path = self.file_system.glob(f"{self.index_basket_dir_path}"
-                                            f"/**/{basket_uuid}/")
-            self.file_system.rm(remove_path, recursive=True)
-        else:
-            # Flatten nested lists into a single list
-            parent_uuids = [
-                j
-                for i in self.index_df["parent_uuids"].to_list()
-                for j in i
-            ]
-            if basket_uuid in parent_uuids:
-                raise ValueError(
-                    f"The provided value for basket_uuid {basket_uuid} " +
-                    "is listed as a parent UUID for another basket. Please " +
-                    "delete that basket before deleting it's parent basket."
-                )
+            raise ValueError(
+                f"The provided value for basket_uuid {basket_uuid} " +
+                "does not exist."
+            )
+        # Flatten nested lists into a single list
+        parent_uuids = [
+            j
+            for i in self.index_df["parent_uuids"].to_list()
+            for j in i
+        ]
+        if basket_uuid in parent_uuids:
+            raise ValueError(
+                f"The provided value for basket_uuid {basket_uuid} " +
+                "is listed as a parent UUID for another basket. Please " +
+                "delete that basket before deleting it's parent basket."
+            )
 
-            remove_item = self.index_df[self.index_df["uuid"] == basket_uuid]
-            self.file_system.rm(
-                remove_item['address'].values[0], recursive=True)
-            self.index_df.drop(remove_item.index, inplace=True)
-            self.index_df.reset_index(drop=True, inplace=True)
+        remove_item = self.index_df[self.index_df["uuid"] == basket_uuid]
+        self.file_system.rm(remove_item['address'].values[0], recursive=True)
+        self.index_df.drop(remove_item.index, inplace=True)
+        self.index_df.reset_index(drop=True, inplace=True)
+        if upload_index:
+            self._upload_index(self.index_df)
 
-            if upload_index:
-                self._upload_index(self.index_df)
 
     def get_parents(self, basket, **kwargs):
         """Recursively gathers all parents of basket and returns index
