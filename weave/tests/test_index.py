@@ -274,7 +274,7 @@ def test_sync_index_gets_latest_index(test_pantry):
     )
     ind2.generate_index()
 
-    # assert length of index includes both baskets and does not include the index
+    # assert length of index includes both baskets and excludes the index
     assert len(ind.to_pandas_df()) == 2
 
 
@@ -436,7 +436,7 @@ def test_generate_index(test_pantry):
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
     ind.generate_index()
 
-    # Assert length of index includes both baskets and does not include the index
+    # Assert length of index includes both baskets and excludes the index
     assert len(ind.to_pandas_df()) == 2
 
 

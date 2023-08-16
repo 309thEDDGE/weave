@@ -162,10 +162,9 @@ class _Index():
         if self.index_df is None:
             self.sync_index()
         if basket_uuid not in self.index_df["uuid"].to_list():
-            removal_path = self.file_system.glob(f"{self.index_basket_dir_path}"
+            remove_path = self.file_system.glob(f"{self.index_basket_dir_path}"
                                             "/**/{basket_uuid}/")
-            self.file_system.rm(removal_path, recursive=True)
-            )
+            self.file_system.rm(remove_path, recursive=True)
         # Flatten nested lists into a single list
         parent_uuids = [
             j
