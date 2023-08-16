@@ -10,7 +10,8 @@ import numpy as np
 import pytest
 import s3fs
 
-from weave.index import create_index_from_fs, Index
+from weave.index.create_index import create_index_from_fs
+from weave.index.index import Index
 from weave import Basket
 
 from weave.tests.pytest_resources import BucketForTest
@@ -259,7 +260,7 @@ def test_clean_up_indices_n_not_int(set_up_tb):
         )
     ):
         ind = Index(file_system=tb.fs)
-        ind.clean_up_indices(n=test_str)
+        ind.clean_up_indices(n_keep=test_str)
 
 def test_clean_up_indices_leaves_n_indices(set_up_tb):
     tb = set_up_tb
@@ -277,7 +278,7 @@ def test_clean_up_indices_leaves_n_indices(set_up_tb):
     ind.generate_index()
 
     # Now there should be two index baskets. clean up all but one of them:
-    ind.clean_up_indices(n=1)
+    ind.clean_up_indices(n_keep=1)
     index_path = os.path.join(tb.bucket_name, 'index')
     assert len(tb.fs.ls(index_path)) == 1
 
@@ -298,7 +299,7 @@ def test_clean_up_indices_with_n_greater_than_num_of_indices(set_up_tb):
 
     # Now there should be two index baskets. clean up all but three of them:
     # (this should fail, obvs)
-    ind.clean_up_indices(n=3)
+    ind.clean_up_indices(n_keep=3)
     index_path = os.path.join(tb.bucket_name, 'index')
     assert len(tb.fs.ls(index_path)) == 2
 
@@ -1052,7 +1053,7 @@ def test_upload_basket_works_on_empty_basket(set_up_tb):
     assert(len(ind.index_df) == 1)
 
 @patch.object(uuid, 'uuid1')
-@patch('weave.uploader_functions.UploadBasket.upload_basket_supplement_to_fs')
+@patch('weave.upload.UploadBasket.upload_basket_supplement_to_fs')
 def test_upload_basket_gracefully_fails(mocked_obj_1, mocked_obj_2, set_up_tb):
     """
     In this test an engineered failure to upload the basket occurs.
