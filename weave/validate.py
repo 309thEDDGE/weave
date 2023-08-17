@@ -40,12 +40,10 @@ def validate_bucket(bucket_name, file_system):
     # we just use the bucket_name as the path
     with warnings.catch_warnings(record=True) as warn:
         _check_level(bucket_name, file_system)
-        # iterate through warn and return the list of warning messages
-        warning_list = []
-        # enumerate does not work here. Prefer to use range and len
+        # iterate through warn and return the list of warning messages.
+        # enumerate does not work here. prefer to use range and len
         # pylint: disable-next=consider-using-enumerate
-        for i in range(len(warn)):
-            warning_list.append(warn[i].message)
+        warning_list = [warn[i].message for i in range(len(warn))]
         return warning_list
 
 

@@ -111,11 +111,11 @@ class ValidateForTest(BucketForTest):
                     {
                         "file_size": 33,
                         "hash": "string",
-                        "access_date":"string",
+                        "access_date": "string",
                         "source_path": "string",
                         "byte_count": 1,
-                        "stub":false,
-                        "upload_path":"string"
+                        "stub": false,
+                        "upload_path": "string"
                     }
                     ]
                 }"""
@@ -221,8 +221,9 @@ def test_validate_no_supplement_file(test_validate):
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == ("Invalid Basket. "
-                                 "No Supplement file found at: ")
+    assert warning_1.args[0] == (
+        "Invalid Basket. No Supplement file found at: "
+    )
     # Check the invalid basket path is what we expect (disregarding FS prefix)
     assert warning_1.args[1].endswith(basket_path)
 
@@ -281,8 +282,9 @@ def test_validate_invalid_manifest_schema(test_validate):
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == ("Invalid Basket. "
-    "Manifest Schema does not match at: ")
+    assert warning_1.args[0] == (
+        "Invalid Basket. Manifest Schema does not match at: "
+    )
     # Check the invalid basket path is what we expect (disregarding FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_man_schema",
@@ -326,8 +328,9 @@ def test_validate_manifest_schema_missing_field(test_validate):
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == ("Invalid Basket. "
-    "Manifest Schema does not match at: ")
+    assert warning_1.args[0] == (
+        "Invalid Basket. Manifest Schema does not match at: "
+    )
     # Check the invalid basket path is what we expect (disregarding FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_man_schema",
@@ -374,8 +377,9 @@ def test_validate_manifest_schema_additional_field(test_validate):
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == ("Invalid Basket. "
-    "Manifest Schema does not match at: ")
+    assert warning_1.args[0] == (
+        "Invalid Basket. Manifest Schema does not match at: "
+    )
     # Check the invalid basket path is what we expect (disregarding FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_man_schema",
@@ -410,8 +414,9 @@ def test_validate_invalid_manifest_json(test_validate):
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == ("Invalid Basket. "
-    "Manifest could not be loaded into json at: ")
+    assert warning_1.args[0] == (
+        "Invalid Basket. Manifest could not be loaded into json at: "
+    )
     # Check the invalid basket path is what we expect (disregarding FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_man",
@@ -436,11 +441,11 @@ def test_validate_invalid_supplement_schema(test_validate):
         {
             "file_size": 33,
             "hash": "str",
-            "access_date":"str",
+            "access_date": "str",
             "source_path": "str",
             "byte_count": 1,
-            "stub":false,
-            "upload_path":"str"
+            "stub": false,
+            "upload_path": "str"
         }
         ]
     }"""
@@ -468,8 +473,9 @@ def test_validate_invalid_supplement_schema(test_validate):
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == ("Invalid Basket. "
-    "Supplement Schema does not match at: ")
+    assert warning_1.args[0] == (
+        "Invalid Basket. Supplement Schema does not match at: "
+    )
     # Check the invalid basket path is what we expect (disregarding FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_schema",
@@ -513,8 +519,9 @@ def test_validate_supplement_schema_missing_field(test_validate):
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == ("Invalid Basket. "
-    "Supplement Schema does not match at: ")
+    assert warning_1.args[0] == (
+        "Invalid Basket. Supplement Schema does not match at: "
+    )
     # Check the invalid basket path is what we expect (disregarding FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_schema",
@@ -539,10 +546,10 @@ def test_validate_supplement_schema_missing_array_field(test_validate):
         {
             "file_size": 33,
             "hash": "string",
-            "access_date":"string",
+            "access_date": "string",
             "source_path": "string",
             "byte_count": 1,
-            "stub":false
+            "stub": false
         }
         ]
     }"""
@@ -570,8 +577,9 @@ def test_validate_supplement_schema_missing_array_field(test_validate):
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == ("Invalid Basket. "
-    "Supplement Schema does not match at: ")
+    assert warning_1.args[0] == (
+        "Invalid Basket. Supplement Schema does not match at: "
+    )
     # Check the invalid basket path is what we expect (disregarding FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_schema",
@@ -596,10 +604,10 @@ def test_validate_supplement_schema_missing_array_field_2(test_validate):
         {
             "file_size": 33,
             "hash": "string",
-            "access_date":"string",
+            "access_date": "string",
             "source_path": "string",
             "byte_count": 1,
-            "stub":false,
+            "stub": false,
             "upload_path": "string"
         }
         ]
@@ -628,8 +636,9 @@ def test_validate_supplement_schema_missing_array_field_2(test_validate):
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == ("Invalid Basket. "
-    "Supplement Schema does not match at: ")
+    assert warning_1.args[0] == (
+        "Invalid Basket. Supplement Schema does not match at: "
+    )
     # Check the invalid basket path is what we expect (disregarding FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_schema",
@@ -658,11 +667,11 @@ def test_validate_supplement_schema_added_array_field(test_validate):
         {
             "file_size": 33,
             "hash": "string",
-            "access_date":"string",
+            "access_date": "string",
             "source_path": "string",
             "byte_count": 1,
-            "stub":false,
-            "upload_path":"string"
+            "stub": false,
+            "upload_path": "string"
         }
         ]
     }"""
@@ -690,8 +699,9 @@ def test_validate_supplement_schema_added_array_field(test_validate):
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == ("Invalid Basket. "
-    "Supplement Schema does not match at: ")
+    assert warning_1.args[0] == (
+        "Invalid Basket. Supplement Schema does not match at: "
+    )
     # Check the invalid basket path is what we expect (disregarding FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_schema",
@@ -719,11 +729,11 @@ def test_validate_supplement_schema_added_array_field_2(test_validate):
         {
             "file_size": 33,
             "hash": "string",
-            "access_date":"string",
+            "access_date": "string",
             "source_path": "string",
             "byte_count": 1,
-            "stub":false,
-            "upload_path":"string",
+            "stub": false,
+            "upload_path": "string",
             "error": "additional field"
         }
         ]
@@ -752,8 +762,9 @@ def test_validate_supplement_schema_added_array_field_2(test_validate):
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == ("Invalid Basket. "
-    "Supplement Schema does not match at: ")
+    assert warning_1.args[0] == (
+        "Invalid Basket. Supplement Schema does not match at: "
+    )
     # Check the invalid basket path is what we expect (disregarding FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_schema",
@@ -778,15 +789,15 @@ def test_validate_supplement_schema_additional_field(test_validate):
         {
             "file_size": 33,
             "hash": "string",
-            "access_date":"string",
+            "access_date": "string",
             "source_path": "string",
             "byte_count": 1,
-            "stub":false,
-            "upload_path":"string"
+            "stub": false,
+            "upload_path": "string"
         }
         ],
 
-        "my_extra_field":"HAHA-ERROR"
+        "my_extra_field": "HAHA-ERROR"
     }"""
 
     tmp_basket_dir = test_validate.set_up_basket(
@@ -812,8 +823,9 @@ def test_validate_supplement_schema_additional_field(test_validate):
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == ("Invalid Basket. "
-    "Supplement Schema does not match at: ")
+    assert warning_1.args[0] == (
+        "Invalid Basket. Supplement Schema does not match at: "
+    )
     # Check the invalid basket path is what we expect (disregarding FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_schema",
@@ -835,11 +847,11 @@ def test_validate_supplement_schema_empty_upload_items(test_validate):
         {
             "file_size": 33,
             "hash": "string",
-            "access_date":"string",
+            "access_date": "string",
             "source_path": "string",
             "byte_count": 1,
-            "stub":false,
-            "upload_path":"string"
+            "stub": false,
+            "upload_path": "string"
         }
         ]
     }"""
@@ -867,8 +879,9 @@ def test_validate_supplement_schema_empty_upload_items(test_validate):
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == ("Invalid Basket. "
-    "Supplement Schema does not match at: ")
+    assert warning_1.args[0] == (
+        "Invalid Basket. Supplement Schema does not match at: "
+    )
     # Check the invalid basket path is what we expect (disregarding FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_schema",
@@ -914,8 +927,9 @@ def test_validate_supplement_schema_empty_integrity_data(test_validate):
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == ("Invalid Basket. "
-    "Supplement Schema does not match at: ")
+    assert warning_1.args[0] == (
+        "Invalid Basket. Supplement Schema does not match at: "
+    )
     # Check the invalid basket path is what we expect (disregarding FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_schema",
@@ -930,7 +944,7 @@ def test_validate_invalid_supplement_json(test_validate):
     tmp_basket_dir = test_validate.set_up_basket(
         "bad_sup",
         is_man=True,
-        sup_data='{"Bad":1}}',
+        sup_data='{"Bad": 1}}',
         is_sup=True,
         is_meta=False
     )
@@ -950,8 +964,9 @@ def test_validate_invalid_supplement_json(test_validate):
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == ("Invalid Basket. "
-    "Supplement could not be loaded into json at: ")
+    assert warning_1.args[0] == (
+        "Invalid Basket. Supplement could not be loaded into json at: "
+    )
     # Check the invalid basket path is what we expect (disregarding FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup",
@@ -966,7 +981,7 @@ def test_validate_invalid_metadata_json(test_validate):
     tmp_basket_dir = test_validate.set_up_basket(
         "bad_meta",
         is_man=True,
-        meta_data='{"Bad":1}}',
+        meta_data='{"Bad": 1}}',
         is_sup=True,
         is_meta=True
     )
@@ -986,8 +1001,9 @@ def test_validate_invalid_metadata_json(test_validate):
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == ("Invalid Basket. "
-    "Metadata could not be loaded into json at: ")
+    assert warning_1.args[0] == (
+        "Invalid Basket. Metadata could not be loaded into json at: "
+    )
     # Check the invalid basket path is what we expect (disregarding FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_meta",
@@ -1015,8 +1031,9 @@ def test_validate_nested_basket(test_validate):
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == ("Invalid Basket. "
-    "Manifest File found in sub directory of basket at: ")
+    assert warning_1.args[0] == (
+        "Invalid Basket. Manifest File found in sub directory of basket at: "
+    )
     # Check the invalid basket path is what we expect (disregarding FS prefix)
     assert warning_1.args[1].endswith(basket_path)
 
@@ -1067,8 +1084,9 @@ def test_validate_deeply_nested(test_validate):
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == ("Invalid Basket. "
-    "Manifest File found in sub directory of basket at: ")
+    assert warning_1.args[0] == (
+        "Invalid Basket. Manifest File found in sub directory of basket at: "
+    )
     # Check the invalid basket path is what we expect (disregarding FS prefix)
     assert warning_1.args[1].endswith(basket_path)
 
@@ -1155,8 +1173,9 @@ def test_validate_fifty_baskets_invalid(test_validate):
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == ("Invalid Basket. "
-    "Manifest File found in sub directory of basket at: ")
+    assert warning_1.args[0] == (
+        "Invalid Basket. Manifest File found in sub directory of basket at: "
+    )
     # Check the invalid basket path is what we expect (disregarding FS prefix)
     assert warning_1.args[1].endswith(invalid_basket_path)
 
@@ -1272,15 +1291,15 @@ def test_validate_bad_manifest_and_supplement_schema(test_validate):
         {
             "file_size": 33,
             "hash": "string",
-            "access_date":"string",
+            "access_date": "string",
             "source_path": "string",
             "byte_count": 1,
-            "stub":false,
-            "upload_path":"string"
+            "stub": false,
+            "upload_path": "string"
         }
         ],
 
-        "my_extra_field":"HAHA-ERROR"
+        "my_extra_field": "HAHA-ERROR"
     }'''
 
     tmp_basket_dir = test_validate.set_up_basket(
@@ -1309,16 +1328,18 @@ def test_validate_bad_manifest_and_supplement_schema(test_validate):
 
     # Check that the first warning raised is correct with the correct
     # invalid basket path (disregarding FS prefix)
-    assert warning_1.args[0] == ("Invalid Basket. "
-    "Manifest Schema does not match at: ")
+    assert warning_1.args[0] == (
+        "Invalid Basket. Manifest Schema does not match at: "
+    )
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_and_man_schema",
                                                    "basket_manifest.json"))
 
     # Check that the second warning raised is correct with the correct
     # invalid basket path (disregarding FS prefix)
-    assert warning_2.args[0] == ("Invalid Basket. "
-    "Supplement Schema does not match at: ")
+    assert warning_2.args[0] == (
+        "Invalid Basket. Supplement Schema does not match at: "
+    )
     assert warning_2.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_and_man_schema",
                                                    "basket_supplement.json"))
@@ -1334,9 +1355,9 @@ def test_validate_bad_metadata_and_supplement_schema_with_nested_basket(
         "my_basket",
         is_man=True,
         is_sup=True,
-        sup_data='{"Bad":1}}',
+        sup_data='{"Bad": 1}}',
         is_meta=True,
-        meta_data='{"Bad":1}}'
+        meta_data='{"Bad": 1}}'
     )
 
     test_validate.add_lower_dir_to_temp_basket(
@@ -1363,22 +1384,25 @@ def test_validate_bad_metadata_and_supplement_schema_with_nested_basket(
 
     # Check that the first warning raised is correct with the correct
     # invalid basket path (disregarding FS prefix)
-    assert warning_1.args[0] == ("Invalid Basket. "
-    "Metadata could not be loaded into json at: ")
+    assert warning_1.args[0] == (
+        "Invalid Basket. Metadata could not be loaded into json at: "
+    )
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "my_basket",
                                                    "basket_metadata.json"))
 
     # Check that the second warning raised is correct with the correct
     # invalid basket path (disregarding FS prefix)
-    assert warning_2.args[0] == ("Invalid Basket. "
-    "Supplement could not be loaded into json at: ")
+    assert warning_2.args[0] == (
+        "Invalid Basket. Supplement could not be loaded into json at: "
+    )
     assert warning_2.args[1].endswith(os.path.join(basket_path,
                                                    "my_basket",
                                                    "basket_supplement.json"))
 
     # Check that the third warning raised is correct with the correct
     # invalid basket path (disregarding FS prefix)
-    assert warning_3.args[0] == ("Invalid Basket. "
-    "Manifest File found in sub directory of basket at: ")
+    assert warning_3.args[0] == (
+        "Invalid Basket. Manifest File found in sub directory of basket at: "
+    )
     assert warning_3.args[1].endswith(os.path.join(basket_path, "my_basket"))
