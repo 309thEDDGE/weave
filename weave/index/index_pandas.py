@@ -105,7 +105,8 @@ class _Index():
                         f"{self.index_basket_dir_path}/**/" +
                         f"{index_time}-index.json"
                     )[0]
-                    self.file_system.rm(path)
+                    parent_path = path.rsplit('/',1)[0]
+                    self.file_system.rm(parent_path, recursive = True)
                 except ValueError as error:
                     warnings.warn(error)
 
