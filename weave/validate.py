@@ -2,6 +2,7 @@
 """
 import json
 import os
+import warnings
 
 import jsonschema
 from jsonschema import validate
@@ -20,11 +21,16 @@ def validate_bucket(bucket_name, file_system):
     ----------
     bucket_name: string
         the name of the bucket in s3fs
+    file_system: fsspec object
+        the file system (s3fs, local fs, etc.) of the pantry
+        to validate
 
     Returns
     ----------
-    A bool of whether the bucket is valid or not that comes from check_level()
+    A list of all invalid basket locations (will return an empty list if
+    no warnings are raised)
     """
+
     if not file_system.exists(bucket_name):
         raise ValueError(
             f"Invalid Bucket Path. Bucket does not exist at: {bucket_name}"
@@ -32,14 +38,20 @@ def validate_bucket(bucket_name, file_system):
 
     # call check level, with a path, but since we're just starting,
     # we just use the bucket_name as the path
-    return _check_level(bucket_name, file_system)
+    with warnings.catch_warnings(record=True) as warn:
+        _check_level(bucket_name, file_system)
+        # iterate through warn and return the list of warning messages
+        warning_list = []
+        for i in range(len(warn)):
+            warning_list.append(warn[i].message)
+        return warning_list
 
 
 def _check_level(current_dir, file_system, in_basket=False):
     """Check all immediate subdirs in dir, check for manifest
 
-    Checks all the immediate subdirectories and files in the given directory 
-    to see if there is a basket_manifest.json file. If there is a manifest, 
+    Checks all the immediate subdirectories and files in the given directory
+    to see if there is a basket_manifest.json file. If there is a manifest,
     it's a basket and must be validated.
     If there is a directory found, then recursively call check_level with that
     found directory to find if there is a basket in any directory
@@ -47,8 +59,11 @@ def _check_level(current_dir, file_system, in_basket=False):
     Parameters
     ----------
     current_dir: string
-        the current directory that we want to search all files and 
+        the current directory that we want to search all files and
         directories of
+    file_system: fsspec object
+        the file system (s3fs, local fs, etc.) that we want to search all files
+        and directories of
     in_basket: bool
         optional parameter. This is a flag to signify that we are in a basket
         and we are looking for a nested basket now. 
@@ -89,7 +104,7 @@ def _check_level(current_dir, file_system, in_basket=False):
         if file_type == 'directory':
             # if we are in a basket, check evrything under it, for a manifest
             # and return true, this will return true to the _validate_basket
-            # and throw an error
+            # and throw an error or warning
             if in_basket:
                 return _check_level(file_or_dir, file_system,
                                     in_basket=in_basket)
@@ -106,7 +121,7 @@ def _check_level(current_dir, file_system, in_basket=False):
     # If we are in a basket, it will be valid if we return false,
     # because we want to signify that we didn't find another basket
     # If we are not in a basket, we want to return true, because
-    # we didn't find a basekt and it was valid to have no baskets
+    # we didn't find a basket and it was valid to have no baskets
     return not in_basket
 
 
@@ -117,27 +132,27 @@ def _validate_basket(basket_dir, file_system):
     basket_supplment.json. And an optional basket_metadata.json
     The manifest and supplement are required to follow a certain schema,
     which is defined in config.py.
-    All three, manifest, supplement, and metadata are also verified by being 
+    All three, manifest, supplement, and metadata are also verified by being
     able to be read into a python dictionary
 
     If there are any directories found inside this basket, run check_basket()
     on them to see if there is another basket inside this basket. If there is
-    another basket, raise error for invalid bucket.
+    another basket, raise an error or warning for invalid bucket.
 
-    If the Basket is ever invalid, raise an error
+    If the basket is ever invalid, raise an error warning
     If the basket is valid return true
 
     Parameters
     ----------
     basket_dir: string
-        The path in the file system to the basket root directory
+        the path in the file system to the basket root directory
     file_system: fsspec object
-        The fsspec file system hosting the bucket to be indexed.
+        the fsspec file system hosting the bucket to be indexed
 
     Returns
-    -------
+    ----------
     boolean that is true when the Basket is valid
-        if the Basket is invalid, raise an error
+        if the Basket is invalid, raise a warning
     """
     manifest_path = os.path.join(basket_dir, 'basket_manifest.json')
     supplement_path = os.path.join(basket_dir, 'basket_supplement.json')
@@ -147,14 +162,12 @@ def _validate_basket(basket_dir, file_system):
     # or this function is incorrectly called,
     # we can say that this isn't a basket.
     if not file_system.exists(manifest_path):
-        raise FileNotFoundError(
-            f"Invalid Path. No Basket found at: {basket_dir}"
-        )
+        raise FileNotFoundError(f"Invalid Path. "
+                                f"No Basket found at: {basket_dir}")
 
     if not file_system.exists(supplement_path):
-        raise FileNotFoundError(
-            "Invalid Basket. No Supplement file found at: ", basket_dir
-        )
+        warnings.warn(UserWarning(
+            "Invalid Basket. No Supplement file found at: ", basket_dir))
 
     files_in_basket = file_system.find(
         path=basket_dir,
@@ -176,7 +189,7 @@ def _validate_basket(basket_dir, file_system):
 
 def handle_manifest(file, file_system):
     """Handles case if manifest
-    
+
     Parameters:
     -----------
     file: str
@@ -189,20 +202,22 @@ def handle_manifest(file, file_system):
         data = json.load(file_system.open(file))
         validate(instance=data, schema=manifest_schema)
 
-    except jsonschema.exceptions.ValidationError as exc:
-        raise ValueError(
-            "Invalid Basket. Manifest Schema does not match at: ", file
-        ) from exc
+    except jsonschema.exceptions.ValidationError:
+        warnings.warn(UserWarning(
+            "Invalid Basket. "
+            "Manifest Schema does not match at: ", file
+        ))
 
-    except json.decoder.JSONDecodeError as exc:
-        raise ValueError(
-            "Invalid Basket. Manifest could not be loaded into json at: ", file
-        ) from exc
+    except json.decoder.JSONDecodeError:
+        warnings.warn(UserWarning(
+            "Invalid Basket. "
+            "Manifest could not be loaded into json at: ", file
+        ))
 
 
 def handle_supplement(file, file_system):
     """Handles case if supplement
-    
+
     Parameters:
     -----------
     file: str
@@ -215,21 +230,22 @@ def handle_supplement(file, file_system):
         data = json.load(file_system.open(file))
         validate(instance=data, schema=supplement_schema)
 
-    except jsonschema.exceptions.ValidationError as exc:
-        raise ValueError(
+    except jsonschema.exceptions.ValidationError:
+        warnings.warn(UserWarning(
             "Invalid Basket. "
             "Supplement Schema does not match at: ", file
-        ) from exc
+        ))
 
-    except json.decoder.JSONDecodeError as exc:
-        raise ValueError(
+    except json.decoder.JSONDecodeError:
+        warnings.warn(UserWarning(
             "Invalid Basket. "
             "Supplement could not be loaded into json at: ", file
-        ) from exc
+        ))
+
 
 def handle_metadata(file, file_system):
     """Handles case if metadata
-    
+
     Parameters:
     -----------
     file: str
@@ -240,16 +256,16 @@ def handle_metadata(file, file_system):
     try:
         json.load(file_system.open(file))
 
-    except json.decoder.JSONDecodeError as exc:
-        raise ValueError(
+    except json.decoder.JSONDecodeError:
+        warnings.warn(UserWarning(
             "Invalid Basket. "
             "Metadata could not be loaded into json at: ", file
-        ) from exc
+        ))
 
 
 def handle_none_of_the_above(file, file_system):
     """Handles case if none of the above
-    
+
     Parameters:
     -----------
     file: str
@@ -260,7 +276,7 @@ def handle_none_of_the_above(file, file_system):
     basket_dir, _ = os.path.split(file)
     if file_system.info(file)['type'] == 'directory':
         if _check_level(file, file_system, in_basket=True):
-            raise ValueError("Invalid Basket. Manifest File "
-                             "found in sub directory of basket at: ",
-                             basket_dir
-            )
+            warnings.warn(UserWarning(
+                "Invalid Basket. Manifest File "
+                "found in sub directory of basket at: ", basket_dir
+            ))
