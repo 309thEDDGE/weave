@@ -463,7 +463,7 @@ def test_derive_integrity_data_date(tmp_path):
     test_file.write_text(text_file_content)
 
     access_date = derive_integrity_data(str(test_file), 2)["access_date"]
-    access_date = datetime.strptime(access_date, "%m/%d/%Y %H:%M:%S")
+    access_date = datetime.strptime(access_date, "%Y-%m-%d %H:%M:%S")
     access_date_seconds = access_date.timestamp()
     now_seconds = time.time_ns() // 10**9
     diff_seconds = abs(access_date_seconds - now_seconds)
