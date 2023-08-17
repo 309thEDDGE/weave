@@ -1208,6 +1208,9 @@ def test_validate_call_check_level(test_validate):
         tmp_basket_dir=tmp_basket_dir, metadata={"Test":1, "test_bool":True}
     )
 
+    # We are purposefully accessing the protected class to test
+    # its functionality in pytest
+    # pylint: disable-next=protected-access
     assert validate._check_level(
         test_validate.bucket_name, test_validate.file_system
     )
@@ -1234,6 +1237,9 @@ def test_validate_call_validate_basket(test_validate):
         match=f"Invalid Path. "
         f"No Basket found at: {test_validate.bucket_name}"
     ):
+    # We are purposefully accessing the protected class to test
+    # its functionality in pytest
+    # pylint: disable-next=protected-access
         validate._validate_basket(
             test_validate.bucket_name, test_validate.file_system
         )

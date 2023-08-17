@@ -42,6 +42,8 @@ def validate_bucket(bucket_name, file_system):
         _check_level(bucket_name, file_system)
         # iterate through warn and return the list of warning messages
         warning_list = []
+        # enumerate does not work here. Prefer to use range and len
+        # pylint: disable-next=consider-using-enumerate
         for i in range(len(warn)):
             warning_list.append(warn[i].message)
         return warning_list
