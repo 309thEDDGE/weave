@@ -355,7 +355,7 @@ def test_clean_up_indices_leaves_n_indices(test_pantry):
     ind.generate_index()
 
     # Now there should be two index baskets. clean up all but one of them:
-    ind.clean_up_indices(n_keep=0)
+    ind.clean_up_indices(n_keep=1)
     index_path = os.path.join(test_pantry.bucket_name, "index")
     assert len(test_pantry.file_system.ls(index_path)) == 1
 
