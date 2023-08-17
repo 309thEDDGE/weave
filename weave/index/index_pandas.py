@@ -105,7 +105,7 @@ class _Index():
                         f"{self.index_basket_dir_path}/**/" +
                         f"{index_time}-index.json"
                     )[0]
-                    self.file_system.rm(path,recursive = True)
+                    self.file_system.rm(path)
                 except ValueError as error:
                     warnings.warn(error)
 
@@ -184,7 +184,6 @@ class _Index():
         self.index_df.reset_index(drop=True, inplace=True)
         if upload_index:
             self._upload_index(self.index_df)
-
 
     def get_parents(self, basket, **kwargs):
         """Recursively gathers all parents of basket and returns index
