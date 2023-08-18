@@ -88,7 +88,7 @@ class ValidateForTest(BucketForTest):
                 man_data = """{
                     "uuid": "str",
                     "upload_time": "uploadtime string",
-                    "parent_uuids": [ "string1", "string2", "string3" ],
+                    "parent_uuids": [],
                     "basket_type": "basket type string",
                     "label": "label string"
                 }"""
@@ -150,7 +150,7 @@ class ValidateForTest(BucketForTest):
                 """{
                 "uuid": "str",
                 "upload_time": "uploadtime string",
-                "parent_uuids": [ "string1", "string2", "string3" ],
+                "parent_uuids": [],
                 "basket_type": "basket type string",
                 "label": "label string"
             }"""
@@ -347,7 +347,7 @@ def test_validate_manifest_schema_additional_field(test_validate):
     bad_manifest_data = """{
         "uuid": "str",
         "upload_time": "uploadtime string",
-        "parent_uuids": [ "string1", "string2", "string3" ],
+        "parent_uuids": [],
         "basket_type": "basket type string",
         "label": "label string",
 
@@ -1227,11 +1227,15 @@ def test_validate_call_check_level(test_validate):
         tmp_basket_dir=tmp_basket_dir, metadata={"Test":1, "test_bool":True}
     )
 
+    # We input bucket_name twice because _check_level wants the pantry name
+    # and the current working directory
     # We are purposefully accessing the protected class to test
     # its functionality in pytest
     # pylint: disable-next=protected-access
     assert validate._check_level(
-        test_validate.bucket_name, test_validate.file_system
+        test_validate.bucket_name,
+        test_validate.bucket_name,
+        test_validate.file_system
     )
 
 
@@ -1256,11 +1260,15 @@ def test_validate_call_validate_basket(test_validate):
         match=f"Invalid Path. "
         f"No Basket found at: {test_validate.bucket_name}"
     ):
-    # We are purposefully accessing the protected class to test
-    # its functionality in pytest
-    # pylint: disable-next=protected-access
+        # We input bucket_name twice because _check_level wants the pantry name
+        # and the current working directory
+        # We are purposefully accessing the protected class to test
+        # its functionality in pytest
+        # pylint: disable-next=protected-access
         validate._validate_basket(
-            test_validate.bucket_name, test_validate.file_system
+            test_validate.bucket_name,
+            test_validate.bucket_name,
+            test_validate.file_system
         )
 
 
@@ -1378,6 +1386,11 @@ def test_validate_bad_metadata_and_supplement_schema_with_nested_basket(
     warning_1 = warn_info[0]
     warning_2 = warn_info[1]
     warning_3 = warn_info[2]
+    
+    # print('\nwarn info: \n', warn_info)
+    print()
+    for i in warn_info:
+        print(i)
 
     # Check that there are three warnings raised
     assert len(warn_info) == 3
@@ -1406,3 +1419,139 @@ def test_validate_bad_metadata_and_supplement_schema_with_nested_basket(
         "Invalid Basket. Manifest File found in sub directory of basket at: "
     )
     assert warning_3.args[1].endswith(os.path.join(basket_path, "my_basket"))
+
+
+def test_validate_check_parent_uuids_valid(test_validate):
+    """Create 3 baskets with proper parent-uids, check that its valid
+    """
+    # Set up the basket strucutre with all valid parent_ids
+    tmp_dir = test_validate.set_up_basket("basket_1")
+    test_validate.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="001",
+                     parent_ids=["002", "003"])
+
+    tmp_dir = test_validate.set_up_basket("basket_2")
+    test_validate.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="002")
+
+    tmp_dir = test_validate.set_up_basket("basket_3")
+    test_validate.upload_basket(tmp_basket_dir=tmp_dir,
+                     uid="003")
+    
+    
+
+    errors = validate.validate_bucket(test_validate.bucket_name, test_validate.file_system)
+    print('\nerrors: \n')
+    for i in errors:
+        print(i)
+    # Check that it returns true (valid)
+    # assert validate.validate_bucket(test_validate.bucket_name, test_validate.file_system) == []
+
+
+def test_validate_check_parent_uuids_missing_basket(test_validate):
+    """Create 3 baskets, 2 with invalid parent_ids, check that it shows warning
+    """
+    
+    
+    
+    
+    
+    
+    # The manifest is missing the uuid field
+    # this is invalid against the schema.
+    manifest_data_1 = """{
+        "uuid": "001",
+        "upload_time": "str",
+        "parent_uuids": [ "002" ],
+        "basket_type": "str",
+        "label": "str"
+    }"""
+
+    # This has the missing basket of '003' in the parent_uuids
+    manifest_data_2 = """{
+        "uuid": "002",
+        "upload_time": "str",
+        "parent_uuids": [ "002", "003" ],
+        "basket_type": "str",
+        "label": "str"
+    }"""
+
+    # The supplement has an additional my_extra_field field
+    # this is invalid against the schema.
+
+    tmp_basket_dir = test_validate.set_up_basket(
+        "with_parents_1",
+        is_man=True,
+        man_data=manifest_data_1,
+        is_sup=True,
+        is_meta=False
+    )
+
+    tmp_basket_dir2 = test_validate.set_up_basket(
+        "with_parents_2",
+        is_man=True,
+        man_data=manifest_data_2,
+        is_sup=True,
+        is_meta=False
+    )
+
+    basket_path = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
+    # basket_path_2 = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir2)
+
+    manifest_path = os.path.join(basket_path, "basket_manifest.json")
+    supplement_path = os.path.join(basket_path, "basket_supplement.json")
+    test_validate.file_system.rm(manifest_path)
+    test_validate.file_system.rm(supplement_path)
+
+    warn_info = validate.validate_bucket(test_validate.bucket_name,
+                                         test_validate.file_system)
+    
+    print('\nwarn_info: \n', warn_info)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+#     # Set up the basket structure
+#     tmp_dir = test_validate.set_up_basket("basket_1")
+#     test_validate.upload_basket(tmp_basket_dir=tmp_dir,
+#                      uid="001",
+#                      parent_ids=["002"])
+
+#     tmp_dir = test_validate.set_up_basket("basket_2")
+#     test_validate.upload_basket(tmp_basket_dir=tmp_dir,
+#                      uid="002",
+#                      parent_ids=["003"])
+
+#     tmp_dir = test_validate.set_up_basket("basket_3")
+#     test_validate.upload_basket(tmp_basket_dir=tmp_dir,
+#                      uid="003")
+#     # Validate the pantry, see that it returns a list of invalid basket
+#     # locations with details
+#     error_list = validate.validate_bucket(test_validate.bucket_name, test_validate.file_system)
+#     print('\nerrors: \n')
+#     for i in error_list:
+#         print(i)
+#     # Make the error messages
+#     error_1 = ("The uuids: ['999'] were not found in the index, which was "
+#                "found inside basket: 001")
+#     error_2 = ("The uuids: ['bad1', 'baduuid2', 'missinguid3'] were not found "
+#                "in the index, which was found inside basket: 002")
+
+#     # Check that we got the 2 errors we wanted
+#     assert len(error_list) == 2
+#     assert (error_list[0].args[0] == error_1)
+#     assert (error_list[1].args[0] == error_2)
