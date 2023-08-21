@@ -80,7 +80,10 @@ jobs:
       with: 
         ref: 'main'
     - name: Main Version
-      run: echo $(python setup.py --version)
+      run: main_version=$(python setup.py --version)
     - uses: actions/checkout@v3
     - name: Merge Version
-      run: echo $(python setup.py --version)
+      run: merge_version=$(python setup.py --version)
+    - name: Compare Versions
+      run: echo $(main_version)
+      run: echo $(merge_version)
