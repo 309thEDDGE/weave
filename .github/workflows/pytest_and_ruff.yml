@@ -81,13 +81,13 @@ jobs:
         ref: 'main'
     - name: Main Version
       id: main_version
-      # run: echo "MAIN_VERSION=$(python setup.py --version)" >> $GITHUB_ENV
-      run: echo "::set-output name=MAIN_VERSION::$(python setup.py --version)"
+      run: echo "MAIN_VERSION=$(python setup.py --version)" >> $GITHUB_OUTPUT
+      # run: echo "::set-output name=MAIN_VERSION::$(python setup.py --version)"
     - uses: actions/checkout@v3
     - name: Merge Version
       id: merge_version
-      # run: echo "MERGE_VERSION=$(python setup.py --version)" >> $GITHUB_ENV
-      run: echo "::set-output name=MERGE_VERSION::$(python setup.py --version)"
+      run: echo "MERGE_VERSION=$(python setup.py --version)" >> $GITHUB_OUTPUT
+      # run: echo "::set-output name=MERGE_VERSION::$(python setup.py --version)"
     - name: A/B Check
       if: ${{ steps.merge_version.outputs.MERGE_VERSION == steps.main_version.outputs.MAIN_VERSION }}
       run:
