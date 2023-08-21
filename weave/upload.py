@@ -114,7 +114,7 @@ def derive_integrity_data(file_path, byte_count=10**8):
     return {
         "file_size": file_size,
         "hash": sha256_hash,
-        "access_date": datetime.now().strftime("%m/%d/%Y %H:%M:%S"),
+        "access_date": datetime.now().isoformat(),
         "source_path": file_path,
         "byte_count": byte_count,
     }
@@ -163,7 +163,7 @@ class UploadBasket:
         file_system: fsspec object
             The file system to upload to (ie s3fs, local fs, etc).
             If None it will use the default fs from the weave.config.
-        
+
         Please note that either the upload_directory OR the basket_type must
         be provided. IT IS RECOMMENDED that the user simply provide the
         basket_type as this will allow the library to choose a good unique_id,
@@ -368,9 +368,7 @@ class UploadBasket:
         )
         basket_json = {}
         basket_json["uuid"] = self.kwargs.get("unique_id")
-        basket_json["upload_time"] = datetime.now().strftime(
-            "%m/%d/%Y %H:%M:%S"
-        )
+        basket_json["upload_time"] = datetime.now().isoformat()
         basket_json["parent_uuids"] = self.kwargs.get("parent_ids", [])
         basket_json["basket_type"] = self.kwargs.get("basket_type")
         basket_json["label"] = self.kwargs.get("label","")
