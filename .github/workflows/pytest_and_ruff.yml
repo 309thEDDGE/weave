@@ -73,3 +73,13 @@ jobs:
     # If you do not install Weave's dependencies then it will fail PyLint due to import-errors
     - name: Run pylint
       run: pylint weave weave/tests
+  version_check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with: 'main'
+    - name: Main Version
+      run: echo $(python setup.py --version)
+    - uses: actions/checkout@v3
+    - name: Merge Version
+      run: echo $(python setup.py --version)
