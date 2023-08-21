@@ -80,10 +80,10 @@ jobs:
       with: 
         ref: 'main'
     - name: Main Version
-      run: main_version=$(python setup.py --version)
+      run: echo "MAIN_VERSION=$(python setup.py --version)" >> $GITHUB_ENV
     - uses: actions/checkout@v3
     - name: Merge Version
-      run: merge_version=$(python setup.py --version)
+      run: echo "MERGE_VERSION=$(python setup.py --version)" >> $GITHUB_ENV
     - name: Compare Versions
       run:
         echo ${main_version}
