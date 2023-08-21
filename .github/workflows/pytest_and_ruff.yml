@@ -84,12 +84,12 @@ jobs:
     - uses: actions/checkout@v3
     - name: Merge Version
       run: echo "MERGE_VERSION=$(python setup.py --version)" >> $GITHUB_ENV
-  - name: A/B Check
-    if: ${{ MAIN_VERSION }} = ${{ MERGE_VERSION }}
-    run:
-      echo "::error Version unchanged from main=${MAIN_VERSION}"
-      exit 1
-    # - name: Compare Versions
-    #   run:
-    #     echo ${MAIN_VERSION}
-    #     echo ${MERGE_VERSION}
+    - name: A/B Check
+      if: ${{ MAIN_VERSION }} = ${{ MERGE_VERSION }}
+      run:
+        echo "::error Version unchanged from main=${MAIN_VERSION}"
+        exit 1
+      # - name: Compare Versions
+      #   run:
+      #     echo ${MAIN_VERSION}
+      #     echo ${MERGE_VERSION}
