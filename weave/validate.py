@@ -94,11 +94,6 @@ def _check_level(pantry_name, current_dir, file_system, in_basket=False):
 
     # go through all the other files, if it's a directory, we need to check it
     dirs_and_files = file_system.ls(path=current_dir, refresh=True)
-    # dirs_and_files = file_system.find(
-    #     path=current_dir,
-    #     maxdepth=1,
-    #     withdirs=True
-    # )
 
     for file_or_dir in dirs_and_files:
         file_type = file_system.info(file_or_dir)['type']
@@ -172,11 +167,6 @@ def _validate_basket(pantry_name, basket_dir, file_system):
             "Invalid Basket. No Supplement file found at: ", basket_dir))
 
     files_in_basket = file_system.ls(path=basket_dir, refresh=True)
-    # files_in_basket = file_system.find(
-    #     path=basket_dir,
-    #     maxdepth=1,
-    #     withdirs=True
-    # )
 
     for file in files_in_basket:
         _, file_name = os.path.split(file)
@@ -184,7 +174,9 @@ def _validate_basket(pantry_name, basket_dir, file_system):
             "basket_manifest.json": _handle_manifest,
             "basket_supplement.json": _handle_supplement,
             "basket_metadata.json": _handle_metadata
-        }.get(file_name, _handle_none_of_the_above)(pantry_name, file, file_system)
+        }.get(
+            file_name, _handle_none_of_the_above
+        )(pantry_name, file, file_system)
 
     # default return true if we don't find any problems with this basket
     return True
@@ -201,7 +193,7 @@ def _handle_manifest(pantry_name, file, file_system):
         The file system to use.
     """
     try:
-        # these two lines make sure it can be read and is valid schema
+        # Make sure it can be loaded, valid schema, and valid parent_uuids
         data = json.load(file_system.open(file))
         validate(instance=data, schema=manifest_schema)
         _validate_parent_uuids(pantry_name, data, file_system)
@@ -232,9 +224,7 @@ def _handle_supplement(pantry_name, file, file_system):
     try:
         # these two lines make sure it can be read and is valid schema
         data = json.load(file_system.open(file))
-        # print('\nsupplement data: \n', data)
         validate(instance=data, schema=supplement_schema)
-        
 
     except jsonschema.exceptions.ValidationError:
         warnings.warn(UserWarning(
@@ -304,9 +294,6 @@ def _validate_parent_uuids(pantry_name, data, file_system):
     file_system: fsspec-like obj
         The file system to use.
     """
-    
-    # print('\nmanifest data: \n', data)
-    
     # If there are no parent uuids in the manifest, no need to check anything
     if len(data["parent_uuids"]) == 0:
         return

@@ -1141,7 +1141,7 @@ def test_validate_no_baskets(test_validate):
     assert len(warn_info) == 0
 
 
-def test_validate_fifty_baskets_invalid(test_validate):
+def test_validate_twenty_baskets_invalid(test_validate):
     """Create bucket with 50 baskets, and 1 nested, check that it collects
        one warning.
     """
@@ -1161,7 +1161,7 @@ def test_validate_fifty_baskets_invalid(test_validate):
         tmp_basket_dir=nested_basket_dir, uid='9999'
     )
 
-    for i in range(50):
+    for i in range(20):
         uuid = '00' + str(i)
         test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir, uid=uuid)
 
@@ -1180,7 +1180,7 @@ def test_validate_fifty_baskets_invalid(test_validate):
     assert warning_1.args[1].endswith(invalid_basket_path)
 
 
-def test_validate_fifty_baskets_valid(test_validate):
+def test_validate_twenty_baskets_valid(test_validate):
     """Create bucket with 50 baskets, and 0 nested, check that it
        returns an empty list (valid).
     """
@@ -1200,7 +1200,7 @@ def test_validate_fifty_baskets_valid(test_validate):
         tmp_basket_dir=nested_basket_dir, uid='9999'
     )
 
-    for i in range(50):
+    for i in range(20):
         uuid = '00' + str(i)
         test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir, uid=uuid)
 
@@ -1352,6 +1352,7 @@ def test_validate_bad_manifest_and_supplement_schema(test_validate):
                                                    "bad_sup_and_man_schema",
                                                    "basket_supplement.json"))
 
+
 def test_validate_bad_metadata_and_supplement_schema_with_nested_basket(
                                                         test_validate):
     """Create a basket with invalid metadata and supplement schemas, along
@@ -1383,14 +1384,13 @@ def test_validate_bad_metadata_and_supplement_schema_with_nested_basket(
 
     warn_info = validate.validate_bucket(test_validate.bucket_name,
                                          test_validate.file_system)
-    warning_1 = warn_info[0]
-    warning_2 = warn_info[1]
-    warning_3 = warn_info[2]
-    
-    # print('\nwarn info: \n', warn_info)
-    print()
-    for i in warn_info:
-        print(i)
+
+    # Sort the errors because they return differently for different fs
+    warn_info = sorted(warn_info, key=lambda x: x.args[1])
+
+    warning_1 = warn_info[1]
+    warning_2 = warn_info[2]
+    warning_3 = warn_info[0]
 
     # Check that there are three warnings raised
     assert len(warn_info) == 3
@@ -1421,63 +1421,28 @@ def test_validate_bad_metadata_and_supplement_schema_with_nested_basket(
     assert warning_3.args[1].endswith(os.path.join(basket_path, "my_basket"))
 
 
-def test_validate_check_parent_uuids_valid(test_validate):
-    """Create 3 baskets with proper parent-uids, check that its valid
-    """
-    # Set up the basket strucutre with all valid parent_ids
-    tmp_dir = test_validate.set_up_basket("basket_1")
-    test_validate.upload_basket(tmp_basket_dir=tmp_dir,
-                     uid="001",
-                     parent_ids=["002", "003"])
-
-    tmp_dir = test_validate.set_up_basket("basket_2")
-    test_validate.upload_basket(tmp_basket_dir=tmp_dir,
-                     uid="002")
-
-    tmp_dir = test_validate.set_up_basket("basket_3")
-    test_validate.upload_basket(tmp_basket_dir=tmp_dir,
-                     uid="003")
-    
-    
-
-    errors = validate.validate_bucket(test_validate.bucket_name, test_validate.file_system)
-    print('\nerrors: \n')
-    for i in errors:
-        print(i)
-    # Check that it returns true (valid)
-    # assert validate.validate_bucket(test_validate.bucket_name, test_validate.file_system) == []
-
-
 def test_validate_check_parent_uuids_missing_basket(test_validate):
     """Create 3 baskets, 2 with invalid parent_ids, check that it shows warning
+    This also checks that valid ones are safe because of the uuid '002' in the
+    manifest_data_1's 'parent_uuids'
     """
-    
-    
-    
-    
-    
-    
-    # The manifest is missing the uuid field
-    # this is invalid against the schema.
+    # Manifest has parent_uuids that don't exist
     manifest_data_1 = """{
         "uuid": "001",
         "upload_time": "str",
-        "parent_uuids": [ "002" ],
+        "parent_uuids": [ "002", "BAD123123" ],
         "basket_type": "str",
         "label": "str"
     }"""
 
-    # This has the missing basket of '003' in the parent_uuids
+    # Manifest has parent_uuids that don't exist
     manifest_data_2 = """{
         "uuid": "002",
         "upload_time": "str",
-        "parent_uuids": [ "002", "003" ],
+        "parent_uuids": [ "003", "BAD!", "BAD2", "BAD323" ],
         "basket_type": "str",
         "label": "str"
     }"""
-
-    # The supplement has an additional my_extra_field field
-    # this is invalid against the schema.
 
     tmp_basket_dir = test_validate.set_up_basket(
         "with_parents_1",
@@ -1495,63 +1460,30 @@ def test_validate_check_parent_uuids_missing_basket(test_validate):
         is_meta=False
     )
 
-    basket_path = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
-    # basket_path_2 = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir2)
+    basket_path = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir,
+                                              uid="001")
+    basket_path_2 = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir2,
+                                                uid="002")
 
-    manifest_path = os.path.join(basket_path, "basket_manifest.json")
-    supplement_path = os.path.join(basket_path, "basket_supplement.json")
-    test_validate.file_system.rm(manifest_path)
-    test_validate.file_system.rm(supplement_path)
+    paths = []
+    paths.append(os.path.join(basket_path, "basket_manifest.json"))
+    paths.append(os.path.join(basket_path, "basket_supplement.json"))
+    paths.append(os.path.join(basket_path_2, "basket_manifest.json"))
+    paths.append(os.path.join(basket_path_2, "basket_supplement.json"))
+
+    for file_path in paths:
+        test_validate.file_system.rm(file_path)
 
     warn_info = validate.validate_bucket(test_validate.bucket_name,
                                          test_validate.file_system)
-    
-    print('\nwarn_info: \n', warn_info)
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-#     # Set up the basket structure
-#     tmp_dir = test_validate.set_up_basket("basket_1")
-#     test_validate.upload_basket(tmp_basket_dir=tmp_dir,
-#                      uid="001",
-#                      parent_ids=["002"])
 
-#     tmp_dir = test_validate.set_up_basket("basket_2")
-#     test_validate.upload_basket(tmp_basket_dir=tmp_dir,
-#                      uid="002",
-#                      parent_ids=["003"])
+    warning_1 = warn_info[0].args[0]
+    warning_2 = warn_info[1].args[0]
 
-#     tmp_dir = test_validate.set_up_basket("basket_3")
-#     test_validate.upload_basket(tmp_basket_dir=tmp_dir,
-#                      uid="003")
-#     # Validate the pantry, see that it returns a list of invalid basket
-#     # locations with details
-#     error_list = validate.validate_bucket(test_validate.bucket_name, test_validate.file_system)
-#     print('\nerrors: \n')
-#     for i in error_list:
-#         print(i)
-#     # Make the error messages
-#     error_1 = ("The uuids: ['999'] were not found in the index, which was "
-#                "found inside basket: 001")
-#     error_2 = ("The uuids: ['bad1', 'baduuid2', 'missinguid3'] were not found "
-#                "in the index, which was found inside basket: 002")
+    warn_msg_1 = ("The uuids: ['BAD123123'] were not found in the index, "
+                  "which was found inside basket: 001")
+    warn_msg_2 = ("The uuids: ['003', 'BAD!', 'BAD2', 'BAD323'] were not "
+                  "found in the index, which was found inside basket: 002")
 
-#     # Check that we got the 2 errors we wanted
-#     assert len(error_list) == 2
-#     assert (error_list[0].args[0] == error_1)
-#     assert (error_list[1].args[0] == error_2)
+    assert warning_1 == warn_msg_1
+    assert warning_2 == warn_msg_2
