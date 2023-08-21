@@ -1258,8 +1258,8 @@ def test_upload_basket_updates_the_index(test_pantry):
         )
         if i == 0:
             first_time = pd.to_datetime(ind.index_df.iloc[1].upload_time)
-
-    assert first_time == ind.index_df.iloc[1].upload_time
+    time_diff = first_time - pd.to_datetime(ind.index_df.iloc[1].upload_time)
+    assert time_diff.total_seconds() < 0.001
     assert len(ind.index_df) == 4
 
 

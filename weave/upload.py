@@ -114,7 +114,7 @@ def derive_integrity_data(file_path, byte_count=10**8):
     return {
         "file_size": file_size,
         "hash": sha256_hash,
-        "access_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "access_date": datetime.now().isoformat(),
         "source_path": file_path,
         "byte_count": byte_count,
     }
@@ -368,9 +368,7 @@ class UploadBasket:
         )
         basket_json = {}
         basket_json["uuid"] = self.kwargs.get("unique_id")
-        basket_json["upload_time"] = datetime.now().strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
+        basket_json["upload_time"] = datetime.now().isoformat()
         basket_json["parent_uuids"] = self.kwargs.get("parent_ids", [])
         basket_json["basket_type"] = self.kwargs.get("basket_type")
         basket_json["label"] = self.kwargs.get("label","")
