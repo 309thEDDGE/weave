@@ -85,5 +85,5 @@ jobs:
     - name: Merge Version
       run: merge_version=$(python setup.py --version)
     - name: Compare Versions
-      run: echo $(main_version)
-      run: echo $(merge_version)
+    - run: echo ${main_version}
+    - run: echo ${merge_version}
