@@ -7,8 +7,8 @@ import warnings
 import jsonschema
 from jsonschema import validate
 
-from .config import manifest_schema, supplement_schema
 from weave.index.create_index import create_index_from_fs
+from .config import manifest_schema, supplement_schema
 
 
 def validate_bucket(pantry_name, file_system):
@@ -187,6 +187,8 @@ def _handle_manifest(pantry_name, file, file_system):
 
     Parameters:
     -----------
+    pantry_name: string
+        the name of the pantry we are validating
     file: str
         Path to the file.
     file_system: fsspec-like obj
@@ -210,12 +212,17 @@ def _handle_manifest(pantry_name, file, file_system):
             "Manifest could not be loaded into json at: ", file
         ))
 
-
+# Here I am disabling the unused arg for pylint because we need to pass in
+# the pantry_name to all the _handle functions because of how we are using
+# the dictionary.
+# pylint: disable=unused-argument
 def _handle_supplement(pantry_name, file, file_system):
     """Handles case if supplement
 
     Parameters:
     -----------
+    pantry_name: string
+        the name of the pantry we are validating
     file: str
         Path to the file.
     file_system: fsspec-like obj
@@ -238,12 +245,17 @@ def _handle_supplement(pantry_name, file, file_system):
             "Supplement could not be loaded into json at: ", file
         ))
 
-
+# Here I am disabling the unused arg for pylint because we need to pass in
+# the pantry_name to all the _handle functions because of how we are using
+# the dictionary.
+# pylint: disable=unused-argument
 def _handle_metadata(pantry_name, file, file_system):
     """Handles case if metadata
 
     Parameters:
     -----------
+    pantry_name: string
+        the name of the pantry we are validating
     file: str
         Path to the file.
     file_system: fsspec-like obj
@@ -264,6 +276,8 @@ def _handle_none_of_the_above(pantry_name, file, file_system):
 
     Parameters:
     -----------
+    pantry_name: string
+        the name of the pantry we are validating
     file: str
         Path to the file.
     file_system: fsspec-like obj
