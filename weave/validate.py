@@ -11,7 +11,7 @@ from weave.index.create_index import create_index_from_fs
 from .config import manifest_schema, supplement_schema
 
 
-def validate_bucket(pantry_name, file_system):
+def validate_pantry(pantry_name, file_system):
     """Starts the validation process off based off the name of the bucket
 
     Validates that the bucket actually exists at the location given.
@@ -21,7 +21,7 @@ def validate_bucket(pantry_name, file_system):
     Parameters
     ----------
     pantry_name: string
-        the name of the bucket in s3fs
+        the name of the pantry we are validating
     file_system: fsspec object
         the file system (s3fs, local fs, etc.) of the pantry
         to validate
@@ -59,6 +59,8 @@ def _check_level(pantry_name, current_dir, file_system, in_basket=False):
 
     Parameters
     ----------
+    pantry_name: string
+        the name of the pantry we are validating
     current_dir: string
         the current directory that we want to search all files and
         directories of
@@ -67,7 +69,7 @@ def _check_level(pantry_name, current_dir, file_system, in_basket=False):
         and directories of
     in_basket: bool
         optional parameter. This is a flag to signify that we are in a basket
-        and we are looking for a nested basket now. 
+        and we are looking for a nested basket now.
 
     Returns
     ----------
@@ -141,6 +143,8 @@ def _validate_basket(pantry_name, basket_dir, file_system):
 
     Parameters
     ----------
+    pantry_name: string
+        the name of the pantry we are validating
     basket_dir: string
         the path in the file system to the basket root directory
     file_system: fsspec object
@@ -215,7 +219,7 @@ def _handle_manifest(pantry_name, file, file_system):
 # Here I am disabling the unused arg for pylint because we need to pass in
 # the pantry_name to all the _handle functions because of how we are using
 # the dictionary.
-# pylint: disable=unused-argument
+# pylint: disable-next=unused-argument
 def _handle_supplement(pantry_name, file, file_system):
     """Handles case if supplement
 
@@ -248,7 +252,7 @@ def _handle_supplement(pantry_name, file, file_system):
 # Here I am disabling the unused arg for pylint because we need to pass in
 # the pantry_name to all the _handle functions because of how we are using
 # the dictionary.
-# pylint: disable=unused-argument
+# pylint: disable-next=unused-argument
 def _handle_metadata(pantry_name, file, file_system):
     """Handles case if metadata
 

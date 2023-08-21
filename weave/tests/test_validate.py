@@ -184,7 +184,7 @@ def test_validate(request, tmpdir):
 # pylint: disable=redefined-outer-name
 
 
-def test_validate_bucket_does_not_exist(test_validate):
+def test_validate_pantry_does_not_exist(test_validate):
     """Give a bucket path that does not exist and check that it throws
        an error.
     """
@@ -197,7 +197,7 @@ def test_validate_bucket_does_not_exist(test_validate):
         match=f"Invalid Bucket Path. "
         f"Bucket does not exist at: {bucket_path}"
     ):
-        validate.validate_bucket(bucket_path, test_validate.file_system)
+        validate.validate_pantry(bucket_path, test_validate.file_system)
 
 
 def test_validate_no_supplement_file(test_validate):
@@ -213,7 +213,7 @@ def test_validate_no_supplement_file(test_validate):
     supplement_path = os.path.join(basket_path, "basket_supplement.json")
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
     warning_1 = warn_info[0]
 
@@ -237,7 +237,7 @@ def test_validate_no_metadata_file(test_validate):
     test_validate.add_lower_dir_to_temp_basket(tmp_basket_dir=tmp_basket_dir)
     test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
 
     # Check that no warnings are collected
@@ -274,7 +274,7 @@ def test_validate_invalid_manifest_schema(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
     warning_1 = warn_info[0]
 
@@ -320,7 +320,7 @@ def test_validate_manifest_schema_missing_field(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
     warning_1 = warn_info[0]
 
@@ -369,7 +369,7 @@ def test_validate_manifest_schema_additional_field(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
     warning_1 = warn_info[0]
 
@@ -406,7 +406,7 @@ def test_validate_invalid_manifest_json(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
     warning_1 = warn_info[0]
 
@@ -465,7 +465,7 @@ def test_validate_invalid_supplement_schema(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
     warning_1 = warn_info[0]
 
@@ -511,7 +511,7 @@ def test_validate_supplement_schema_missing_field(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
     warning_1 = warn_info[0]
 
@@ -569,7 +569,7 @@ def test_validate_supplement_schema_missing_array_field(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
     warning_1 = warn_info[0]
 
@@ -628,7 +628,7 @@ def test_validate_supplement_schema_missing_array_field_2(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
     warning_1 = warn_info[0]
 
@@ -691,7 +691,7 @@ def test_validate_supplement_schema_added_array_field(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
     warning_1 = warn_info[0]
 
@@ -754,7 +754,7 @@ def test_validate_supplement_schema_added_array_field_2(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
     warning_1 = warn_info[0]
 
@@ -815,7 +815,7 @@ def test_validate_supplement_schema_additional_field(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
     warning_1 = warn_info[0]
 
@@ -871,7 +871,7 @@ def test_validate_supplement_schema_empty_upload_items(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
     warning_1 = warn_info[0]
 
@@ -919,7 +919,7 @@ def test_validate_supplement_schema_empty_integrity_data(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
     warning_1 = warn_info[0]
 
@@ -956,7 +956,7 @@ def test_validate_invalid_supplement_json(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
     warning_1 = warn_info[0]
 
@@ -993,7 +993,7 @@ def test_validate_invalid_metadata_json(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
     warning_1 = warn_info[0]
 
@@ -1023,7 +1023,7 @@ def test_validate_nested_basket(test_validate):
 
     basket_path = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
     warning_1 = warn_info[0]
 
@@ -1076,7 +1076,7 @@ def test_validate_deeply_nested(test_validate):
 
     basket_path = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
     warning_1 = warn_info[0]
 
@@ -1105,7 +1105,7 @@ def test_validate_no_files_or_dirs(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
 
     # Check that no warnings are collected
@@ -1134,7 +1134,7 @@ def test_validate_no_baskets(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
 
     # Check that no warnings are collected
@@ -1142,7 +1142,7 @@ def test_validate_no_baskets(test_validate):
 
 
 def test_validate_twenty_baskets_invalid(test_validate):
-    """Create bucket with 50 baskets, and 1 nested, check that it collects
+    """Create bucket with 20 baskets, and 1 nested, check that it collects
        one warning.
     """
 
@@ -1165,7 +1165,7 @@ def test_validate_twenty_baskets_invalid(test_validate):
         uuid = '00' + str(i)
         test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir, uid=uuid)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
     warning_1 = warn_info[0]
 
@@ -1181,7 +1181,7 @@ def test_validate_twenty_baskets_invalid(test_validate):
 
 
 def test_validate_twenty_baskets_valid(test_validate):
-    """Create bucket with 50 baskets, and 0 nested, check that it
+    """Create bucket with 20 baskets, and 0 nested, check that it
        returns an empty list (valid).
     """
 
@@ -1204,7 +1204,7 @@ def test_validate_twenty_baskets_valid(test_validate):
         uuid = '00' + str(i)
         test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir, uid=uuid)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
 
     # Check that no warnings are collected
@@ -1326,7 +1326,7 @@ def test_validate_bad_manifest_and_supplement_schema(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
     warning_1 = warn_info[0]
     warning_2 = warn_info[1]
@@ -1382,7 +1382,7 @@ def test_validate_bad_metadata_and_supplement_schema_with_nested_basket(
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
 
     # Sort the errors because they return differently for different fs
@@ -1474,7 +1474,7 @@ def test_validate_check_parent_uuids_missing_basket(test_validate):
     for file_path in paths:
         test_validate.file_system.rm(file_path)
 
-    warn_info = validate.validate_bucket(test_validate.bucket_name,
+    warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
 
     warning_1 = warn_info[0].args[0]
