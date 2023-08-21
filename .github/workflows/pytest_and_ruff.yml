@@ -86,5 +86,5 @@ jobs:
       run: echo "MERGE_VERSION=$(python setup.py --version)" >> $GITHUB_ENV
     - name: Compare Versions
       run:
-        echo ${main_version}
-        echo ${merge_version}
+        echo ${MAIN_VERSION}
+        echo ${MERGE_VERSION}
