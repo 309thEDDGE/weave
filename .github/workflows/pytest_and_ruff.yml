@@ -80,14 +80,12 @@ jobs:
       with: 
         ref: 'main'
     - name: Main Version
-      id: main_version
       run: echo "MAIN_VERSION=$(python setup.py --version)" >> $GITHUB_ENV
     - uses: actions/checkout@v3
     - name: Merge Version
-      id: merge_version
       run: echo "MERGE_VERSION=$(python setup.py --version)" >> $GITHUB_ENV
-    - name: A/B Check
+    - name: Version Comparison
       if: ${{ env.MERGE_VERSION == env.MAIN_VERSION }}
       uses: actions/github-script@v3
       with:
-        script: core.setFailed('Version unchanged from main env.MAIN_VERSION')
+        script: core.setFailed('Version unchanged from main')
