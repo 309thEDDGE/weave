@@ -1482,8 +1482,8 @@ def test_validate_check_parent_uuids_missing_basket(test_validate):
 
     warn_msg_1 = ("The uuids: ['BAD123123'] were not found in the index, "
                   "which was found inside basket: 001")
+    assert warning_1 == warn_msg_1
+
     warn_msg_2 = ("The uuids: ['003', 'BAD!', 'BAD2', 'BAD323'] were not "
                   "found in the index, which was found inside basket: 002")
-
-    assert warning_1 == warn_msg_1
     assert warning_2 == warn_msg_2

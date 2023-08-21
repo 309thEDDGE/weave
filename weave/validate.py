@@ -216,11 +216,8 @@ def _handle_manifest(pantry_name, file, file_system):
             "Manifest could not be loaded into json at: ", file
         ))
 
-# Here I am disabling the unused arg for pylint because we need to pass in
-# the pantry_name to all the _handle functions because of how we are using
-# the dictionary.
-# pylint: disable-next=unused-argument
-def _handle_supplement(pantry_name, file, file_system):
+
+def _handle_supplement(_pantry_name, file, file_system):
     """Handles case if supplement
 
     Parameters:
@@ -249,11 +246,8 @@ def _handle_supplement(pantry_name, file, file_system):
             "Supplement could not be loaded into json at: ", file
         ))
 
-# Here I am disabling the unused arg for pylint because we need to pass in
-# the pantry_name to all the _handle functions because of how we are using
-# the dictionary.
-# pylint: disable-next=unused-argument
-def _handle_metadata(pantry_name, file, file_system):
+
+def _handle_metadata(_pantry_name, file, file_system):
     """Handles case if metadata
 
     Parameters:
