@@ -80,12 +80,16 @@ jobs:
       with: 
         ref: 'main'
     - name: Main Version
-      run: echo "MAIN_VERSION=$(python setup.py --version)" >> $GITHUB_ENV
+      id: main_version
+      # run: echo "MAIN_VERSION=$(python setup.py --version)" >> $GITHUB_ENV
+      run: echo "::set-output name=MAIN_VERSION::$(python setup.py --version)"
     - uses: actions/checkout@v3
     - name: Merge Version
-      run: echo "MERGE_VERSION=$(python setup.py --version)" >> $GITHUB_ENV
+      id: merge_version
+      # run: echo "MERGE_VERSION=$(python setup.py --version)" >> $GITHUB_ENV
+      run: echo "::set-output name=MERGE_VERSION::$(python setup.py --version)"
     - name: A/B Check
-      if: ${ MAIN_VERSION } = ${ MERGE_VERSION }
+      if: ${{ steps.merge_version.outputs.MERGE_VERSION == steps.main_version.outputs.MAIN_VERSION }}
       run:
         echo "::error Version unchanged from main=${MAIN_VERSION}"
         exit 1
@@ -93,3 +97,16 @@ jobs:
       #   run:
       #     echo ${MAIN_VERSION}
       #     echo ${MERGE_VERSION}
+
+
+      #    run: |
+      #      VERSION_CODE="v""$(poetry version -s)"
+      #      VERSION_TAG=$(git describe --exact-match --tags $(git log -n1 --pretty='%h')
+      #      echo "::set-output name=VERSION_CODE::$VERSION_CODE"
+      #      echo "::set-output name=VERSION_TAG::$VERSION_TAG"
+
+      #  - name: version is correct
+      #    if: ${{ steps.version_info.outputs.VERSION_CODE == steps.version_info.outputs.VERSION_TAG }}
+      #    run: echo "version tag is alined"
+
+      #  ... make a release
