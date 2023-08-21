@@ -90,4 +90,4 @@ jobs:
       if: ${{ env.MERGE_VERSION == env.MAIN_VERSION }}
       uses: actions/github-script@v3
       with:
-        script: core.setFailed('Version unchanged from main ${ MAIN_VERSION }')
+        script: core.setFailed('Version unchanged from main env.MAIN_VERSION')
