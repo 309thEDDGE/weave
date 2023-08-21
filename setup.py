@@ -1,3 +1,4 @@
+import os
 from setuptools import setup
 
 def read(rel_path: str) -> str:
