@@ -91,7 +91,7 @@ jobs:
     - name: A/B Check
       if: ${{ steps.merge_version.outputs.MERGE_VERSION == steps.main_version.outputs.MAIN_VERSION }}
       run:
-        echo "::error Version unchanged from main=${MAIN_VERSION}"
+        echo "::error Version unchanged from main=${steps.merge_version.outputs.MERGE_VERSION}"
         exit 1
       # - name: Compare Versions
       #   run:
