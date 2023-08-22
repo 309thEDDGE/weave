@@ -31,6 +31,7 @@ When a pull request is created, the code must pass the three checks in the Weave
 ## Process for Submitting a Pull Request
 Changes to this repository should always be done through pull requests. Anyone is welcome to submit a pull request to be reviewed for merging into the main branch. However, these changes may not always be accepted by the owners of the repository.
 <br>
+<br>
 - 1: Clone the repository in your local environment using `git clone https://github.com/309thEDDGE/weave.git`
 - 2: Use `git pull` to get any recent changes on your local environment.
 - 3: Create a branch from main to make your changes using `git branch <your branch name>`
@@ -46,5 +47,5 @@ are currently in.
 - 8: Click on New Pull Request.
 - 9: Find your branch on the compare drop down menu and select it. Note: if you want to request a merge into main, the base should be set to main.
 - 10: Click Create pull request.
-
-
+<br>
+After the pull request has been created, members of the 309th SWEG EDDGE team will review your code and may request some changes.
