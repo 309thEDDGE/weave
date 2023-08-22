@@ -414,6 +414,36 @@ def test_is_index_current(test_pantry):
     )
     ind2.generate_index()
     assert ind2.is_index_current() is True and ind.is_index_current() is False
+    
+def test_index_does_not_contain_index_baskets(test_pantry):
+    """Tests that Index object does not contain any
+    index baskets."""
+
+    # Put basket in the temporary bucket
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+
+    # Create index
+    ind = Index(
+        bucket_name=test_pantry.bucket_name,
+        file_system=test_pantry.file_system,
+        sync=True,
+    )
+    ind.to_pandas_df()
+
+    # Add another basket
+    tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
+    ind.generate_index()
+
+    # the index should not include any index baskets
+    # assert length of index includes two items
+    assert len(ind.to_pandas_df()) == 2
+    
+    #assert all baskets in index are not index baskets
+    for i in range(len(ind.to_pandas_df())):
+        type = index.to_pandas_df()["basket_type"][0]
+        assert type != "index"
 
 
 def test_generate_index(test_pantry):
