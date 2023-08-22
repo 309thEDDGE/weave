@@ -1,4 +1,5 @@
 """Pytests for the validate functionality."""
+import json
 import os
 from pathlib import Path
 
@@ -1487,3 +1488,25 @@ def test_validate_check_parent_uuids_missing_basket(test_validate):
     warn_msg_2 = ("The uuids: ['003', 'BAD!', 'BAD2', 'BAD323'] were not "
                   "found in the index, which was found inside basket: 002")
     assert warning_2 == warn_msg_2
+
+    
+def test_validate_file_not_in_supplement(test_validate):
+    tmp_basket_dir = test_validate.set_up_basket("my_basket")
+    test_validate.add_lower_dir_to_temp_basket(tmp_basket_dir=tmp_basket_dir)
+    temp = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
+    
+    # Make a file and upload it to the file system
+    upload_file_path = os.path.join(temp, "MY_UNFOUND_FILE.txt")
+    with open("MY_UNFOUND_FILE.txt", 'w') as file:
+        json.dump("TEST FAKE FILE", file)
+        
+    test_validate.file_system.upload("MY_UNFOUND_FILE.txt", upload_file_path)
+    
+    # Remove the local file that we created
+    os.remove("MY_UNFOUND_FILE.txt")
+    
+    # Call validate_bucket, see that it returns a list of basket errors
+    warn_list = validate.validate_pantry(test_validate.bucket_name, test_validate.file_system)
+    print('\n\nwarninglist: \n', warn_list)
+    
+    # Remove the file that we created

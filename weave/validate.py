@@ -233,6 +233,8 @@ def _handle_supplement(_pantry_name, file, file_system):
         # these two lines make sure it can be read and is valid schema
         data = json.load(file_system.open(file))
         validate(instance=data, schema=supplement_schema)
+        basket_dir, _ = os.path.split(file)
+        _validate_supplement_files(basket_dir, data, file_system)
 
     except jsonschema.exceptions.ValidationError:
         warnings.warn(UserWarning(
@@ -325,27 +327,65 @@ def _validate_parent_uuids(pantry_name, data, file_system):
 
 def _validate_supplement_files(basket_dir, data, file_system):
     """Validate the files listed in the supplement's integrity_data
-    
+
     Parameters
     ----------
     basket_dir: str
         the path to the current working basket
     data: dictionary
         the dictionary that contains the data of the supplement.json
+    file_system: fsspec-like obj
+        The file system to use.
     """
-    
-    wrong_files = False
-    supp_file_list = []
-    
-    system_file_list = file_system.find(path=basket_dir, withdirs=False)
-    
-    for integrity_data in data["integrity_data"]:
-        supp_file_list.append(integrity_data["upload_path"])
-        
-    # If a file exists in the file system, but not the integrity data,
-    # this is wrong, throw a warning
+    # supp_file_list = []
+
+    # print('\nsupp data: \n', data)
+    # print('\n basket dir: ', basket_dir)
+
+    sys_file_list = file_system.find(path=basket_dir, withdirs=False)
+    # print('\nsys file list: \n', system_file_list)
+
+    system_file_list = [file for file in sys_file_list if not file.endswith((
+        "basket_manifest.json",
+        "basket_supplement.json",
+        "basket_metadata.json"
+    ))]
+
+    # print('\nsys file list: \n', system_file_list)
+
+    # for integrity_data in data["integrity_data"]:
+    #     supp_file_list.append(integrity_data["upload_path"])
+    # print('\nSupp_file_list before: \n', supp_file_list)
+
+    supp_file_list = [file["upload_path"] for file in data["integrity_data"]]
+    # print('\nSupp_file_list after: \n', supp_file_list)
+
+    # print('\nSupp_file_list: \n', supp_file_list)
+    # print('\nsys_file_list: \n', system_file_list)
+    print('\n\n\t system file list:')
+    for i in system_file_list:
+        print(i)
+    print('\n\n\t supp file list:')
+    for i in supp_file_list:
+        print(i)
+
+    # Check if a file listed in the file system exists in the basket_supplement
     for sys_file in system_file_list:
+        print('first_list:', list(filter(sys_file.endswith, supp_file_list)))
+        # if not list(filter(sys_file.endswith, supp_file_list)) != []:
         if sys_file not in supp_file_list:
-            file_name = os.path.basenme(sys_file)
-            
-    
+            warnings.warn(UserWarning("File found in the file system is not listed in the basket_supplement.json: ", sys_file))
+
+    # Check if a file listed in the basket_supplement exists in the file system
+    for supp_file in supp_file_list:
+        print('2nd_list:', list(filter(supp_file.endswith, system_file_list)))
+        # if not list(filter(supp_file.endswith, system_file_list)) != []:
+        if supp_file not in system_file_list:
+            warnings.warn(UserWarning("File listed in the basket_supplement.json does not exist in the file system: ", supp_file))
+
+
+    print('\n')
+    system_difference = set(system_file_list) - set(supp_file_list)
+    print('\n Files in system not in supp: \n', system_difference)
+    supplement_difference = set(supp_file_list) - set(system_file_list)
+    print('\n Files in supp not in file system: \n', supplement_difference)
