@@ -11,6 +11,7 @@ Note: Pylint MUST pass with a score of 10/10.
 The <a href="https://github.com/309thEDDGE/weave/blob/main/license/LICENSE.txt">license</a> folder contains the license for using this repository. The license should not be edited by anyone besides the owners of the repository.
 <h3>Weave</h3>
 The <a href="https://github.com/309thEDDGE/weave/tree/main/weave">weave</a> folder contains the functionality of this repository. 
-The files in the weave folder contain the functionality for creating and maintaining complex data warehouses. 
-The files in the <a href="https://github.com/309thEDDGE/weave/tree/main/weave/tests">test</a> folder are used to test the main functionality files in the weave folder. These tests should be written using pytest. 
+The files in the weave folder contain the functionality for creating and maintaining complex data warehouses. <br>
+The files in the <a href="https://github.com/309thEDDGE/weave/tree/main/weave/tests">test</a> folder are used to test the main functionality files in the weave folder. These tests should be written using pytest. <br>
 The files in the <a href="https://github.com/309thEDDGE/weave/tree/main/weave/index">index</a> folder are used for the functionality of indexes in complex data warehouses.
+<h2>Coding Standards</h2>
