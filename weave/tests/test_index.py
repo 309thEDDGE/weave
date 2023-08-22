@@ -276,7 +276,7 @@ def test_sync_index_gets_latest_index(test_pantry):
 
     # assert length of index includes both baskets and excludes the index
     assert len(ind.to_pandas_df()) == 2
-    
+
     #assert all baskets in index are not index baskets
     for i in range(len(ind.to_pandas_df())):
         basket_type = ind.to_pandas_df()["basket_type"][i]
@@ -443,7 +443,7 @@ def test_generate_index(test_pantry):
 
     # Assert length of index includes both baskets and excludes the index
     assert len(ind.to_pandas_df()) == 2
-    
+
     #assert all baskets in index are not index baskets
     for i in range(len(ind.to_pandas_df())):
         basket_type = ind.to_pandas_df()["basket_type"][i]
