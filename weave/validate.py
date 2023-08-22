@@ -321,3 +321,31 @@ def _validate_parent_uuids(pantry_name, data, file_system):
     if missing_uids:
         warnings.warn(f"The uuids: {missing_uids} were not found in the "
                       f"index, which was found inside basket: {data['uuid']}")
+
+
+def _validate_supplement_files(basket_dir, data, file_system):
+    """Validate the files listed in the supplement's integrity_data
+    
+    Parameters
+    ----------
+    basket_dir: str
+        the path to the current working basket
+    data: dictionary
+        the dictionary that contains the data of the supplement.json
+    """
+    
+    wrong_files = False
+    supp_file_list = []
+    
+    system_file_list = file_system.find(path=basket_dir, withdirs=False)
+    
+    for integrity_data in data["integrity_data"]:
+        supp_file_list.append(integrity_data["upload_path"])
+        
+    # If a file exists in the file system, but not the integrity data,
+    # this is wrong, throw a warning
+    for sys_file in system_file_list:
+        if sys_file not in supp_file_list:
+            file_name = os.path.basenme(sys_file)
+            
+    
