@@ -51,13 +51,14 @@ def create_index_from_fs(root_dir, file_system):
     for basket_json_address in basket_jsons:
         with file_system.open(basket_json_address, "rb") as file:
             basket_dict = json.load(file)
-            if validate_basket_dict(basket_dict):
+            if not validate_basket_dict(basket_dict):
+                bad_baskets.append(os.path.dirname(basket_json_address))
+                continue
+            if basket_dict["basket_type"] != "index":
                 for field in basket_dict.keys():
                     index_dict[field].append(basket_dict[field])
                 index_dict["address"].append(os.path.dirname(basket_json_address))
                 index_dict["storage_type"].append(file_system.__class__.__name__)
-            else:
-                bad_baskets.append(os.path.dirname(basket_json_address))
 
     if len(bad_baskets) != 0:
         warnings.warn('baskets found in the following locations '
