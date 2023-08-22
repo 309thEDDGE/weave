@@ -33,7 +33,7 @@ When a pull request is created, the code must pass the three checks in the Weave
 Changes to this repository should always be done through pull requests. Anyone is welcome to submit a pull request to be reviewed for merging into the main branch. However, these changes may not always be accepted by the owners of the repository.
 <br>
 <br>
-- 1. Clone the repository in your local environment using `git clone <repository url>`
+- 1. Clone the repository in your local environment using `git clone`
 <br>
 - 2. 
 
