@@ -133,7 +133,7 @@ class _Index():
         with tempfile.TemporaryDirectory() as out:
             n_secs = time_ns()
             temp_json_path = os.path.join(out, f"{n_secs}-index.json")
-            index.to_json(temp_json_path)
+            index.to_json(temp_json_path, date_format='iso')
             UploadBasket(
                 upload_items=[{'path':temp_json_path, 'stub':False}],
                 basket_type=self.index_basket_dir_name,
