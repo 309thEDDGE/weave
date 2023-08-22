@@ -442,7 +442,7 @@ def test_index_does_not_contain_index_baskets(test_pantry):
     
     #assert all baskets in index are not index baskets
     for i in range(len(ind.to_pandas_df())):
-        type = index.to_pandas_df()["basket_type"][0]
+        type = ind.to_pandas_df()["basket_type"][0]
         assert type != "index"
 
 
