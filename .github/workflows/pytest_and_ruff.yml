@@ -86,7 +86,8 @@ jobs:
     - name: Merge Version
       run: echo "MERGE_VERSION=$(python setup.py --version)" >> $GITHUB_ENV
     - name: Version Comparison
-      if: ${{ env.MERGE_VERSION == env.MAIN_VERSION }}
-      uses: actions/github-script@v3
-      with:
-        script: core.setFailed('Version unchanged from main')
+      run: python verify_version.py ${MAIN_VERSION} ${MERGE_VERSION}
+      # if: ${{ env.MERGE_VERSION == env.MAIN_VERSION }}
+      # uses: actions/github-script@v3
+      # with:
+        # script: core.setFailed('Version unchanged from main')
