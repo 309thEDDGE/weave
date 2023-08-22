@@ -30,6 +30,10 @@ When a pull request is created, the code must pass the three checks in the Weave
 <br>
 
 <h2>Process for Submitting a Pull Request</h2>
-Changes to this repository should always be done through pull requests. Anyone is welcome to submit a pull request to be reviewed for merging into the main branch. However, these changes may not always be accepted.
+Changes to this repository should always be done through pull requests. Anyone is welcome to submit a pull request to be reviewed for merging into the main branch. However, these changes may not always be accepted by the owners of the repository.
+<br>
+1. Clone the repository in your local environment using ```python ```
+<br>
+2. 
 
 
