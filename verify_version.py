@@ -22,4 +22,5 @@ if __name__=="__main__":
     print(f"Old Version: {old_version}")
     print(f"New Version: {new_version}")
 
-    verify_version(old_version, new_version)
+    valid = verify_version(old_version, new_version)
+    sys.exit(not valid)
