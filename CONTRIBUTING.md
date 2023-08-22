@@ -15,3 +15,8 @@ The files in the weave folder contain the functionality for creating and maintai
 The files in the <a href="https://github.com/309thEDDGE/weave/tree/main/weave/tests">test</a> folder are used to test the main functionality files in the weave folder. These tests should be written using pytest. <br>
 The files in the <a href="https://github.com/309thEDDGE/weave/tree/main/weave/index">index</a> folder are used for the functionality of indexes in complex data warehouses.
 <h2>Coding Standards</h2>
+The entire repository follows the PEP-8 style guide. Please refer to the PEP-8 official website <a href="https://pep8.org">https://pep8.org</a> for the guidelines on following the PEP-8 style. <br>
+When a pull request is created, the code must pass the three checks in the Weave CI/CD workflow expalined in the.github/workflows folder. This helps ensures that the code follows our repository style guidelines. <br>
+<h2>Process for Submitting a Pull Request</h2>
+Changes to this repository should always be done through pull requests.
+
