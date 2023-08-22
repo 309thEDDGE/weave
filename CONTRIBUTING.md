@@ -7,3 +7,10 @@ The root folder contains all of the necessary information about Weave, including
 <h3>.github/workflows</h3>
 The <a href="https://github.com/309thEDDGE/weave/blob/main/.github/workflows/pytest_and_ruff.yml">.github/workflows</a> folder contains the workflow for Weave and will run tests. There are three tests run in the Weave CI/CD workflow: pytest, ruff, and pylint. Pytest ensures that all of the pytests created in the repository pass. Ruff will statically analyze your code. Pylint will check if your code follows the PEP-8 style guide, which is the style guide that we follow for this repository. <br>
 Note: Pylint MUST pass with a score of 10/10.
+<h3>License</h3>
+The <a href="https://github.com/309thEDDGE/weave/blob/main/license/LICENSE.txt">license</a> folder contains the license for using this repository. The license should not be edited by anyone besides the owners of the repository.
+<h3>Weave</h3>
+The <a href="https://github.com/309thEDDGE/weave/tree/main/weave">weave</a> folder contains the functionality of this repository. 
+The files in the weave folder contain the functionality for creating and maintaining complex data warehouses. 
+The files in the <a href="https://github.com/309thEDDGE/weave/tree/main/weave/tests">test</a> folder are used to test the main functionality files in the weave folder. These tests should be written using pytest. 
+The files in the <a href="https://github.com/309thEDDGE/weave/tree/main/weave/index">index</a> folder are used for the functionality of indexes in complex data warehouses.
