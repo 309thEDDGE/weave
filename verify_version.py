@@ -19,5 +19,7 @@ def verify_version(old_vers, new_vers):
 if __name__=="__main__":
     old_version = sys.argv[1]
     new_version = sys.argv[2]
+    print(f"Old Version: {old_version}")
+    print(f"New Version: {new_version}")
 
     verify_version(old_version, new_version)
