@@ -97,6 +97,26 @@ After the pull request has been created, members of the 309th SWEG EDDGE team wi
 
 Here is an example of what a Docstring should look like for a function:
 
+```python
+def example_function(var_1, var_2):
+    """--THS IS A BRIEF DESCRIPTION OF WHAT THE FUNCTION DOES ON ONE LINE--
+    -----------------------------------------------------------------------
+    -----THIS IS A MORE DETAILED DESCRIPTION OF WHAT THE FUNCTION DOES-----
+    -----------------------------------------------------------------------
+
+    Parameters
+    ----------
+    var_1: string
+        This is our first input string that will do x
+    var_2: int
+        This is a number we will use for y
+
+    Returns
+    ----------
+    A string that has var_1 with var_2 added to the end
+    """
+```
+
 
 
 
