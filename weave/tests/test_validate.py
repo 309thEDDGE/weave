@@ -406,9 +406,6 @@ def test_validate_invalid_manifest_json(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    test = ("Expecting property name enclosed in double quotes: "
-            "line 1 column 10 (char 9)")
-
     with pytest.raises(
         ValueError
     ) as err:

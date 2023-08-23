@@ -8,7 +8,6 @@ import jsonschema
 from jsonschema import validate
 
 from weave import Index
-from weave.index.create_index import create_index_from_fs
 from .config import manifest_schema, supplement_schema
 
 
@@ -44,10 +43,10 @@ def validate_pantry(pantry_name, file_system):
     with warnings.catch_warnings(record=True):
         try:
             ind.generate_index()
-        except json.decoder.JSONDecodeError as error_msg:
+        except json.decoder.JSONDecodeError as error:
             raise ValueError(
-                f"Pantry could not be loaded into index: {error_msg}"
-            )
+                f"Pantry could not be loaded into index: {error}"
+            ) from error
     index_df = ind.to_pandas_df()
 
     # call check level, with a path, but since we're just starting,
@@ -61,7 +60,6 @@ def validate_pantry(pantry_name, file_system):
         return warning_list
 
 
-# def _check_level(current_dir, **kwargs, file_system, index_df, in_basket=False):
 def _check_level(current_dir, **kwargs):
     """Check all immediate subdirs in dir, check for manifest
 
@@ -173,6 +171,8 @@ def _validate_basket(basket_dir, file_system, index_df):
         the path in the file system to the basket root directory
     file_system: fsspec object
         the fsspec file system hosting the pantry to be indexed
+    index_df: dataframe
+        a dataframe representing the index
 
     Returns
     ----------
@@ -219,6 +219,8 @@ def _handle_manifest(file, file_system, index_df):
         Path to the file.
     file_system: fsspec-like obj
         The file system to use.
+    index_df: dataframe
+        a dataframe representing the index
     """
     try:
         # Make sure it can be loaded, valid schema, and valid parent_uuids
@@ -248,6 +250,8 @@ def _handle_supplement(file, file_system, _index_df):
         Path to the file.
     file_system: fsspec-like obj
         The file system to use.
+    index_df: dataframe
+        a dataframe representing the index
     """
     try:
         # these two lines make sure it can be read and is valid schema
@@ -276,6 +280,8 @@ def _handle_metadata(file, file_system, _index_df):
         Path to the file.
     file_system: fsspec-like obj
         The file system to use.
+    index_df: dataframe
+        a dataframe representing the index
     """
     try:
         json.load(file_system.open(file))
@@ -296,6 +302,8 @@ def _handle_none_of_the_above(file, file_system, index_df):
         Path to the file.
     file_system: fsspec-like obj
         The file system to use.
+    index_df: dataframe
+        a dataframe representing the index
     """
     basket_dir, _ = os.path.split(file)
     if file_system.info(file)['type'] == 'directory':
@@ -309,7 +317,7 @@ def _handle_none_of_the_above(file, file_system, index_df):
             ))
 
 
-def _validate_parent_uuids(data, file_system, index_df):
+def _validate_parent_uuids(data, _file_system, index_df):
     """Validate that all the parent_uuids from the manifest exist in the pantry
 
     If there are parent uuids that don't actually exist in the pantry, we will
@@ -322,6 +330,8 @@ def _validate_parent_uuids(data, file_system, index_df):
         the dictionary that contains the data of the manifest.json
     file_system: fsspec-like obj
         The file system to use.
+    index_df: dataframe
+        a dataframe representing the index
     """
     # If there are no parent uuids in the manifest, no need to check anything
     if len(data["parent_uuids"]) == 0:
