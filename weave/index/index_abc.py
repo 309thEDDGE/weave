@@ -2,13 +2,13 @@ import abc
 
 class IndexABC(abc.ABC):
     @property
-    @abstractmethod
+    @abc.abstractmethod
     def file_system(self):
         """The file system of the pantry referenced by this Index."""
         pass
 
     @property
-    @abstractmethod
+    @abc.abstractmethod
     def pantry_name(self):
         """The pantry name referenced by this Index."""
         pass
