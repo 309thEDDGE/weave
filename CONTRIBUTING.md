@@ -52,3 +52,9 @@ After the pull request has been created, members of the 309th SWEG EDDGE team wi
 
 ## Weave Style Guide
 Welcome to the weave Coding Style Guide. This comprehensive guide is designed to ensure uniformity, readability, and maintainability in our codebase. By following these guidelines, you'll contribute to a consistent and efficient development process, enhancing collaborative efforts, and streamlining code reviews. As part of our commitment to excellence we aim for not only a smooth code execution but also strive for rigorous adherence to quality; therefore, we aspire for your code to pass the rigorous tests of both ruff and pylint at a 10/10 rating. We are also following PEP 8 standards.
+<br>
+### Classes
+Class names should be written in Pascal Case, with no underscores between words. 
+See PEP-8 <a href="https://peps.python.org/pep-0008/#class-names">Class Name</a> guide.
+<br>
+### Functions and Methods
