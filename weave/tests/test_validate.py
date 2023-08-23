@@ -388,8 +388,7 @@ def test_validate_manifest_schema_additional_field(test_validate):
 
 
 def test_validate_invalid_manifest_json(test_validate):
-    """Make a basket with invalid manifest json, check that it collects
-       one warning.
+    """Make a basket with invalid manifest json, check a error is thrown
     """
 
     tmp_basket_dir = test_validate.set_up_basket(
@@ -406,33 +405,19 @@ def test_validate_invalid_manifest_json(test_validate):
     supplement_path = os.path.join(basket_path, "basket_supplement.json")
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
-    
-    test = "Expecting property name enclosed in double quotes: line 1 column 10 (char 9)"
-    
+
+    test = ("Expecting property name enclosed in double quotes: "
+            "line 1 column 10 (char 9)")
+
     with pytest.raises(
         ValueError
     ) as err:
         validate.validate_pantry(test_validate.bucket_name,
                                  test_validate.file_system)
-        
-    # print(err.value)
-    assert str(err.value) == "Pantry could not be loaded into index: Expecting property name enclosed in double quotes: line 1 column 10 (char 9)"
 
-#     warn_info = validate.validate_pantry(test_validate.bucket_name,
-#                                          test_validate.file_system)
-#     warning_1 = warn_info[0]
-
-#     # Check that there is only one warning raised
-#     assert len(warn_info) == 1
-
-#     # Check that the correct warning is raised
-#     assert warning_1.args[0] == (
-#         "Invalid Basket. Manifest could not be loaded into json at: "
-#     )
-#     # Check the invalid basket path is what we expect (disregarding FS prefix)
-#     assert warning_1.args[1].endswith(os.path.join(basket_path,
-#                                                    "bad_man",
-#                                                    "basket_manifest.json"))
+    assert str(err.value) == ("Pantry could not be loaded into index: "
+                              "Expecting property name enclosed in double "
+                              "quotes: line 1 column 10 (char 9)")
 
 
 def test_validate_invalid_supplement_schema(test_validate):
