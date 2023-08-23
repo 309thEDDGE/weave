@@ -53,33 +53,48 @@ are currently in.
 After the pull request has been created, members of the 309th SWEG EDDGE team will review your code and may request some changes.
 
 ## Weave Style Guide
-Welcome to the weave Coding Style Guide. This comprehensive guide is designed to ensure uniformity, readability, and maintainability in our codebase. By following these guidelines, you'll contribute to a consistent and efficient development process, enhancing collaborative efforts, and streamlining code reviews. As part of our commitment to excellence we aim for not only a smooth code execution but also strive for rigorous adherence to quality; therefore, we aspire for your code to pass the rigorous tests of both ruff and pylint at a 10/10 rating. We are also following PEP 8 standards.
-<br>
+<p>Welcome to the weave Coding Style Guide. This comprehensive guide is designed to ensure uniformity, readability, and maintainability in our codebase. By following these guidelines, you'll contribute to a consistent and efficient development process, enhancing collaborative efforts, and streamlining code reviews. As part of our commitment to excellence we aim for not only a smooth code execution but also strive for rigorous adherence to quality; therefore, we aspire for your code to pass the rigorous tests of both ruff and pylint at a 10/10 rating. We are also following PEP 8 standards.</p>
+
 ### Classes
-Class names should be written in Pascal Case, with no underscores between words. <br> 
-See PEP-8 <a href="https://peps.python.org/pep-0008/#class-names">Class Name</a> guide.
-<br>
+<p>Class names should be written in Pascal Case, with no underscores between words.</p>
+
+<p>See PEP-8 <a href="https://peps.python.org/pep-0008/#class-names">Class Name</a> guide.</p>
+
 ### Functions and Methods
-Function and Method names should be written in all lowercase, with underscores between each word. <br>
-For Function and Method Docstrings, go to Docstrings. <br>
-If you have a function that exceeds the line limit, check <a href="https://peps.python.org/pep-0008/#indentation">PEP-8 Indentation</a> guide. <br>
-See PEP-8 <a href="https://peps.python.org/pep-0008/#function-and-variable-names">Function and Variable guide.
-<br>
+<p>Function and Method names should be written in all lowercase, with underscores between each word.</p>
+
+<p>For Function and Method Docstrings, go to Docstrings.</p>
+
+<p>If you have a function that exceeds the line limit, check <a href="https://peps.python.org/pep-0008/#indentation">PEP-8 Indentation</a> guide.</p>
+
+<p>See PEP-8 <a href="https://peps.python.org/pep-0008/#function-and-variable-names">Function and Variable</a> guide.</p>
+
 ### Variables
-Variable names should we written in all lowercase with underscores between each word. <br>
-It is encouraged that Variable names be consistent between Classes, Functions/Methods, and different files. We do this because we want to increase readability and simplicity. If we name an object 'temp_basket_dir' in a couple functions, then we should strive to keep that name consistent throughout weave. (encouraged to make consistent names, but not required) <br>
-Variable names should be short, but descriptive. <br>
-Variable names must be 3 letters or longer. <br>
-If a parameter in one function is the same as a parameter in another function, the parameter names should be the same. For example, if you need a basket directory as a parameter, both should be 'basket_dir' instead of three separate parameters being 'bask_directory,' 'bask_dir,' or 'basket_directory.' (encouraged to make consistent names, but not required) <br>
-Must keep kwargs variable names consistent between kwargs throughout weave. <br>
-See PEP-8 <a href="https://peps.python.org/pep-0008/#function-and-variable-names">Function and Variable</a> guide.
-<br>
+<p>Variable names should we written in all lowercase with underscores between each word.</p>
+
+<p>It is encouraged that Variable names be consistent between Classes, Functions/Methods, and different files. We do this because we want to increase readability and simplicity. If we name an object 'temp_basket_dir' in a couple functions, then we should strive to keep that name consistent throughout weave. (encouraged to make consistent names, but not required)</p>
+
+<p>Variable names should be short, but descriptive.</p>
+
+<p>Variable names must be 3 letters or longer.</p>
+
+<p>If a parameter in one function is the same as a parameter in another function, the parameter names should be the same. For example, if you need a basket directory as a parameter, both should be 'basket_dir' instead of three separate parameters being 'bask_directory,' 'bask_dir,' or 'basket_directory.' (encouraged to make consistent names, but not required)</p>
+
+<p>Must keep kwargs variable names consistent between kwargs throughout weave.</p>
+
+<p>See PEP-8 <a href="https://peps.python.org/pep-0008/#function-and-variable-names">Function and Variable</a> guide.</p>
+
 ### Docstrings
 <p>Docstrings serve as crucial string literals, providing descriptions for Classes, Functions, and Methods. We prioritize creating succinct docstrings that offer brief explanations about the purpose of a class or function. This practice is designed to assist individuals who are unfamiliar with the codebase in understanding the functionality of each component.</p>
+
 <p>Docstrings have 4 sections: <i>Brief description, Detailed Description, Parameters, Returns, Use Case Example</i>.</p>
-A well-structured docstring opens with a succinct overview limited to the very first line, outlining the class's purpose. Following a blank line, a more detailed description can be added if necessary. The subsequent "<i>Parameters</i>" section should enumerate parameter names, types, and succinct explanations, maintaining the same order as their appearance in the function call. If the function has a kwargs, then those should be listed separately after the rest of the parameters. Afterwards, a "<i>Returns</i>" section follows, applicable only when the function produces a return value. In this section the return value's type and purpose are described. This format ensures coherent documentation of classes and functions, promoting clarity throughout the codebase. <br>
-As an optional section, you can add an example use case to help end users know how to use the class or function. <br>
-See PEP-8 <a href="https://peps.python.org/pep-0257/">Docstring Conventions</a> guide. <br>
+
+<p>A well-structured docstring opens with a succinct overview limited to the very first line, outlining the class's purpose. Following a blank line, a more detailed description can be added if necessary. The subsequent "<i>Parameters</i>" section should enumerate parameter names, types, and succinct explanations, maintaining the same order as their appearance in the function call. If the function has a kwargs, then those should be listed separately after the rest of the parameters. Afterwards, a "<i>Returns</i>" section follows, applicable only when the function produces a return value. In this section the return value's type and purpose are described. This format ensures coherent documentation of classes and functions, promoting clarity throughout the codebase.</p>
+
+<p>As an optional section, you can add an example use case to help end users know how to use the class or function.</p>
+
+<p>See PEP-8 <a href="https://peps.python.org/pep-0257/">Docstring Conventions</a> guide.</p>
+
 Here is an example of what a Docstring should look like for a function:
 
 
