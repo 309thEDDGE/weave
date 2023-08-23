@@ -14,7 +14,7 @@ access to data provenance.
 
 **Bucket**: A location in MINIO where files may be stored.
 
-**Pantry**: 
+**Pantry**: A storage location that hold baskets or collections of baskets.
 
 **Basket**: A representation of an atomic data product within a pantry.
 
