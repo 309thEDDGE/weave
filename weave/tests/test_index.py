@@ -1260,7 +1260,7 @@ def test_upload_basket_updates_the_index(test_pantry):
     # add some baskets
     tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
     for i in range(3):
-        ind.upload_basket(
+        new_basket = ind.upload_basket(
             upload_items=[
                 {"path": str(tmp_basket_dir_two.realpath()), "stub": False}
             ],
@@ -1269,7 +1269,9 @@ def test_upload_basket_updates_the_index(test_pantry):
         if i == 0:
             first_time = pd.to_datetime(ind.index_df.iloc[1].upload_time)
     time_diff = first_time - pd.to_datetime(ind.index_df.iloc[1].upload_time)
-    assert time_diff.total_seconds() < 0.001
+
+    assert all(ind.index_df.iloc[-1] == new_basket.iloc[0])
+    assert time_diff.total_seconds() == 0
     assert len(ind.index_df) == 4
 
 
