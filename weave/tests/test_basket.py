@@ -412,7 +412,7 @@ def test_basket_init_from_uuid(test_pantry):
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
     test_b = Basket(
         basket_address=uuid,
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.bucket_name,
         file_system=test_pantry.file_system,
     )
     assert test_b.ls("basket_one")[0].endswith(
@@ -433,7 +433,7 @@ def test_basket_init_fails_if_uuid_does_not_exist(test_pantry):
     with pytest.raises(ValueError, match=f"Basket does not exist: {bad_uuid}"):
         Basket(
             basket_address=bad_uuid,
-            bucket_name=test_pantry.bucket_name,
+            pantry_name=test_pantry.bucket_name,
             file_system=test_pantry.file_system,
         )
 
@@ -450,7 +450,7 @@ def test_basket_bucket_name_does_not_exist(test_pantry):
     with pytest.raises(ValueError, match=f"Basket does not exist: {uuid}"):
         Basket(
             basket_address=uuid,
-            bucket_name="the wrong basket 007",
+            pantry_name="the wrong basket 007",
             file_system=test_pantry.file_system,
         )
 
@@ -467,7 +467,7 @@ def test_basket_from_uuid_with_many_baskets(test_pantry):
 
     test_b = Basket(
         basket_address=uuid,
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.bucket_name,
         file_system=test_pantry.file_system,
     )
     assert test_b.ls(f"temp_basket_{uuid}")[0].endswith(
