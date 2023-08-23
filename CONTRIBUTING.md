@@ -27,11 +27,11 @@ The <a href="https://github.com/309thEDDGE/weave/blob/main/license/LICENSE.txt">
 
 ## Coding Standards
 <p>The entire repository follows the PEP-8 style guide. Please refer to the PEP-8 official website <a href="https://pep8.org">https://pep8.org</a> for the guidelines on following the PEP-8 style.</p>
-When a pull request is created, the code must pass the three checks in the Weave CI/CD workflow expalined in the.github/workflows folder. This helps ensures that the code follows our repository style guidelines. 
+
+<p>When a pull request is created, the code must pass the three checks in the Weave CI/CD workflow expalined in the.github/workflows folder. This helps ensures that the code follows our repository style guidelines.</p>
 
 ## Process for Submitting a Pull Request
-Changes to this repository should always be done through pull requests. Anyone is welcome to submit a pull request to be reviewed for merging into the main branch. However, these changes may not always be accepted by the owners of the repository.
-<br>
+<p>Changes to this repository should always be done through pull requests. Anyone is welcome to submit a pull request to be reviewed for merging into the main branch. However, these changes may not always be accepted by the owners of the repository.</p>
 <br>
 - 1: Clone the repository in your local environment using `git clone https://github.com/309thEDDGE/weave.git`
 - 2: Use `git pull` to get any recent changes on your local environment.
@@ -48,8 +48,8 @@ are currently in.
 - 8: Click on New Pull Request.
 - 9: Find your branch on the compare drop down menu and select it. Note: if you want to request a merge into main, the base should be set to main.
 - 10: Click Create pull request.
-<br>
-After the pull request has been created, members of the 309th SWEG EDDGE team will review your code and may request some changes.
+
+<p>After the pull request has been created, members of the 309th SWEG EDDGE team will review your code and may request some changes.</p>
 
 ## Weave Style Guide
 Welcome to the weave Coding Style Guide. This comprehensive guide is designed to ensure uniformity, readability, and maintainability in our codebase. By following these guidelines, you'll contribute to a consistent and efficient development process, enhancing collaborative efforts, and streamlining code reviews. As part of our commitment to excellence we aim for not only a smooth code execution but also strive for rigorous adherence to quality; therefore, we aspire for your code to pass the rigorous tests of both ruff and pylint at a 10/10 rating. We are also following PEP 8 standards.
