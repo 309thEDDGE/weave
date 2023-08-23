@@ -7,6 +7,12 @@ class IndexABC(abc.ABC):
         """The file system of the pantry referenced by this Index."""
         pass
 
+    @property
+    @abstractmethod
+    def pantry_name(self):
+        """The pantry name referenced by this Index."""
+        pass
+
     @abc.abstractmethod
     def generate_index(self):
         """Populates the index from the file system."""
@@ -55,7 +61,7 @@ class IndexABC(abc.ABC):
     @abc.abstractmethod
     def get_baskets_by_upload_time(self, start_time=None, end_time=None,
                                    **kwargs):
-        """Returns a pandas dataframe containing baskets with label."""
+        """Returns a pandas dataframe of baskets uploaded between two times."""
         pass
 
     @abc.abstractmethod
