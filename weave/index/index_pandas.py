@@ -409,3 +409,4 @@ class _Index():
         self._upload_index(
             pd.concat([self.index_df, single_indice_index], ignore_index=True)
         )
+        return single_indice_index
