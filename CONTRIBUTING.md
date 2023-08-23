@@ -139,7 +139,7 @@ for i in range(10):
 
 List of some frequent errors that I think could be helpful:
 <br>
-
+- "Invalid pantry. Invalid {something} found at {path}"
 
 
 
