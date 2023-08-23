@@ -86,5 +86,5 @@ to a basketin the datastore.
 Anyone who desires to contribute to Weave is encouraged to create a branch,
 make the changes as they see fit, and submit them for review to a member of
 309th EDDGE. Make sure contributions follow proper test driven development
-practices and PEP 8 style guidelines. The contributing guide can be found
+practices and PEP 8 style guidelines. The contribution guide can be found
 <a href="https://github.com/309thEDDGE/weave/blob/OPAL-1135/CONTRIBUTING.md">here</a>
