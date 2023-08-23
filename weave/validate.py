@@ -371,16 +371,21 @@ def _validate_supplement_files(basket_dir, data, file_system):
 
     # Check if a file listed in the file system exists in the basket_supplement
     for sys_file in system_file_list:
-        print('first_list:', list(filter(sys_file.endswith, supp_file_list)))
+        # print('first_list:', list(filter(sys_file.endswith, supp_file_list)))
         # if not list(filter(sys_file.endswith, supp_file_list)) != []:
-        if sys_file not in supp_file_list:
+        print('testing with file:', sys_file, ':', [x for x in supp_file_list if sys_file.endswith(x)])
+        # if sys_file not in [x for x in supp_file_list if x.endswith(sys_file)]
+        if sys_file not in [x for x in supp_file_list if sys_file.endswith(x)]:
+        # if sys_file not in supp_file_list:
             warnings.warn(UserWarning("File found in the file system is not listed in the basket_supplement.json: ", sys_file))
 
     # Check if a file listed in the basket_supplement exists in the file system
     for supp_file in supp_file_list:
-        print('2nd_list:', list(filter(supp_file.endswith, system_file_list)))
+        # print('2nd_list:', list(filter(supp_file.endswith, system_file_list)))
         # if not list(filter(supp_file.endswith, system_file_list)) != []:
-        if supp_file not in system_file_list:
+        print('testing_2 with file: ', supp_file, ':', [x for x in system_file_list if x.endswith(supp_file)])
+        if supp_file not in [x for x in system_file_list if not x.endswith(supp_file)]:
+        # if supp_file not in system_file_list:
             warnings.warn(UserWarning("File listed in the basket_supplement.json does not exist in the file system: ", supp_file))
 
 
