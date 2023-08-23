@@ -415,7 +415,7 @@ def test_validate_invalid_manifest_json(test_validate):
         validate.validate_pantry(test_validate.bucket_name,
                                  test_validate.file_system)
         
-    print(err.value)
+    # print(err.value)
     assert str(err.value) == "Pantry could not be loaded into index: Expecting property name enclosed in double quotes: line 1 column 10 (char 9)"
 
 #     warn_info = validate.validate_pantry(test_validate.bucket_name,

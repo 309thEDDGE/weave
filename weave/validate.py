@@ -38,14 +38,16 @@ def validate_pantry(pantry_name, file_system):
             f"Invalid pantry Path. Pantry does not exist at: {pantry_name}"
         )
 
+    # Here we are catching the warnings that are shown from calling
+    # generate_index() because we don't want to show the same warning twice
     ind = Index(bucket_name=pantry_name, file_system=file_system)
-    
-    try:
-        ind.generate_index()
-    except json.decoder.JSONDecodeError as error_msg:
-        raise ValueError(
-            f"Pantry could not be loaded into index: {error_msg}"
-        )
+    with warnings.catch_warnings(record=True):
+        try:
+            ind.generate_index()
+        except json.decoder.JSONDecodeError as error_msg:
+            raise ValueError(
+                f"Pantry could not be loaded into index: {error_msg}"
+            )
     index_df = ind.to_pandas_df()
 
     # call check level, with a path, but since we're just starting,
