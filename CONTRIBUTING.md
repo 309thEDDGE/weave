@@ -1,10 +1,10 @@
 # Weave Contributing Guide
-This contribution guide gives instructions on contributing to the Weave repository. Anyone is welcome to create a pull request for this project as long as they follow these guidelines. This guide will include repository organization, coding standards, process for submitting a pull request, and our Weave style guide.
+<p>This contribution guide gives instructions on contributing to the Weave repository. Anyone is welcome to create a pull request for this project as long as they follow these guidelines. This guide will include repository organization, coding standards, process for submitting a pull request, and our Weave style guide.</p>
 
 ## Repository Organization
 
 ### Root
-The root folder contains all of the necessary information about Weave, including a <a href="https://github.com/309thEDDGE/weave/blob/main/README.md">README</a> and a <a href="https://github.com/309thEDDGE/weave/blob/main/setup.py">setup.py</a> file to setup the current version of Weave.
+<p>The root folder contains all of the necessary information about Weave, including a <a href="https://github.com/309thEDDGE/weave/blob/main/README.md">README</a> and a <a href="https://github.com/309thEDDGE/weave/blob/main/setup.py">setup.py</a> file to setup the current version of Weave.</p>
 
 ### .github/workflows
 <p>The <a href="https://github.com/309thEDDGE/weave/blob/main/.github/workflows/pytest_and_ruff.yml">.github/workflows</a> folder contains the workflow for Weave and will run tests. There are three tests run in the Weave CI/CD workflow: pytest, ruff, and pylint. </p>
@@ -14,7 +14,7 @@ The root folder contains all of the necessary information about Weave, including
 <p>Note: Pylint MUST pass with a score of 10/10.</p>
 
 ### License
-The <a href="https://github.com/309thEDDGE/weave/blob/main/license/LICENSE.txt">license</a> folder contains the license for using this repository. The license should not be edited by anyone besides the owners of the repository.
+<p>The <a href="https://github.com/309thEDDGE/weave/blob/main/license/LICENSE.txt">license</a> folder contains the license for using this repository. The license should not be edited by anyone besides the owners of the repository.</p>
 
 ### Weave
 <p>The <a href="https://github.com/309thEDDGE/weave/tree/main/weave">weave</a> folder contains the functionality of this repository.</p>
@@ -140,17 +140,43 @@ for i in range(10):
 List of some frequent errors that I think could be helpful:
 <br>
 - "Invalid pantry. Invalid {something} found at {path}"
+- "Invalid pantry. Invalid baskets found in the following locations: {list of paths}"
+- "Invalid basket. Invalid {something} found at {path}"
+- "Invalid basket. {file} does not exist at {basket_path or file_path}"
+- "'{var name}' must be a {var type}: '{user's input}'"
+- "{path} does not exist"
+- "Expected {x, y, or z} instead got {datatype}"
+- "Invalid datatype for {var}, must be {datatype}"
+- "Invalid {object} missing {something}"
+<br>
+Custom Errors or Warnings are still applicable for specific errors that need to be shown.
 
+### Keywords
+None of these keywords should be found inside of weave:
 
+### Version Number
+<p>Version numbers in a codebase consistent of three segments: major, minor, and patch. The major number (X.0.0) signifies significant changes potentially requiring adaptation, while the minor number (0.X.0) indicates new features or enhancements that maintain compatibility. The patch number (0.0.X) reflects bug fixes and security updates to ensure stability. This versioning scheme facilitates communication about changes between releases, aiding decision-making and promoting efficient development. Importantly, when a number is incremented, the lower-order numbers reset to zero.</p>
 
+<p>Example: 1.5.7 → 1.6.0 → 2.0.0</p>
 
+<p>Additional info on <a href="https://peps.python.org/pep-0440/#final-releases">version numbers</a>.</p>
 
+### Whitespace
+<p>Eliminate any trailing whitespace and ensure a consistent formatting practice. Maintain a clear demarcation between top level classes and functions by inserting two blank lines, and similarly, separate other functions and methods with a single blank line.</p>
 
+<p>To enhance readability, it's advised to intersperse chunks of code with a blank line. For instance, when dealing with multiple variable definitions followed by corresponding logic, introducing a space between the definitions and the logic aids in clarity. Similarly, when a distinct logical sequence is present within a function, its beneficial to enclose that section with blank lines, effectively demarcating and organizing code for better comprehension.</p>
 
+<p><a href="https://peps.python.org/pep-0008/#whitespace-in-expressions-and-statements">PEP-8 Guide to Whitespace</a></p>
 
+### Pytest
+<p>Highly recommended that each pytest name is descriptive of what it is testing. It is also recommended to add a short docstring at the beginning of the function describing what the test does to help with debugging and clarity.</p>
 
+### Pylint
+<p>If you disable a pylint rule, you must include a comment explaining why you disabled that pylint rule.</p>
 
+### Other/Misc
+<p>Verify that every sentence, documentation, and comment is coherent, comprehensible, and adheres to proper grammar.</p>
 
+<p>PEP-8 <a href="https://peps.python.org/pep-0008/#indentation">Indentation</a>.</p>
 
-
-
+<p>PEP-8 <a href="https://peps.python.org/pep-0008/#when-to-use-trailing-commas">When To Use Trailing Commas</a>.</p>
