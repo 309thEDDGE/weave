@@ -2,6 +2,7 @@
 import os
 from pathlib import Path
 
+import pandas as pd
 import pytest
 import s3fs
 from fsspec.implementations.local import LocalFileSystem
@@ -194,8 +195,8 @@ def test_validate_pantry_does_not_exist(test_validate):
     # Check that the correct error is raised
     with pytest.raises(
         ValueError,
-        match=f"Invalid Bucket Path. "
-        f"Bucket does not exist at: {bucket_path}"
+        match=f"Invalid pantry Path. "
+        f"Pantry does not exist at: {bucket_path}"
     ):
         validate.validate_pantry(bucket_path, test_validate.file_system)
 
@@ -394,7 +395,7 @@ def test_validate_invalid_manifest_json(test_validate):
     tmp_basket_dir = test_validate.set_up_basket(
         "bad_man",
         is_man=True,
-        man_data='{"Bad":1}}',
+        man_data='{"Bad":1,}',
         is_sup=True,
         is_meta=False
     )
@@ -405,22 +406,33 @@ def test_validate_invalid_manifest_json(test_validate):
     supplement_path = os.path.join(basket_path, "basket_supplement.json")
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
+    
+    test = "Expecting property name enclosed in double quotes: line 1 column 10 (char 9)"
+    
+    with pytest.raises(
+        ValueError
+    ) as err:
+        validate.validate_pantry(test_validate.bucket_name,
+                                 test_validate.file_system)
+        
+    print(err.value)
+    assert str(err.value) == "Pantry could not be loaded into index: Expecting property name enclosed in double quotes: line 1 column 10 (char 9)"
 
-    warn_info = validate.validate_pantry(test_validate.bucket_name,
-                                         test_validate.file_system)
-    warning_1 = warn_info[0]
+#     warn_info = validate.validate_pantry(test_validate.bucket_name,
+#                                          test_validate.file_system)
+#     warning_1 = warn_info[0]
 
-    # Check that there is only one warning raised
-    assert len(warn_info) == 1
+#     # Check that there is only one warning raised
+#     assert len(warn_info) == 1
 
-    # Check that the correct warning is raised
-    assert warning_1.args[0] == (
-        "Invalid Basket. Manifest could not be loaded into json at: "
-    )
-    # Check the invalid basket path is what we expect (disregarding FS prefix)
-    assert warning_1.args[1].endswith(os.path.join(basket_path,
-                                                   "bad_man",
-                                                   "basket_manifest.json"))
+#     # Check that the correct warning is raised
+#     assert warning_1.args[0] == (
+#         "Invalid Basket. Manifest could not be loaded into json at: "
+#     )
+#     # Check the invalid basket path is what we expect (disregarding FS prefix)
+#     assert warning_1.args[1].endswith(os.path.join(basket_path,
+#                                                    "bad_man",
+#                                                    "basket_manifest.json"))
 
 
 def test_validate_invalid_supplement_schema(test_validate):
@@ -1234,8 +1246,8 @@ def test_validate_call_check_level(test_validate):
     # pylint: disable-next=protected-access
     assert validate._check_level(
         test_validate.bucket_name,
-        test_validate.bucket_name,
-        test_validate.file_system
+        file_system=test_validate.file_system,
+            index_df=pd.DataFrame()
     )
 
 
@@ -1267,8 +1279,8 @@ def test_validate_call_validate_basket(test_validate):
         # pylint: disable-next=protected-access
         validate._validate_basket(
             test_validate.bucket_name,
-            test_validate.bucket_name,
-            test_validate.file_system
+            file_system=test_validate.file_system,
+            index_df=pd.DataFrame()
         )
 
 
