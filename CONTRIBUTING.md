@@ -63,7 +63,7 @@ After the pull request has been created, members of the 309th SWEG EDDGE team wi
 ### Functions and Methods
 <p>Function and Method names should be written in all lowercase, with underscores between each word.</p>
 
-<p>For Function and Method Docstrings, go to Docstrings.</p>
+<p>For Function and Method Docstrings, go to <a href="https://github.com/309thEDDGE/weave/blob/OPAL-1135/CONTRIBUTING.md#docstrings">Docstrings</a>.</p>
 
 <p>If you have a function that exceeds the line limit, check <a href="https://peps.python.org/pep-0008/#indentation">PEP-8 Indentation</a> guide.</p>
 
@@ -99,10 +99,10 @@ Here is an example of what a Docstring should look like for a function:
 
 ```python
 def example_function(var_1, var_2):
-    """--THS IS A BRIEF DESCRIPTION OF WHAT THE FUNCTION DOES ON ONE LINE--
-    -----------------------------------------------------------------------
-    -----THIS IS A MORE DETAILED DESCRIPTION OF WHAT THE FUNCTION DOES-----
-    -----------------------------------------------------------------------
+    """--THIS IS A BRIEF DESCRIPTION OF WHAT THE FUNCTION DOES ON ONE LINE--
+    ------------------------------------------------------------------------
+    -----THIS IS A MORE DETAILED DESCRIPTION OF WHAT THE FUNCTION DOES------
+    ------------------------------------------------------------------------
 
     Parameters
     ----------
@@ -116,6 +116,31 @@ def example_function(var_1, var_2):
     A string that has var_1 with var_2 added to the end
     """
 ```
+
+### Comments
+<p>In our coding practice, comments serve the purpose of clarifying non-obvious elements or providing explanations where needed. We aim for succinct descriptions, avoiding excessive jargon, and keeping the format consistent: comments start at the same indentation as the corresponding code, followed by a space, and the sentence begins with a capital letter. This approach ensures clarity and readability while enhancing our code's comprehensibility.</p>
+
+<p>See PEP-8 <a href="https://peps.python.org/pep-0008/#comments">Comments</a> guide.
+
+Here is an example:
+
+```python
+# This loop prints out numbers from 0 to 9
+for i in range(10):
+    print(i)
+```
+
+### Errors and Warnings
+<p>Errors and warnings play a pivotal role in enhancing user comprehension of code-related issues. They provide valuable insights into the nature of errors and suggest alternative ways to utilize the code effectively, thereby mitigating potential errors. Descriptive errors and warnings are indispensable tools for debugging code and fostering user awareness about the occurring issues.</p>
+
+<p>A recommended guideline is to furnish succinct descriptions of the encountered issues, accompanied by suggestions for rectification. For instance, consider the case of an "<i>Invalid basket. Invalid manifest found at {manifest_path}.</i>" Here, the term "<i>Invalid basket</i>" denotes the issue, followed by an explanation of the underlying problem, and a path that pinpoints the location of the problematic manifest. This structure ensures clarity by adhering to a coherent format. Furthermore, when addressing errors or warnings linked to the basket, starting with "<i>Invalid basket</i>" offers consistency and a clear indication of the problem area. If a specific file is the root cause of the error, explicitly specifying it aids in precise identification. Conversely, for missing files within the basket, directing users to the basket itself simplifies the resolution process. In scenarios involving the entire pantry, a formulation such a "<i>Invalid pantry. Error found at: {path or list of paths}</i>" serves as an effective descriptor. By adopting these practices, errors and warning messages become a valuable asset for users, fostering a seamless debugging experience and facilitating prompt resolutions.</p>
+
+<p>All the Errors and Warnings must be consistent throughout weave. If it's an invalid data type, that error message should be consistent.</p>
+
+List of some frequent errors that I think could be helpful:
+<br>
+
+
 
 
 
