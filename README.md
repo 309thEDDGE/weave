@@ -71,7 +71,7 @@ Useful functions are available after running `import weave`
 Weave was built with the intention of connecting to an S3 pantry with an
 `s3fs.S3FileSystem` object and also supports a LocalFileSystem. Any filesystem 
 that uses an `fsspec.implementations` API should be possible to implement. For 
-now, Weave has only been tested using an S3 pantry and local filesystems.
+now, Weave has only been tested using an S3 and local filesystems.
 
 The following environment variables are required to establish an S3 connection:  
 - AWS_ACCESS_KEY_ID
