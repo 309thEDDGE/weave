@@ -64,3 +64,7 @@ class IndexABC(abc.ABC):
     @abc.abstractmethod
     def __len__(self):
         """Returns the number of baskets in the index."""
+
+    @abc.abstractmethod
+    def __str__(self):
+        """Returns the str instantiation type of this Index (ie 'SQLIndex')."""
