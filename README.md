@@ -103,14 +103,13 @@ Basket(args, file_system=local_fs)
 UploadBasket(args) # Default s3fs used
 ```
 
-The following examples assume a pantry called "basket-data" exists in the file
-system. A pantry can be named any valid fsspec directory name. This can be done
-as follows:
+The default pantry name for Weave classes is 'basket_data'. A pantry can be 
+named any valid fsspec directory name. This can be done as follows:
 
 ```python
     pantry_name = 'example_pantry'
-    s3_fs.mkdir(path_to_pantry + os.path.sep + example_pantry)
-    local_fs.mkdir(path_to_pantry + os.path.sep + example_pantry)
+    s3_fs.mkdir(path_to_pantry + os.path.sep + pantry_name)
+    local_fs.mkdir(path_to_pantry + os.path.sep + pantry_name)
 ```
 
 ### Baskets
@@ -148,7 +147,7 @@ from weave.upload import UploadBasket
 upload_items = [{'path':'Path_to_file_or_dir', 'stub': False}]
 upload_path = UploadBasket(upload_items, 
                            basket_type = 'item',
-                           upload_directory = 'basket-data',
+                           upload_directory = 'example_pantry',
                           )
 ```
 
@@ -175,7 +174,7 @@ its uuid, upload time, parent uuids, basket type, label, address and storage
 type. Example code to create this index:
 ```python
 from weave.index.index import Index
-ind = Index(name_of_s3_pantry)
+ind = Index(pantry_name='example_pantry')
 if no ind.is_index_current():
     ind.sync_index() # Explicitly update the index
 ind_df = ind.to_pandas_df()
