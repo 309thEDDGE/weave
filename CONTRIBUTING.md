@@ -9,7 +9,7 @@
 ### .github/workflows
 <p>The <a href="https://github.com/309thEDDGE/weave/blob/main/.github/workflows">.github/workflows</a> folder contains the workflow for Weave and will run tests. There are four tests run in the Weave CI/CD workflow: pytest, ruff, pylint, and version_check. </p>
 
-<p>Pytest ensures that all of the pytests created in the repository pass. Ruff will statically analyze your code. Pylint will check if your code follows the PEP-8 style guide, which is the style guide that we follow for this repository. Version_check will check that the Weave version has been updated in <a href="https://github.com/309thEDDGE/weave/blob/main/setup.py">setup.py</a>.</p>
+<p>Pytest ensures that all of the pytests created in the repository pass. Ruff will statically analyze your code. Pylint will check if your code follows the PEP-8 style guide, which is the style guide that we follow for this repository. Version_check will check that the Weave version has been updated in <a href="https://github.com/309thEDDGE/weave/blob/OPAL-1135/weave/__init__.py">weave/__init__.py</a>.</p>
 
 <p>Note: Pylint MUST pass with a score of 10/10.</p>
 
@@ -28,7 +28,7 @@
 ## Coding Standards
 <p>The entire repository follows the PEP-8 style guide. Please refer to the PEP-8 official website <a href="https://pep8.org">https://pep8.org</a> for the guidelines on following the PEP-8 style.</p>
 
-<p>When a pull request is created, the code must pass the four checks in the Weave CI/CD workflow expalined in the.github/workflows folder. This helps ensures that the code follows our repository style guidelines.</p>
+<p>When a pull request is created, the code must pass the four checks in the Weave CI/CD workflow expalined in the .github/workflows folder. This helps ensures that the code follows our repository style guidelines.</p>
 
 ## Process for Submitting a Pull Request
 Changes to this repository should always be done through pull requests. Anyone is welcome to submit a pull request to be reviewed for merging into the main branch. However, these changes may not always be accepted by the owners of the repository.
