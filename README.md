@@ -45,7 +45,7 @@ found in weave/config.py. It contains the following:
 
 ### Supplement
 
-following the schema found in weave/config.py. It contains the following:
+This file follows the schema found in weave/config.py as follows:
 
 - Upload Items: The items uploaded within the basket.
 - Integrity data: A data to verify data was successfully uploaded for each 
@@ -107,7 +107,7 @@ The default pantry name for Weave classes is 'basket_data'. A pantry can be
 named any valid fsspec directory name. This can be done as follows:
 
 ```python
-    pantry_name = 'example_pantry'
+    pantry_name = 'basket_data'
     s3_fs.mkdir(path_to_pantry + os.path.sep + pantry_name)
     local_fs.mkdir(path_to_pantry + os.path.sep + pantry_name)
 ```
@@ -130,14 +130,17 @@ Weave automatically creates baskets during the upload process. However, the
 user must specify what information they want contained in the basket.
 
 Required basket information:
-- upload items
-- basket type
-- pantry name
+- upload items: List of dictionaries of items to upload.
+    - path: Path of the file on the local system.
+    - stub: Boolean to indicate whether the basket include a copy or reference
+            to the file. True indicates a reference is uploaded.
+- basket type: A category for the basket.
+- pantry name/upload_directory: Where to upload the files.
 
 Optional basket information:
-- parent ids
-- metadata
-- label
+- parent ids: Baskets from which the current basket was derived.
+- metadata: User customizable metadata.
+- label: Additional user label.
 
 The preferred method to upload baskets is using the Index. However, baskets
 can be uploaded directly:
@@ -147,7 +150,7 @@ from weave.upload import UploadBasket
 upload_items = [{'path':'Path_to_file_or_dir', 'stub': False}]
 upload_path = UploadBasket(upload_items, 
                            basket_type = 'item',
-                           upload_directory = 'example_pantry',
+                           upload_directory = 'basket_data',
                           )
 ```
 
@@ -174,7 +177,7 @@ its uuid, upload time, parent uuids, basket type, label, address and storage
 type. Example code to create this index:
 ```python
 from weave.index.index import Index
-ind = Index(pantry_name='example_pantry')
+ind = Index(pantry_name='basket_data')
 if no ind.is_index_current():
     ind.sync_index() # Explicitly update the index
 ind_df = ind.to_pandas_df()
@@ -198,7 +201,7 @@ uploaded_info = ind.upload_basket(upload_items, basket_type='item',
                                            parent_ids=Optional,
                                            metadata=Optional,
                                            label=Optional
-                             )
+                                 )
 
 # Access the uploaded_basket (likely called well after uploading the basket).
 basket = ind.get_basket(uploaded_info.uuid[0])
