@@ -151,9 +151,6 @@ List of some frequent errors that I think could be helpful:
 <br>
 Custom Errors or Warnings are still applicable for specific errors that need to be shown.
 
-### Keywords
-None of these keywords should be found inside of weave:
-
 ### Version Number
 <p>Version numbers in a codebase consistent of three segments: major, minor, and patch. The major number (X.0.0) signifies significant changes potentially requiring adaptation, while the minor number (0.X.0) indicates new features or enhancements that maintain compatibility. The patch number (0.0.X) reflects bug fixes and security updates to ensure stability. This versioning scheme facilitates communication about changes between releases, aiding decision-making and promoting efficient development. Importantly, when a number is incremented, the lower-order numbers reset to zero.</p>
 
