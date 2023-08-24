@@ -112,11 +112,13 @@ def example_function(var_1, var_2, var_3, **kwargs):
         This is a list of integers that will check if var_2 is less than the sum of integers in this list
     kwargs:
     var_4: bool
-        Optional parameter. Will only check if the length of var_1 is less than the sum of integers in var_3 if set to True. Default is False
+        Optional parameter. Will only check if the length of var_1 is less than the sum of integers in var_3 if set to True.
+        Default is False
 
     Returns
     ----------
-    A boolean value that indicates whether var_2 and the length of var_1 (only if var_4 is True) are less than the sum of integers in var_3.
+    A boolean value that indicates whether var_2 and the length of var_1 (only if var_4 is True) are less than the sum of
+    integers in var_3.
     """
 ```
 
