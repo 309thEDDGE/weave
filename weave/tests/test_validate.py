@@ -1507,6 +1507,6 @@ def test_validate_file_not_in_supplement(test_validate):
     
     # Call validate_bucket, see that it returns a list of basket errors
     warn_list = validate.validate_pantry(test_validate.bucket_name, test_validate.file_system)
-    print('\n\nwarninglist: \n', warn_list)
-    
-    # Remove the file that we created
+    print('\n\nwarninglist: \n')
+    for i in warn_list:
+        print(i)
