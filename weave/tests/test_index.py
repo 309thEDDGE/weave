@@ -105,7 +105,7 @@ def test_correct_index(test_pantry):
     expected_index = pd.DataFrame(truth_index_dict)
 
     actual_index = create_index_from_fs(
-        test_pantry.bucket_name, test_pantry.file_system
+        test_pantry.pantry_name, test_pantry.file_system
     )
 
     # Check that the indexes match, ignoring 'upload_time', and 'address'
@@ -149,7 +149,7 @@ def set_up_malformed_baskets(request, tmpdir):
 
             basket_dict = {}
             manifest_address = (
-                f"{test_pantry.bucket_name}/test_basket/"
+                f"{test_pantry.pantry_name}/test_basket/"
                 f"000{i}/basket_manifest.json"
             )
 
@@ -192,7 +192,7 @@ def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
     # (Checking the warnings are correct is tested in the next unit test.)
     with warnings.catch_warnings(record=True) as warn:
         actual_index = create_index_from_fs(
-            test_pantry.bucket_name, test_pantry.file_system
+            test_pantry.pantry_name, test_pantry.file_system
         )
         message = (
             "baskets found in the following locations "
@@ -219,7 +219,7 @@ def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
     test_pantry, _, bad_addresses = set_up_malformed_baskets
 
     with warnings.catch_warnings(record=True) as warn:
-        create_index_from_fs(test_pantry.bucket_name, test_pantry.file_system)
+        create_index_from_fs(test_pantry.pantry_name, test_pantry.file_system)
         message = (
             "baskets found in the following locations "
             "do not follow specified weave schema:"
@@ -256,7 +256,7 @@ def test_sync_index_gets_latest_index(test_pantry):
 
     # Create index
     ind = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -268,7 +268,7 @@ def test_sync_index_gets_latest_index(test_pantry):
 
     # Regenerate index outside of current index object
     ind2 = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -292,7 +292,7 @@ def test_sync_index_calls_generate_index_if_no_index(test_pantry):
 
     # Create index
     ind = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -320,7 +320,7 @@ def test_to_pandas_df(test_pantry):
 
     # Create index
     ind = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -348,7 +348,7 @@ def test_clean_up_indices_leaves_n_indices(test_pantry):
 
     # Create index
     ind = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -361,7 +361,7 @@ def test_clean_up_indices_leaves_n_indices(test_pantry):
 
     # Now there should be two index baskets. clean up all but one of them:
     ind.clean_up_indices(n_keep=1)
-    index_path = os.path.join(test_pantry.bucket_name, "index")
+    index_path = os.path.join(test_pantry.pantry_name, "index")
     assert len(test_pantry.file_system.ls(index_path)) == 1
 
 
@@ -374,7 +374,7 @@ def test_clean_up_indices_with_n_greater_than_num_of_indices(test_pantry):
 
     # Create index
     ind = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -388,7 +388,7 @@ def test_clean_up_indices_with_n_greater_than_num_of_indices(test_pantry):
     # Now there should be two index baskets. clean up all but three of them:
     # (this should fail, obvs)
     ind.clean_up_indices(n_keep=3)
-    index_path = os.path.join(test_pantry.bucket_name, "index")
+    index_path = os.path.join(test_pantry.pantry_name, "index")
     assert len(test_pantry.file_system.ls(index_path)) == 2
 
 
@@ -401,7 +401,7 @@ def test_is_index_current(test_pantry):
 
     # Create index
     ind = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -413,7 +413,7 @@ def test_is_index_current(test_pantry):
 
     # Regenerate index outside of current index object
     ind2 = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -430,7 +430,7 @@ def test_generate_index(test_pantry):
 
     # Create index
     ind = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -459,7 +459,7 @@ def test_delete_basket_deletes_basket(test_pantry):
 
     # Create index
     ind = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -474,7 +474,7 @@ def test_delete_basket_deletes_basket(test_pantry):
 
     # fs_baskets: Baskets in the file system
     fs_baskets = test_pantry.file_system.ls(
-        f"{test_pantry.bucket_name}/test_basket"
+        f"{test_pantry.pantry_name}/test_basket"
     )
     # index_baskets: Baskets in the index object
     index_baskets = ind.index_df[ind.index_df["basket_type"] == "test_basket"]
@@ -498,7 +498,7 @@ def test_delete_basket_fails_if_basket_is_parent(test_pantry):
         tmp_basket_dir=tmp_basket_dir_two, uid="0002", parent_ids=["0001"]
     )
     ind = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -554,7 +554,7 @@ def test_get_parents_valid(test_pantry):
     gen_lvl = "generation_level"
 
     ind = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -601,7 +601,7 @@ def test_get_parents_invalid_basket_address(test_pantry):
     basket_path = "INVALIDpath"
 
     index = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -625,7 +625,7 @@ def test_get_parents_no_parents(test_pantry):
     )
 
     index = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -663,7 +663,7 @@ def test_get_parents_parent_is_child(test_pantry):
     )
 
     index = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -720,7 +720,7 @@ def test_get_children_valid(test_pantry):
     gen_lvl = "generation_level"
 
     ind = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -758,7 +758,7 @@ def test_get_children_invalid_basket_address(test_pantry):
     basket_path = "INVALIDpath"
 
     index = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -782,7 +782,7 @@ def test_get_children_no_children(test_pantry):
     )
 
     index = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -820,7 +820,7 @@ def test_get_children_child_is_parent(test_pantry):
     )
 
     index = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -853,7 +853,7 @@ def test_get_parents_15_deep(test_pantry):
         )
 
     ind = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -919,7 +919,7 @@ def test_get_children_15_deep(test_pantry):
         )
 
     ind = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -1013,7 +1013,7 @@ def test_get_parents_complex_fail(test_pantry):
     )
 
     ind = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -1072,7 +1072,7 @@ def test_get_children_complex_fail(test_pantry):
     )
 
     ind = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -1125,7 +1125,7 @@ def test_get_parents_from_uuid(test_pantry):
     gen_lvl = "generation_level"
 
     ind = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -1207,7 +1207,7 @@ def test_get_children_from_uuid(test_pantry):
     gen_lvl = "generation_level"
 
     ind = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -1251,7 +1251,7 @@ def test_upload_basket_updates_the_index(test_pantry):
 
     # create index
     ind = Index(
-        bucket_name=test_pantry.bucket_name,
+        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
         sync=True,
     )
@@ -1281,7 +1281,10 @@ def test_upload_basket_works_on_empty_basket(test_pantry):
     """
     # Put basket in the temporary bucket
     tmp_basket = test_pantry.set_up_basket("basket_one")
-    ind = Index(test_pantry.bucket_name, file_system=test_pantry.file_system)
+    ind = Index(
+        pantry_name=test_pantry.pantry_name,
+        file_system=test_pantry.file_system
+    )
     ind.upload_basket(
         upload_items=[{"path": str(tmp_basket.realpath()), "stub": False}],
         basket_type="test",
@@ -1302,7 +1305,10 @@ def test_upload_basket_gracefully_fails(
     """
     tmp_basket = test_pantry.set_up_basket("basket_one")
 
-    ind = Index(test_pantry.bucket_name, file_system=test_pantry.file_system)
+    ind = Index(
+        pantry_name=test_pantry.pantry_name,
+        file_system=test_pantry.file_system
+    )
 
     non_unique_id = "0001"
     with pytest.raises(
@@ -1319,7 +1325,7 @@ def test_upload_basket_gracefully_fails(
         )
 
     assert not test_pantry.file_system.exists(
-        os.path.join(test_pantry.bucket_name, "test", non_unique_id)
+        os.path.join(test_pantry.pantry_name, "test", non_unique_id)
     )
 
 
@@ -1341,14 +1347,19 @@ def test_index_get_basket_works_correctly(test_pantry):
     )
 
     expected_basket = Basket(
-        uid, test_pantry.bucket_name, file_system=test_pantry.file_system
+        uid,
+        pantry_name=test_pantry.pantry_name,
+        file_system=test_pantry.file_system
     )
 
-    ind = Index(test_pantry.bucket_name, file_system=test_pantry.file_system)
+    ind = Index(
+        pantry_name=test_pantry.pantry_name,
+        file_system=test_pantry.file_system
+    )
     retrieved_basket = ind.get_basket(uid)
 
     expected_file_path = os.path.join(
-        test_pantry.bucket_name,
+        test_pantry.pantry_name,
         tmp_basket_type,
         uid,
         tmp_basket_name,
@@ -1374,7 +1385,10 @@ def test_index_get_basket_graceful_fail(test_pantry):
     """
 
     bad_uid = "DOESNT EXIST LOL"
-    ind = Index(test_pantry.bucket_name, file_system=test_pantry.file_system)
+    ind = Index(
+        pantry_name=test_pantry.pantry_name,
+        file_system=test_pantry.file_system
+    )
 
     with pytest.raises(ValueError, match=f"Basket does not exist: {bad_uid}"):
         ind.get_basket(bad_uid)
