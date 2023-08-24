@@ -25,5 +25,5 @@ class Index(_Index):
         # Create a Basket from the given address, and the index's file_system
         # and bucket name. Basket will catch invalid inputs and raise
         # appropriate errors.
-        return Basket(basket_address, self.bucket_name,
+        return Basket(basket_address, self.pantry_name,
                       file_system=self.file_system)

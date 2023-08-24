@@ -52,7 +52,7 @@ class UploadForTest(BucketForTest):
         upload_path = weave.upload.UploadBasket(
             upload_items=upload_items,
             basket_type=basket_type,
-            bucket_name=self.bucket_name,
+            pantry_name=self.pantry_name,
             parent_ids=parent_ids,
             metadata=metadata,
             label=label,
@@ -161,21 +161,21 @@ def test_upload_nothing_else_in_uploaded_files(set_up_tu):
     assert len(test_uploader.uploaded_files) == 4
 
 
-def test_upload_bucket_name_is_string():
+def test_upload_pantry_name_is_string():
     """
     Test that an error is raised when the bucket name is not a string.
     """
-    bucket_name = 7
+    pantry_name = 7
     upload_items = [
         {"path": "this/doesnt/actually/matter/here", "stub": False}
     ]
 
     with pytest.raises(
         TypeError,
-        match="Invalid datatype: 'bucket_name: must be type <class 'str'>'",
+        match="Invalid datatype: 'pantry_name: must be type <class 'str'>'",
     ):
         weave.upload.UploadBasket(
-            upload_items, basket_type="test_basket", bucket_name=bucket_name
+            upload_items, basket_type="test_basket", pantry_name=pantry_name
         )
 
 
@@ -565,7 +565,7 @@ def test_upload_basket_upload_items_is_not_a_string(test_basket):
     upload_items = "n o t a r e a l p a t h"
     unique_id = uuid.uuid1().hex
     basket_type = "test_basket"
-    upload_path = os.path.join(test_basket.bucket_name, basket_type, unique_id)
+    upload_path = os.path.join(test_basket.pantry_name, basket_type, unique_id)
 
     with pytest.raises(
         TypeError,
@@ -596,7 +596,7 @@ def test_upload_basket_upload_items_is_not_a_list_of_strings(test_basket):
     upload_items = ["invalid", "invalid2"]
     unique_id = uuid.uuid1().hex
     basket_type = "test_basket"
-    upload_path = os.path.join(test_basket.bucket_name, basket_type, unique_id)
+    upload_path = os.path.join(test_basket.pantry_name, basket_type, unique_id)
 
     with pytest.raises(
         TypeError, match="'upload_items' must be a list of dictionaries:"
@@ -627,7 +627,7 @@ def test_upload_basket_upload_items_is_a_list_of_only_dictionaries(
     upload_items = [{}, "invalid2"]
     unique_id = uuid.uuid1().hex
     basket_type = "test_basket"
-    upload_path = os.path.join(test_basket.bucket_name, basket_type, unique_id)
+    upload_path = os.path.join(test_basket.pantry_name, basket_type, unique_id)
 
     with pytest.raises(
         TypeError, match="'upload_items' must be a list of dictionaries:"
@@ -658,7 +658,7 @@ def test_upload_basket_with_bad_upload_items_is_deleted_if_it_fails(
     upload_items = [{"path": tmp_dir.strpath, "stub": False}]
     unique_id = uuid.uuid1().hex
     basket_type = "test_basket"
-    upload_path = os.path.join(test_basket.bucket_name, basket_type, unique_id)
+    upload_path = os.path.join(test_basket.pantry_name, basket_type, unique_id)
 
     with pytest.raises(
         ValueError,
@@ -696,7 +696,7 @@ def test_upload_basket_upload_items_invalid_dictionary(test_basket):
 
     unique_id = uuid.uuid1().hex
     basket_type = "test_basket"
-    upload_path = os.path.join(test_basket.bucket_name, basket_type, unique_id)
+    upload_path = os.path.join(test_basket.pantry_name, basket_type, unique_id)
 
     upload_items = [
         {
@@ -743,7 +743,7 @@ def test_upload_basket_upload_items_check_unique_file_folder_names(
     )
     tmp_basket_txt_file2 = tmp_basket_dir2.join(tmp_basket_txt_file_name)
 
-    upload_path = os.path.join(test_basket.bucket_name, basket_type, unique_id)
+    upload_path = os.path.join(test_basket.pantry_name, basket_type, unique_id)
 
     # Test same file names
     upload_items = [
@@ -856,7 +856,7 @@ def test_upload_basket_unique_id_string(test_basket):
     basket_type = "test_basket"
     unique_id = 6
     upload_path = os.path.join(
-        test_basket.bucket_name, basket_type, f"{unique_id}"
+        test_basket.pantry_name, basket_type, f"{unique_id}"
     )
 
     with pytest.raises(
@@ -893,7 +893,7 @@ def test_upload_basket_type_is_string(test_basket):
     basket_type = 1234
     unique_id = uuid.uuid1().hex
     upload_path = os.path.join(
-        test_basket.bucket_name, f"{basket_type}", unique_id
+        test_basket.pantry_name, f"{basket_type}", unique_id
     )
 
     with pytest.raises(
@@ -931,7 +931,7 @@ def test_upload_basket_parent_ids_list_str(test_basket):
     basket_type = "test_basket"
     unique_id = uuid.uuid1().hex
     upload_path = os.path.join(
-        test_basket.bucket_name, f"{basket_type}", unique_id
+        test_basket.pantry_name, f"{basket_type}", unique_id
     )
     parent_ids_in = ["a", 3]
 
@@ -969,7 +969,7 @@ def test_upload_basket_parent_ids_is_list(test_basket):
     basket_type = "test_basket"
     unique_id = uuid.uuid1().hex
     upload_path = os.path.join(
-        test_basket.bucket_name, f"{basket_type}", unique_id
+        test_basket.pantry_name, f"{basket_type}", unique_id
     )
     parent_ids_in = 56
 
@@ -1009,7 +1009,7 @@ def test_upload_basket_metadata_is_dictionary(test_basket):
     basket_type = "test_basket"
     unique_id = uuid.uuid1().hex
     upload_path = os.path.join(
-        test_basket.bucket_name, f"{basket_type}", unique_id
+        test_basket.pantry_name, f"{basket_type}", unique_id
     )
     metadata_in = "invalid"
 
@@ -1048,7 +1048,7 @@ def test_upload_basket_label_is_string(test_basket):
     basket_type = "test_basket"
     unique_id = uuid.uuid1().hex
     upload_path = os.path.join(
-        test_basket.bucket_name, f"{basket_type}", unique_id
+        test_basket.pantry_name, f"{basket_type}", unique_id
     )
     label_in = 1234
 
@@ -1087,7 +1087,7 @@ def test_upload_basket_no_metadata(test_basket):
     basket_type = "test_basket"
     unique_id = uuid.uuid1().hex
     upload_path = os.path.join(
-        test_basket.bucket_name, f"{basket_type}", unique_id
+        test_basket.pantry_name, f"{basket_type}", unique_id
     )
 
     UploadBasket(
@@ -1122,7 +1122,7 @@ def test_upload_basket_check_existing_upload_path(test_basket):
     basket_type = "test_basket"
     unique_id = uuid.uuid1().hex
     upload_path = os.path.join(
-        test_basket.bucket_name, f"{basket_type}", unique_id
+        test_basket.pantry_name, f"{basket_type}", unique_id
     )
 
     test_basket.file_system.upload(
@@ -1142,7 +1142,7 @@ def test_upload_basket_check_existing_upload_path(test_basket):
         )
 
     assert test_basket.file_system.ls(
-        os.path.join(test_basket.bucket_name, f"{basket_type}")
+        os.path.join(test_basket.pantry_name, f"{basket_type}")
     )[0].endswith(upload_path)
 
 
@@ -1179,7 +1179,7 @@ def test_upload_basket_check_unallowed_file_names(test_basket):
         basket_type = "test_basket"
         unique_id = uuid.uuid1().hex
         upload_path = os.path.join(
-            test_basket.bucket_name, f"{basket_type}", unique_id
+            test_basket.pantry_name, f"{basket_type}", unique_id
         )
 
         with pytest.raises(
@@ -1217,7 +1217,7 @@ def test_upload_basket_clean_up_on_error(test_basket):
     basket_type = "test_basket"
     unique_id = uuid.uuid1().hex
     upload_path = os.path.join(
-        test_basket.bucket_name, f"{basket_type}", unique_id
+        test_basket.pantry_name, f"{basket_type}", unique_id
     )
 
     with pytest.raises(Exception, match="Test Clean Up"):
@@ -1253,7 +1253,7 @@ def test_upload_basket_invalid_optional_argument(test_basket):
     basket_type = "test_basket"
     unique_id = uuid.uuid1().hex
     upload_path = os.path.join(
-        test_basket.bucket_name, f"{basket_type}", unique_id
+        test_basket.pantry_name, f"{basket_type}", unique_id
     )
 
     with pytest.raises(KeyError, match="Invalid kwargs argument: 'junk'"):
@@ -1289,7 +1289,7 @@ def test_upload_basket_invalid_test_clean_up_datatype(test_basket):
     basket_type = "test_basket"
     unique_id = uuid.uuid1().hex
     upload_path = os.path.join(
-        test_basket.bucket_name, f"{basket_type}", unique_id
+        test_basket.pantry_name, f"{basket_type}", unique_id
     )
 
     with pytest.raises(
@@ -1329,7 +1329,7 @@ def test_upload_basket_file_contents_identical(test_basket):
     basket_type = "test_basket"
     unique_id = uuid.uuid1().hex
     upload_path = os.path.join(
-        test_basket.bucket_name, f"{basket_type}", unique_id
+        test_basket.pantry_name, f"{basket_type}", unique_id
     )
     upload_file_path = os.path.join(
         upload_path, tmp_basket_dir_name, test_file_name

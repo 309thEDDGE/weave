@@ -70,7 +70,7 @@ def test_load_mongo(set_up):
     Test that load_mongo successfully loads valid metadata to the set_up.
     """
     index_table = weave.index.create_index.create_index_from_fs(
-        set_up.bucket_name, set_up.file_system
+        set_up.pantry_name, set_up.file_system
     )
     weave.load_mongo(
         index_table,
@@ -169,7 +169,7 @@ def test_load_mongo_check_for_duplicate_uuid(set_up):
 
     # Load metadata twice, and ensure there's only one instance
     index_table = weave.index.create_index.create_index_from_fs(
-        set_up.bucket_name, set_up.file_system
+        set_up.pantry_name, set_up.file_system
     )
     weave.load_mongo(
         index_table,
