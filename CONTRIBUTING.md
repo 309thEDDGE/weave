@@ -1,5 +1,5 @@
 # Weave Contributing Guide
-<p>This contribution guide gives instructions on contributing to the Weave repository. Anyone is welcome to create a pull request for this project as long as they follow these guidelines. This guide will include repository organization, coding standards, process for submitting a pull request, and our Weave style guide.</p>
+<p>This contribution guide gives instructions on contributing to the Weave repository. Anyone is welcome to create a pull request for this project as long as they follow these guidelines. This guide will include repository organization, coding standards, process for submitting a pull request, and the Weave style guide.</p>
 
 ## Repository Organization
 
@@ -7,31 +7,29 @@
 <p>The root folder contains all of the necessary information about Weave, including a <a href="https://github.com/309thEDDGE/weave/blob/main/README.md">README</a> and a <a href="https://github.com/309thEDDGE/weave/blob/main/setup.py">setup.py</a> file to setup the current version of Weave.</p>
 
 ### .github/workflows
-<p>The <a href="https://github.com/309thEDDGE/weave/blob/main/.github/workflows">.github/workflows</a> folder contains the workflow for Weave and will run tests. There are four tests run in the Weave CI/CD workflow: pytest, ruff, pylint, and version_check. </p>
-
-<p>Pytest ensures that all of the pytests created in the repository pass. Ruff will statically analyze your code. Pylint will check if your code follows the PEP-8 style guide, which is the style guide that we follow for this repository. Version_check will check that the Weave version has been updated in <a href="https://github.com/309thEDDGE/weave/blob/OPAL-1135/weave/__init__.py">weave/__init__.py</a>.</p>
-
-<p>Note: Pylint MUST pass with a score of 10/10.</p>
+<p>The <a href="https://github.com/309thEDDGE/weave/blob/main/.github/workflows">.github/workflows</a> folder contains the workflow for Weave and will run tests.</p>
 
 ### License
-<p>The <a href="https://github.com/309thEDDGE/weave/blob/main/license/LICENSE.txt">license</a> folder contains the license for using this repository. The license should not be edited by anyone besides the owners of the repository.</p>
+<p>The <a href="https://github.com/309thEDDGE/weave/blob/main/license/LICENSE.txt">license</a> folder contains the license for using this repository, and should only be edited by the repository owners.</p>
 
 ### Weave
-<p>The <a href="https://github.com/309thEDDGE/weave/tree/main/weave">weave</a> folder contains the functionality of this repository.</p>
-
-<p>The files in the weave folder contain the functionality for creating and maintaining complex data warehouses.</p>
+<p>The <a href="https://github.com/309thEDDGE/weave/tree/main/weave">weave</a> folder contains the functionality of this repository for creating and maintaining complex data warehouses.</p>
 
 <p>The files in the <a href="https://github.com/309thEDDGE/weave/tree/main/weave/tests">test</a> folder are used to test the main functionality files in the weave folder. These tests should be written using pytest.</p>
 
 <p>The files in the <a href="https://github.com/309thEDDGE/weave/tree/main/weave/index">index</a> folder are used for the functionality of indexes in complex data warehouses.</p>
 
 ## Coding Standards
-<p>The entire repository follows the PEP-8 style guide. Please refer to the PEP-8 official website <a href="https://pep8.org">https://pep8.org</a> for the guidelines on following the PEP-8 style.</p>
+<p>There are four tests run in the Weave CI/CD workflow: pytest, ruff, pylint, and version_check.</p>
 
-<p>When a pull request is created, the code must pass the four checks in the Weave CI/CD workflow expalined in the .github/workflows folder. This helps ensures that the code follows our repository style guidelines.</p>
+<p>Pytest ensures that all of the pytests created in the repository pass. Ruff will statically analyze your code. Pylint will check if your code follows the <a href="https://pep8.org">PEP-8 style guide</a>, which is the style guide that we follow for this repository. Version_check will check that the Weave version has been updated in <a href="https://github.com/309thEDDGE/weave/blob/OPAL-1135/weave/__init__.py">weave/__init__.py</a>.</p>
+
+<p>When a pull request is created, the code must pass the four checks in the Weave CI/CD workflow expalined in the <a href="https://github.com/309thEDDGE/weave/blob/OPAL-1135/CONTRIBUTING.md#githubworkflows">.github/workflows</a> folder. This helps ensures that the code follows our repository style guidelines.</p>
+
+<p>Note: Pylint MUST pass with a score of 10/10.</p>
 
 ## Process for Submitting a Pull Request
-Changes to this repository should always be done through pull requests. Anyone is welcome to submit a pull request to be reviewed for merging into the main branch. However, these changes may not always be accepted by the owners of the repository.
+Changes to this repository should always be done through pull requests and pass through approval before being merged.
 <br>
 <br>
 - 1: Clone the repository in your local environment using `git clone https://github.com/309thEDDGE/weave.git`
@@ -50,10 +48,10 @@ are currently in.
 - 9: Find your branch on the compare drop down menu and select it. Note: if you want to request a merge into main, the base should be set to main.
 - 10: Click Create pull request.
 <br>
-After the pull request has been created, members of the 309th SWEG EDDGE team will review your code and may request some changes.
+After the pull request has been created, the repository owners will review your code and may request some changes.
 
 ## Weave Style Guide
-<p>Welcome to the weave Coding Style Guide. This comprehensive guide is designed to ensure uniformity, readability, and maintainability in our codebase. By following these guidelines, you'll contribute to a consistent and efficient development process, enhancing collaborative efforts, and streamlining code reviews. As part of our commitment to excellence we aim for not only a smooth code execution but also strive for rigorous adherence to quality; therefore, we aspire for your code to pass the rigorous tests of both ruff and pylint at a 10/10 rating. We are also following PEP 8 standards.</p>
+<p>Welcome to the weave Coding Style Guide. This comprehensive guide is designed to ensure uniformity, readability, and maintainability in the codebase. By following these guidelines, you'll contribute to a consistent and efficient development process, enhancing collaborative efforts, and streamlining code reviews. As part of the commitment to excellence aimed for not only a smooth code execution, but also strive for rigorous adherence to quality, aspire for your code to pass the rigorous tests of both ruff and pylint at a 10/10 rating. PEP-8 standards are also followed.</p>
 
 ### Classes
 <p>Class names should be written in Pascal Case, with no underscores between words.</p>
@@ -72,13 +70,13 @@ After the pull request has been created, members of the 309th SWEG EDDGE team wi
 ### Variables
 <p>Variable names should we written in all lowercase with underscores between each word.</p>
 
-<p>It is encouraged that Variable names be consistent between Classes, Functions/Methods, and different files. We do this because we want to increase readability and simplicity. If we name an object 'temp_basket_dir' in a couple functions, then we should strive to keep that name consistent throughout weave. (encouraged to make consistent names, but not required)</p>
+<p>It is encouraged that Variable names be consistent between Classes, Functions/Methods, and different files. This is done because of increased readability and simplicity. If an object is named 'temp_basket_dir' in a couple functions, then strive to keep that name consistent throughout weave. You are encouraged to make consistent names, but not required.</p>
 
 <p>Variable names should be short, but descriptive.</p>
 
 <p>Variable names must be 3 letters or longer.</p>
 
-<p>If a parameter in one function is the same as a parameter in another function, the parameter names should be the same. For example, if you need a basket directory as a parameter, both should be 'basket_dir' instead of three separate parameters being 'bask_directory,' 'bask_dir,' or 'basket_directory.' (encouraged to make consistent names, but not required)</p>
+<p>If a parameter in one function is the same as a parameter in another function, the parameter names should be the same. For example, if you need a basket directory as a parameter, both should be 'basket_dir' instead of three separate parameters being 'bask_directory,' 'bask_dir,' or 'basket_directory.' You are encouraged to make consistent names, but not required.</p>
 
 <p>Must keep kwargs variable names consistent between kwargs throughout weave.</p>
 
@@ -98,7 +96,7 @@ After the pull request has been created, members of the 309th SWEG EDDGE team wi
 Here is an example of what a Docstring should look like for a function:
 
 ```python
-def example_function(var_1, var_2):
+def example_function(var_1, var_2, var_3, **kwargs):
     """--THIS IS A BRIEF DESCRIPTION OF WHAT THE FUNCTION DOES ON ONE LINE--
     ------------------------------------------------------------------------
     -----THIS IS A MORE DETAILED DESCRIPTION OF WHAT THE FUNCTION DOES------
@@ -106,14 +104,19 @@ def example_function(var_1, var_2):
 
     Parameters
     ----------
-    var_1: string
-        This is our first input string that will do x
+    var_1: str
+        This is our input string that we will compare
     var_2: int
-        This is a number we will use for y
+        This is our input int that we will compare
+    var_3: [int]
+        This is a list of integers that will check if var_2 is less than the sum of integers in this list
+    kwargs:
+    var_4: bool
+        Optional parameter. Will only check if the length of var_1 is less than the sum of integers in var_3 if set to True. Default is False
 
     Returns
     ----------
-    A string that has var_1 with var_2 added to the end
+    A boolean value that indicates whether var_2 and the length of var_1 (only if var_4 is True) are less than the sum of integers in var_3.
     """
 ```
 
