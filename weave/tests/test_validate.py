@@ -409,7 +409,7 @@ def test_validate_invalid_manifest_json(test_validate):
     with pytest.raises(
         ValueError
     ) as err:
-        validate.validate_pantry(test_validate.bucket_name,
+        validate.validate_pantry(test_validate.pantry_name,
                                  test_validate.file_system)
 
     assert str(err.value) == ("Pantry could not be loaded into index: "
@@ -1259,7 +1259,7 @@ def test_validate_call_validate_basket(test_validate):
         # We are purposefully accessing the protected class to test
         # its functionality in pytest
         # pylint: disable-next=protected-access
-        validate._validate_basket
+        validate._validate_basket(
             test_validate.pantry_name,
             file_system=test_validate.file_system,
             index_df=pd.DataFrame()

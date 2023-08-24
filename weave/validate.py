@@ -39,7 +39,7 @@ def validate_pantry(pantry_name, file_system):
 
     # Here we are catching the warnings that are shown from calling
     # generate_index() because we don't want to show the same warning twice
-    ind = Index(bucket_name=pantry_name, file_system=file_system)
+    ind = Index(pantry_name=pantry_name, file_system=file_system)
     with warnings.catch_warnings(record=True):
         try:
             ind.generate_index()
