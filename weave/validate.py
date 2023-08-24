@@ -49,12 +49,12 @@ def validate_pantry(pantry_name, file_system):
             ) from error
     index_df = ind.to_pandas_df()
 
-    # call check level, with a path, but since we're just starting,
-    # we just use the pantry_name as the path
+    # Call check level, with a path, but since we're just starting,
+    # We just use the pantry_name as the path
     with warnings.catch_warnings(record=True) as warn:
         _check_level(pantry_name, file_system=file_system, index_df=index_df)
-        # iterate through warn and return the list of warning messages.
-        # enumerate does not work here. prefer to use range and len
+        # Iterate through warn and return the list of warning messages.
+        # Enumerate does not work here. prefer to use range and len
         # pylint: disable-next=consider-using-enumerate
         warning_list = [warn[i].message for i in range(len(warn))]
         return warning_list
