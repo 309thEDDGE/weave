@@ -1423,7 +1423,7 @@ def test_validate_check_parent_uuids_missing_basket(test_validate):
     # Manifest has parent_uuids that don't exist
     manifest_data_1 = """{
         "uuid": "001",
-        "upload_time": "str",
+        "upload_time": "1970-01-01 01:01:12",
         "parent_uuids": [ "002", "BAD123123" ],
         "basket_type": "str",
         "label": "str"
@@ -1432,7 +1432,7 @@ def test_validate_check_parent_uuids_missing_basket(test_validate):
     # Manifest has parent_uuids that don't exist
     manifest_data_2 = """{
         "uuid": "002",
-        "upload_time": "str",
+        "upload_time": "1970-01-01 01:01:12",
         "parent_uuids": [ "003", "BAD!", "BAD2", "BAD323" ],
         "basket_type": "str",
         "label": "str"

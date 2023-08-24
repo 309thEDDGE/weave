@@ -21,7 +21,7 @@ class BasketInitializer:
             Argument can take one of two forms: either a path to the Basket
             directory, or the UUID of the basket.
         pantry_name: string
-            Name of the bucket which the desired index is associated with.
+            Name of the pantry which the desired index is associated with.
 
         kwargs:
         file_system: fsspec object
@@ -63,7 +63,7 @@ class BasketInitializer:
             directory, or the UUID of the basket. In this case it is assumed to
             be the UUID of the basket.
         pantry_name: string
-            Name of the bucket which the desired index is associated with.
+            Name of the pantry which the desired index is associated with.
         """
         try:
             ind = _Index(pantry_name=pantry_name, file_system=self.file_system)
@@ -110,7 +110,7 @@ class Basket(BasketInitializer):
             Argument can take one of two forms: either a path to the Basket
             directory, or the UUID of the basket.
         pantry_name: string
-            Name of the bucket which the desired index is associated with.
+            Name of the pantry which the desired index is associated with.
 
         kwargs:
         file_system: fsspec object
