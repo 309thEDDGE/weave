@@ -92,20 +92,13 @@ class IndexABC(abc.ABC):
         basket_address: str
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
-        **return_df: bool
-            If False (default), return the Basket as Basket object.
-            If True, return a pandas.DataFrame containing the single row of
-            manifest data of the basket.
 
-        Other optional kwargs controlled by concrete implementations.
+        Optional kwargs controlled by concrete implementations.
 
         Returns
         ----------
-        Basket (default)
-            Returns Basket object if return_df is not True.
-        OR
-        pandas.DataFrame
-            Returns single row dataframe of the basket's manifest data.
+        Basket
+            Returns the Basket object.
         """
 
     @abc.abstractmethod
@@ -122,9 +115,8 @@ class IndexABC(abc.ABC):
 
         Returns
         ----------
-        pandas.DataFrame containing all the parents of the immediate
-        basket we are given, along with all the previous parents
-        of the previous calls.
+        pandas.DataFrame containing all the manifest data AND generation level
+        of parents (and recursively their parents) of the given basket.
         """
 
     @abc.abstractmethod
@@ -141,9 +133,8 @@ class IndexABC(abc.ABC):
 
         Returns
         ----------
-        pandas.DataFrame containing all the children of the immediate
-        basket we are given, along with all the previous children
-        of the previous calls.
+        pandas.DataFrame containing all the manifest data AND generation level
+        of children (and recursively their children) of the given basket.
         """
 
     @abc.abstractmethod
