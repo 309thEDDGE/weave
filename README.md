@@ -103,11 +103,11 @@ Basket(args, file_system=local_fs)
 UploadBasket(args) # Default s3fs used
 ```
 
-The default pantry name for Weave classes is 'basket_data'. A pantry can be 
+The default pantry name for Weave classes is 'basket-data'. A pantry can be 
 named any valid fsspec directory name. This can be done as follows:
 
 ```python
-    pantry_name = 'basket_data'
+    pantry_name = 'basket-data'
     s3_fs.mkdir(path_to_pantry + os.path.sep + pantry_name)
     local_fs.mkdir(path_to_pantry + os.path.sep + pantry_name)
 ```
@@ -150,7 +150,7 @@ from weave.upload import UploadBasket
 upload_items = [{'path':'Path_to_file_or_dir', 'stub': False}]
 upload_path = UploadBasket(upload_items, 
                            basket_type = 'item',
-                           upload_directory = 'basket_data',
+                           upload_directory = 'basket-data',
                           )
 ```
 
@@ -177,7 +177,7 @@ its uuid, upload time, parent uuids, basket type, label, address and storage
 type. Example code to create this index:
 ```python
 from weave.index.index import Index
-ind = Index(pantry_name='basket_data')
+ind = Index(pantry_name='basket-data')
 if no ind.is_index_current():
     ind.sync_index() # Explicitly update the index
 ind_df = ind.to_pandas_df()
@@ -197,11 +197,11 @@ and deleting baskets.
 ```python
 # Upload a basket using the Index.
 upload_items = [{'path':'Path_to_file_or_dir', 'stub': False}]
-uploaded_info = ind.upload_basket(upload_items, basket_type='item', 
-                                           parent_ids=Optional,
-                                           metadata=Optional,
-                                           label=Optional
-                                 )
+uploaded_info = ind.upload_basket(upload_items,
+                                  basket_type='item',
+                                  parent_ids=Optional,
+                                  metadata=Optional,
+                                  label=Optional)
 
 # Access the uploaded_basket (likely called well after uploading the basket).
 basket = ind.get_basket(uploaded_info.uuid[0])
