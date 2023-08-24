@@ -69,7 +69,11 @@ def test_basket_address_does_not_exist(test_pantry):
     with pytest.raises(
         ValueError, match=f"Basket does not exist: {basket_path}"
     ):
-        Basket(Path(basket_path), file_system=test_pantry.file_system, pantry_name=test_pantry.pantry_name)
+        Basket(
+            Path(basket_path),
+            pantry_name=test_pantry.pantry_name,
+            file_system=test_pantry.file_system
+        )
 
 
 def test_basket_no_manifest_file(test_pantry):
@@ -94,7 +98,11 @@ def test_basket_no_manifest_file(test_pantry):
             + f"does not exist: {manifest_path}"
         ),
     ):
-        Basket(Path(basket_path), file_system=test_pantry.file_system, pantry_name=test)
+        Basket(
+            Path(basket_path),
+            pantry_name=test_pantry.pantry_name,
+            file_system=test_pantry.file_system
+        )
 
 
 def test_basket_no_suppl_file(test_pantry):
@@ -119,7 +127,11 @@ def test_basket_no_suppl_file(test_pantry):
             + f"does not exist: {supplement_path}"
         ),
     ):
-        Basket(Path(basket_path), file_system=test_pantry.file_system)
+        Basket(
+            Path(basket_path),
+            pantry_name=test_pantry.pantry_name,
+            file_system=test_pantry.file_system
+        )
 
 
 def test_basket_get_manifest(test_pantry):
@@ -132,7 +144,11 @@ def test_basket_get_manifest(test_pantry):
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
     basket_path = test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
-    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
+    basket = Basket(
+        Path(basket_path),
+        pantry_name=test_pantry.pantry_name,
+        file_system=test_pantry.file_system
+    )
     manifest = basket.get_manifest()
     assert manifest == {
         "uuid": "0000",
@@ -152,7 +168,11 @@ def test_basket_get_manifest_cached(test_pantry):
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
     basket_path = test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
-    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
+    basket = Basket(
+        Path(basket_path),
+        pantry_name=test_pantry.pantry_name,
+        file_system=test_pantry.file_system
+    )
 
     # Read the basket_manifest.json file and store as a dictionary for later.
     manifest = basket.get_manifest()
@@ -183,7 +203,11 @@ def test_basket_get_supplement(test_pantry):
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
     basket_path = test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
-    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
+    basket = Basket(
+        Path(basket_path),
+        pantry_name=test_pantry.pantry_name,
+        file_system=test_pantry.file_system
+    )
 
     # Create a copy of the basket's expected upload_items.
     upload_items = [{"path": str(tmp_basket_dir.realpath()), "stub": False}]
@@ -206,7 +230,11 @@ def test_basket_get_supplement_cached(test_pantry):
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
     basket_path = test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
-    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
+    basket = Basket(
+        Path(basket_path),
+        pantry_name=test_pantry.pantry_name,
+        file_system=test_pantry.file_system
+    )
 
     # Save the original basket supplement as a dictionary.
     original_supplement = basket.get_supplement()
@@ -238,7 +266,11 @@ def test_basket_get_metadata(test_pantry):
         tmp_basket_dir, metadata=metadata_in
     )
 
-    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
+    basket = Basket(
+        Path(basket_path),
+        pantry_name=test_pantry.pantry_name,
+        file_system=test_pantry.file_system
+    )
 
     # Check get_metadata returns the same values we used during the upload.
     metadata = basket.get_metadata()
@@ -259,7 +291,11 @@ def test_basket_get_metadata_cached(test_pantry):
         tmp_basket_dir, metadata=metadata_in
     )
 
-    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
+    basket = Basket(
+        Path(basket_path),
+        pantry_name=test_pantry.pantry_name,
+        file_system=test_pantry.file_system
+    )
 
     # Save the original basket metadata as a dictionary.
     metadata = basket.get_metadata()
@@ -284,7 +320,11 @@ def test_basket_get_metadata_none(test_pantry):
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
     basket_path = test_pantry.upload_basket(tmp_basket_dir)
 
-    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
+    basket = Basket(
+        Path(basket_path),
+        pantry_name=test_pantry.pantry_name,
+        file_system=test_pantry.file_system
+    )
     metadata = basket.get_metadata()
 
     # No metadata was added to the upload, so it should be None.
@@ -300,7 +340,11 @@ def test_basket_ls(test_pantry):
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
     basket_path = test_pantry.upload_basket(tmp_basket_dir)
 
-    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
+    basket = Basket(
+        Path(basket_path),
+        pantry_name=test_pantry.pantry_name,
+        file_system=test_pantry.file_system
+    )
 
     uploaded_dir_path = f"{basket_path}/{tmp_basket_dir_name}"
     assert basket.ls()[0].endswith(uploaded_dir_path)
@@ -315,7 +359,11 @@ def test_basket_ls_relpath(test_pantry):
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
     basket_path = test_pantry.upload_basket(tmp_basket_dir)
 
-    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
+    basket = Basket(
+        Path(basket_path),
+        pantry_name=test_pantry.pantry_name,
+        file_system=test_pantry.file_system
+    )
 
     uploaded_file_path = f"{basket_path}/{tmp_basket_dir_name}/test.txt"
     assert basket.ls(Path(tmp_basket_dir_name))[0].endswith(uploaded_file_path)
@@ -330,7 +378,11 @@ def test_basket_ls_relpath_period(test_pantry):
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
     basket_path = test_pantry.upload_basket(tmp_basket_dir)
 
-    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
+    basket = Basket(
+        Path(basket_path),
+        pantry_name=test_pantry.pantry_name,
+        file_system=test_pantry.file_system
+    )
 
     uploaded_dir_path = f"{basket_path}/{tmp_basket_dir_name}"
     assert basket.ls(".")[0].endswith(uploaded_dir_path)
@@ -345,7 +397,11 @@ def test_basket_ls_is_pathlike(test_pantry):
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
     basket_path = test_pantry.upload_basket(tmp_basket_dir)
 
-    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
+    basket = Basket(
+        Path(basket_path),
+        pantry_name=test_pantry.pantry_name,
+        file_system=test_pantry.file_system
+    )
 
     with pytest.raises(
         TypeError, match="expected str, bytes or os.PathLike object, not int"
@@ -378,7 +434,11 @@ def test_basket_ls_after_find(test_pantry):
     test_pantry.file_system.find(test_pantry.pantry_name)
 
     # Set up basket
-    test_b = Basket(basket_path, file_system=test_pantry.file_system)
+    test_b = Basket(
+        basket_path,
+        pantry_name=test_pantry.pantry_name,
+        file_system=test_pantry.file_system
+    )
 
     expected_base_dir_paths = [
         os.path.join(basket_path, tmp_basket_dir_name, i)
@@ -471,5 +531,6 @@ def test_basket_from_uuid_with_many_baskets(test_pantry):
         file_system=test_pantry.file_system,
     )
     assert test_b.ls(f"temp_basket_{uuid}")[0].endswith(
-        f"{test_pantry.pantry_name}/test_basket/{uuid}/temp_basket_{uuid}/test.txt"
+        f"{test_pantry.pantry_name}/test_basket/{uuid}"
+        f"/temp_basket_{uuid}/test.txt"
     )

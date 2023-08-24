@@ -39,7 +39,7 @@ class BucketForTest:
 
     def __init__(self, tmpdir, file_system):
         self.tmpdir = tmpdir
-        self.bucket_name = (
+        self.pantry_name = (
             "pytest-temp-bucket" f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
         )
         self.basket_list = []
@@ -49,7 +49,7 @@ class BucketForTest:
     def _set_up_bucket(self):
         """Create a temporary Bucket for testing purposes."""
         try:
-            self.file_system.mkdir(self.bucket_name)
+            self.file_system.mkdir(self.pantry_name)
         except FileExistsError:
             self.cleanup_bucket()
             self._set_up_bucket()
@@ -79,7 +79,7 @@ class BucketForTest:
         self, tmp_basket_dir, uid="0000", basket_type="test_basket", **kwargs
     ):
         """Upload a temporary (local) basket to the S3 test bucket."""
-        up_dir = os.path.join(self.bucket_name, basket_type, uid)
+        up_dir = os.path.join(self.pantry_name, basket_type, uid)
 
         upload_items = [
             {"path": str(tmp_basket_dir.realpath()), "stub": False}
@@ -97,4 +97,4 @@ class BucketForTest:
 
     def cleanup_bucket(self):
         """Delete the temporary test bucket, including any uploaded baskets."""
-        self.file_system.rm(self.bucket_name, recursive=True)
+        self.file_system.rm(self.pantry_name, recursive=True)
