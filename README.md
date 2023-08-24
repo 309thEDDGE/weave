@@ -99,7 +99,7 @@ s3_fs = s3fs.S3FileSystem(
 local_fs = LocalFileSystem()
 
 Index(args, file_system=s3_fs)
-Basket(args, file_system=s3_fs)
+Basket(args, file_system=local_fs)
 UploadBasket(args) # Default s3fs used
 ```
 
@@ -140,7 +140,8 @@ Optional basket information:
 - metadata
 - label
 
-Example code to upload a basket:
+The preferred method to upload baskets is using the Index. However, baskets
+can be uploaded directly:
 
 ```python
 from weave.upload import UploadBasket
