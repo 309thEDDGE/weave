@@ -1,16 +1,107 @@
-import os
+"""Wherein scripts concerning the Basket class reside
+"""
+
 import json
+import os
 from pathlib import Path
 
-import weave
-from weave import config
+from .config import get_file_system, prohibited_filenames
+from .index.index_pandas import _Index
 
 
-class Basket:
+class BasketInitializer:
+    """Initializes basket class. Validates input args.
+    """
+    def __init__(self, basket_address, pantry_name, **kwargs):
+        """Handles set up of basket. Calls validation.
+
+        Parameters
+        ----------
+        basket_address: string
+            Argument can take one of two forms: either a path to the Basket
+            directory, or the UUID of the basket.
+        pantry_name: string
+            Name of the pantry which the desired index is associated with.
+
+        kwargs:
+        file_system: fsspec object
+            The fsspec filesystem to be used for retrieving and uploading.
+        """
+        self.file_system = kwargs.get("file_system", get_file_system())
+        try:
+            self.set_up_basket_from_path(basket_address)
+        except ValueError as error:
+            if str(error) != f"Basket does not exist: {self.basket_address}":
+                raise error
+            self.set_up_basket_from_uuid(basket_address, pantry_name)
+        self.manifest_path = f"{self.basket_address}/basket_manifest.json"
+        self.supplement_path = f"{self.basket_address}/basket_supplement.json"
+        self.metadata_path = f"{self.basket_address}/basket_metadata.json"
+        self.validate()
+
+    def set_up_basket_from_path(self, basket_address):
+        """Attempts to set up a basket from a filepath.
+
+        Paramters
+        ---------
+        basket_address: string
+            Argument can take one of two forms: either a path to the Basket
+            directory, or the UUID of the basket. In this case it is assumed to
+            be a path to the Basket directory.
+        """
+        self.basket_address = os.fspath(basket_address)
+        self.validate_basket_path()
+
+    def set_up_basket_from_uuid(self, basket_address, pantry_name):
+        """Attempts to set up a basket from a uuid.
+
+        Note that if the basket cannot be set up from a uuid then an attempt to
+        set up the basket from a filepath will be made.
+
+        basket_address: string
+            Argument can take one of two forms: either a path to the Basket
+            directory, or the UUID of the basket. In this case it is assumed to
+            be the UUID of the basket.
+        pantry_name: string
+            Name of the pantry which the desired index is associated with.
+        """
+        try:
+            ind = _Index(pantry_name=pantry_name, file_system=self.file_system)
+            ind_df = ind.to_pandas_df()
+            path = ind_df["address"][ind_df["uuid"] == basket_address].iloc[0]
+            self.set_up_basket_from_path(basket_address=path)
+        except BaseException as error:
+            self.basket_address = basket_address
+            self.validate_basket_path()
+            # the above line should raise an exception
+            # the below line is more or less a fail safe and will raise the ex.
+            raise error
+
+    def validate_basket_path(self):
+        """Validates basket exists"""
+        if not self.file_system.exists(self.basket_address):
+            raise ValueError(f"Basket does not exist: {self.basket_address}")
+
+    def validate(self):
+        """Validates basket health"""
+        if not self.file_system.exists(self.manifest_path):
+            raise FileNotFoundError(
+                f"Invalid Basket, basket_manifest.json "
+                f"does not exist: {self.manifest_path}"
+            )
+
+        if not self.file_system.exists(self.supplement_path):
+            raise FileNotFoundError(
+                f"Invalid Basket, basket_supplement.json "
+                f"does not exist: {self.supplement_path}"
+            )
+
+
+class Basket(BasketInitializer):
     """This class provides convenience functions for accessing basket contents.
     """
 
-    def __init__(self, basket_address, bucket_name="basket-data", **kwargs):
+    def __init__(self, basket_address, pantry_name="basket-data", **kwargs):
         """Initializes the Basket_Class.
 
         Parameters
@@ -18,72 +109,24 @@ class Basket:
         basket_address: string
             Argument can take one of two forms: either a path to the Basket
             directory, or the UUID of the basket.
-        bucket_name: string
-            Name of the bucket which the desired index is associated with.
+        pantry_name: string
+            Name of the pantry which the desired index is associated with.
 
         kwargs:
         file_system: fsspec object
             The fsspec filesystem to be used for retrieving and uploading.
         """
-        self.fs = kwargs.get("file_system", config.get_file_system())
-
-        try:
-            self.set_up_basket_from_path(basket_address)
-        except ValueError as e:
-            if e.__str__() != f"Basket does not exist: {self.basket_address}":
-                raise e
-            else:
-                self.set_up_basket_from_uuid(basket_address, bucket_name)
-        self.manifest_path = f"{self.basket_address}/basket_manifest.json"
-        self.supplement_path = f"{self.basket_address}/basket_supplement.json"
-        self.metadata_path = f"{self.basket_address}/basket_metadata.json"
+        super().__init__(basket_address, pantry_name, **kwargs)
         self.manifest = None
         self.supplement = None
         self.metadata = None
-        self.validate()
-
-    def set_up_basket_from_path(self, basket_address):
-        self.basket_address = os.fspath(basket_address)
-        self.validate_basket_path()
-
-    def set_up_basket_from_uuid(self, basket_address, bucket_name):
-        try:
-            ind = weave.Index(bucket_name=bucket_name, file_system=self.fs)
-            ind_df = ind.to_pandas_df()
-            path = ind_df["address"][ind_df["uuid"] == basket_address].iloc[0]
-            self.set_up_basket_from_path(basket_address=path)
-        except BaseException as e:
-            self.basket_address = basket_address
-            self.validate_basket_path()
-            # the above line should raise an exception
-            # the below line is more or less a fail safe and will raise the ex.
-            raise e
-
-    def validate_basket_path(self):
-        """Validates basket exists"""
-        if not self.fs.exists(self.basket_address):
-            raise ValueError(f"Basket does not exist: {self.basket_address}")
-
-    def validate(self):
-        """Validates basket health"""
-        if not self.fs.exists(self.manifest_path):
-            raise FileNotFoundError(
-                f"Invalid Basket, basket_manifest.json "
-                f"does not exist: {self.manifest_path}"
-            )
-
-        if not self.fs.exists(self.supplement_path):
-            raise FileNotFoundError(
-                f"Invalid Basket, basket_supplement.json "
-                f"does not exist: {self.supplement_path}"
-            )
 
     def get_manifest(self):
         """Return basket_manifest.json as a python dictionary"""
         if self.manifest is not None:
             return self.manifest
 
-        with self.fs.open(self.manifest_path, "rb") as file:
+        with self.file_system.open(self.manifest_path, "rb") as file:
             self.manifest = json.load(file)
             return self.manifest
 
@@ -92,7 +135,7 @@ class Basket:
         if self.supplement is not None:
             return self.supplement
 
-        with self.fs.open(self.supplement_path, "rb") as file:
+        with self.file_system.open(self.supplement_path, "rb") as file:
             self.supplement = json.load(file)
             return self.supplement
 
@@ -104,13 +147,17 @@ class Basket:
         if self.metadata is not None:
             return self.metadata
 
-        if self.fs.exists(self.metadata_path):
-            with self.fs.open(self.metadata_path, "rb") as file:
+        if self.file_system.exists(self.metadata_path):
+            with self.file_system.open(self.metadata_path, "rb") as file:
                 self.metadata = json.load(file)
                 return self.metadata
         else:
             return None
 
+    # I am disabling pylint name warning for ls, as it is the standard name
+    # for functions of it's type in the computing world. I believe it makes
+    # sense to continue to name this function ls.
+    # pylint: disable-next=invalid-name
     def ls(self, relative_path=None):
         """List directories and files in the basket.
 
@@ -141,18 +188,17 @@ class Basket:
               Path(os.path.join(self.basket_address, relative_path))
             )
 
-        if ls_path == os.fspath(Path(self.basket_address)): 
-            # remove any prohibited files from the list if they exist 
+        if ls_path == os.fspath(Path(self.basket_address)):
+            # remove any prohibited files from the list if they exist
             # in the root directory
-            # Note that fs.ls can have unpredictable behavior if
+            # Note that file_system.ls can have unpredictable behavior if
             # not passing refresh=True
-            ls_results = self.fs.ls(ls_path, refresh=True)
+            ls_results = self.file_system.ls(ls_path, refresh=True)
             return [
                 x
                 for x in ls_results
-                if os.path.basename(Path(x)) not in config.prohibited_filenames
+                if os.path.basename(Path(x)) not in prohibited_filenames
             ]
-        else:
-            # Note that fs.ls can have unpredictable behavior if
-            # not passing refresh=True
-            return self.fs.ls(ls_path, refresh=True)
+        # Note that file_system.ls can have unpredictable behavior if
+        # not passing refresh=True
+        return self.file_system.ls(ls_path, refresh=True)

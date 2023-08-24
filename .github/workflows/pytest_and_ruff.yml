@@ -1,6 +1,6 @@
 # This workflow will install Python dependencies, and run tests.
 
-name: pytest_and_ruff
+name: Weave CI/CD
 
 on:
   push:
@@ -55,3 +55,37 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: chartboost/ruff-action@v1
+  
+  pylint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+    - name: Install pylint
+      run: python3.10 -m pip install pylint
+    - name: Install Weave and Dependencies
+      run: |
+        python3.10 -m pip install .
+        python3.10 -m pip install pytest
+    # If you do not install Weave's dependencies then it will fail PyLint due to import-errors
+    - name: Run pylint
+      run: pylint weave weave/tests
+      
+  version_check:
+    runs-on: ubuntu-latest
+    if: github.ref != 'revs/heads/main'
+    steps:
+    - uses: actions/checkout@v3
+      with: 
+        ref: 'main'
+    - name: Main Version
+      run: echo "MAIN_VERSION=$(python setup.py --version)" >> $GITHUB_ENV
+    - uses: actions/checkout@v3
+    - name: Merge Version
+      run: echo "MERGE_VERSION=$(python setup.py --version)" >> $GITHUB_ENV
+    - name: Version Comparison
+      run: python .github/workflows/verify_version.py ${MAIN_VERSION} ${MERGE_VERSION}
+

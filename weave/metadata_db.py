@@ -1,5 +1,11 @@
+"""Wherein scripts concerning mongodb functionality reside.
+"""
+
 import pandas as pd
-from weave import config, Basket
+
+from .basket import Basket
+from .config import get_file_system, get_mongo_db
+
 
 def load_mongo(index_table, collection='metadata', **kwargs):
     """Load metadata from baskets into the mongo database.
@@ -42,11 +48,10 @@ def load_mongo(index_table, collection='metadata', **kwargs):
             raise ValueError("Invalid index_table: missing "
                              f"{required_column} column")
 
-    file_system = kwargs.get("file_system", config.get_file_system())
+    file_system = kwargs.get("file_system", get_file_system())
+    database = get_mongo_db().mongo_metadata
 
-    db = config.get_mongo_db().mongo_metadata
-
-    for index, row in index_table.iterrows():
+    for _, row in index_table.iterrows():
         basket = Basket(row['address'], file_system=file_system)
         metadata = basket.get_metadata()
         if metadata is None:
@@ -59,5 +64,7 @@ def load_mongo(index_table, collection='metadata', **kwargs):
 
         # If the UUID already has metadata loaded in mongodb,
         # the metadata should not be loaded to mongoDB again.
-        if 0 == db[collection].count_documents({'uuid': manifest['uuid']}):
-            db[collection].insert_one(mongo_metadata)
+        if 0 == database[
+            collection
+        ].count_documents({'uuid': manifest['uuid']}):
+            database[collection].insert_one(mongo_metadata)
