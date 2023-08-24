@@ -38,6 +38,12 @@ class IndexABC(abc.ABC):
             Max rows returned in the pandas dataframe.
 
         Optional kwargs controlled by concrete implementations.
+
+        Returns
+        ----------
+        pandas.DataFrame
+            Returns a dataframe of the manifest data of the baskets in the
+            pantry.
         """
 
     @abc.abstractmethod
@@ -86,8 +92,20 @@ class IndexABC(abc.ABC):
         basket_address: str
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
+        **return_df: bool
+            If False (default), return the Basket as Basket object.
+            If True, return a pandas.DataFrame containing the single row of
+            manifest data of the basket.
 
-        Optional kwargs controlled by concrete implementations.
+        Other optional kwargs controlled by concrete implementations.
+
+        Returns
+        ----------
+        Basket (default)
+            Returns Basket object if return_df is not True.
+        OR
+        pandas.DataFrame
+            Returns single row dataframe of the basket's manifest data.
         """
 
     @abc.abstractmethod
@@ -101,6 +119,12 @@ class IndexABC(abc.ABC):
             directory, or the UUID of the basket.
 
         Optional kwargs controlled by concrete implementations.
+
+        Returns
+        ----------
+        pandas.DataFrame containing all the parents of the immediate
+        basket we are given, along with all the previous parents
+        of the previous calls.
         """
 
     @abc.abstractmethod
@@ -114,6 +138,12 @@ class IndexABC(abc.ABC):
             directory, or the UUID of the basket.
 
         Optional kwargs controlled by concrete implementations.
+
+        Returns
+        ----------
+        pandas.DataFrame containing all the children of the immediate
+        basket we are given, along with all the previous children
+        of the previous calls.
         """
 
     @abc.abstractmethod
@@ -128,6 +158,10 @@ class IndexABC(abc.ABC):
             Max rows returned in the pandas dataframe.
 
         Optional kwargs controlled by concrete implementations.
+
+        Returns
+        ----------
+        pandas.DataFrame containing the manifest data of baskets of the type.
         """
 
     @abc.abstractmethod
@@ -142,6 +176,10 @@ class IndexABC(abc.ABC):
             Max rows returned in the pandas dataframe.
 
         Optional kwargs controlled by concrete implementations.
+
+        Returns
+        ----------
+        pandas.DataFrame containing the manifest data of baskets with the label
         """
 
     @abc.abstractmethod
@@ -161,6 +199,11 @@ class IndexABC(abc.ABC):
             Max rows returned in the pandas dataframe.
 
         Optional kwargs controlled by concrete implementations.
+
+        Returns
+        ----------
+        pandas.DataFrame containing the manifest data of baskets uploaded
+        between the start and end times.
         """
 
     @abc.abstractmethod
@@ -174,6 +217,10 @@ class IndexABC(abc.ABC):
             pandas query. Largely dependent on concrete implementations.
 
         Optional kwargs controlled by concrete implementations.
+
+        Returns
+        ----------
+        pandas.DataFrame of the resulting query.
         """
 
     @abc.abstractmethod
