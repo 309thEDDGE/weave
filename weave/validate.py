@@ -251,7 +251,7 @@ def _handle_supplement(file, file_system, _index_df):
     file_system: fsspec-like obj
         The file system to use.
     index_df: dataframe
-        a dataframe representing the index
+        a dataframe representing the index (Currently Unused)
     """
     try:
         # these two lines make sure it can be read and is valid schema
@@ -281,7 +281,7 @@ def _handle_metadata(file, file_system, _index_df):
     file_system: fsspec-like obj
         The file system to use.
     index_df: dataframe
-        a dataframe representing the index
+        a dataframe representing the index (Currently Unused)
     """
     try:
         json.load(file_system.open(file))
@@ -329,7 +329,7 @@ def _validate_parent_uuids(data, _file_system, index_df):
     data: dictionary
         the dictionary that contains the data of the manifest.json
     file_system: fsspec-like obj
-        The file system to use.
+        The file system to use. (Currently unused)
     index_df: dataframe
         a dataframe representing the index
     """
