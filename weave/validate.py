@@ -337,13 +337,10 @@ def _validate_supplement_files(basket_dir, data, file_system):
     file_system: fsspec-like obj
         The file system to use.
     """
-    # supp_file_list = []
-
-    # print('\nsupp data: \n', data)
-    # print('\n basket dir: ', basket_dir)
-
+    
+    
+    '''
     sys_file_list = file_system.find(path=basket_dir, withdirs=False)
-    # print('\nsys file list: \n', system_file_list)
 
     system_file_list = [file for file in sys_file_list if not file.endswith((
         "basket_manifest.json",
@@ -351,17 +348,8 @@ def _validate_supplement_files(basket_dir, data, file_system):
         "basket_metadata.json"
     ))]
 
-    # print('\nsys file list: \n', system_file_list)
-
-    # for integrity_data in data["integrity_data"]:
-    #     supp_file_list.append(integrity_data["upload_path"])
-    # print('\nSupp_file_list before: \n', supp_file_list)
-
     supp_file_list = [file["upload_path"] for file in data["integrity_data"]]
-    # print('\nSupp_file_list after: \n', supp_file_list)
 
-    # print('\nSupp_file_list: \n', supp_file_list)
-    # print('\nsys_file_list: \n', system_file_list)
     print('\n\n\t system file list:')
     for i in system_file_list:
         print(i)
@@ -369,6 +357,7 @@ def _validate_supplement_files(basket_dir, data, file_system):
     for i in supp_file_list:
         print(i)
     print('\n')
+    
     # Check if a file listed in the file system exists in the basket_supplement
     for sys_file in system_file_list:
         
@@ -410,3 +399,37 @@ def _validate_supplement_files(basket_dir, data, file_system):
     # print('\n Files in system not in supp: \n', system_difference)
     # supplement_difference = set(supp_file_list) - set(system_file_list)
     # print('\n Files in supp not in file system: \n', supplement_difference)
+
+    '''
+    print(type(file_system))
+    test_supp_list = []
+    test_sys_list = []
+
+    for i in range(10):
+        test_supp_list.append(f"pytest-temp-bucket/test_basket/0000/file_0{i}.txt")
+        if (str(type(file_system)) == "<class 's3fs.core.S3FileSystem'>"):
+            test_sys_list.append(f"pytest-temp-bucket/test_basket/0000/file_0{i}.txt")
+        else:
+            test_sys_list.append(f"home/joyvan/pytest-temp-bucket/test_basket/0000/file_0{i}.txt")
+
+    for i in range(2):
+        test_supp_list.append(f"pytest-temp-bucket/test_basket/0000/IN_SUPP_{i}.txt")
+        if (str(type(file_system)) == "<class 's3fs.core.S3FileSystem'>"):
+            test_sys_list.append(f"pytest-temp-bucket/test_basket/0000/IN_SYS_{i}.txt")
+        else:
+            test_sys_list.append(f"home/joyvan/pytest-temp-bucket/test_basket/0000/IN_SYS_{i}.txt")
+    print('\n\tTEST_SUPP_LIST:')
+    for i in test_supp_list:
+        print(i)
+
+    print('\n\tTEST_SYS_LIST:')
+    for j in test_sys_list:
+        print(j)
+        
+    for sys_file in test_sys_list:
+        if list(filter(sys_file.endswith, test_supp_list)) == []:
+            warnings.warn(UserWarning("File found in the file system is not listed in the basket_supplement.json: ", sys_file))
+        
+    for supp_file in test_supp_list:
+        if supp_file not in test_sys_list:
+            warnings.warn(UserWarning("File listed in the basket_supplement.json does not exist in the file system: ", supp_file))
