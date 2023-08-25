@@ -83,7 +83,7 @@ After the pull request has been created, the repository owners will review your 
 <p>See PEP-8 <a href="https://peps.python.org/pep-0008/#function-and-variable-names">Function and Variable</a> guide.</p>
 
 ### Docstrings
-<p>Docstrings serve as crucial string literals, providing descriptions for Classes, Functions, and Methods. We prioritize creating succinct docstrings that offer brief explanations about the purpose of a class or function. This practice is designed to assist individuals who are unfamiliar with the codebase in understanding the functionality of each component.</p>
+<p>Docstrings serve as crucial string literals, providing descriptions for classes, functions, and methods. We prioritize creating succinct docstrings that offer brief explanations about the purpose of a class or function. This practice is designed to assist individuals who are unfamiliar with the codebase in understanding the functionality of each component.</p>
 
 <p>Docstrings have 4 sections: <i>Brief description, Detailed Description, Parameters, Returns, Use Case Example</i>.</p>
 
@@ -96,7 +96,7 @@ After the pull request has been created, the repository owners will review your 
 Here is an example of what a Docstring should look like for a function:
 
 ```python
-def example_function(var_1, var_2, var_3, **kwargs):
+def example_function(var_1, var_2, var_3=5, **kwargs):
     """--THIS IS A BRIEF DESCRIPTION OF WHAT THE FUNCTION DOES ON ONE LINE--
     ------------------------------------------------------------------------
     -----THIS IS A MORE DETAILED DESCRIPTION OF WHAT THE FUNCTION DOES------
@@ -105,20 +105,21 @@ def example_function(var_1, var_2, var_3, **kwargs):
     Parameters
     ----------
     var_1: str
-        This is our input string that we will compare
-    var_2: int
-        This is our input int that we will compare
-    var_3: [int]
-        This is a list of integers that will check if var_2 is less than the sum of integers in this list
-    kwargs:
-    var_4: bool
-        Optional parameter. Will only check if the length of var_1 is less than the sum of integers in var_3 if set to True.
-        Default is False
+        This is our input string that we will compare.
+    var_2: [int]
+        This is a list of integers that will check if var_2 is less than the sum of integers in this list.
+    var_3: int (default=5)
+        This is our input integer that we will compare.
+    **var_4: str (required)
+        This string will be printed to the console during the execution of the function.
+    **var_5: bool (optional)
+        Will only check if the length of var_1 is less than the sum of integers in var_2 if set to True.
+        Default is False.
 
     Returns
     ----------
-    A boolean value that indicates whether var_2 and the length of var_1 (only if var_4 is True) are less than the sum of
-    integers in var_3.
+    A boolean value that indicates whether var_3 and the length of var_1 (only if var_4 is True) are less than the sum of
+    integers in var_2.
     """
 ```
 
@@ -171,7 +172,7 @@ Custom Errors or Warnings are still applicable for specific errors that need to 
 <p><a href="https://peps.python.org/pep-0008/#whitespace-in-expressions-and-statements">PEP-8 Guide to Whitespace</a></p>
 
 ### Pytest
-<p>Highly recommended that each pytest name is descriptive of what it is testing. It is also recommended to add a short docstring at the beginning of the function describing what the test does to help with debugging and clarity.</p>
+<p>It is highly recommended that each pytest name is descriptive of what it is testing. It is also recommended to add a short docstring at the beginning of the function describing what the test does to help with debugging and clarity.</p>
 
 ### Pylint
 <p>If you disable a pylint rule, you must include a comment explaining why you disabled that pylint rule.</p>
