@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 from .config import get_file_system, prohibited_filenames
-from .index.index_pandas import _Index
+from .index.index import Pantry
 
 
 class BasketInitializer:
@@ -66,9 +66,10 @@ class BasketInitializer:
             Name of the pantry which the desired index is associated with.
         """
         try:
-            ind = _Index(pantry_name=pantry_name, file_system=self.file_system)
-            ind_df = ind.to_pandas_df()
-            path = ind_df["address"][ind_df["uuid"] == basket_address].iloc[0]
+            pantry = Pantry(pantry_name=pantry_name, 
+                            file_system=self.file_system)
+            # TODO: Verify this return. Is Basket or pd.DataFrame?
+            path = pantry.index.get_basket(basket_address).address
             self.set_up_basket_from_path(basket_address=path)
         except BaseException as error:
             self.basket_address = basket_address
@@ -111,9 +112,7 @@ class Basket(BasketInitializer):
             directory, or the UUID of the basket.
         pantry_name: string
             Name of the pantry which the desired index is associated with.
-
-        kwargs:
-        file_system: fsspec object
+        **file_system: fsspec object
             The fsspec filesystem to be used for retrieving and uploading.
         """
         super().__init__(basket_address, pantry_name, **kwargs)
