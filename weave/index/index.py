@@ -3,17 +3,18 @@ This class builds the user-facing Index class. It pulls from the _Index class
 which uses Pandas as it's backend to build and interface with the on disk
 Index baskets.
 """
-from ..basket import Basket
-from .index_pandas import _Index
+# TODO: Reorder these
 from ..upload import UploadBasket
 from .index_abc import IndexABC
+from ..config import get_file_system
+from .create_index import create_index_from_fs
 
 class Pantry():
-    def __init__(self, pantry_name="basket-data", sync=True, **kwargs):
-        self.index: IndexABC = None
+    """Facilitate user interaction with the index of a Weave data warehouse."""
+    def __init__(self, index: IndexABC, pantry_name="basket-data", **kwargs):
+        self.index = index
         self.file_system = kwargs.get("file_system", get_file_system())
         self.pantry_name = str(pantry_name)
-        self.sync = bool(sync)
 
     def generate_index(self):
         '''Generates index and stores it in a basket'''
@@ -95,28 +96,25 @@ class Pantry():
             label=label,
         ).get_upload_path()
 
-        # TODO: Do we really need to call this create function here? I think it would be easier to just make the DF directly
         single_indice_index = create_index_from_fs(up_dir, self.file_system)
-        ## TODO, make sure the kwargs is correct here
-        self.index.upload_basket(**kwargs)
+        self.index.upload_basket(single_indice_index)
         return single_indice_index
 
-    """Facilitate user interaction with the index of a Weave data warehouse."""
-    def get_basket(self, basket_address):
-        """Retrieves a basket of given UUID or path.
+    # def get_basket(self, basket_address):
+    #     """Retrieves a basket of given UUID or path.
 
-        Parameters
-        ----------
-        basket_address: string
-            Argument can take one of two forms: either a path to the Basket
-            directory, or the UUID of the basket.
+    #     Parameters
+    #     ----------
+    #     basket_address: string
+    #         Argument can take one of two forms: either a path to the Basket
+    #         directory, or the UUID of the basket.
 
-        Returns
-        ----------
-        The Basket object associated with the given UUID or path.
-        """
-        # Create a Basket from the given address, and the index's file_system
-        # and bucket name. Basket will catch invalid inputs and raise
-        # appropriate errors.
-        return Basket(basket_address, self.pantry_name,
-                      file_system=self.file_system)
+    #     Returns
+    #     ----------
+    #     The Basket object associated with the given UUID or path.
+    #     """
+    #     # Create a Basket from the given address, and the index's file_system
+    #     # and bucket name. Basket will catch invalid inputs and raise
+    #     # appropriate errors.
+    #     return Basket(basket_address, self.pantry_name,
+    #                   file_system=self.file_system)
