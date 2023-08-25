@@ -29,29 +29,32 @@
 <p>Note: Pylint MUST pass with a score of 10/10.</p>
 
 ## Process for Submitting a Pull Request
-Changes to this repository should always be done through pull requests and pass through approval before being merged.
-<br>
-<br>
-### Cloning the Repository and Pulling Changes in your Local Environment
+<p>Changes to this repository should always be done through pull requests and pass through approval before being merged.</p>
+
+### 1. Clone the Repository and Pull Changes in your Local Environment
 ```python
 git clone <repository url>.git
 git pull
 ```
-- 3: Create a branch from main to make your changes using `git branch <your branch name>`
-- 4: Switch to your newly created branch using `git switch <your branch name>`
-- 5: Make any changes to the code in your branch. DO NOT make any changes to the code directly in the main branch. Use `git status` to see what branch you 
+
+### 2. Create a Branch from main
+```python
+git branch <your branch name>
+git checkout <your branch name>
+```
+
+### 3. Add, Commit, and Push your Changes to GitHub
+Make any changes to the code in your branch. DO NOT make any changes to the code directly in the main branch. Use `git status` to see what branch you 
 are currently in.
-- 6: After all of your requested changes have been made to the code, you may add, commit, and push your code to your branch on GitHub.
-  Note: These steps may be done at any time to update your branch on github.
-  - 1. Add your code to be committed by using `git add .` in the root directory. This will add all of your changes to the staging area to be committed.
-  - 2. Commit your changes by using `git commit -m "<your commit message>"`. This will commit all of your changes in the staging area.
-  - 3. Push your changes to your branch on GitHub by using `git push`
-- 7: You can now create a pull request by clicking on the Pull requests tab on GitHub.
-- 8: Click on New Pull Request.
-- 9: Find your branch on the compare drop down menu and select it. Note: if you want to request a merge into main, the base should be set to main.
-- 10: Click Create pull request.
-<br>
-After the pull request has been created, the repository owners will review your code and may request some changes.
+```python
+git add .
+git commit -m "<your commit message>"
+git push
+```
+
+### 4. Create a Pull Request on GitHub
+
+<p>After the pull request has been created, the repository owners will review your code and may request some changes.</p>
 
 ## Weave Style Guide
 <p>Welcome to the weave Coding Style Guide. This comprehensive guide is designed to ensure uniformity, readability, and maintainability in the codebase. By following these guidelines, you'll contribute to a consistent and efficient development process, enhancing collaborative efforts, and streamlining code reviews. As part of the commitment to excellence aimed for not only a smooth code execution, but also strive for rigorous adherence to quality, aspire for your code to pass the rigorous tests of both ruff and pylint at a 10/10 rating. PEP-8 standards are also followed.</p>
