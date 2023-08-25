@@ -7,7 +7,8 @@ import warnings
 import jsonschema
 from jsonschema import validate
 
-from weave.index.create_index import create_index_from_fs
+#TODO: rename index file to pantry
+from .index.index import Pantry
 from .config import manifest_schema, supplement_schema
 
 
@@ -312,11 +313,14 @@ def _validate_parent_uuids(pantry_name, data, file_system):
 
     man_parent_uids = data["parent_uuids"]
 
-    my_index = create_index_from_fs(pantry_name, file_system)
+    pantry = Pantry(pantry_name=pantry_name, 
+                    file_system=file_system)
 
-    index_uuids = my_index["uuid"].to_numpy()
-
-    missing_uids = [uid for uid in man_parent_uids if uid not in index_uuids]
+    # TODO: Offload iteration to index if accepted.
+    # TODO: How are we if uid doesn't exist in get_basket
+    missing_uids = [uid for uid in data["parent_uuids"] 
+                    if pantry.get_basket(uid) is None
+    ]
 
     if missing_uids:
         warnings.warn(f"The uuids: {missing_uids} were not found in the "
