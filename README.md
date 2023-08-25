@@ -1,3 +1,5 @@
+![Weave Logo](weave_logo.png)
+
 # Weave
 
 Weave is a custom package used to facilitate the creation and maintenance of
