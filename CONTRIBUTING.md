@@ -32,8 +32,10 @@
 Changes to this repository should always be done through pull requests and pass through approval before being merged.
 <br>
 <br>
-- 1: Clone the repository in your local environment using `git clone https://github.com/309thEDDGE/weave.git`
-- 2: Use `git pull` to get any recent changes on your local environment.
+### Cloning the Repository and Pulling Changes in your Local Environment
+`git clone <repository url>.git
+ git pull
+`
 - 3: Create a branch from main to make your changes using `git branch <your branch name>`
 - 4: Switch to your newly created branch using `git switch <your branch name>`
 - 5: Make any changes to the code in your branch. DO NOT make any changes to the code directly in the main branch. Use `git status` to see what branch you 
