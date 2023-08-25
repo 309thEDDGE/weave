@@ -1,3 +1,7 @@
+<h1 align="center">
+<img src="./weave_transparent.png" width="300">
+</h1>
+
 # Weave
 
 Weave is a custom package used to facilitate the creation and maintenance of
