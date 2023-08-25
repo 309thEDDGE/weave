@@ -53,6 +53,7 @@ git push
 ```
 
 ### 4. Create a Pull Request on GitHub
+<br>
 
 <p>After the pull request has been created, the repository owners will review your code and may request some changes.</p>
 
