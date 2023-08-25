@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 from .config import get_file_system, prohibited_filenames
-from .index.index import Pantry
+from .pantry import Pantry
 
 
 class BasketInitializer:

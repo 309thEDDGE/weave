@@ -363,7 +363,7 @@ class _Index():
                                       ancestors=ancestors.copy())
         return data
 
-    def upload_basket(self, upload_index, **kwargs):
+    def upload_basket(self, upload_index):
         """Upload a basket to the same pantry referenced by the Index
 
         Parameters

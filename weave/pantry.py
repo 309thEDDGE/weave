@@ -3,11 +3,12 @@ This class builds the user-facing Index class. It pulls from the _Index class
 which uses Pandas as it's backend to build and interface with the on disk
 Index baskets.
 """
-# TODO: Reorder these
-from ..upload import UploadBasket
-from .index_abc import IndexABC
-from ..config import get_file_system
-from .create_index import create_index_from_fs
+
+from .basket import Basket
+from .config import get_file_system
+from .index.create_index import create_index_from_fs
+from .index.index_abc import IndexABC
+from .upload import UploadBasket
 
 class Pantry():
     """Facilitate user interaction with the index of a Weave data warehouse."""
@@ -99,21 +100,21 @@ class Pantry():
         self.index.upload_basket(single_indice_index)
         return single_indice_index
 
-    # def get_basket(self, basket_address):
-    #     """Retrieves a basket of given UUID or path.
+    def get_basket(self, basket_address):
+        """Retrieves a basket of given UUID or path.
 
-    #     Parameters
-    #     ----------
-    #     basket_address: string
-    #         Argument can take one of two forms: either a path to the Basket
-    #         directory, or the UUID of the basket.
+        Parameters
+        ----------
+        basket_address: string
+            Argument can take one of two forms: either a path to the Basket
+            directory, or the UUID of the basket.
 
-    #     Returns
-    #     ----------
-    #     The Basket object associated with the given UUID or path.
-    #     """
-    #     # Create a Basket from the given address, and the index's file_system
-    #     # and bucket name. Basket will catch invalid inputs and raise
-    #     # appropriate errors.
-    #     return Basket(basket_address, self.pantry_name,
-    #                   file_system=self.file_system)
+        Returns
+        ----------
+        The Basket object associated with the given UUID or path.
+        """
+        # Create a Basket from the given address, and the index's file_system
+        # and bucket name. Basket will catch invalid inputs and raise
+        # appropriate errors.
+        return Basket(basket_address, self.pantry_name,
+                      file_system=self.file_system)

@@ -7,8 +7,7 @@ import warnings
 import jsonschema
 from jsonschema import validate
 
-#TODO: rename index file to pantry
-from .index.index import Pantry
+from .pantry import Pantry
 from .config import manifest_schema, supplement_schema
 
 
