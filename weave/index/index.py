@@ -5,9 +5,102 @@ Index baskets.
 """
 from ..basket import Basket
 from .index_pandas import _Index
+from ..upload import UploadBasket
+from .index_abc import IndexABC
 
+class Pantry():
+    def __init__(self, pantry_name="basket-data", sync=True, **kwargs):
+        self.index: IndexABC = None
+        self.file_system = kwargs.get("file_system", get_file_system())
+        self.pantry_name = str(pantry_name)
+        self.sync = bool(sync)
 
-class Index(_Index):
+    def generate_index(self):
+        '''Generates index and stores it in a basket'''
+        return self.index.generate_index()
+
+    def delete_basket(self, basket_uuid, **kwargs):
+        '''Deletes basket of given UUID.
+
+        Note that the given basket will not be deleted if the basket is listed
+        as the parent uuid for any of the baskets in the index.
+
+        Parameters:
+        -----------
+        basket_uuid: int
+            The uuid of the basket to delete.
+        **kwargs:
+            Additional parameters to pass to the index
+        '''
+        basket_uuid = str(basket_uuid)
+        basket = self.index.get_basket(basket_uuid)
+
+        # TODO: Should this error be raised in the basket class?
+        # if basket_uuid not in self.index_df["uuid"].to_list():
+        #     raise ValueError(
+        #         f"The provided value for basket_uuid {basket_uuid} " +
+        #         "does not exist."
+        #     )
+        if len(self.index.get_children(basket_uuid)) > 0:
+            raise ValueError(
+                f"The provided value for basket_uuid {basket_uuid} " +
+                "is listed as a parent UUID for another basket. Please " +
+                "delete that basket before deleting it's parent basket."
+            )
+
+        remove_item = self.index.get_basket(basket_uuid)
+        self.file_system.rm(remove_item.address, recursive=True)
+        self.index.delete_basket(basket_uuid)
+
+    def upload_basket(self, upload_items, basket_type, **kwargs):
+        """Upload a basket to the same pantry referenced by the Index
+
+        Parameters
+        ----------
+        upload_items : [dict]
+            List of python dictionaries with the following schema:
+            {
+                'path': path to the file or folder being uploaded (string),
+                'stub': true/false (bool)
+            }
+            'path' can be a file or folder to be uploaded. Every filename
+            and folder name must be unique. If 'stub' is set to True, integrity
+            data will be included without uploading the actual file or folder.
+            Stubs are useful when original file source information is desired
+            without uploading the data itself. This is especially useful when
+            dealing with large files.
+        basket_type: str
+            Type of basket being uploaded.
+        **parent_ids: optional [str]
+            List of unique ids associated with the parent baskets
+            used to derive the new basket being uploaded.
+        **metadata: optional dict,
+            Python dictionary that will be written to metadata.json
+            and stored in the basket in upload file_system.
+        **label: optional str,
+            Optional user friendly label associated with the basket.
+        """
+        parent_ids = kwargs.get("parent_ids", [])
+        metadata = kwargs.get("metadata", {})
+        label = kwargs.get("label", "")
+
+        self.index.sync_index()
+        up_dir = UploadBasket(
+            upload_items=upload_items,
+            basket_type=basket_type,
+            file_system=self.file_system,
+            pantry_name=self.pantry_name,
+            parent_ids=parent_ids,
+            metadata=metadata,
+            label=label,
+        ).get_upload_path()
+
+        # TODO: Do we really need to call this create function here? I think it would be easier to just make the DF directly
+        single_indice_index = create_index_from_fs(up_dir, self.file_system)
+        ## TODO, make sure the kwargs is correct here
+        self.index.upload_basket(**kwargs)
+        return single_indice_index
+
     """Facilitate user interaction with the index of a Weave data warehouse."""
     def get_basket(self, basket_address):
         """Retrieves a basket of given UUID or path.
