@@ -34,7 +34,6 @@ class Pantry():
             Additional parameters to pass to the index
         '''
         basket_uuid = str(basket_uuid)
-        basket = self.index.get_basket(basket_uuid)
 
         # TODO: Should this error be raised in the basket class?
         # if basket_uuid not in self.index_df["uuid"].to_list():
@@ -51,7 +50,7 @@ class Pantry():
 
         remove_item = self.index.get_basket(basket_uuid)
         self.file_system.rm(remove_item.address, recursive=True)
-        self.index.delete_basket(basket_uuid)
+        self.index.delete_basket(basket_uuid, **kwargs)
 
     def upload_basket(self, upload_items, basket_type, **kwargs):
         """Upload a basket to the same pantry referenced by the Index

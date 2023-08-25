@@ -311,15 +311,15 @@ def _validate_parent_uuids(pantry_name, data, file_system):
     if len(data["parent_uuids"]) == 0:
         return
 
-    man_parent_uids = data["parent_uuids"]
-
-    pantry = Pantry(pantry_name=pantry_name, 
+    # TODO: Probably shouldn't be None
+    pantry = Pantry(index=None,
+                    pantry_name=pantry_name,
                     file_system=file_system)
 
     # TODO: Offload iteration to index if accepted.
     # TODO: How are we if uid doesn't exist in get_basket
-    missing_uids = [uid for uid in data["parent_uuids"] 
-                    if pantry.get_basket(uid) is None
+    missing_uids = [uid for uid in data["parent_uuids"]
+                    if pantry.index.get_basket(uid) is None
     ]
 
     if missing_uids:

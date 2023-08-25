@@ -66,7 +66,9 @@ class BasketInitializer:
             Name of the pantry which the desired index is associated with.
         """
         try:
-            pantry = Pantry(pantry_name=pantry_name, 
+            # TODO: Don't use None for index
+            pantry = Pantry(index=None,
+                            pantry_name=pantry_name,
                             file_system=self.file_system)
             # TODO: Verify this return. Is Basket or pd.DataFrame?
             path = pantry.index.get_basket(basket_address).address
