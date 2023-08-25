@@ -33,9 +33,10 @@ Changes to this repository should always be done through pull requests and pass 
 <br>
 <br>
 ### Cloning the Repository and Pulling Changes in your Local Environment
-`git clone <repository url>.git
- git pull
-`
+```python
+git clone <repository url>.git
+git pull
+```
 - 3: Create a branch from main to make your changes using `git branch <your branch name>`
 - 4: Switch to your newly created branch using `git switch <your branch name>`
 - 5: Make any changes to the code in your branch. DO NOT make any changes to the code directly in the main branch. Use `git status` to see what branch you 
