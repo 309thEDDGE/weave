@@ -52,7 +52,13 @@ git commit -m "<your commit message>"
 git push
 ```
 
-### 4. Create a Pull Request on GitHub
+### 4. Validate Code Locally with Pytest and Pylint
+```python
+pytest -vv <local file path>
+pylint <local file path>
+```
+
+### 5. Create a Pull Request on GitHub
 <br>
 
 <p>After the pull request has been created, the repository owners will review your code and may request some changes.</p>
