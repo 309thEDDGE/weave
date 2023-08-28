@@ -9,6 +9,7 @@ from fsspec.implementations.local import LocalFileSystem
 
 from weave.basket import Basket
 from weave.index.create_index import create_index_from_fs
+from weave.pantry import Pantry
 from weave.tests.pytest_resources import BucketForTest
 
 ###############################################################################
@@ -71,7 +72,6 @@ def test_basket_address_does_not_exist(test_pantry):
     ):
         Basket(
             Path(basket_path),
-            pantry_name=test_pantry.pantry_name,
             file_system=test_pantry.file_system
         )
 
@@ -100,7 +100,6 @@ def test_basket_no_manifest_file(test_pantry):
     ):
         Basket(
             Path(basket_path),
-            pantry_name=test_pantry.pantry_name,
             file_system=test_pantry.file_system
         )
 
@@ -129,7 +128,6 @@ def test_basket_no_suppl_file(test_pantry):
     ):
         Basket(
             Path(basket_path),
-            pantry_name=test_pantry.pantry_name,
             file_system=test_pantry.file_system
         )
 
@@ -146,7 +144,6 @@ def test_basket_get_manifest(test_pantry):
 
     basket = Basket(
         Path(basket_path),
-        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system
     )
     manifest = basket.get_manifest()
@@ -170,7 +167,6 @@ def test_basket_get_manifest_cached(test_pantry):
 
     basket = Basket(
         Path(basket_path),
-        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system
     )
 
@@ -205,7 +201,6 @@ def test_basket_get_supplement(test_pantry):
 
     basket = Basket(
         Path(basket_path),
-        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system
     )
 
@@ -232,7 +227,6 @@ def test_basket_get_supplement_cached(test_pantry):
 
     basket = Basket(
         Path(basket_path),
-        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system
     )
 
@@ -268,7 +262,6 @@ def test_basket_get_metadata(test_pantry):
 
     basket = Basket(
         Path(basket_path),
-        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system
     )
 
@@ -293,7 +286,6 @@ def test_basket_get_metadata_cached(test_pantry):
 
     basket = Basket(
         Path(basket_path),
-        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system
     )
 
@@ -322,7 +314,6 @@ def test_basket_get_metadata_none(test_pantry):
 
     basket = Basket(
         Path(basket_path),
-        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system
     )
     metadata = basket.get_metadata()
@@ -342,7 +333,6 @@ def test_basket_ls(test_pantry):
 
     basket = Basket(
         Path(basket_path),
-        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system
     )
 
@@ -361,7 +351,6 @@ def test_basket_ls_relpath(test_pantry):
 
     basket = Basket(
         Path(basket_path),
-        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system
     )
 
@@ -380,7 +369,6 @@ def test_basket_ls_relpath_period(test_pantry):
 
     basket = Basket(
         Path(basket_path),
-        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system
     )
 
@@ -399,7 +387,6 @@ def test_basket_ls_is_pathlike(test_pantry):
 
     basket = Basket(
         Path(basket_path),
-        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system
     )
 
@@ -436,7 +423,6 @@ def test_basket_ls_after_find(test_pantry):
     # Set up basket
     test_b = Basket(
         basket_path,
-        pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system
     )
 
@@ -470,10 +456,14 @@ def test_basket_init_from_uuid(test_pantry):
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     uuid = "0000"
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
+    # TODO: Implement PandasIndex
+    pantry = Pantry(PandasIndex, 
+                    pantry_name=test_pantry.pantry_name, 
+                    file_system=test_pantry.file_system)
+    pantry.index.generate_index()
     test_b = Basket(
         basket_address=uuid,
-        pantry_name=test_pantry.pantry_name,
-        file_system=test_pantry.file_system,
+        pantry=pantry,
     )
     assert test_b.ls("basket_one")[0].endswith(
         f"{test_pantry.pantry_name}/test_basket/0000/basket_one/test.txt"
@@ -490,11 +480,15 @@ def test_basket_init_fails_if_uuid_does_not_exist(test_pantry):
     uuid = "0000"
     bad_uuid = "a bad uuid"
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
+    # TODO: Implement PandasIndex
+    pantry = Pantry(PandasIndex, 
+                    pantry_name=test_pantry.pantry_name, 
+                    file_system=test_pantry.file_system)
+    pantry.index.generate_index()
     with pytest.raises(ValueError, match=f"Basket does not exist: {bad_uuid}"):
         Basket(
             basket_address=bad_uuid,
-            pantry_name=test_pantry.pantry_name,
-            file_system=test_pantry.file_system,
+            pantry=pantry,
         )
 
 
@@ -507,11 +501,15 @@ def test_basket_pantry_name_does_not_exist(test_pantry):
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     uuid = "0000"
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
+    # TODO: Implement PandasIndex
+    pantry = Pantry(PandasIndex, 
+            pantry_name="the wrong bucket 007", 
+            file_system=test_pantry.file_system)
+    pantry.index.generate_index()
     with pytest.raises(ValueError, match=f"Basket does not exist: {uuid}"):
         Basket(
             basket_address=uuid,
-            pantry_name="the wrong basket 007",
-            file_system=test_pantry.file_system,
+            pantry=pantry,
         )
 
 
@@ -525,10 +523,15 @@ def test_basket_from_uuid_with_many_baskets(test_pantry):
         tmp_basket_dir = test_pantry.set_up_basket(f"temp_basket_{uuid}")
         test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir, uid=uuid)
 
-    test_b = Basket(
-        basket_address=uuid,
+    # TODO: Implement PandasIndex
+    pantry = Pantry(PandasIndex, 
         pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
+    )
+    pantry.index.generate_index()
+    test_b = Basket(
+        basket_address=uuid,
+        pantry=pantry,
     )
     assert test_b.ls(f"temp_basket_{uuid}")[0].endswith(
         f"{test_pantry.pantry_name}/test_basket/{uuid}"

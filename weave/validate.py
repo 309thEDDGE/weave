@@ -316,7 +316,7 @@ def _validate_parent_uuids(pantry_name, data, file_system):
                     file_system=file_system)
 
     # TODO: Offload iteration to index if accepted.
-    # TODO: How are we if uid doesn't exist in get_basket
+    # TODO: How to handle if uid doesn't exist in get_basket
     missing_uids = [uid for uid in data["parent_uuids"]
                     if pantry.index.get_basket(uid) is None
     ]

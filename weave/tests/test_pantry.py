@@ -14,7 +14,7 @@ from fsspec.implementations.local import LocalFileSystem
 
 from weave import Basket
 from weave.index.create_index import create_index_from_fs
-from weave.index.index import Index
+from weave.pantry import Pantry
 from weave.tests.pytest_resources import BucketForTest
 
 
@@ -391,18 +391,17 @@ def test_index_get_basket_works_correctly(test_pantry):
         tmp_basket_dir=tmp_basket_dir, uid=uid, basket_type=tmp_basket_type
     )
 
-    expected_basket = Basket(
-        uid,
-        pantry_name=test_pantry.pantry_name,
-        file_system=test_pantry.file_system
-    )
-
     pantry = Pantry(
         PandasIndex,
         pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system
     )
     retrieved_basket = pantry.get_basket(uid)
+
+    expected_basket = Basket(
+        uid,
+        pantry=pantry,
+    )
 
     expected_file_path = os.path.join(
         test_pantry.pantry_name,
