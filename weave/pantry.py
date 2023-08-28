@@ -17,9 +17,6 @@ class Pantry():
         self.file_system = kwargs.get("file_system", get_file_system())
         self.pantry_name = str(pantry_name)
 
-    def generate_index(self):
-        '''Generates index and stores it in a basket'''
-        return self.index.generate_index()
 
     def delete_basket(self, basket_uuid, **kwargs):
         '''Deletes basket of given UUID.
@@ -36,18 +33,18 @@ class Pantry():
         '''
         basket_uuid = str(basket_uuid)
 
-        # TODO: Should this error be raised in the basket class?
+        # TODO: Should these error be raised in the basket class?
         # if basket_uuid not in self.index_df["uuid"].to_list():
         #     raise ValueError(
         #         f"The provided value for basket_uuid {basket_uuid} " +
         #         "does not exist."
         #     )
-        if len(self.index.get_children(basket_uuid)) > 0:
-            raise ValueError(
-                f"The provided value for basket_uuid {basket_uuid} " +
-                "is listed as a parent UUID for another basket. Please " +
-                "delete that basket before deleting it's parent basket."
-            )
+        # if len(self.index.get_children(basket_uuid)) > 0:
+        #     raise ValueError(
+        #         f"The provided value for basket_uuid {basket_uuid} " +
+        #         "is listed as a parent UUID for another basket. Please " +
+        #         "delete that basket before deleting it's parent basket."
+        #     )
 
         remove_item = self.index.get_basket(basket_uuid)
         self.file_system.rm(remove_item.address, recursive=True)

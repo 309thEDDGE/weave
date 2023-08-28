@@ -205,7 +205,7 @@ def test_clean_up_indices_with_n_greater_than_num_of_indices(test_pantry):
     index_path = os.path.join(test_pantry.pantry_name, "index")
     assert len(test_pantry.file_system.ls(index_path)) == 2
 
-# TODO: Where to put this
+
 def test_is_index_current(test_pantry):
     """Creates two Index objects and pits them against eachother in order to
     ensure that Index.is_index_current is working as expected."""
@@ -1059,7 +1059,6 @@ def test_upload_basket_updates_the_index(test_pantry):
     assert time_diff.total_seconds() == 0
     assert len(ind.index_df) == 4
 
-# TODO: Ask is this a pantry or an index test?
 def test_upload_basket_works_on_empty_basket(test_pantry):
     """
     In this test the Index object will upload a basket to a pantry that does
@@ -1077,40 +1076,3 @@ def test_upload_basket_works_on_empty_basket(test_pantry):
         basket_type="test",
     )
     assert len(ind.index_df) == 1
-
-# TODO: Revisit
-@patch.object(uuid, "uuid1")
-@patch("weave.upload.UploadBasket.upload_basket_supplement_to_fs")
-def test_upload_basket_gracefully_fails(
-    mocked_obj_1, mocked_obj_2, test_pantry
-):
-    """
-    In this test an engineered failure to upload the basket occurs.
-    Index.upload_basket() should not add anything to the index_df.
-    Additionally, the basket in question should be deleted from storage (I will
-    make the process fail only after a partial upload).
-    """
-    tmp_basket = test_pantry.set_up_basket("basket_one")
-
-    ind = Index(
-        pantry_name=test_pantry.pantry_name,
-        file_system=test_pantry.file_system
-    )
-
-    non_unique_id = "0001"
-    with pytest.raises(
-        ValueError,
-        match="This error provided for test_upload_basket_gracefully_fails",
-    ):
-        mocked_obj_1.side_effect = ValueError(
-            "This error provided for test_upload_basket_gracefully_fails"
-        )
-        mocked_obj_2.return_value.hex = non_unique_id
-        ind.upload_basket(
-            upload_items=[{"path": str(tmp_basket.realpath()), "stub": False}],
-            basket_type="test",
-        )
-
-    assert not test_pantry.file_system.exists(
-        os.path.join(test_pantry.pantry_name, "test", non_unique_id)
-    )
