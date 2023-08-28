@@ -116,7 +116,7 @@ class ValidateForTest(BucketForTest):
                         "source_path": "string",
                         "byte_count": 1,
                         "stub": false,
-                        "upload_path": "string"
+                        "upload_path": ""
                     }
                     ]
                 }"""
@@ -1068,7 +1068,7 @@ def test_validate_deeply_nested(test_validate):
         is_basket=True
     )
 
-    test_validate.set_up_basket(
+    nested_basket = test_validate.set_up_basket(
         "my_nested_basket",
         is_man=True,
         is_sup=True,
@@ -1079,7 +1079,17 @@ def test_validate_deeply_nested(test_validate):
 
     warn_info = validate.validate_pantry(test_validate.bucket_name,
                                          test_validate.file_system)
+
+    warn_info = sorted(warn_info, key=lambda x: x.args[1])
     warning_1 = warn_info[0]
+    # warning_2 = warn_info[1]
+
+    # The reason 
+    # error_path = (
+    #     "pytest-temp-bucket/test_basket/0000/my_basket/nest_level/nest_level_0"
+    #     "/nest_level_1/nest_level_2/nest_level_3/nest_level_4/nest_level_5/"
+    #     "nest_level_6/nest_level_7/nest_level_8/nest_level_9/deepest_basket/"
+    #     "basket_manifest.json")
 
     # Check that there is only one warning raised
     assert len(warn_info) == 1
@@ -1090,6 +1100,10 @@ def test_validate_deeply_nested(test_validate):
     )
     # Check the invalid basket path is what we expect (disregarding FS prefix)
     assert warning_1.args[1].endswith(basket_path)
+
+    # assert warning_2.args[0] == ("File listed in the basket_supplement.json does not exist in the file system: ")
+    # my_nested_dir = os.path.join(my_nested_dir, "basket_manifest.json")
+    # assert warning_2.args[1].endswith(error_path)
 
 
 def test_validate_no_files_or_dirs(test_validate):
@@ -1491,22 +1505,104 @@ def test_validate_check_parent_uuids_missing_basket(test_validate):
 
     
 def test_validate_file_not_in_supplement(test_validate):
+    """Add a file to the file system that is not listed in the supplement file.
+    Validate that a warning it thrown.
+    """
     tmp_basket_dir = test_validate.set_up_basket("my_basket")
     test_validate.add_lower_dir_to_temp_basket(tmp_basket_dir=tmp_basket_dir)
     temp = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
-    
+
     # Make a file and upload it to the file system
     upload_file_path = os.path.join(temp, "MY_UNFOUND_FILE.txt")
     with open("MY_UNFOUND_FILE.txt", 'w') as file:
         json.dump("TEST FAKE FILE", file)
-        
+
     test_validate.file_system.upload("MY_UNFOUND_FILE.txt", upload_file_path)
-    
+
     # Remove the local file that we created
     os.remove("MY_UNFOUND_FILE.txt")
-    
+
     # Call validate_bucket, see that it returns a list of basket errors
-    warn_list = validate.validate_pantry(test_validate.bucket_name, test_validate.file_system)
-    print('\n\nwarninglist: \n')
-    for i in warn_list:
-        print(i)
+    warn_list = validate.validate_pantry(test_validate.bucket_name, 
+                                         test_validate.file_system)
+
+    warning_msg = warn_list[0].args[0]
+    warning_path = warn_list[0].args[1]
+
+    assert len(warn_list) == 1
+    assert warning_msg == ("File found in the file system is not listed in "
+                           "the basket_supplement.json: ")
+    assert warning_path.endswith(upload_file_path)
+
+
+def test_validate_file_not_in_file_system(test_validate):
+    """Add a file to the supplement data and validate that a warning it thrown
+    because it does not exist in the file system.
+    """
+    # Make a basket
+    tmp_basket_dir = test_validate.set_up_basket("my_basket")
+    test_validate.add_lower_dir_to_temp_basket(tmp_basket_dir=tmp_basket_dir)
+    temp = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
+
+    supplement_to_change = os.path.join(temp, "basket_supplement.json")
+
+    # Modify the supplement file
+    with test_validate.file_system.open(supplement_to_change, "rb",) as file:
+        supplement_dict = json.load(file)
+
+    error_file_path = "pytest-temp-bucket/test_basket/0000/MY_FAIL_FILE.txt"
+    error_file_path_2 = "pytest-temp-bucket/test_basket/0000/ANOTHER_FAKE.txt"
+
+    # New supplement data with the fake file
+    supplement_dict["integrity_data"] += [
+        {
+            "file_size": 100,
+            "hash": "fakehash",
+            "access_date": "07/27/2023 15:13:01",
+            "source_path": "/tmp/pytest-of-jovyan/pytest-17/MY_FAIL_FILE.TXT",
+            "byte_count": 456456,
+            "stub": False,
+            "upload_path": error_file_path
+        },
+        {
+            "file_size": 100,
+            "hash": "fakehash",
+            "access_date": "07/27/2023 15:13:01",
+            "source_path": "/tmp/pytest-of-jovyan/pytest-17/ANOTHER_FAKE.TXT",
+            "byte_count": 456456,
+            "stub": False,
+            "upload_path": error_file_path_2
+        }
+    ]
+
+    # Add the new supplement data to the current file
+    with open("basket_supplement.json", "w") as file:
+        json.dump(supplement_dict, file)
+
+    # Upload the supplement file to the file system, and remove the local one
+    test_validate.file_system.upload("basket_supplement.json",
+                                     supplement_to_change)
+
+    # Remove the local basket_supplement file
+    os.remove("basket_supplement.json")
+
+    # Call validate_pantry, see that it returns warnings
+    warning_list = validate.validate_pantry(test_validate.bucket_name,
+                                            test_validate.file_system)
+
+    # Validate all the warnings are correct
+    assert len(warning_list) == 2
+
+    warning_msg_1 = warning_list[0].args[0]
+    warning_path_1 = warning_list[0].args[1]
+
+    assert warning_msg_1 == ("File listed in the basket_supplement.json does "
+                             "not exist in the file system: ")
+    assert warning_path_1.endswith(error_file_path)
+
+    warning_msg_2 = warning_list[1].args[0]
+    warning_path_2 = warning_list[1].args[1]
+
+    assert warning_msg_2 == ("File listed in the basket_supplement.json does "
+                             "not exist in the file system: ")
+    assert warning_path_2.endswith(error_file_path_2)

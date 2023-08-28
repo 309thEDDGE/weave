@@ -337,99 +337,55 @@ def _validate_supplement_files(basket_dir, data, file_system):
     file_system: fsspec-like obj
         The file system to use.
     """
-    
-    
-    '''
     sys_file_list = file_system.find(path=basket_dir, withdirs=False)
+    print()
+    for i in sys_file_list:
+        print(i)
 
+    # Grab all the files, but remove manifest, supplement, and metadata
     system_file_list = [file for file in sys_file_list if not file.endswith((
         "basket_manifest.json",
         "basket_supplement.json",
         "basket_metadata.json"
     ))]
 
-    supp_file_list = [file["upload_path"] for file in data["integrity_data"]]
-
-    print('\n\n\t system file list:')
-    for i in system_file_list:
-        print(i)
-    print('\n\n\t supp file list:')
+    supp_file_list = [file["upload_path"] for file in data["integrity_data"] if not file["upload_path"].endswith((
+        "basket_manifest.json",
+        "basket_supplement.json",
+        "basket_metadata.json"
+    ))]
+    
+    # supp_file_list = []
+    
+    print()
     for i in supp_file_list:
         print(i)
-    print('\n')
-    
-    # Check if a file listed in the file system exists in the basket_supplement
+
+    # Check if all the system files exist in the supplement file list
     for sys_file in system_file_list:
-        
-        ### sys_file.endswith(each supp_file_list)
-        ### supp_file.endswith(each system_file_list)
-        
-        print('first_list with file:', sys_file, ':', list(filter(sys_file.endswith, supp_file_list)))
-        # if not list(filter(sys_file.endswith, supp_file_list)) != []:
-        # print('testing with file:', sys_file, ':', [x for x in supp_file_list if sys_file.endswith(x)])
-        # if sys_file not in [x for x in supp_file_list if x.endswith(sys_file)]
         if list(filter(sys_file.endswith, supp_file_list)) == []:
-        # if sys_file not in [x for x in supp_file_list if sys_file.endswith(x)]:
-        # if sys_file not in supp_file_list:
-            warnings.warn(UserWarning("File found in the file system is not listed in the basket_supplement.json: ", sys_file))
+            print("File found in the file system is not listed in "
+                  "the basket_supplement.json: ", sys_file)
+            warnings.warn(
+                UserWarning("File found in the file system is not listed in "
+                            "the basket_supplement.json: ", sys_file)
+            )
 
-    # Check if a file listed in the basket_supplement exists in the file system
+    # Collect all the correct supplement files
+    correct_supp_files = []
     for supp_file in supp_file_list:
-        
+        for sys_file in system_file_list:
+            if sys_file.endswith(supp_file):
+                correct_supp_files.append(supp_file)
 
-        print()
-        for i in system_file_list:
-            print(f"\nsyst_FILE: {i} \nsupp_file: {supp_file}")
-            if not i.endswith(supp_file):
-                warnings.warn(UserWarning("File listed in the basket_supplement.json does not exist in the file system: ", i))
-        
-        
-        # print('2nd list filter: ', filter(supp_file.endswith, system_file_list))
-        # print('2nd_list:', supp_file, ':', list(filter(supp_file.endswith, system_file_list)))
-        # if not list(filter(supp_file.endswith, system_file_list)) != []:
-        # print('testing_2 with file: ', supp_file, ':', [x for x in system_file_list if x.endswith(supp_file)])
-        # if supp_file not in [x for x in system_file_list if not x.endswith(supp_file)]:
-        # if supp_file not in system_file_list:
-            # print()
-            # warnings.warn(UserWarning("File listed in the basket_supplement.json does not exist in the file system: ", supp_file))
+    wrong_supp_files = [
+        x for x in supp_file_list if x not in correct_supp_files
+    ]
 
-
-    # print('\n')
-    # system_difference = set(system_file_list) - set(supp_file_list)
-    # print('\n Files in system not in supp: \n', system_difference)
-    # supplement_difference = set(supp_file_list) - set(system_file_list)
-    # print('\n Files in supp not in file system: \n', supplement_difference)
-
-    '''
-    print(type(file_system))
-    test_supp_list = []
-    test_sys_list = []
-
-    for i in range(10):
-        test_supp_list.append(f"pytest-temp-bucket/test_basket/0000/file_0{i}.txt")
-        if (str(type(file_system)) == "<class 's3fs.core.S3FileSystem'>"):
-            test_sys_list.append(f"pytest-temp-bucket/test_basket/0000/file_0{i}.txt")
-        else:
-            test_sys_list.append(f"home/joyvan/pytest-temp-bucket/test_basket/0000/file_0{i}.txt")
-
-    for i in range(2):
-        test_supp_list.append(f"pytest-temp-bucket/test_basket/0000/IN_SUPP_{i}.txt")
-        if (str(type(file_system)) == "<class 's3fs.core.S3FileSystem'>"):
-            test_sys_list.append(f"pytest-temp-bucket/test_basket/0000/IN_SYS_{i}.txt")
-        else:
-            test_sys_list.append(f"home/joyvan/pytest-temp-bucket/test_basket/0000/IN_SYS_{i}.txt")
-    print('\n\tTEST_SUPP_LIST:')
-    for i in test_supp_list:
-        print(i)
-
-    print('\n\tTEST_SYS_LIST:')
-    for j in test_sys_list:
-        print(j)
-        
-    for sys_file in test_sys_list:
-        if list(filter(sys_file.endswith, test_supp_list)) == []:
-            warnings.warn(UserWarning("File found in the file system is not listed in the basket_supplement.json: ", sys_file))
-        
-    for supp_file in test_supp_list:
-        if supp_file not in test_sys_list:
-            warnings.warn(UserWarning("File listed in the basket_supplement.json does not exist in the file system: ", supp_file))
+    for file in wrong_supp_files:
+        print("File listed in the basket_supplement.json does not "
+              "exist in the file system: ", file)
+        warnings.warn(
+             UserWarning("File listed in the basket_supplement.json does not "
+                         "exist in the file system: ", file)
+         )
