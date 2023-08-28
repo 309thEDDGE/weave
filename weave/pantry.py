@@ -11,7 +11,25 @@ from .index.index_abc import IndexABC
 from .upload import UploadBasket
 
 class Pantry():
-    """Facilitate user interaction with the index of a Weave data warehouse."""
+    """Facilitate user interaction with the index of a Weave data warehouse.
+
+    A pantry is a collection of baskets. This class facilitates the uploading,
+    retrieval, and deletion of baskets within a file system. It uses and
+    updates an index to track the contents within the pantry for rapid
+    operations.
+
+    Parameters:
+    -----------
+    index: IndexABC
+        The concrete implementation of an IndexABC. This is used to track the
+        contents within the pantry.
+    pantry_name: str
+        Name of the pantry this object is associated with.
+    **file_system: fsspec object
+        The fsspec object which hosts the bucket we desire to index.
+        If file_system is None, then the default fs is retrieved from the
+        config.
+    """
     def __init__(self, index: IndexABC, pantry_name="basket-data", **kwargs):
         self.index = index
         self.file_system = kwargs.get("file_system", get_file_system())
@@ -33,7 +51,7 @@ class Pantry():
         '''
         basket_uuid = str(basket_uuid)
 
-        # TODO: Should these error be raised in the basket class?
+        # TODO: Should these error be raised in the abstract class?
         # if basket_uuid not in self.index_df["uuid"].to_list():
         #     raise ValueError(
         #         f"The provided value for basket_uuid {basket_uuid} " +

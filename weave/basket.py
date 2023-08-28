@@ -22,7 +22,7 @@ class BasketInitializer:
         **file_system: fsspec object (optional)
             The fsspec filesystem to be used for retrieving and uploading. This
             is only used when basket_address is a path.
-        **pantry: Pantry (optional)
+        **pantry: weave.Pantry (optional)
             The pantry which the basket uuid is associated with. Only for UUID
         """
         self.file_system = kwargs.get("file_system", get_file_system())
@@ -60,7 +60,7 @@ class BasketInitializer:
             Argument can take one of two forms: either a path to the Basket
             directory, or the UUID of the basket. In this case it is assumed to
             be the UUID of the basket.
-        **pantry: Pantry (required)
+        **pantry: weave.Pantry (required)
             The pantry which the basket uuid is associated with.
         """
         if 'pantry' not in kwargs:
@@ -116,7 +116,7 @@ class Basket(BasketInitializer):
             directory, or the UUID of the basket.
         **file_system: fsspec object (optional)
             The fsspec filesystem to be used for retrieving and uploading.
-        **pantry: Pantry (optional)
+        **pantry: weave.Pantry (optional)
             The pantry which the basket uuid is associated with.
         """
         super().__init__(basket_address, **kwargs)
