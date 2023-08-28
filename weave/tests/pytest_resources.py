@@ -12,9 +12,9 @@ def file_path_in_list(search_path, search_list):
 
     Parameters
     ----------
-    search_path: string
+    search_path: str
         The file path we want to search for.
-    search_list: [string]
+    search_list: [str]
         A list of strings (presumably file paths)
 
     Returns True if any of the file paths in the search list end with the

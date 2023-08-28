@@ -298,7 +298,7 @@ def test_validate_manifest_schema_missing_field(test_validate):
     """
 
     # The manifest is missing the uuid field
-    # this is invalid against the schema.
+    # This is invalid against the schema.
     bad_manifest_data = """{
         "upload_time": "1970-01-01 01:01:12",
         "parent_uuids": [  ],
@@ -344,7 +344,7 @@ def test_validate_manifest_schema_additional_field(test_validate):
     """
 
     # The manifest has the additional "error" field
-    # this is invalid against the schema.
+    # This is invalid against the schema.
     bad_manifest_data = """{
         "uuid": "str",
         "upload_time": "1970-01-01 01:01:12",
@@ -423,7 +423,7 @@ def test_validate_invalid_supplement_schema(test_validate):
     """
 
     # The stub ('1231231') is supposed to be a boolean, not a number,
-    # this is invalid against the schema.
+    # This is invalid against the schema.
     bad_supplement_data = """{
         "upload_items":
         [
@@ -482,7 +482,7 @@ def test_validate_supplement_schema_missing_field(test_validate):
     """
 
     # The supplement is missing the integrity_data field
-    # this is invalid against the schema.
+    # This is invalid against the schema.
     bad_supplement_data = """{
         "upload_items":
         [
@@ -528,7 +528,7 @@ def test_validate_supplement_schema_missing_array_field(test_validate):
     """
 
     # The supplement is missing the upload_path field inside
-    # the integrity_data array this is invalid against the schema.
+    # the integrity_data array, this is invalid against the schema.
     bad_supplement_data = """{
         "upload_items":
         [
@@ -586,7 +586,7 @@ def test_validate_supplement_schema_missing_array_field_2(test_validate):
     """
 
     # The supplement is missing the stub field inside
-    # the upload_items array this is invalid against the schema.
+    # the upload_items array, this is invalid against the schema.
     bad_supplement_data = """{
         "upload_items":
         [
@@ -645,7 +645,7 @@ def test_validate_supplement_schema_added_array_field(test_validate):
     """
 
     # The supplement has an additional field of "error" in
-    # the upload_items array this is invalid against the schema.
+    # the upload_items array, this is invalid against the schema.
     bad_supplement_data = """{
         "upload_items":
         [
@@ -708,7 +708,7 @@ def test_validate_supplement_schema_added_array_field_2(test_validate):
     """
 
     # The supplement has an additional field of "error" in
-    # the integrity_data array this is invalid against the schema.
+    # the integrity_data array, this is invalid against the schema.
     bad_supplement_data = """{
         "upload_items":
         [
@@ -771,7 +771,7 @@ def test_validate_supplement_schema_additional_field(test_validate):
     """
 
     # The supplement has an additional my_extra_field field
-    # this is invalid against the schema.
+    # This is invalid against the schema.
     bad_supplement_data = """{
         "upload_items":
         [
@@ -832,7 +832,7 @@ def test_validate_supplement_schema_empty_upload_items(test_validate):
     """
 
     # The supplement has an empty array of "upload_items"
-    # this is invalid against the schema.
+    # This is invalid against the schema.
     bad_supplement_data = """{
         "upload_items": [],
 
@@ -888,7 +888,7 @@ def test_validate_supplement_schema_empty_integrity_data(test_validate):
     """
 
     # The supplement an empty array of "integrity_data"
-    # this is invalid against the schema.
+    # This is invalid against the schema.
     bad_supplement_data = """{
         "upload_items":
         [

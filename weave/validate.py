@@ -20,7 +20,7 @@ def validate_pantry(pantry_name, file_system):
 
     Parameters
     ----------
-    pantry_name: string
+    pantry_name: str
         the name of the pantry we are validating
     file_system: fsspec object
         the file system (s3fs, local fs, etc.) of the pantry
@@ -71,7 +71,7 @@ def _check_level(current_dir, **kwargs):
 
     Parameters
     ----------
-    current_dir: string
+    current_dir: str
         the current directory that we want to search all files and
         directories of
 
@@ -106,22 +106,22 @@ def _check_level(current_dir, **kwargs):
 
     manifest_path = os.path.join(current_dir, 'basket_manifest.json')
 
-    # if a manifest exists, its a basket, validate it
+    # If a manifest exists, its a basket, validate it
     if file_system.exists(manifest_path):
-        # if we find another manifest inside a basket, we just need to say
+        # If we find another manifest inside a basket, we just need to say
         # we found it, we don't need to validate the nested basket
         if in_basket:
             return True
         return _validate_basket(current_dir, file_system, index_df)
 
-    # go through all the other files, if it's a directory, we need to check it
+    # Go through all the other files, if it's a directory, we need to check it
     dirs_and_files = file_system.ls(path=current_dir, refresh=True)
 
     for file_or_dir in dirs_and_files:
         file_type = file_system.info(file_or_dir)['type']
 
         if file_type == 'directory':
-            # if we are in a basket, check evrything under it, for a manifest
+            # If we are in a basket, check evrything under it, for a manifest
             # and return true, this will return true to the _validate_basket
             # and throw an error or warning
             if in_basket:
@@ -129,10 +129,10 @@ def _check_level(current_dir, **kwargs):
                                     file_system=file_system,
                                     index_df=index_df,
                                     in_basket=in_basket)
-            # if we aren't in the basket, we want to check all files in our
+            # If we aren't in the basket, we want to check all files in our
             # current dir. If everything is valid, _check_level returns true
-            # if it isn't valid, we go in and return false
-            # we don't want to return _check_level because we want to keep
+            # If it isn't valid, we go in and return false
+            # We don't want to return _check_level because we want to keep
             # looking at all the sub-directories
             if not _check_level(file_or_dir,
                                 file_system=file_system,
@@ -167,7 +167,7 @@ def _validate_basket(basket_dir, file_system, index_df):
 
     Parameters
     ----------
-    basket_dir: string
+    basket_dir: str
         the path in the file system to the basket root directory
     file_system: fsspec object
         the fsspec file system hosting the pantry to be indexed
@@ -182,8 +182,8 @@ def _validate_basket(basket_dir, file_system, index_df):
     manifest_path = os.path.join(basket_dir, 'basket_manifest.json')
     supplement_path = os.path.join(basket_dir, 'basket_supplement.json')
 
-    # a valid basket has both manifest and supplement
-    # if for some reason the manifest is gone, we get a wrong directory,
+    # A valid basket has both manifest and supplement
+    # If for some reason the manifest is gone, we get a wrong directory,
     # or this function is incorrectly called,
     # we can say that this isn't a basket.
     if not file_system.exists(manifest_path):
@@ -206,7 +206,7 @@ def _validate_basket(basket_dir, file_system, index_df):
             file_name, _handle_none_of_the_above
         )(file, file_system, index_df)
 
-    # default return true if we don't find any problems with this basket
+    # Default return true if we don't find any problems with this basket
     return True
 
 
@@ -217,7 +217,7 @@ def _handle_manifest(file, file_system, index_df):
     -----------
     file: str
         Path to the file.
-    file_system: fsspec-like obj
+    file_system: fsspec object
         The file system to use.
     index_df: dataframe
         a dataframe representing the index
@@ -248,13 +248,13 @@ def _handle_supplement(file, file_system, _index_df):
     -----------
     file: str
         Path to the file.
-    file_system: fsspec-like obj
+    file_system: fsspec object
         The file system to use.
     index_df: dataframe
         a dataframe representing the index (Currently Unused)
     """
     try:
-        # these two lines make sure it can be read and is valid schema
+        # These two lines make sure it can be read and is valid schema
         data = json.load(file_system.open(file))
         validate(instance=data, schema=supplement_schema)
 
@@ -300,7 +300,7 @@ def _handle_none_of_the_above(file, file_system, index_df):
     -----------
     file: str
         Path to the file.
-    file_system: fsspec-like obj
+    file_system: fsspec object
         The file system to use.
     index_df: dataframe
         a dataframe representing the index
@@ -318,7 +318,7 @@ def _handle_none_of_the_above(file, file_system, index_df):
 
 
 def _validate_parent_uuids(data, _file_system, index_df):
-    """Validate that all the parent_uuids from the manifest exist in the pantry
+    """Validates that all the parent_uuids from the manifest exist in the pantry
 
     If there are parent uuids that don't actually exist in the pantry, we will
     raise a warning for each of those, along with the basket's uuid where we
@@ -326,9 +326,9 @@ def _validate_parent_uuids(data, _file_system, index_df):
 
     Parameters
     ----------
-    data: dictionary
+    data: dict
         the dictionary that contains the data of the manifest.json
-    file_system: fsspec-like obj
+    file_system: fsspec object
         The file system to use. (Currently unused)
     index_df: dataframe
         a dataframe representing the index

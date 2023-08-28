@@ -20,7 +20,7 @@ class _Index():
 
         Parameters
         ----------
-        pantry_name: [string]
+        pantry_name: [str]
             Name of the bucket which the desired index is associated with.
         sync: [bool]
             Whether or not to check the index on disk to ensure this Index
@@ -192,7 +192,7 @@ class _Index():
 
         Parameters
         ----------
-        basket: string
+        basket: str
             string that holds the path of the basket
             can also be the basket uuid
 
@@ -200,12 +200,12 @@ class _Index():
         gen_level: int
             number the indicates what generation we are on, 1 for parent,
             2 for grandparent and so forth
-        data: pandas dataframe (optional)
+        data: dataframe (optional)
             this is the index or dataframe we have collected so far
             when it is initially called, it is empty, every
             iteration/recursive call we add all the immediate parents for
             the given basket
-        descendants: list of str
+        descendants: [str]
             this is a list that holds the uids of all the descendents the
             function has visited. this is used to prevent/detect any
             parent-child loops found in the basket structure.
@@ -216,7 +216,7 @@ class _Index():
         basket we are given, along with all the previous parents
         of the previous calls.
         """
-        # collect info from kwargs
+        # Collect info from kwargs
         gen_level = kwargs.get("gen_level", 1)
         data = kwargs.get("data", pd.DataFrame())
         descendants = kwargs.get("descendants", [])
@@ -227,8 +227,8 @@ class _Index():
         elif self.index_df is None:
             self.sync_index()
 
-        # validate the bucket exists. if it does,
-        # make sure we use the address or the uid
+        # Validate the bucket exists. if it does,
+        # make sure we use the address or the uuid
         if (not self.file_system.exists(basket) and
             basket not in self.index_df.uuid.values):
             raise FileNotFoundError(
@@ -242,12 +242,12 @@ class _Index():
         elif basket in self.index_df.uuid.values:
             current_uid = basket
 
-        # get all the parent uuids for the current uid
+        # Get all the parent uuids for the current uuid
         puids = self.index_df["parent_uuids"].loc[
             self.index_df["uuid"] == current_uid
         ].to_numpy()[0]
 
-        # check if the list is empty return the data how it is
+        # Check if the list is empty return the data how it is
         if len(puids) == 0:
             return data
 
@@ -264,10 +264,10 @@ class _Index():
 
         parents_index.loc[:, "generation_level"] = gen_level
 
-        #add the parents for this generation to the data
+        # Add the parents for this generation to the data
         data = pd.concat([data, parents_index])
 
-        # for every parent, go get their parents
+        # For every parent, go get their parents
         for basket_addr in parents_index["address"]:
             data = self.get_parents(basket=basket_addr,
                                     gen_level=gen_level+1,
@@ -280,7 +280,7 @@ class _Index():
 
         Parameters
         ----------
-        basket: string
+        basket: str
             string that holds the path of the basket
             can also be the basket uuid
 
@@ -288,12 +288,12 @@ class _Index():
         gen_level: int
             number the indicates what generation we are on, -1 for child.
             -2 for grandchild and so forth
-        data: pandas dataframe (optional)
+        data: dataframe (optional)
             this is the index or dataframe we have collected so far
             when it is initially called, it is empty, every
             iteration/recursive call we add all the immediate children for
             the given basket
-        ancestors: list of string
+        ancestors: [str]
             this is a list of basket uuids of all the ancestors that have been
             visited. This is being used to detect if there is a parent-child
             loop inside the basket structure
@@ -304,7 +304,7 @@ class _Index():
         basket we are given, along with all the previous children
         of the previous calls.
         """
-        # collect info from kwargs
+        # Collect info from kwargs
         gen_level = kwargs.get("gen_level", -1)
         data = kwargs.get("data", pd.DataFrame())
         ancestors = kwargs.get("ancestors", [])
@@ -315,7 +315,7 @@ class _Index():
         elif self.index_df is None:
             self.sync_index()
 
-        # validate the bucket exists. if it does,
+        # Validate the bucket exists. if it does,
         # make sure we use the address or the uid
         if (not self.file_system.exists(basket) and
             basket not in self.index_df.uuid.values):
@@ -330,7 +330,7 @@ class _Index():
         elif basket in self.index_df.uuid.values:
             current_uid = basket
 
-        # this looks at all the baskets and returns a list of baskets who have
+        # This looks at all the baskets and returns a list of baskets who have
         # the the parent id inside their "parent_uuids" list
         child_index = self.index_df.loc[
             self.index_df.parent_uuids.apply(lambda a: current_uid in a)
@@ -341,21 +341,21 @@ class _Index():
         if len(cids) == 0:
             return data
 
-        # we are storing all the ancestors in a list, if we find the same
+        # We are storing all the ancestors in a list, if we find the same
         # ancestor twice, we are in a loop, throw error
         if current_uid in ancestors:
             raise ValueError(f"Parent-Child loop found at uuid: {current_uid}")
         ancestors.append(current_uid)
 
-        # pandas is wanting me to make a copy of itself,
+        # Pandas is wanting me to make a copy of itself,
         # I'm not exactly sure why
         child_index = child_index.copy()
         child_index.loc[:, "generation_level"] = gen_level
 
-        # add the children from this generation to the data
+        # Add the children from this generation to the data
         data = pd.concat([data, child_index])
 
-        # go through all the children and get their children too
+        # Go through all the children and get their children too
         for basket_addr in child_index["address"]:
             data =  self.get_children(basket=basket_addr,
                                       gen_level=gen_level-1,
@@ -382,13 +382,13 @@ class _Index():
             dealing with large files.
         basket_type: str
             Type of basket being uploaded.
-        parent_ids: optional [str]
+        parent_ids: [str] (optional)
             List of unique ids associated with the parent baskets
             used to derive the new basket being uploaded.
-        metadata: optional dict,
+        metadata: dict (optional)
             Python dictionary that will be written to metadata.json
             and stored in the basket in upload file_system.
-        label: optional str,
+        label: str (optional)
             Optional user friendly label associated with the basket.
         """
         parent_ids = kwargs.get("parent_ids", [])

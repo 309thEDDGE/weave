@@ -62,7 +62,7 @@ def test_pantry(request, tmpdir):
 
 
 def test_root_dir_does_not_exist(test_pantry):
-    """try to create an index in a bucket that doesn't exist,
+    """Try to create an index in a bucket that doesn't exist,
     check that it throws an error
     """
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
@@ -274,10 +274,10 @@ def test_sync_index_gets_latest_index(test_pantry):
     )
     ind2.generate_index()
 
-    # assert length of index includes both baskets and excludes the index
+    # Assert length of index includes both baskets and excludes the index
     assert len(ind.to_pandas_df()) == 2
 
-    #assert all baskets in index are not index baskets
+    # Assert all baskets in index are not index baskets
     for i in range(len(ind.to_pandas_df())):
         basket_type = ind.to_pandas_df()["basket_type"][i]
         assert basket_type != "index"
@@ -444,7 +444,7 @@ def test_generate_index(test_pantry):
     # Assert length of index includes both baskets and excludes the index
     assert len(ind.to_pandas_df()) == 2
 
-    #assert all baskets in index are not index baskets
+    # Assert all baskets in index are not index baskets
     for i in range(len(ind.to_pandas_df())):
         basket_type = ind.to_pandas_df()["basket_type"][i]
         assert basket_type != "index"
@@ -514,9 +514,9 @@ def test_delete_basket_fails_if_basket_is_parent(test_pantry):
 
 
 def test_get_parents_valid(test_pantry):
-    """setup a valid basket structure, validate the returned index"""
+    """Setup a valid basket structure, validate the returned index"""
 
-    # setup random strucutre of parents and children
+    # Setup random strucutre of parents and children
     tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
     test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
 
@@ -550,7 +550,7 @@ def test_get_parents_valid(test_pantry):
         tmp_basket_dir=tmp_dir, uid="0000", parent_ids=["1001", "1000"]
     )
 
-    # string to shorten things for ruff
+    # String to shorten things for ruff
     gen_lvl = "generation_level"
 
     ind = Index(
@@ -560,7 +560,7 @@ def test_get_parents_valid(test_pantry):
     )
     ind.generate_index()
 
-    # setup df of the right answer
+    # Setup df of the right answer
     parent_ids = [
         "1000",
         "1001",
@@ -575,28 +575,28 @@ def test_get_parents_valid(test_pantry):
     index = ind.index_df
     parent_answer = index.loc[index["uuid"].isin(parent_ids)]
 
-    # pandas wants to make a copy before adding a column
+    # Pandas wants to make a copy before adding a column
     # used to remove warning in pytest
     parent_answer = parent_answer.copy()
-    # add the generation levels
+    # Add the generation levels
     for i, j in zip(parent_ids, parent_gens):
         parent_answer.loc[parent_answer["uuid"] == i, gen_lvl] = j
 
-    # get the results
+    # Get the results
     results = ind.get_parents(child)
 
-    # sort so that they can be properly compared to
+    # Sort so that they can be properly compared to
     parent_answer = parent_answer.sort_values(by="uuid")
     results = results.sort_values(by="uuid")
 
-    # cast to int64 so datatypes match
+    # Cast to int64 so datatypes match
     parent_answer[gen_lvl] = parent_answer[gen_lvl].astype(np.int64)
 
     assert parent_answer.equals(results)
 
 
 def test_get_parents_invalid_basket_address(test_pantry):
-    """try and find the parents of an invalid basket path/address"""
+    """Try and find the parents of an invalid basket path/address"""
 
     basket_path = "INVALIDpath"
 
@@ -614,9 +614,9 @@ def test_get_parents_invalid_basket_address(test_pantry):
 
 
 def test_get_parents_no_parents(test_pantry):
-    """try and get all parents of basket with no parent uuids.
+    """Try and get all parents of basket with no parent uuids.
 
-    check that it returns an empty dataframe/index
+    Check that it returns an empty dataframe/index
     """
 
     no_parents = test_pantry.set_up_basket("no_parents")
@@ -637,14 +637,14 @@ def test_get_parents_no_parents(test_pantry):
 
 
 def test_get_parents_parent_is_child(test_pantry):
-    """set up basket structure with parent-child loop, check that it fails
+    """Set up basket structure with parent-child loop, check that it fails
 
-    set up 3 baskets, child, parent, grandparent, but the grandparent's
+    Set up 3 baskets, child, parent, grandparent, but the grandparent's
     parent_ids has the child's uid. this causes an infinite loop,
     check that it throw error
     """
 
-    # create a basket structure with child, parent, and grandparent, but
+    # Create a basket structure with child, parent, and grandparent, but
     # the grandparent's parent, is the child, making an loop for the
     # parent-child relationship
     tmp_dir = test_pantry.set_up_basket("grandparent")
@@ -678,9 +678,9 @@ def test_get_parents_parent_is_child(test_pantry):
 
 
 def test_get_children_valid(test_pantry):
-    """setup a valid basket structure, validate the returned dataframe"""
+    """Setup a valid basket structure, validate the returned dataframe"""
 
-    # setup random strucutre of parents and children
+    # Setup random strucutre of parents and children
     tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
     great_grandparent = test_pantry.upload_basket(
         tmp_basket_dir=tmp_dir, uid="3000"
@@ -716,7 +716,7 @@ def test_get_children_valid(test_pantry):
         tmp_basket_dir=tmp_dir, uid="0000", parent_ids=["1001", "1000"]
     )
 
-    # string to shorten things for ruff
+    # String to shorten things for ruff
     gen_lvl = "generation_level"
 
     ind = Index(
@@ -726,34 +726,34 @@ def test_get_children_valid(test_pantry):
     )
     ind.generate_index()
 
-    # setup df of the right answer
+    # Setup df of the right answer
     child_ids = ["2000", "1000", "0000"]
     child_gens = [-1, -2, -3]
     index = ind.index_df
     child_answer = index.loc[index["uuid"].isin(child_ids)]
 
-    # pandas wants to make a copy before adding a column
+    # Pandas wants to make a copy before adding a column
     # used to remove warning in pytest
     child_answer = child_answer.copy()
-    # add the generation levels
+    # Add the generation levels
     for i, j in zip(child_ids, child_gens):
         child_answer.loc[child_answer["uuid"] == i, gen_lvl] = j
 
-    # get the results
+    # Get the results
     results = ind.get_children(great_grandparent)
 
-    # sort so that they can be properly compared to
+    # Sort so that they can be properly compared to
     child_answer = child_answer.sort_values(by="uuid")
     results = results.sort_values(by="uuid")
 
-    # cast to int64 so datatypes match
+    # Cast to int64 so datatypes match
     child_answer[gen_lvl] = child_answer[gen_lvl].astype(np.int64)
 
     assert child_answer.equals(results)
 
 
 def test_get_children_invalid_basket_address(test_pantry):
-    """try and find he children of an invalid basket path/address"""
+    """Try and find he children of an invalid basket path/address"""
 
     basket_path = "INVALIDpath"
 
@@ -771,9 +771,9 @@ def test_get_children_invalid_basket_address(test_pantry):
 
 
 def test_get_children_no_children(test_pantry):
-    """try and get all children of basket that has no children
+    """Try and get all children of basket that has no children
 
-    check that it returns an empty dataframe/index
+    Check that it returns an empty dataframe/index
     """
 
     no_children = test_pantry.set_up_basket("no_children")
@@ -794,14 +794,14 @@ def test_get_children_no_children(test_pantry):
 
 
 def test_get_children_child_is_parent(test_pantry):
-    """set up a basket structure with a parent-child loop, check that it fails
+    """Set up a basket structure with a parent-child loop, check that it fails
 
-    set up 3 baskets, child, parent, grandparent, but the grandparents's
+    Set up 3 baskets, child, parent, grandparent, but the grandparents's
     parent_ids has the child's uid. this causes an infinite loop,
     check that it throw error
     """
 
-    # create a basket structure with child, parent, and grandparent, but
+    # Create a basket structure with child, parent, and grandparent, but
     # the grandparent's parent, is the child, making an loop for the
     # parent-child relationship
     tmp_dir = test_pantry.set_up_basket("grandparent")
@@ -837,9 +837,9 @@ def test_get_children_child_is_parent(test_pantry):
 def test_get_parents_15_deep(test_pantry):
     """Make a parent-child relationship of baskets 15 deep, get all the parents
 
-    so a child with a great*15 grandparent, and return all the grandparents
+    of a child with a great*15 grandparent, and return all the grandparents
     for the child
-    manually make the data and compare with the result
+    Manually make the data and compare with the result
     """
 
     parent_id = "x"
@@ -886,13 +886,13 @@ def test_get_parents_15_deep(test_pantry):
 
     gen_lvl = "generation_level"
 
-    # pandas wants to make a copy before adding a column
+    # Pandas wants to make a copy before adding a column
     # used to remove warning in pytest
     answer = answer.copy()
     for i, j in zip(par_ids, par_gens):
         answer.loc[answer["uuid"] == i, gen_lvl] = j
 
-    # format and sort so .equals can be properly used
+    # Format and sort so .equals can be properly used
     answer = answer.sort_values(by="uuid")
     results = results.sort_values(by="uuid")
     answer[gen_lvl] = answer[gen_lvl].astype(np.int64)
@@ -903,9 +903,9 @@ def test_get_parents_15_deep(test_pantry):
 def test_get_children_15_deep(test_pantry):
     """Make a parent-child relationship of baskets 15 deep, get the children.
 
-    so a child with great*15 grandparent, and return all the grandchildren
+    For a parent with great*15 grandchildren, return all the grandchildren
     for the highest grandparent.
-    manually make the data and compare with the result
+    Manually make the data and compare with the result
     """
 
     parent_id = "x"
@@ -952,13 +952,13 @@ def test_get_children_15_deep(test_pantry):
 
     gen_lvl = "generation_level"
 
-    # pandas wants to make a copy before adding a column
+    # Pandas wants to make a copy before adding a column
     # used to remove warning in pytest
     answer = answer.copy()
     for i, j in zip(child_ids, child_gens):
         answer.loc[answer["uuid"] == i, gen_lvl] = j
 
-    # format and sort so .equals can be properly used
+    # Format and sort so .equals can be properly used
     answer = answer.sort_values(by="uuid")
     results = results.sort_values(by="uuid")
     answer[gen_lvl] = answer[gen_lvl].astype(np.int64)
@@ -1085,9 +1085,9 @@ def test_get_children_complex_fail(test_pantry):
 
 
 def test_get_parents_from_uuid(test_pantry):
-    """setup a valid basket structure, validate the returned index from uuid"""
+    """Setup a valid basket structure, validate the returned index from uuid"""
 
-    # setup random strucutre of parents and children
+    # Setup random strucutre of parents and children
     tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
     test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
 
@@ -1121,7 +1121,7 @@ def test_get_parents_from_uuid(test_pantry):
         tmp_basket_dir=tmp_dir, uid="0000", parent_ids=["1001", "1000"]
     )
 
-    # string to shorten things for ruff
+    # String to shorten things for ruff
     gen_lvl = "generation_level"
 
     ind = Index(
@@ -1131,7 +1131,7 @@ def test_get_parents_from_uuid(test_pantry):
     )
     ind.generate_index()
 
-    # setup df of the right answer
+    # Setup df of the right answer
     parent_ids = [
         "1000",
         "1001",
@@ -1146,30 +1146,30 @@ def test_get_parents_from_uuid(test_pantry):
     index = ind.index_df
     parent_answer = index.loc[index["uuid"].isin(parent_ids)]
 
-    # pandas wants to make a copy before adding a column
+    # Pandas wants to make a copy before adding a column
     # used to remove warning in pytest
     parent_answer = parent_answer.copy()
-    # add the generation levels
+    # Add the generation levels
     for i, j in zip(parent_ids, parent_gens):
         parent_answer.loc[parent_answer["uuid"] == i, gen_lvl] = j
 
-    # get the results
+    # Get the results
     results = ind.get_parents("0000")
 
-    # sort so that they can be properly compared to
+    # Sort so that they can be properly compared to
     parent_answer = parent_answer.sort_values(by="uuid")
     results = results.sort_values(by="uuid")
 
-    # cast to int64 so datatypes match
+    # Cast to int64 so datatypes match
     parent_answer[gen_lvl] = parent_answer[gen_lvl].astype(np.int64)
 
     assert parent_answer.equals(results)
 
 
 def test_get_children_from_uuid(test_pantry):
-    """setup a valid basket structure, validate the returned index from uuid"""
+    """Setup a valid basket structure, validate the returned index from uuid"""
 
-    # setup random strucutre of parents and children
+    # Setup random strucutre of parents and children
     tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
     test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
 
@@ -1203,7 +1203,7 @@ def test_get_children_from_uuid(test_pantry):
         tmp_basket_dir=tmp_dir, uid="0000", parent_ids=["1001", "1000"]
     )
 
-    # string to shorten things for ruff
+    # String to shorten things for ruff
     gen_lvl = "generation_level"
 
     ind = Index(
@@ -1213,27 +1213,27 @@ def test_get_children_from_uuid(test_pantry):
     )
     ind.generate_index()
 
-    # setup df of the right answer
+    # Setup df of the right answer
     child_ids = ["2000", "1000", "0000"]
     child_gens = [-1, -2, -3]
     index = ind.index_df
     child_answer = index.loc[index["uuid"].isin(child_ids)]
 
-    # pandas wants to make a copy before adding a column
+    # Pandas wants to make a copy before adding a column
     # used to remove warning in pytest
     child_answer = child_answer.copy()
-    # add the generation levels
+    # Add the generation levels
     for i, j in zip(child_ids, child_gens):
         child_answer.loc[child_answer["uuid"] == i, gen_lvl] = j
 
-    # get the results with uid of the great grandparent
+    # Get the results with uid of the great grandparent
     results = ind.get_children("3000")
 
-    # sort so that they can be properly compared to
+    # Sort so that they can be properly compared to
     child_answer = child_answer.sort_values(by="uuid")
     results = results.sort_values(by="uuid")
 
-    # cast to int64 so datatypes match
+    # Cast to int64 so datatypes match
     child_answer[gen_lvl] = child_answer[gen_lvl].astype(np.int64)
 
     assert child_answer.equals(results)
@@ -1249,7 +1249,7 @@ def test_upload_basket_updates_the_index(test_pantry):
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
-    # create index
+    # Create index
     ind = Index(
         pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
@@ -1257,7 +1257,7 @@ def test_upload_basket_updates_the_index(test_pantry):
     )
     ind.generate_index()
 
-    # add some baskets
+    # Add some baskets
     tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
     for i in range(3):
         new_basket = ind.upload_basket(

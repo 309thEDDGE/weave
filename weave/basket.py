@@ -17,10 +17,10 @@ class BasketInitializer:
 
         Parameters
         ----------
-        basket_address: string
+        basket_address: str
             Argument can take one of two forms: either a path to the Basket
             directory, or the UUID of the basket.
-        pantry_name: string
+        pantry_name: str
             Name of the pantry which the desired index is associated with.
 
         kwargs:
@@ -44,7 +44,7 @@ class BasketInitializer:
 
         Paramters
         ---------
-        basket_address: string
+        basket_address: str
             Argument can take one of two forms: either a path to the Basket
             directory, or the UUID of the basket. In this case it is assumed to
             be a path to the Basket directory.
@@ -58,11 +58,11 @@ class BasketInitializer:
         Note that if the basket cannot be set up from a uuid then an attempt to
         set up the basket from a filepath will be made.
 
-        basket_address: string
+        basket_address: str
             Argument can take one of two forms: either a path to the Basket
             directory, or the UUID of the basket. In this case it is assumed to
             be the UUID of the basket.
-        pantry_name: string
+        pantry_name: str
             Name of the pantry which the desired index is associated with.
         """
         try:
@@ -73,8 +73,8 @@ class BasketInitializer:
         except BaseException as error:
             self.basket_address = basket_address
             self.validate_basket_path()
-            # the above line should raise an exception
-            # the below line is more or less a fail safe and will raise the ex.
+            # The above line should raise an exception
+            # The below line is more or less a fail safe and will raise the ex.
             raise error
 
     def validate_basket_path(self):
@@ -106,10 +106,10 @@ class Basket(BasketInitializer):
 
         Parameters
         ----------
-        basket_address: string
+        basket_address: str
             Argument can take one of two forms: either a path to the Basket
             directory, or the UUID of the basket.
-        pantry_name: string
+        pantry_name: str
             Name of the pantry which the desired index is associated with.
 
         kwargs:
@@ -172,7 +172,7 @@ class Basket(BasketInitializer):
 
         Parameters
         ----------
-        relative_path: [string]
+        relative_path: [str]
             relative path in the basket to pass to filesystem.ls.
 
         Returns
@@ -189,7 +189,7 @@ class Basket(BasketInitializer):
             )
 
         if ls_path == os.fspath(Path(self.basket_address)):
-            # remove any prohibited files from the list if they exist
+            # Remove any prohibited files from the list if they exist
             # in the root directory
             # Note that file_system.ls can have unpredictable behavior if
             # not passing refresh=True

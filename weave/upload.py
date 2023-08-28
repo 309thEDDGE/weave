@@ -42,7 +42,7 @@ def validate_upload_item(upload_item):
 
 def derive_integrity_data(file_path, byte_count=10**8):
     """
-    Derive basic integrity data from a file.
+    Derives basic integrity data from a file.
 
     This function takes in a file path and calculates
     the file checksum, file size, and access date (current time).
@@ -152,13 +152,13 @@ class UploadBasket:
             Unique ID to identify the basket once uploaded.
         basket_type: str
             Type of basket being uploaded.
-        parent_ids: optional [str]
+        parent_ids: [str] (optional)
             List of unique ids associated with the parent baskets
             used to derive the new basket being uploaded.
-        metadata: optional dict,
+        metadata: dict (optional)
             Python dictionary that will be written to metadata.json
             and stored in the basket in the upload FS.
-        label: optional str,
+        label: str (optional)
             Optional user friendly label associated with the basket.
         file_system: fsspec object
             The file system to upload to (ie s3fs, local fs, etc).

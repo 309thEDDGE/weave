@@ -18,7 +18,7 @@ def load_mongo(index_table, collection='metadata', **kwargs):
 
         Parameters
         ----------
-        index_table: [Pandas Dataframe]
+        index_table: [dataframe]
             Weave index dataframe fetched using the Index class.
             The dataframe must include the following columns.
                uuid

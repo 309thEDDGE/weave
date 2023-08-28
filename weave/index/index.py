@@ -14,7 +14,7 @@ class Index(_Index):
 
         Parameters
         ----------
-        basket_address: string
+        basket_address: str
             Argument can take one of two forms: either a path to the Basket
             directory, or the UUID of the basket.
 
