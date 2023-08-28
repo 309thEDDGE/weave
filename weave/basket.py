@@ -25,7 +25,10 @@ class BasketInitializer:
         **pantry: weave.Pantry (optional)
             The pantry which the basket uuid is associated with. Only for UUID
         """
-        self.file_system = kwargs.get("file_system", get_file_system())
+        if 'pantry' in kwargs:
+            self.file_system = kwargs['pantry'].file_system
+        else:
+            self.file_system = kwargs.get("file_system", get_file_system())
         try:
             self.set_up_basket_from_path(basket_address)
         except ValueError as error:
@@ -106,18 +109,20 @@ class Basket(BasketInitializer):
         """Initializes the Basket_Class.
 
         If basket_address is a path, the basket will be loaded directly using
-        the file_system kwarg. If basket_address is a UUID, the basket will
+        the file_system or pantry. If basket_address is a UUID, the basket will
         be loaded using the provided pantry's index.
 
         Parameters
         ----------
-        basket_address: string
+        basket_address: str
             Argument can take one of two forms: either a path to the Basket
             directory, or the UUID of the basket.
         **file_system: fsspec object (optional)
-            The fsspec filesystem to be used for retrieving and uploading.
+            The fsspec filesystem to be used for retrieving and uploading. May
+            be used if basket_address is a path.
         **pantry: weave.Pantry (optional)
-            The pantry which the basket uuid is associated with.
+            The pantry which the basket uuid is associated with. Required if
+            basket_address is a UUID.
         """
         super().__init__(basket_address, **kwargs)
         self.manifest = None
