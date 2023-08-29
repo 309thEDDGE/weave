@@ -12,7 +12,7 @@ from .index.index_pandas import _Index
 class BasketInitializer:
     """Initializes basket class. Validates input args.
     """
-    def __init__(self, basket_address, pantry_name, **kwargs):
+    def __init__(self, basket_address, pantry_path, **kwargs):
         """Handles set up of basket. Calls validation.
 
         Parameters
@@ -20,7 +20,7 @@ class BasketInitializer:
         basket_address: string
             Argument can take one of two forms: either a path to the Basket
             directory, or the UUID of the basket.
-        pantry_name: string
+        pantry_path: string
             Name of the pantry which the desired index is associated with.
 
         kwargs:
@@ -33,7 +33,7 @@ class BasketInitializer:
         except ValueError as error:
             if str(error) != f"Basket does not exist: {self.basket_address}":
                 raise error
-            self.set_up_basket_from_uuid(basket_address, pantry_name)
+            self.set_up_basket_from_uuid(basket_address, pantry_path)
         self.manifest_path = f"{self.basket_address}/basket_manifest.json"
         self.supplement_path = f"{self.basket_address}/basket_supplement.json"
         self.metadata_path = f"{self.basket_address}/basket_metadata.json"
@@ -52,7 +52,7 @@ class BasketInitializer:
         self.basket_address = os.fspath(basket_address)
         self.validate_basket_path()
 
-    def set_up_basket_from_uuid(self, basket_address, pantry_name):
+    def set_up_basket_from_uuid(self, basket_address, pantry_path):
         """Attempts to set up a basket from a uuid.
 
         Note that if the basket cannot be set up from a uuid then an attempt to
@@ -62,11 +62,11 @@ class BasketInitializer:
             Argument can take one of two forms: either a path to the Basket
             directory, or the UUID of the basket. In this case it is assumed to
             be the UUID of the basket.
-        pantry_name: string
+        pantry_path: string
             Name of the pantry which the desired index is associated with.
         """
         try:
-            ind = _Index(pantry_name=pantry_name, file_system=self.file_system)
+            ind = _Index(pantry_path=pantry_path, file_system=self.file_system)
             ind_df = ind.to_pandas_df()
             path = ind_df["address"][ind_df["uuid"] == basket_address].iloc[0]
             self.set_up_basket_from_path(basket_address=path)
@@ -101,7 +101,7 @@ class Basket(BasketInitializer):
     """This class provides convenience functions for accessing basket contents.
     """
 
-    def __init__(self, basket_address, pantry_name="basket-data", **kwargs):
+    def __init__(self, basket_address, pantry_path="basket-data", **kwargs):
         """Initializes the Basket_Class.
 
         Parameters
@@ -109,14 +109,14 @@ class Basket(BasketInitializer):
         basket_address: string
             Argument can take one of two forms: either a path to the Basket
             directory, or the UUID of the basket.
-        pantry_name: string
+        pantry_path: string
             Name of the pantry which the desired index is associated with.
 
         kwargs:
         file_system: fsspec object
             The fsspec filesystem to be used for retrieving and uploading.
         """
-        super().__init__(basket_address, pantry_name, **kwargs)
+        super().__init__(basket_address, pantry_path, **kwargs)
         self.manifest = None
         self.supplement = None
         self.metadata = None
