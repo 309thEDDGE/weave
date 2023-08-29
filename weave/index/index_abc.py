@@ -53,32 +53,18 @@ class IndexABC(abc.ABC):
         """
 
     @abc.abstractmethod
-    def upload_basket(self, upload_items, basket_type, **kwargs):
-        """Upload a basket to the pantry referenced by the Index.
+    def track_basket(self, entry_df, **kwargs):
+        """Track a basket to from the pantry referenced by the Index
 
         Parameters
         ----------
-        upload_items : [dict]
-            List of python dictionaries with the following schema:
-            {
-                'path': path to the file or folder being uploaded (str),
-                'stub': True/False (bool)
-            }
-            'path' can be a file or folder to be uploaded. Every filename
-            and folder name must be unique. If 'stub' is set to True, integrity
-            data will be included without uploading the actual file or folder.
-            Stubs are useful when original file source information is desired
-            without uploading the data itself. This is especially useful when
-            dealing with large files.
-        basket_type: str
-            Type of basket being uploaded.
-
-        Optional kwargs controlled by concrete implementations.
+        entry_df : pd.DataFrame
+            Uploaded baskets to append to the index.
         """
 
     @abc.abstractmethod
-    def delete_basket(self, basket_address, **kwargs):
-        """Deletes a basket of given UUID or path.
+    def untrack_basket(self, basket_address, **kwargs):
+        """Remove a basket from being tracked of given UUID or path.
 
         Parameters
         ----------
