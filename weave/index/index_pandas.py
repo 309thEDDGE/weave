@@ -236,24 +236,24 @@ class _Index():
             )
 
         if self.file_system.exists(basket):
-            current_uuid = self.index_df["uuid"].loc[
+            basket_uuid = self.index_df["uuid"].loc[
                 self.index_df["address"].str.endswith(basket)
             ].values[0]
         elif basket in self.index_df.uuid.values:
-            current_uuid = basket
+            basket_uuid = basket
 
-        # Get all the parent uuids for the current uuid
+        # Get all the parent uuids for the basket uuid
         parent_uuids = self.index_df["parent_uuids"].loc[
-            self.index_df["uuid"] == current_uuid
+            self.index_df["uuid"] == basket_uuid
         ].to_numpy()[0]
 
         # Check if the list is empty return the data how it is
         if len(parent_uuids) == 0:
             return data
 
-        if current_uuid in descendants:
-            raise ValueError(f"Parent-Child loop found at uuid: {current_uuid}")
-        descendants.append(current_uuid)
+        if basket_uuid in descendants:
+            raise ValueError(f"Parent-Child loop found at uuid: {basket_uuid}")
+        descendants.append(basket_uuid)
 
         parents_index = self.index_df.loc[
             self.index_df["uuid"].isin(parent_uuids), :
@@ -324,16 +324,16 @@ class _Index():
             )
 
         if self.file_system.exists(basket):
-            current_uuid = self.index_df["uuid"].loc[
+            basket_uuid = self.index_df["uuid"].loc[
                 self.index_df["address"].str.endswith(basket)
             ].values[0]
         elif basket in self.index_df.uuid.values:
-            current_uuid = basket
+            basket_uuid = basket
 
         # This looks at all the baskets and returns a list of baskets who have
         # the the parent id inside their "parent_uuids" list
         child_index = self.index_df.loc[
-            self.index_df.parent_uuids.apply(lambda a: current_uuid in a)
+            self.index_df.parent_uuids.apply(lambda a: basket_uuid in a)
         ]
 
         child_uuids = child_index["uuid"].values
@@ -343,9 +343,9 @@ class _Index():
 
         # We are storing all the ancestors in a list, if we find the same
         # ancestor twice, we are in a loop, throw error
-        if current_uuid in ancestors:
-            raise ValueError(f"Parent-Child loop found at uuid: {current_uuid}")
-        ancestors.append(current_uuid)
+        if basket_uuid in ancestors:
+            raise ValueError(f"Parent-Child loop found at uuid: {basket_uuid}")
+        ancestors.append(basket_uuid)
 
         # Pandas is wanting me to make a copy of itself,
         # I'm not exactly sure why
