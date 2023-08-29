@@ -8,9 +8,9 @@ from ..config import get_file_system
 
 class IndexABC(abc.ABC):
     """Abstract Base Class for the Index"""
-    def __init__(self, **kwargs):
-        self.file_system = kwargs.get("file_system", get_file_system())
-        self.pantry_path = str(kwargs['pantry_path'])
+    def __init__(self, file_system, pantry_path):
+        self.file_system = file_system
+        self.pantry_path = pantry_path
 
 #     @property
 #     @abc.abstractmethod

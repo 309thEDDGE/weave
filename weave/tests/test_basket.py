@@ -68,10 +68,7 @@ def test_basket_address_does_not_exist(test_pantry):
     invalid basket address.
     """
     basket_path = Path("i n v a l i d p a t h")
-    index = PandasIndex(test_pantry.pantry_name,
-                        file_system=test_pantry.file_system
-            )
-    pantry = Pantry(index,
+    pantry = Pantry(PandasIndex,
                     pantry_name=test_pantry.pantry_name,
                     file_system=test_pantry.file_system)
     pantry.index.generate_index()
@@ -465,10 +462,7 @@ def test_basket_init_from_uuid(test_pantry):
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     uuid = "0000"
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
-    index = PandasIndex(test_pantry.pantry_name,
-                        file_system=test_pantry.file_system
-            )
-    pantry = Pantry(index,
+    pantry = Pantry(PandasIndex,
                     pantry_name=test_pantry.pantry_name,
                     file_system=test_pantry.file_system)
     pantry.index.generate_index()
@@ -491,10 +485,7 @@ def test_basket_init_fails_if_uuid_does_not_exist(test_pantry):
     uuid = "0000"
     bad_uuid = "a bad uuid"
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
-    index = PandasIndex(test_pantry.pantry_name,
-                        file_system=test_pantry.file_system
-            )
-    pantry = Pantry(index,
+    pantry = Pantry(PandasIndex,
                     pantry_name=test_pantry.pantry_name,
                     file_system=test_pantry.file_system)
     pantry.index.generate_index()
@@ -539,10 +530,7 @@ def test_basket_from_uuid_with_many_baskets(test_pantry):
         tmp_basket_dir = test_pantry.set_up_basket(f"temp_basket_{uuid}")
         test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir, uid=uuid)
 
-    index = PandasIndex(test_pantry.pantry_name,
-                        file_system=test_pantry.file_system
-            )
-    pantry = Pantry(index,
+    pantry = Pantry(PandasIndex,
                     pantry_name=test_pantry.pantry_name,
                     file_system=test_pantry.file_system)
     pantry.index.generate_index()

@@ -34,9 +34,11 @@ class Pantry():
             If file_system is None, then the default fs is retrieved from the
             config.
         """
-        self.index = index
         self.file_system = kwargs.get("file_system", get_file_system())
         self.pantry_name = str(pantry_name)
+        self.index = index(file_system=self.file_system,
+                           pantry_path=self.pantry_name,
+        )
 
 
     def delete_basket(self, basket_address, **kwargs):
@@ -53,20 +55,18 @@ class Pantry():
         **kwargs:
             Additional parameters to pass to the index
         '''
-        basket_uuid = str(basket_uuid)
-        remove_item = self.index.get_basket(basket_uuid)
+        basket_address = str(basket_address)
+        remove_item = self.index.get_basket(basket_address)
 
-        remove_item = self.index.get_basket(basket_uuid)
-
-        if len(self.index.get_children(remove_item.uuid)) > 0:
+        if len(self.index.get_children(remove_item.basket_address)) > 0:
             raise ValueError(
-                f"The provided value for basket_uuid {basket_uuid} " +
+                f"The provided value for basket_uuid {basket_address} " +
                 "is listed as a parent UUID for another basket. Please " +
                 "delete that basket before deleting it's parent basket."
             )
 
-        self.file_system.rm(remove_item.address, recursive=True)
-        self.index.delete_basket(remove_item.address, **kwargs)
+        self.file_system.rm(remove_item.basket_address, recursive=True)
+        self.index.untrack_basket(remove_item.basket_address, **kwargs)
 
     def upload_basket(self, upload_items, basket_type, **kwargs):
         """Upload a basket to the same pantry referenced by the Index
@@ -112,7 +112,7 @@ class Pantry():
         ).get_upload_path()
 
         single_indice_index = create_index_from_fs(up_dir, self.file_system)
-        self.index.upload_basket(single_indice_index)
+        self.index.track_basket(single_indice_index)
         return single_indice_index
 
     def get_basket(self, basket_address):

@@ -16,7 +16,7 @@ from .index_abc import IndexABC
 class PandasIndex(IndexABC):
     '''Handles Pandas based functionality of the Index'''
 
-    def __init__(self, pantry_path="basket-data", sync=True, **kwargs):
+    def __init__(self, file_system, pantry_path, **kwargs):
         '''Initializes the Index class.
 
         Parameters
@@ -36,12 +36,12 @@ class PandasIndex(IndexABC):
             If file_system is None, then the default fs is retrieved from the
             config.
         '''
-        super().__init__(pantry_path=pantry_path, **kwargs)
+        super().__init__(file_system=file_system, pantry_path=pantry_path)
         self.index_basket_dir_name = 'index' # AKA basket type
         self.index_basket_dir_path = os.path.join(
             self.pantry_path, self.index_basket_dir_name
         )
-        self.sync = bool(sync)
+        self.sync = bool(kwargs.get('sync', True))
         self.index_json_time = 0 # 0 is essentially same as None in this case
         self.index_df = None
 
@@ -154,17 +154,16 @@ class PandasIndex(IndexABC):
         self.index_json_time = n_secs
 
 
-    def delete_basket(self, basket_address, **kwargs):
-        """Deletes a basket of given UUID or path.
+    def untrack_basket(self, basket_address, **kwargs):
+        """Remove a basket from being tracked of given UUID or path.
 
         Parameters
         ----------
         basket_address: str
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
-        kwargs:
-        upload_index: bool
-            Flag to upload the new index to the file system
+
+        Optional kwargs controlled by concrete implementations.
         """
         upload_index = kwargs.get("upload_index", True)
         basket_address = str(basket_address)
@@ -174,6 +173,7 @@ class PandasIndex(IndexABC):
         remove_item = self.index_df[(self.index_df["uuid"] == basket_address)
                                | (self.index_df["address"] == basket_address)
                       ]
+
         self.index_df.drop(remove_item.index, inplace=True)
         self.index_df.reset_index(drop=True, inplace=True)
         if upload_index:
@@ -321,7 +321,7 @@ class PandasIndex(IndexABC):
                 self.index_df["address"].str.endswith(basket_address)
             ].values[0]
         elif basket_address in self.index_df.uuid.values:
-            current_uid = basket
+            current_uid = basket_address
 
         # this looks at all the baskets and returns a list of baskets who have
         # the the parent id inside their "parent_uuids" list
@@ -356,17 +356,17 @@ class PandasIndex(IndexABC):
                                       ancestors=ancestors.copy())
         return data
 
-    def upload_basket(self, upload_index, **kwargs):
-        """Upload a basket to the same pantry referenced by the Index
+    def track_basket(self, entry_df, **kwargs):
+        """Track a basket to from the pantry referenced by the Index
 
         Parameters
         ----------
-        upload_index : pd.DataFrame
+        entry_df : pd.DataFrame
             Uploaded baskets to append to the index.
         """
         self.sync_index()
         self._upload_index(
-            pd.concat([self.index_df, upload_index], ignore_index=True)
+            pd.concat([self.index_df, entry_df], ignore_index=True)
         )
 
     def get_basket(self, basket_address, **kwargs):
@@ -386,6 +386,10 @@ class PandasIndex(IndexABC):
         basket = self.index_df[(self.index_df["uuid"] == basket_address)
                                | (self.index_df["address"] == basket_address)
                       ]
+
+        if len(basket) == 0:
+            raise ValueError(f"The provided value for basket_uuid "
+                             f"{basket_address} does not exist.")
         return Basket(basket.iloc[0].address, file_system=self.file_system)
 
     def get_baskets_of_type(self, basket_type, max_rows=1000, **kwargs):
