@@ -21,6 +21,7 @@ also upload new Baskets to the Pantry using Index.upload_basket().
 
 from .basket import Basket
 from .index.index import Index
+from .index.index_sqlite import IndexSQLite
 from .metadata_db import load_mongo
 
 __version__ = "0.11.0"
@@ -28,5 +29,6 @@ __version__ = "0.11.0"
 __all__ = [
     "Basket",
     "Index",
+    "IndexSQLite",
     "load_mongo",
 ]
