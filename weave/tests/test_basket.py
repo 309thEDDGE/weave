@@ -434,7 +434,7 @@ def test_basket_ls_after_find(test_pantry):
     test_pantry.file_system.find(test_pantry.pantry_name)
 
     # Set up basket
-    test_b = Basket(
+    test_basket = Basket(
         basket_path,
         pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system
@@ -446,7 +446,7 @@ def test_basket_ls_after_find(test_pantry):
     ]
     expected_base_dir_paths.sort()  # Sort to zip in same order
 
-    ls_test = test_b.ls(tmp_basket_dir_name)
+    ls_test = test_basket.ls(tmp_basket_dir_name)
     ls_test.sort()
 
     # Get the actual base dir paths (essentially stripping any FS specific
@@ -470,12 +470,12 @@ def test_basket_init_from_uuid(test_pantry):
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     uuid = "0000"
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
-    test_b = Basket(
+    test_basket = Basket(
         basket_address=uuid,
         pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
     )
-    assert test_b.ls("basket_one")[0].endswith(
+    assert test_basket.ls("basket_one")[0].endswith(
         f"{test_pantry.pantry_name}/test_basket/0000/basket_one/test.txt"
     )
 
@@ -525,12 +525,12 @@ def test_basket_from_uuid_with_many_baskets(test_pantry):
         tmp_basket_dir = test_pantry.set_up_basket(f"temp_basket_{uuid}")
         test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir, uid=uuid)
 
-    test_b = Basket(
+    test_basket = Basket(
         basket_address=uuid,
         pantry_name=test_pantry.pantry_name,
         file_system=test_pantry.file_system,
     )
-    assert test_b.ls(f"temp_basket_{uuid}")[0].endswith(
+    assert test_basket.ls(f"temp_basket_{uuid}")[0].endswith(
         f"{test_pantry.pantry_name}/test_basket/{uuid}"
         f"/temp_basket_{uuid}/test.txt"
     )

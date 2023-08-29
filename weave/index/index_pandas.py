@@ -20,9 +20,9 @@ class _Index():
 
         Parameters
         ----------
-        pantry_name: [str]
+        pantry_name: str
             Name of the bucket which the desired index is associated with.
-        sync: [bool]
+        sync: bool
             Whether or not to check the index on disk to ensure this Index
             object stays current. If True, then some operations may take
             slightly longer, as they will check to see if the current Index
@@ -86,7 +86,7 @@ class _Index():
 
         Parameters
         ----------
-        n_keep: [int]
+        n_keep: int
             n is the number of latest index baskets to keep.
         '''
         n_keep = int(n_keep)
@@ -198,15 +198,15 @@ class _Index():
 
         kwargs:
         gen_level: int
-            number the indicates what generation we are on, 1 for parent,
+            This indicates what generation we are on, 1 for parent,
             2 for grandparent and so forth
-        data: dataframe (optional)
-            this is the index or dataframe we have collected so far
+        data: pd.dataframe (optional)
+            This is the index or dataframe we have collected so far
             when it is initially called, it is empty, every
             iteration/recursive call we add all the immediate parents for
             the given basket
         descendants: [str]
-            this is a list that holds the uids of all the descendents the
+            This is a list that holds the uids of all the descendents the
             function has visited. this is used to prevent/detect any
             parent-child loops found in the basket structure.
 
@@ -236,27 +236,27 @@ class _Index():
             )
 
         if self.file_system.exists(basket):
-            current_uid = self.index_df["uuid"].loc[
+            current_uuid = self.index_df["uuid"].loc[
                 self.index_df["address"].str.endswith(basket)
             ].values[0]
         elif basket in self.index_df.uuid.values:
-            current_uid = basket
+            current_uuid = basket
 
         # Get all the parent uuids for the current uuid
-        puids = self.index_df["parent_uuids"].loc[
-            self.index_df["uuid"] == current_uid
+        parent_uuids = self.index_df["parent_uuids"].loc[
+            self.index_df["uuid"] == current_uuid
         ].to_numpy()[0]
 
         # Check if the list is empty return the data how it is
-        if len(puids) == 0:
+        if len(parent_uuids) == 0:
             return data
 
-        if current_uid in descendants:
-            raise ValueError(f"Parent-Child loop found at uuid: {current_uid}")
-        descendants.append(current_uid)
+        if current_uuid in descendants:
+            raise ValueError(f"Parent-Child loop found at uuid: {current_uuid}")
+        descendants.append(current_uuid)
 
         parents_index = self.index_df.loc[
-            self.index_df["uuid"].isin(puids), :
+            self.index_df["uuid"].isin(parent_uuids), :
         ].copy()
 
         if len(parents_index) == 0:
@@ -281,20 +281,20 @@ class _Index():
         Parameters
         ----------
         basket: str
-            string that holds the path of the basket
+            String that holds the path of the basket
             can also be the basket uuid
 
         kwargs:
         gen_level: int
-            number the indicates what generation we are on, -1 for child.
+            This indicates what generation we are on, -1 for child.
             -2 for grandchild and so forth
         data: dataframe (optional)
-            this is the index or dataframe we have collected so far
+            This is the index or dataframe we have collected so far
             when it is initially called, it is empty, every
             iteration/recursive call we add all the immediate children for
             the given basket
         ancestors: [str]
-            this is a list of basket uuids of all the ancestors that have been
+            This is a list of basket uuids of all the ancestors that have been
             visited. This is being used to detect if there is a parent-child
             loop inside the basket structure
 
@@ -324,28 +324,28 @@ class _Index():
             )
 
         if self.file_system.exists(basket):
-            current_uid = self.index_df["uuid"].loc[
+            current_uuid = self.index_df["uuid"].loc[
                 self.index_df["address"].str.endswith(basket)
             ].values[0]
         elif basket in self.index_df.uuid.values:
-            current_uid = basket
+            current_uuid = basket
 
         # This looks at all the baskets and returns a list of baskets who have
         # the the parent id inside their "parent_uuids" list
         child_index = self.index_df.loc[
-            self.index_df.parent_uuids.apply(lambda a: current_uid in a)
+            self.index_df.parent_uuids.apply(lambda a: current_uuid in a)
         ]
 
-        cids = child_index["uuid"].values
+        child_uuids = child_index["uuid"].values
 
-        if len(cids) == 0:
+        if len(child_uuids) == 0:
             return data
 
         # We are storing all the ancestors in a list, if we find the same
         # ancestor twice, we are in a loop, throw error
-        if current_uid in ancestors:
-            raise ValueError(f"Parent-Child loop found at uuid: {current_uid}")
-        ancestors.append(current_uid)
+        if current_uuid in ancestors:
+            raise ValueError(f"Parent-Child loop found at uuid: {current_uuid}")
+        ancestors.append(current_uuid)
 
         # Pandas is wanting me to make a copy of itself,
         # I'm not exactly sure why

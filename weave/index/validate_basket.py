@@ -13,10 +13,14 @@ def validate_basket_dict(basket_dict):
     """Validate the basket_manifest.json has the correct structure
 
     Parameters:
-        basket_dict: dictionary read in from basket_manifest.json in minio
+    ----------
+    basket_dict: dict
+        Dictionary of the basket contents
+        read in from basket_manifest.json in minio
 
-    Returns:
-        valid (bool): True if basket has correct schema, false otherwise
+    Returns
+    ----------
+        bool: True if basket has correct schema, false otherwise
     """
 
     try:

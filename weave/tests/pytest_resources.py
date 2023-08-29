@@ -17,7 +17,9 @@ def file_path_in_list(search_path, search_list):
     search_list: [str]
         A list of strings (presumably file paths)
 
-    Returns True if any of the file paths in the search list end with the
+    Returns
+    ----------
+    bool: True if any of the file paths in the search list end with the
     file path we're searching for, otherwise False.
 
     This allows us to determine if a file is in the list regardless of file

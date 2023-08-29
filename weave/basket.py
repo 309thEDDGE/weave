@@ -172,7 +172,7 @@ class Basket(BasketInitializer):
 
         Parameters
         ----------
-        relative_path: [str]
+        relative_path: str
             relative path in the basket to pass to filesystem.ls.
 
         Returns

@@ -13,7 +13,7 @@ from weave.tests.pytest_resources import BucketForTest
 # This module is long and has many tests. Pylint is complaining that it is too
 # long. I don't necessarily think that is bad in this case, as the alternative
 # would be to write the tests continuuing in a different script, which I think
-# is unnecesarily complex. Therefor, I am disabling this warning for this
+# is unnecesarily complex. Therefore, I am disabling this warning for this
 # script.
 # pylint: disable=too-many-lines
 
@@ -45,28 +45,28 @@ class ValidateForTest(BucketForTest):
 
         Parameters
         ----------
-        tmp_dir_name: string
-            the directory name of where the nested basket will be
+        tmp_dir_name: str
+            The directory name of where the nested basket will be
 
         Key-word Arguments:
         -------------------
-        is_man: boolean
-            a bool that signals if ther should be a manifest file
+        is_man: bool
+            A bool that signals if ther should be a manifest file
             defaults to no manifest
-        is_sup: boolean
-            a bool that signals if ther should be a supplement file
+        is_sup: bool
+            A bool that signals if ther should be a supplement file
             defaults to no supplement
-        is_meta: boolean
-            a bool that signals if ther should be a metadata file
+        is_meta: bool
+            A bool that signals if ther should be a metadata file
             defaults to no metadata
-        man_data: string
-            the json data we want to be put into the manifest file
+        man_data: str
+            The json data we want to be put into the manifest file
             defaults to a valid manifest schema
-        sup_data: string
-            the json data we want to be put into the supplement file
+        sup_data: str
+            The json data we want to be put into the supplement file
             defaults to a valid supplement schema
-        meta_data: string
-            the json data we want to be put into the metadata file
+        meta_data: str
+            The json data we want to be put into the metadata file
             defaults to a valid json object
 
         Returns
@@ -1209,7 +1209,7 @@ def test_validate_call_check_level(test_validate):
     """Create basket, call _check_level()
 
     Create a basket, call _check_level() which is a private function,
-    check that it returns true. it returns true, because the _check_level
+    check that it returns true. It returns true, because the _check_level
     function checks all files an directories of the given dir, so it just
     acts like we are at a random dir instead of the root of the bucket.
     """
