@@ -54,6 +54,7 @@ class Pantry():
             Additional parameters to pass to the index
         '''
         basket_uuid = str(basket_uuid)
+        remove_item = self.index.get_basket(basket_uuid)
 
         remove_item = self.index.get_basket(basket_uuid)
 

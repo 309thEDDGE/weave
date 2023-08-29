@@ -67,12 +67,14 @@ class BasketInitializer:
             The pantry which the basket uuid is associated with.
         """
         if 'pantry' not in kwargs:
-            raise KeyError("pantry, required to set up basket from UUID,"
-                           "is not in kwargs.")
+            raise KeyError("Pantry, required to set up basket from UUID,"
+                           " is not in kwargs.")
+
         pantry = kwargs['pantry']
         try:
-            # TODO: Verify this return. Is Basket or pd.DataFrame?
-            path = pantry.index.get_basket(basket_address).address
+            # TODO: This is weird. This call returns what this constructor should make
+            # TODO: Maybe we can have an option to return just the manifest row
+            path = pantry.index.get_basket(basket_address).basket_address
             self.set_up_basket_from_path(basket_address=path)
         except BaseException as error:
             self.basket_address = basket_address

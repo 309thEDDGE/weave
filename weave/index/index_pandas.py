@@ -7,20 +7,21 @@ from time import time_ns
 
 import pandas as pd
 
+from ..basket import Basket
 from ..config import get_file_system
 from ..upload import UploadBasket
 from .create_index import create_index_from_fs
+from .index_abc import IndexABC
 
-
-class _Index():
+class PandasIndex(IndexABC):
     '''Handles Pandas based functionality of the Index'''
 
-    def __init__(self, pantry_name="basket-data", sync=True, **kwargs):
+    def __init__(self, pantry_path="basket-data", sync=True, **kwargs):
         '''Initializes the Index class.
 
         Parameters
         ----------
-        pantry_name: [string]
+        pantry_path: [string]
             Name of the bucket which the desired index is associated with.
         sync: [bool]
             Whether or not to check the index on disk to ensure this Index
@@ -30,22 +31,31 @@ class _Index():
             then the Index object may be stale, but operations will perform
             at a higher speed.
 
-        kwargs:
-        file_system: fsspec object
+        **file_system: fsspec object
             The fsspec object which hosts the bucket we desire to index.
             If file_system is None, then the default fs is retrieved from the
             config.
         '''
-        self.file_system = kwargs.get("file_system", get_file_system())
-
-        self.pantry_name = str(pantry_name)
+        super().__init__(pantry_path=pantry_path, **kwargs)
         self.index_basket_dir_name = 'index' # AKA basket type
         self.index_basket_dir_path = os.path.join(
-            self.pantry_name, self.index_basket_dir_name
+            self.pantry_path, self.index_basket_dir_name
         )
         self.sync = bool(sync)
         self.index_json_time = 0 # 0 is essentially same as None in this case
         self.index_df = None
+
+    def __len__(self):
+        # TODO: Docstring.
+        if self.sync and not self.is_index_current():
+            self.sync_index()
+        elif self.index_df is None:
+            self.sync_index()
+        return len(self.index_df)
+
+    def __str__(self):
+        # TODO: Docstring
+        return "PandasIndex"
 
     def sync_index(self):
         '''Gets index from latest index basket'''
@@ -125,7 +135,7 @@ class _Index():
 
     def generate_index(self):
         '''Generates index and stores it in a basket'''
-        index = create_index_from_fs(self.pantry_name, self.file_system)
+        index = create_index_from_fs(self.pantry_path, self.file_system)
         self._upload_index(index=index)
 
     def _upload_index(self, index):
@@ -138,61 +148,44 @@ class _Index():
                 upload_items=[{'path':temp_json_path, 'stub':False}],
                 basket_type=self.index_basket_dir_name,
                 file_system=self.file_system,
-                pantry_name=self.pantry_name
+                pantry_name=self.pantry_path
             )
         self.index_df = index
         self.index_json_time = n_secs
 
-    def delete_basket(self, basket_uuid, **kwargs):
-        '''Deletes basket of given UUID.
 
-        Note that the given basket will not be deleted if the basket is listed
-        as the parent uuid for any of the baskets in the index.
+    def delete_basket(self, basket_address, **kwargs):
+        """Deletes a basket of given UUID or path.
 
-        Parameters:
-        -----------
-        basket_uuid: int
-            The uuid of the basket to delete.
+        Parameters
+        ----------
+        basket_address: str
+            Argument can take one of two forms: either a path to the basket
+            directory, or the UUID of the basket.
         kwargs:
         upload_index: bool
             Flag to upload the new index to the file system
-        '''
+        """
         upload_index = kwargs.get("upload_index", True)
-        basket_uuid = str(basket_uuid)
+        basket_address = str(basket_address)
         if self.index_df is None:
             self.sync_index()
-        if basket_uuid not in self.index_df["uuid"].to_list():
-            raise ValueError(
-                f"The provided value for basket_uuid {basket_uuid} " +
-                "does not exist."
-            )
-        # Flatten nested lists into a single list
-        parent_uuids = [
-            j
-            for i in self.index_df["parent_uuids"].to_list()
-            for j in i
-        ]
-        if basket_uuid in parent_uuids:
-            raise ValueError(
-                f"The provided value for basket_uuid {basket_uuid} " +
-                "is listed as a parent UUID for another basket. Please " +
-                "delete that basket before deleting it's parent basket."
-            )
 
-        remove_item = self.index_df[self.index_df["uuid"] == basket_uuid]
-        self.file_system.rm(remove_item['address'].values[0], recursive=True)
+        remove_item = self.index_df[(self.index_df["uuid"] == basket_address)
+                               | (self.index_df["address"] == basket_address)
+                      ]
         self.index_df.drop(remove_item.index, inplace=True)
         self.index_df.reset_index(drop=True, inplace=True)
         if upload_index:
             self._upload_index(self.index_df)
 
 
-    def get_parents(self, basket, **kwargs):
+    def get_parents(self, basket_address, **kwargs):
         """Recursively gathers all parents of basket and returns index
 
         Parameters
         ----------
-        basket: string
+        basket_address: string
             string that holds the path of the basket
             can also be the basket uuid
 
@@ -229,18 +222,18 @@ class _Index():
 
         # validate the bucket exists. if it does,
         # make sure we use the address or the uid
-        if (not self.file_system.exists(basket) and
-            basket not in self.index_df.uuid.values):
+        if (not self.file_system.exists(basket_address) and
+            basket_address not in self.index_df.uuid.values):
             raise FileNotFoundError(
-                f"basket path or uuid does not exist '{basket}'"
+                f"basket path or uuid does not exist '{basket_address}'"
             )
 
-        if self.file_system.exists(basket):
+        if self.file_system.exists(basket_address):
             current_uid = self.index_df["uuid"].loc[
-                self.index_df["address"].str.endswith(basket)
+                self.index_df["address"].str.endswith(basket_address)
             ].values[0]
-        elif basket in self.index_df.uuid.values:
-            current_uid = basket
+        elif basket_address in self.index_df.uuid.values:
+            current_uid = basket_address
 
         # get all the parent uuids for the current uid
         puids = self.index_df["parent_uuids"].loc[
@@ -269,18 +262,18 @@ class _Index():
 
         # for every parent, go get their parents
         for basket_addr in parents_index["address"]:
-            data = self.get_parents(basket=basket_addr,
+            data = self.get_parents(basket_address=basket_addr,
                                     gen_level=gen_level+1,
                                     data=data,
                                     descendants=descendants.copy())
         return data
 
-    def get_children(self, basket, **kwargs):
+    def get_children(self, basket_address, **kwargs):
         """Recursively gathers all the children of basket and returns an index
 
         Parameters
         ----------
-        basket: string
+        basket_address: string
             string that holds the path of the basket
             can also be the basket uuid
 
@@ -317,17 +310,17 @@ class _Index():
 
         # validate the bucket exists. if it does,
         # make sure we use the address or the uid
-        if (not self.file_system.exists(basket) and
-            basket not in self.index_df.uuid.values):
+        if (not self.file_system.exists(basket_address) and
+            basket_address not in self.index_df.uuid.values):
             raise FileNotFoundError(
                 f"basket path or uuid does not exist '{basket}'"
             )
 
-        if self.file_system.exists(basket):
+        if self.file_system.exists(basket_address):
             current_uid = self.index_df["uuid"].loc[
-                self.index_df["address"].str.endswith(basket)
+                self.index_df["address"].str.endswith(basket_address)
             ].values[0]
-        elif basket in self.index_df.uuid.values:
+        elif basket_address in self.index_df.uuid.values:
             current_uid = basket
 
         # this looks at all the baskets and returns a list of baskets who have
@@ -357,13 +350,13 @@ class _Index():
 
         # go through all the children and get their children too
         for basket_addr in child_index["address"]:
-            data =  self.get_children(basket=basket_addr,
+            data =  self.get_children(basket_address=basket_addr,
                                       gen_level=gen_level-1,
                                       data=data,
                                       ancestors=ancestors.copy())
         return data
 
-    def upload_basket(self, upload_index):
+    def upload_basket(self, upload_index, **kwargs):
         """Upload a basket to the same pantry referenced by the Index
 
         Parameters
@@ -375,3 +368,111 @@ class _Index():
         self._upload_index(
             pd.concat([self.index_df, upload_index], ignore_index=True)
         )
+
+    def get_basket(self, basket_address, **kwargs):
+        """Returns a Basket of given UUID or path.
+
+        Parameters
+        ----------
+        basket_address: str
+            Argument can take one of two forms: either a path to the basket
+            directory, or the UUID of the basket.
+
+        Returns
+        ----------
+        Basket
+            Returns the Basket object.
+        """
+        basket = self.index_df[(self.index_df["uuid"] == basket_address)
+                               | (self.index_df["address"] == basket_address)
+                      ]
+        return Basket(basket.iloc[0].address, file_system=self.file_system)
+
+    def get_baskets_of_type(self, basket_type, max_rows=1000, **kwargs):
+        """Returns a pandas dataframe containing baskets of basket_type.
+
+        Parameters
+        ----------
+        basket_type: str
+            The basket type to filter for.
+        max_rows: int
+            Max rows returned in the pandas dataframe.
+
+        Optional kwargs controlled by concrete implementations.
+
+        Returns
+        ----------
+        pandas.DataFrame containing the manifest data of baskets of the type.
+        """
+        return self.index_df[
+            self.index_df["basket_type"] == basket_type
+        ].head(max_rows)
+
+    def get_baskets_of_label(self, basket_label, max_rows=1000, **kwargs):
+        """Returns a pandas dataframe containing baskets with label.
+
+        Parameters
+        ----------
+        basket_label: str
+            The label to filter for.
+        max_rows: int
+            Max rows returned in the pandas dataframe.
+
+        Returns
+        ----------
+        pandas.DataFrame containing the manifest data of baskets with the label
+        """
+        return self.index_df[
+            self.index_df["label"] == basket_label
+        ].head(max_rows)
+
+    def get_baskets_by_upload_time(self, start_time=None, end_time=None,
+                                   max_rows=1000, **kwargs):
+        """Returns a pandas dataframe of baskets uploaded between two times.
+
+        Parameters
+        ----------
+        start_time: datetime.datetime
+            The start datetime object to filter between. If None, will filter
+            from the beginning of time.
+        end_time: datetime.datetime
+            The end datetime object to filter between. If None, will filter
+            to the current datetime.
+        max_rows: int
+            Max rows returned in the pandas dataframe.
+
+        Optional kwargs controlled by concrete implementations.
+
+        Returns
+        ----------
+        pandas.DataFrame containing the manifest data of baskets uploaded
+        between the start and end times.
+        """
+        if start_time is None and end_time is None:
+            raise ValueError("Either start time or end time must not be None")
+        elif start_time is None:
+            return self.index_df[
+                self.index_df["upload_time"] <= end_time
+            ].head(max_rows)
+        elif end_time is None:
+            return self.index_df[
+                self.index_df["upload_time"] >= start_time
+            ].head(max_rows)
+
+        return self.index_df[ (self.index_df["upload_time"] >= start_time)
+                             & (self.index_df["upload_time"] <= end_time)
+            ].head(max_rows)
+
+    def query(self, expr, **kwargs):
+        """Returns a pandas dataframe of the results of the query.
+
+        Parameters
+        ----------
+        expr: str
+           Pass SQL Query to the pandas dataframe
+
+        Returns
+        ----------
+        pandas.DataFrame of the resulting query.
+        """
+        return self.index_df.query(expr)

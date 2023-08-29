@@ -3,18 +3,24 @@ Wherein is contained the Abstract Base Class for Index.
 """
 import abc
 
+from ..config import get_file_system
+
 
 class IndexABC(abc.ABC):
     """Abstract Base Class for the Index"""
-    @property
-    @abc.abstractmethod
-    def file_system(self):
-        """The file system of the pantry referenced by this Index."""
+    def __init__(self, **kwargs):
+        self.file_system = kwargs.get("file_system", get_file_system())
+        self.pantry_path = str(kwargs['pantry_path'])
 
-    @property
-    @abc.abstractmethod
-    def pantry_path(self):
-        """The pantry path referenced by this Index."""
+#     @property
+#     @abc.abstractmethod
+#     def file_system(self):
+#         """The file system of the pantry referenced by this Index."""
+
+#     @property
+#     @abc.abstractmethod
+#     def pantry_path(self):
+#         """The pantry path referenced by this Index."""
 
     @abc.abstractmethod
     def generate_index(self, **kwargs):
