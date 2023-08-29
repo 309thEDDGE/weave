@@ -39,37 +39,33 @@ class Pantry():
         self.pantry_name = str(pantry_name)
 
 
-    def delete_basket(self, basket_uuid, **kwargs):
-        '''Deletes basket of given UUID.
+    def delete_basket(self, basket_address, **kwargs):
+        '''Deletes basket of given UUID or path.
 
         Note that the given basket will not be deleted if the basket is listed
         as the parent uuid for any of the baskets in the index.
 
         Parameters:
         -----------
-        basket_uuid: int
-            The uuid of the basket to delete.
+        basket_address: str
+            Argument can take one of two forms: either a path to the basket
+            directory, or the UUID of the basket.
         **kwargs:
             Additional parameters to pass to the index
         '''
         basket_uuid = str(basket_uuid)
 
-        # TODO: Should these error be raised in the abstract class?
-        # if basket_uuid not in self.index_df["uuid"].to_list():
-        #     raise ValueError(
-        #         f"The provided value for basket_uuid {basket_uuid} " +
-        #         "does not exist."
-        #     )
-        # if len(self.index.get_children(basket_uuid)) > 0:
-        #     raise ValueError(
-        #         f"The provided value for basket_uuid {basket_uuid} " +
-        #         "is listed as a parent UUID for another basket. Please " +
-        #         "delete that basket before deleting it's parent basket."
-        #     )
-
         remove_item = self.index.get_basket(basket_uuid)
+
+        if len(self.index.get_children(remove_item.uuid)) > 0:
+            raise ValueError(
+                f"The provided value for basket_uuid {basket_uuid} " +
+                "is listed as a parent UUID for another basket. Please " +
+                "delete that basket before deleting it's parent basket."
+            )
+
         self.file_system.rm(remove_item.address, recursive=True)
-        self.index.delete_basket(basket_uuid, **kwargs)
+        self.index.delete_basket(remove_item.address, **kwargs)
 
     def upload_basket(self, upload_items, basket_type, **kwargs):
         """Upload a basket to the same pantry referenced by the Index
