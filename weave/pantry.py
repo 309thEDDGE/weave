@@ -53,13 +53,13 @@ class Pantry():
         **kwargs:
             Additional parameters to pass to the index
         '''
-        basket_uuid = str(basket_uuid)
+        basket_address = str(basket_address)
 
-        remove_item = self.index.get_basket(basket_uuid)
+        remove_item = self.index.get_basket(basket_address)
 
         if len(self.index.get_children(remove_item.uuid)) > 0:
             raise ValueError(
-                f"The provided value for basket_uuid {basket_uuid} " +
+                f"The provided value for basket_uuid {basket_address} " +
                 "is listed as a parent UUID for another basket. Please " +
                 "delete that basket before deleting it's parent basket."
             )
@@ -130,4 +130,5 @@ class Pantry():
         # Create a Basket from the given address, and the index's file_system
         # and bucket name. Basket will catch invalid inputs and raise
         # appropriate errors.
-        return Basket(basket_address, pantry=self)
+        row = self.index.get_row(basket_address)
+        return Basket(row.iloc[0].address, pantry=self)
