@@ -56,6 +56,17 @@ class PandasIndex(IndexABC):
         """Returns the str instantiation type of this Index (ie 'SQLIndex')."""
         return "PandasIndex"
 
+    @property
+    def file_system(self):
+        """The file system of the pantry referenced by this Index."""
+        return self._file_system
+
+    @property
+    def pantry_path(self):
+        """The pantry path referenced by this Index."""
+        return self._pantry_path
+
+
     def sync_index(self):
         '''Gets index from latest index basket'''
         index_paths = self.file_system.glob(f"{self.index_basket_dir_path}"

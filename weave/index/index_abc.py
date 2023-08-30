@@ -7,18 +7,18 @@ import abc
 class IndexABC(abc.ABC):
     """Abstract Base Class for the Index"""
     def __init__(self, file_system, pantry_path):
-        self.file_system = file_system
-        self.pantry_path = pantry_path
+        self._file_system = file_system
+        self._pantry_path = pantry_path
 
-#     @property
-#     @abc.abstractmethod
-#     def file_system(self):
-#         """The file system of the pantry referenced by this Index."""
+    @property
+    @abc.abstractmethod
+    def file_system(self):
+        """The file system of the pantry referenced by this Index."""
 
-#     @property
-#     @abc.abstractmethod
-#     def pantry_path(self):
-#         """The pantry path referenced by this Index."""
+    @property
+    @abc.abstractmethod
+    def pantry_path(self):
+        """The pantry path referenced by this Index."""
 
     @abc.abstractmethod
     def generate_index(self, **kwargs):
