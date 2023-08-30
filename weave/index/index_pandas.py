@@ -30,8 +30,7 @@ class _Index():
             then the Index object may be stale, but operations will perform
             at a higher speed.
 
-        kwargs:
-        file_system: fsspec object
+        **file_system: fsspec object
             The fsspec object which hosts the bucket being indexed.
             If file_system is None, then the default fs is retrieved from the
             config.
@@ -153,8 +152,8 @@ class _Index():
         -----------
         basket_uuid: int
             The uuid of the basket to delete.
-        kwargs:
-        upload_index: bool
+
+        **upload_index: bool
             Flag to upload the new index to the file system
         '''
         upload_index = kwargs.get("upload_index", True)
@@ -196,16 +195,15 @@ class _Index():
             string that holds the path of the basket
             can also be the basket uuid
 
-        kwargs:
-        gen_level: int
+        **gen_level: int
             This indicates what generation is being looked at,
             1 for parent, 2 for grandparent and so forth
-        data: pd.dataframe (optional)
+        **data: pd.dataframe (optional)
             This is the index or dataframe collected so far
             when it is initially called, it is empty, for every
             iteration/recursive call all the immediate parents for
             the given basket are added
-        descendants: [str]
+        **descendants: [str]
             This is a list that holds the uids of all the descendents the
             function has visited. this is used to prevent/detect any
             parent-child loops found in the basket structure.
@@ -284,16 +282,15 @@ class _Index():
             String that holds the path of the basket
             can also be the basket uuid
 
-        kwargs:
-        gen_level: int
+        **gen_level: int
             This indicates what generation is being looked at,
             -1 for child, -2 for grandchild and so forth
-        data: dataframe (optional)
+        **data: dataframe (optional)
             This is the index or dataframe that has been collected so far
             when it is initially called, it is empty, for every
             iteration/recursive call all of the immediate children for
             the given basket are added
-        ancestors: [str]
+        **ancestors: [str]
             This is a list of basket uuids of all the ancestors that have been
             visited. This is being used to detect if there is a parent-child
             loop inside the basket structure
@@ -381,13 +378,14 @@ class _Index():
             dealing with large files.
         basket_type: str
             Type of basket being uploaded.
-        parent_ids: [str] (optional)
+
+        **parent_ids: [str] (optional)
             List of unique ids associated with the parent baskets
             used to derive the new basket being uploaded.
-        metadata: dict (optional)
+        **metadata: dict (optional)
             Python dictionary that will be written to metadata.json
             and stored in the basket in upload file_system.
-        label: str (optional)
+        **label: str (optional)
             Optional user friendly label associated with the basket.
         """
         parent_ids = kwargs.get("parent_ids", [])

@@ -145,22 +145,21 @@ class UploadBasket:
             without uploading the data itself. This is especially useful when
             dealing with large files.
 
-        kwargs:
-        upload_directory: str
+        **upload_directory: str
             Path where basket is to be uploaded (on the upload FS).
-        unique_id: str
+        **unique_id: str
             Unique ID to identify the basket once uploaded.
-        basket_type: str
+        **basket_type: str
             Type of basket being uploaded.
-        parent_ids: [str] (optional)
+        **parent_ids: [str] (optional)
             List of unique ids associated with the parent baskets
             used to derive the new basket being uploaded.
-        metadata: dict (optional)
+        **metadata: dict (optional)
             Python dictionary that will be written to metadata.json
             and stored in the basket in the upload FS.
-        label: str (optional)
+        **label: str (optional)
             Optional user friendly label associated with the basket.
-        file_system: fsspec object
+        **file_system: fsspec object
             The file system to upload to (ie s3fs, local fs, etc).
             If None it will use the default fs from the weave.config.
 

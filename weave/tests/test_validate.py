@@ -47,24 +47,22 @@ class ValidateForTest(BucketForTest):
         tmp_dir_name: str
             The directory name of where the nested basket will be
 
-        Key-word Arguments:
-        -------------------
-        is_man: bool
+        **is_man: bool
             A bool that signals if ther should be a manifest file
             defaults to no manifest
-        is_sup: bool
+        **is_sup: bool
             A bool that signals if ther should be a supplement file
             defaults to no supplement
-        is_meta: bool
+        **is_meta: bool
             A bool that signals if ther should be a metadata file
             defaults to no metadata
-        man_data: str
+        **man_data: str
             The json data to be put into the manifest file
             defaults to a valid manifest schema
-        sup_data: str
+        **sup_data: str
             The json data to be put into the supplement file
             defaults to a valid supplement schema
-        meta_data: str
+        **meta_data: str
             The json data to be put into the metadata file
             defaults to a valid json object
 

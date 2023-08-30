@@ -28,8 +28,7 @@ def load_mongo(index_table, collection='metadata', **kwargs):
             Metadata wil be added to the Mongo collection specified.
             default: 'metadata'
 
-        kwargs:
-        file_system: fsspec object
+        **file_system: fsspec object
             The file system to retrieve the baskets' metadata from.
         """
 

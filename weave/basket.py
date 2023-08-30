@@ -18,13 +18,12 @@ class BasketInitializer:
         Parameters
         ----------
         basket_address: str
-            Argument can take one of two forms: either a path to the Basket
+            Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
         pantry_name: str
             Name of the pantry which the desired index is associated with.
 
-        kwargs:
-        file_system: fsspec object
+        **file_system: fsspec object
             The fsspec filesystem to be used for retrieving and uploading.
         """
         self.file_system = kwargs.get("file_system", get_file_system())
@@ -45,9 +44,9 @@ class BasketInitializer:
         Paramters
         ---------
         basket_address: str
-            Argument can take one of two forms: either a path to the Basket
+            Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket. In this case it is assumed to
-            be a path to the Basket directory.
+            be a path to the basket directory.
         """
         self.basket_address = os.fspath(basket_address)
         self.validate_basket_path()
@@ -59,7 +58,7 @@ class BasketInitializer:
         set up the basket from a filepath will be made.
 
         basket_address: str
-            Argument can take one of two forms: either a path to the Basket
+            Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket. In this case it is assumed to
             be the UUID of the basket.
         pantry_name: str
@@ -107,13 +106,12 @@ class Basket(BasketInitializer):
         Parameters
         ----------
         basket_address: str
-            Argument can take one of two forms: either a path to the Basket
+            Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
         pantry_name: str
             Name of the pantry which the desired index is associated with.
 
-        kwargs:
-        file_system: fsspec object
+        **file_system: fsspec object
             The fsspec filesystem to be used for retrieving and uploading.
         """
         super().__init__(basket_address, pantry_name, **kwargs)
@@ -172,7 +170,7 @@ class Basket(BasketInitializer):
 
         Parameters
         ----------
-        relative_path: str
+        relative_path: str (default = None)
             relative path in the basket to pass to filesystem.ls.
 
         Returns
