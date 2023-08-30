@@ -137,7 +137,7 @@ def example_function(var_1, var_2, var_3=5, **kwargs):
 ```
 
 ### Comments
-<p>In our coding practice, comments serve the purpose of clarifying non-obvious elements or providing explanations where needed. We aim for succinct descriptions, avoiding excessive jargon, and keeping the format consistent: comments start at the same indentation as the corresponding code, followed by a space, and the sentence begins with a capital letter. This approach ensures clarity and readability while enhancing our code's comprehensibility.</p>
+<p>In coding practice, comments serve the purpose of clarifying non-obvious elements or providing explanations where needed. We aim for succinct descriptions, avoiding excessive jargon, and keeping the format consistent: comments start at the same indentation as the corresponding code, followed by a space, and the sentence begins with a capital letter. This approach ensures clarity and readability while enhancing our code's comprehensibility.</p>
 
 <p>See PEP-8 <a href="https://peps.python.org/pep-0008/#comments">Comments</a> guide.
 
