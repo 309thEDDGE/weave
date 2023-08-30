@@ -137,7 +137,7 @@ def example_function(var_1, var_2, var_3=5, **kwargs):
 ```
 
 ### Comments
-<p>In coding practice, comments serve the purpose of clarifying non-obvious elements or providing explanations where needed. We aim for succinct descriptions, avoiding excessive jargon, and keeping the format consistent: comments start at the same indentation as the corresponding code, followed by a space, and the sentence begins with a capital letter. This approach ensures clarity and readability while enhancing our code's comprehensibility.</p>
+<p>In coding practice, comments serve the purpose of clarifying non-obvious elements or providing explanations where needed. Aim for succinct descriptions, avoiding excessive jargon, and keeping the format consistent: comments start at the same indentation as the corresponding code, followed by a space, and the sentence begins with a capital letter. This approach ensures clarity and readability while enhancing our code's comprehensibility.</p>
 
 <p>See PEP-8 <a href="https://peps.python.org/pep-0008/#comments">Comments</a> guide.
 
@@ -156,7 +156,7 @@ for i in range(10):
 
 <p>All the Errors and Warnings must be consistent throughout weave. If it's an invalid data type, that error message should be consistent.</p>
 
-List of some frequent errors that I think could be helpful:
+List of some helpful, frequent errors:
 <br>
 - "Invalid pantry. Invalid {something} found at {path}"
 - "Invalid pantry. Invalid baskets found in the following locations: {list of paths}"
@@ -168,7 +168,7 @@ List of some frequent errors that I think could be helpful:
 - "Invalid datatype for {var}, must be {datatype}"
 - "Invalid {object} missing {something}"
 <br>
-Custom Errors or Warnings are still applicable for specific errors that need to be shown.
+Custom errors or warnings are still applicable for specific errors that need to be shown.
 
 ### Version Number
 <p>Version numbers in a codebase consistent of three segments: major, minor, and patch. The major number (X.0.0) signifies significant changes potentially requiring adaptation, while the minor number (0.X.0) indicates new features or enhancements that maintain compatibility. The patch number (0.0.X) reflects bug fixes and security updates to ensure stability. This versioning scheme facilitates communication about changes between releases, aiding decision-making and promoting efficient development. Importantly, when a number is incremented, the lower-order numbers reset to zero.</p>
