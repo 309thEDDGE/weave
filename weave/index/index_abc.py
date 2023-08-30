@@ -6,6 +6,24 @@ import abc
 
 class IndexABC(abc.ABC):
     """Abstract Base Class for the Index"""
+    @abc.abstractmethod
+    def __init__(self, file_system, pantry_path, **kwargs):
+        '''Initializes the Index class.
+
+        Parameters
+        ----------
+        file_system: fsspec object
+            The fsspec object which hosts the bucket we desire to index.
+            If file_system is None, then the default fs is retrieved from the
+            config.
+        pantry_path: [string]
+            Name of the bucket which the desired index is associated with.
+
+        Optional kwargs controlled by concrete implementations.
+        '''
+        self._file_system = file_system
+        self._pantry_path = pantry_path
+
     @property
     @abc.abstractmethod
     def file_system(self):
