@@ -18,10 +18,10 @@ from weave.upload import (
 )
 
 # This module is long and has many tests. Pylint is complaining that it is too
-# long. I don't necessarily think that is bad in this case, as the alternative
-# would be to write the tests continuuing in a different script, which I think
-# is unnecesarily complex. Therefore, I am disabling this warning for this
-# script.
+# long. This isn't necessarily bad in this case, as the alternative
+# would be to write the tests continuuing in a different script, which would
+# be unnecesarily complex.
+# Disabling this warning for this script.
 # pylint: disable=too-many-lines
 
 
@@ -45,7 +45,7 @@ class UploadForTest(BucketForTest):
             }
         ]
         basket_type = "test-basket"
-        metadata = {"oh": "i don't know", "something": "stupid"}
+        metadata = {"oh": "I don't know", "something": "stupid"}
         label = "my label"
         parent_ids = [uuid.uuid1().hex]
 
@@ -80,7 +80,7 @@ def set_up_tu(request, tmpdir):
     test_upload.cleanup_bucket()
 
 
-# We need to ignore pylint's warning "redefined-outer-name" as this is simply
+# Ignoring pylint's warning "redefined-outer-name" as this is simply
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
 

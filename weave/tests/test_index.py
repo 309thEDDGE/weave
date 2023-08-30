@@ -29,15 +29,15 @@ from weave.tests.pytest_resources import BucketForTest
 ###############################################################################
 
 # This module is long and has many tests. Pylint is complaining that it is too
-# long. I don't necessarily think that is bad in this case, as the alternative
-# would be to write the tests continuuing in a different script, which I think
-# is unnecesarily complex. Therefore, I am disabling this warning for this
-# script.
+# long. This isn't necessarily bad in this case, as the alternative
+# would be to write the tests continuuing in a different script, which would
+# be unnecesarily complex.
+# Disabling this warning for this script.
 # pylint: disable=too-many-lines
 
-# Pylint doesn't like that we are redefining the test fixture here from
-# test_basket, but I think this is the right way to do this in case at some
-# point in the future we need to differentiate the two.
+# Pylint doesn't like redefining the test fixture here from
+# test_basket, but this is the right way to do it if at some
+# point in the future the two need to be differentiated.
 # pylint: disable=duplicate-code
 
 s3fs = s3fs.S3FileSystem(
@@ -56,7 +56,7 @@ def test_pantry(request, tmpdir):
     test_bucket.cleanup_bucket()
 
 
-# We need to ignore pylint's warning "redefined-outer-name" as this is simply
+# Ignore pylint's warning "redefined-outer-name" as this is simply
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
 
@@ -187,8 +187,8 @@ def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
     }
     expected_index = pd.DataFrame(truth_index_dict)
 
-    # We catch the warnings here, as it will warn for bad baskets, but we don't
-    # want the warning to drop through to the pytest log in this test.
+    # Catch the warnings here for bad baskets, but prevent
+    # the warnings from dropping through to the pytest log in this test.
     # (Checking the warnings are correct is tested in the next unit test.)
     with warnings.catch_warnings(record=True) as warn:
         actual_index = create_index_from_fs(
@@ -224,8 +224,8 @@ def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
             "baskets found in the following locations "
             "do not follow specified weave schema:"
         )
-        # {bad_addresses} would be included in the message, but we can't do a
-        # direct string comparison due to FS dependent prefixes.
+        # {bad_addresses} would be included in the message, but
+        # due to FS dependent prefixes direct string comparison is not possible
 
         warn_msg = str(warn[0].message)
 
@@ -233,7 +233,7 @@ def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
         warn_header_str = warn_msg[: warn_msg.find("\n")]
         assert warn_header_str == message
 
-        # Check the addresses returned in the warning are the ones we expect.
+        # Check the addresses returned in the warning are the correct ones.
         warning_addrs_str = warn_msg[warn_msg.find("\n") + 1 :]
         warning_addrs_list = (
             warning_addrs_str.strip("[]").replace("'", "").split(", ")
@@ -303,7 +303,7 @@ def test_get_index_time_from_path(test_pantry):
     """Tests Index._get_index_time_from_path to ensure it returns the correct
     string."""
     path = "C:/asdf/gsdjls/1234567890-index.json"
-    # Obviously we need to test a protected access var here.
+    # Testing a protected access var here.
     # pylint: disable-next=protected-access
     time = Index(
         file_system=test_pantry.file_system
@@ -864,7 +864,7 @@ def test_get_parents_15_deep(test_pantry):
 
     results = ind.get_parents(child_path)
 
-    # Get the anwser to compare to the results we got
+    # Get the anwser to compare to the test results
     par_ids = [
         "0",
         "1",
@@ -930,7 +930,7 @@ def test_get_children_15_deep(test_pantry):
 
     results = ind.get_children(parent_path)
 
-    # Get the anwser to compare to the results we got
+    # Get the anwser to compare to the test results
     child_ids = [
         "x",
         "0",
@@ -1302,8 +1302,8 @@ def test_upload_basket_gracefully_fails(
     """
     In this test an engineered failure to upload the basket occurs.
     Index.upload_basket() should not add anything to the index_df.
-    Additionally, the basket in question should be deleted from storage (I will
-    make the process fail only after a partial upload).
+    Additionally, the basket in question should be deleted from storage
+    (The process fail after only after a partial upload).
     """
     tmp_basket = test_pantry.set_up_basket("basket_one")
 

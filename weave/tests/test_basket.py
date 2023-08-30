@@ -21,9 +21,9 @@ from weave.tests.pytest_resources import BucketForTest
 #  https://docs.pytest.org/en/7.3.x/how-to/fixtures.html#fixture-parametrize  #
 ###############################################################################
 
-# Pylint doesn't like that we are redefining the test fixture here from
-# test_basket, but I think this is the right way to do this in case at some
-# point in the future we need to differentiate the two.
+# Pylint doesn't like redefining the test fixture here from
+# test_basket, but this is the right way to do this if at some
+# point in the future the two need to be differentiated.
 # pylint: disable=duplicate-code
 
 s3fs = s3fs.S3FileSystem(
@@ -44,8 +44,8 @@ def test_pantry(request, tmpdir):
 
 def test_basket_basket_path_is_pathlike():
     """
-    Test that we get an error when trying to instantiate a basket with invalid
-    basket address type.
+    Test that an error is returned when trying to instantiate a basket with
+    invalid basket address type.
     """
     basket_path = 1
     with pytest.raises(
@@ -55,7 +55,7 @@ def test_basket_basket_path_is_pathlike():
         Basket(basket_path)
 
 
-# We need to ignore pylint's warning "redefined-outer-name" as this is simply
+# Ignoring pylint's warning "redefined-outer-name" as this is simply
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
 
@@ -272,7 +272,7 @@ def test_basket_get_metadata(test_pantry):
         file_system=test_pantry.file_system
     )
 
-    # Check get_metadata returns the same values we used during the upload.
+    # Check get_metadata returns the same values used during the upload.
     metadata = basket.get_metadata()
     assert metadata_in == metadata
 
@@ -412,8 +412,8 @@ def test_basket_ls_is_pathlike(test_pantry):
 def test_basket_ls_after_find(test_pantry):
     """The s3fs.S3FileSystem.ls() func is broken after running {}.find()
 
-    This function is primarily to test s3fs file systems, but we test on local
-    file systems as well, and should yeild the same results regardless of FS.
+    This function is primarily to test s3fs file systems, but local
+    file systems should yeild the same results.
 
     s3fs.S3FileSystem.find() function is called during index creation. The
     solution to this problem is to ensure Basket.ls() uses the argument
@@ -451,7 +451,7 @@ def test_basket_ls_after_find(test_pantry):
 
     # Get the actual base dir paths (essentially stripping any FS specific
     # prefixes or conventions, ie in local file systems, the path to where
-    # the script was called might be prepended, we clean stuff like that here)
+    # the script was called might be prepended, clean up stuff like that here)
     actual_bdp = [
         x.endswith(z)
         for x, z in zip(ls_test, expected_base_dir_paths, strict=True)
@@ -464,7 +464,7 @@ def test_basket_ls_after_find(test_pantry):
 
 def test_basket_init_from_uuid(test_pantry):
     """
-    Test that we can successfully initialize a basket from a UUID.
+    Test that a basket can successfully initialized from a UUID.
     """
     # Put basket in the temporary bucket
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
@@ -517,7 +517,7 @@ def test_basket_pantry_name_does_not_exist(test_pantry):
 
 def test_basket_from_uuid_with_many_baskets(test_pantry):
     """
-    Test that we can initialize many baskets using UUIDs.
+    Test that many baskets can be initialized using UUIDs.
     """
     # Set up ten baskets
     for uuid in range(10):

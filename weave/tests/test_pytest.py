@@ -21,10 +21,10 @@ def set_up_tb_no_cleanup(request, tmpdir):
     """Sets up test basket fixture"""
     file_system = request.param
     temp_basket = BucketForTest(tmpdir, file_system)
-    # Purposefully don't clean up bucket, we will clean up in the test.
+    # Purposefully don't clean up bucket, it will be cleaned up in the test.
     return temp_basket
 
-# We need to ignore pylint's warning "redefined-outer-name" as this is simply
+# Ignore pylint's warning "redefined-outer-name" as this is simply
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
 def test_weave_pytest_suffix(set_up_tb_no_cleanup):

@@ -154,8 +154,8 @@ class Basket(BasketInitializer):
         else:
             return None
 
-    # I am disabling pylint name warning for ls, as it is the standard name
-    # for functions of it's type in the computing world. I believe it makes
+    # Disabling pylint name warning for ls, as it is the standard name
+    # for functions of it's type in the computing world. It makes
     # sense to continue to name this function ls.
     # pylint: disable-next=invalid-name
     def ls(self, relative_path=None):

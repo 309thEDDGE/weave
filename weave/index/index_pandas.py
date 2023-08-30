@@ -32,7 +32,7 @@ class _Index():
 
         kwargs:
         file_system: fsspec object
-            The fsspec object which hosts the bucket we desire to index.
+            The fsspec object which hosts the bucket being indexed.
             If file_system is None, then the default fs is retrieved from the
             config.
         '''
@@ -198,13 +198,13 @@ class _Index():
 
         kwargs:
         gen_level: int
-            This indicates what generation we are on, 1 for parent,
-            2 for grandparent and so forth
+            This indicates what generation is being looked at,
+            1 for parent, 2 for grandparent and so forth
         data: pd.dataframe (optional)
-            This is the index or dataframe we have collected so far
-            when it is initially called, it is empty, every
-            iteration/recursive call we add all the immediate parents for
-            the given basket
+            This is the index or dataframe collected so far
+            when it is initially called, it is empty, for every
+            iteration/recursive call all the immediate parents for
+            the given basket are added
         descendants: [str]
             This is a list that holds the uids of all the descendents the
             function has visited. this is used to prevent/detect any
@@ -213,7 +213,7 @@ class _Index():
         Returns
         ----------
         index or dataframe of all the parents of the immediate
-        basket we are given, along with all the previous parents
+        basket given, along with all the previous parents
         of the previous calls.
         """
         # Collect info from kwargs
@@ -228,7 +228,7 @@ class _Index():
             self.sync_index()
 
         # Validate the bucket exists. if it does,
-        # make sure we use the address or the uuid
+        # make sure either the address or the uuid is used
         if (not self.file_system.exists(basket) and
             basket not in self.index_df.uuid.values):
             raise FileNotFoundError(
@@ -286,13 +286,13 @@ class _Index():
 
         kwargs:
         gen_level: int
-            This indicates what generation we are on, -1 for child.
-            -2 for grandchild and so forth
+            This indicates what generation is being looked at,
+            -1 for child, -2 for grandchild and so forth
         data: dataframe (optional)
-            This is the index or dataframe we have collected so far
-            when it is initially called, it is empty, every
-            iteration/recursive call we add all the immediate children for
-            the given basket
+            This is the index or dataframe that has been collected so far
+            when it is initially called, it is empty, for every
+            iteration/recursive call all of the immediate children for
+            the given basket are added
         ancestors: [str]
             This is a list of basket uuids of all the ancestors that have been
             visited. This is being used to detect if there is a parent-child
@@ -301,7 +301,7 @@ class _Index():
         Returns
         ----------
         index or dataframe of all the children of the immediate
-        basket we are given, along with all the previous children
+        basket, along with all the previous children
         of the previous calls.
         """
         # Collect info from kwargs
@@ -316,7 +316,7 @@ class _Index():
             self.sync_index()
 
         # Validate the bucket exists. if it does,
-        # make sure we use the address or the uid
+        # make sure either the address or the uuid is used
         if (not self.file_system.exists(basket) and
             basket not in self.index_df.uuid.values):
             raise FileNotFoundError(
@@ -341,14 +341,13 @@ class _Index():
         if len(child_uuids) == 0:
             return data
 
-        # We are storing all the ancestors in a list, if we find the same
-        # ancestor twice, we are in a loop, throw error
+        # All the ancestors are stored in a list, if the same
+        # ancestor is on the list twice, throw error
         if basket_uuid in ancestors:
             raise ValueError(f"Parent-Child loop found at uuid: {basket_uuid}")
         ancestors.append(basket_uuid)
 
-        # Pandas is wanting me to make a copy of itself,
-        # I'm not exactly sure why
+        # Pandas requires a copy to be made
         child_index = child_index.copy()
         child_index.loc[:, "generation_level"] = gen_level
 
