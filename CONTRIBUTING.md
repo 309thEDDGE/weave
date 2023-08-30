@@ -22,9 +22,9 @@
 ## Coding Standards
 <p>There are four tests run in the Weave CI/CD workflow: pytest, ruff, pylint, and version_check.</p>
 
-<p>Pytest ensures that all of the pytests created in the repository pass. Ruff will statically analyze your code. Pylint will check if your code follows the <a href="https://pep8.org">PEP-8 style guide</a>, which is the style guide that we follow for this repository. Version_check will check that the Weave version has been updated in <a href="https://github.com/309thEDDGE/weave/blob/OPAL-1135/weave/__init__.py">weave/__init__.py</a>.</p>
+<p>Pytest ensures that all of the pytests created in the repository pass. Ruff will statically analyze your code. Pylint will check if your code follows the <a href="https://pep8.org">PEP-8 style guide</a>, which is the style guide that we follow for this repository. Version_check will check that the Weave version has been updated in <a href="https://github.com/309thEDDGE/weave/blob/main/weave/__init__.py">weave/__init__.py</a>.</p>
 
-<p>When a pull request is created, the code must pass the four checks in the Weave CI/CD workflow expalined in the <a href="https://github.com/309thEDDGE/weave/blob/OPAL-1135/CONTRIBUTING.md#githubworkflows">.github/workflows</a> folder. This helps ensures that the code follows our repository style guidelines.</p>
+<p>When a pull request is created, the code must pass the four checks in the Weave CI/CD workflow expalined in the <a href="https://github.com/309thEDDGE/weave/blob/main/CONTRIBUTING.md#githubworkflows">.github/workflows</a> folder. This helps ensures that the code follows our repository style guidelines.</p>
 
 <p>Note: Pylint MUST pass with a score of 10/10.</p>
 
@@ -74,16 +74,16 @@ pylint <local file path>
 ### Functions and Methods
 <p>Function and Method names should be written in all lowercase, with underscores between each word.</p>
 
-<p>For Function and Method Docstrings, go to <a href="https://github.com/309thEDDGE/weave/blob/OPAL-1135/CONTRIBUTING.md#docstrings">Docstrings</a>.</p>
+<p>For Function and Method Docstrings, go to <a href="https://github.com/309thEDDGE/weave/blob/main/CONTRIBUTING.md#docstrings">Docstrings</a>.</p>
 
 <p>If you have a function that exceeds the line limit, check <a href="https://peps.python.org/pep-0008/#indentation">PEP-8 Indentation</a> guide.</p>
 
 <p>See PEP-8 <a href="https://peps.python.org/pep-0008/#function-and-variable-names">Function and Variable</a> guide.</p>
 
 ### Variables
-<p>Variable names should we written in all lowercase with underscores between each word.</p>
+<p>Variable names should be written in all lowercase with underscores between each word.</p>
 
-<p>It is encouraged that Variable names be consistent between Classes, Functions/Methods, and different files. This is done because of increased readability and simplicity. If an object is named 'temp_basket_dir' in a couple functions, then strive to keep that name consistent throughout weave. You are encouraged to make consistent names, but not required.</p>
+<p>It is encouraged that variable names be consistent between classes, functions/methods, and different files. This is done because of increased readability and simplicity. If an object is named 'temp_basket_dir' in a couple functions, then strive to keep that name consistent throughout weave. You are encouraged to make consistent names, but not required.</p>
 
 <p>Variable names should be short, but descriptive.</p>
 
@@ -137,7 +137,7 @@ def example_function(var_1, var_2, var_3=5, **kwargs):
 ```
 
 ### Comments
-<p>In our coding practice, comments serve the purpose of clarifying non-obvious elements or providing explanations where needed. We aim for succinct descriptions, avoiding excessive jargon, and keeping the format consistent: comments start at the same indentation as the corresponding code, followed by a space, and the sentence begins with a capital letter. This approach ensures clarity and readability while enhancing our code's comprehensibility.</p>
+<p>In coding practice, comments serve the purpose of clarifying non-obvious elements or providing explanations where needed. Aim for succinct descriptions, avoiding excessive jargon, and keeping the format consistent: comments start at the same indentation as the corresponding code, followed by a space, and the sentence begins with a capital letter. This approach ensures clarity and readability while enhancing our code's comprehensibility.</p>
 
 <p>See PEP-8 <a href="https://peps.python.org/pep-0008/#comments">Comments</a> guide.
 
@@ -152,11 +152,11 @@ for i in range(10):
 ### Errors and Warnings
 <p>Errors and warnings play a pivotal role in enhancing user comprehension of code-related issues. They provide valuable insights into the nature of errors and suggest alternative ways to utilize the code effectively, thereby mitigating potential errors. Descriptive errors and warnings are indispensable tools for debugging code and fostering user awareness about the occurring issues.</p>
 
-<p>A recommended guideline is to furnish succinct descriptions of the encountered issues, accompanied by suggestions for rectification. For instance, consider the case of an "<i>Invalid basket. Invalid manifest found at {manifest_path}.</i>" Here, the term "<i>Invalid basket</i>" denotes the issue, followed by an explanation of the underlying problem, and a path that pinpoints the location of the problematic manifest. This structure ensures clarity by adhering to a coherent format. Furthermore, when addressing errors or warnings linked to the basket, starting with "<i>Invalid basket</i>" offers consistency and a clear indication of the problem area. If a specific file is the root cause of the error, explicitly specifying it aids in precise identification. Conversely, for missing files within the basket, directing users to the basket itself simplifies the resolution process. In scenarios involving the entire pantry, a formulation such a "<i>Invalid pantry. Error found at: {path or list of paths}</i>" serves as an effective descriptor. By adopting these practices, errors and warning messages become a valuable asset for users, fostering a seamless debugging experience and facilitating prompt resolutions.</p>
+<p>A recommended guideline is to furnish succinct descriptions of the encountered issues, accompanied by suggestions for rectification. For instance, consider the case of an "<i>Invalid basket. Invalid manifest found at {manifest_path}.</i>" Here, the term "<i>Invalid basket</i>" denotes the issue, followed by an explanation of the underlying problem, and a path that pinpoints the location of the problematic manifest. This structure ensures clarity by adhering to a coherent format. Furthermore, when addressing errors or warnings linked to the basket, starting with "<i>Invalid basket</i>" offers consistency and a clear indication of the problem area. If a specific file is the root cause of the error, explicitly specifying it aids in precise identification. Conversely, for missing files within the basket, directing users to the basket itself simplifies the resolution process. In scenarios involving the entire pantry, a formulation such as "<i>Invalid pantry. Error found at: {path or list of paths}</i>" serves as an effective descriptor. By adopting these practices, errors and warning messages become a valuable asset for users, fostering a seamless debugging experience and facilitating prompt resolutions.</p>
 
 <p>All the Errors and Warnings must be consistent throughout weave. If it's an invalid data type, that error message should be consistent.</p>
 
-List of some frequent errors that I think could be helpful:
+List of some helpful, frequent errors:
 <br>
 - "Invalid pantry. Invalid {something} found at {path}"
 - "Invalid pantry. Invalid baskets found in the following locations: {list of paths}"
@@ -168,7 +168,7 @@ List of some frequent errors that I think could be helpful:
 - "Invalid datatype for {var}, must be {datatype}"
 - "Invalid {object} missing {something}"
 <br>
-Custom Errors or Warnings are still applicable for specific errors that need to be shown.
+Custom errors or warnings are still applicable for specific errors that need to be shown.
 
 ### Version Number
 <p>Version numbers in a codebase consistent of three segments: major, minor, and patch. The major number (X.0.0) signifies significant changes potentially requiring adaptation, while the minor number (0.X.0) indicates new features or enhancements that maintain compatibility. The patch number (0.0.X) reflects bug fixes and security updates to ensure stability. This versioning scheme facilitates communication about changes between releases, aiding decision-making and promoting efficient development. Importantly, when a number is incremented, the lower-order numbers reset to zero.</p>
