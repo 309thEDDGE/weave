@@ -35,7 +35,7 @@ class Pantry():
             If file_system is None, then the default fs is retrieved from the
             config.
         """
-        self.file_system = kwargs.get("file_system", get_file_system())
+        self.file_system = kwargs.pop("file_system", get_file_system())
         self.pantry_path = str(pantry_path)
         self.index = index(file_system=self.file_system,
                            pantry_path=self.pantry_path,
