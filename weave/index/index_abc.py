@@ -62,9 +62,10 @@ class IndexABC(abc.ABC):
 
         Parameters
         ----------
-        basket_address: str
+        basket_address: str or [str]
             Argument can take one of two forms: either a path to the basket
-            directory, or the UUID of the basket.
+            directory, or the UUID of the basket. These may also be passed in
+            as a list.
 
         Optional kwargs controlled by concrete implementations.
         """
@@ -93,9 +94,10 @@ class IndexABC(abc.ABC):
 
         Parameters
         ----------
-        basket_address: str
+        basket_address: str or [str]
             Argument can take one of two forms: either a path to the basket
-            directory, or the UUID of the basket.
+            directory, or the UUID of the basket. These may also be passed in
+            as a list.
 
         Optional kwargs controlled by concrete implementations.
 
