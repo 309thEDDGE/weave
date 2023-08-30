@@ -9,6 +9,7 @@ from .config import get_file_system
 from .index.create_index import create_index_from_fs
 from .index.index_abc import IndexABC
 from .upload import UploadBasket
+from .validate import validate_pantry
 
 class Pantry():
     """Facilitate user interaction with the index of a Weave data warehouse.
@@ -38,6 +39,15 @@ class Pantry():
         self.file_system = kwargs.get("file_system", get_file_system())
         self.pantry_name = str(pantry_name)
 
+    def validate(self):
+        """Convenient wrapper function to validate the pantry.
+
+        Returns
+        ----------
+        A list of all invalid basket locations (will return an empty list if
+        no warnings are raised)
+        """
+        return validate_pantry(self)
 
     def delete_basket(self, basket_address, **kwargs):
         '''Deletes basket of given UUID or path.

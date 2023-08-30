@@ -19,11 +19,8 @@ def validate_pantry(pantry):
 
     Parameters
     ----------
-    pantry_name: string
-        the name of the pantry we are validating
-    file_system: fsspec object
-        the file system (s3fs, local fs, etc.) of the pantry
-        to validate
+    pantry: weave.Pantry
+        Pantry to be validated.
 
     Returns
     ----------
