@@ -3,8 +3,6 @@ Wherein is contained the Abstract Base Class for Index.
 """
 import abc
 
-from ..config import get_file_system
-
 
 class IndexABC(abc.ABC):
     """Abstract Base Class for the Index"""

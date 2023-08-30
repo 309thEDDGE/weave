@@ -8,7 +8,6 @@ from time import time_ns
 import pandas as pd
 
 from ..basket import Basket
-from ..config import get_file_system
 from ..upload import UploadBasket
 from .create_index import create_index_from_fs
 from .index_abc import IndexABC
@@ -46,7 +45,7 @@ class PandasIndex(IndexABC):
         self.index_df = None
 
     def __len__(self):
-        # TODO: Docstring.
+        """Returns the number of baskets in the index."""
         if self.sync and not self.is_index_current():
             self.sync_index()
         elif self.index_df is None:
@@ -54,7 +53,7 @@ class PandasIndex(IndexABC):
         return len(self.index_df)
 
     def __str__(self):
-        # TODO: Docstring
+        """Returns the str instantiation type of this Index (ie 'SQLIndex')."""
         return "PandasIndex"
 
     def sync_index(self):
@@ -82,14 +81,28 @@ class PandasIndex(IndexABC):
         path = str(path)
         return int(os.path.basename(path).replace("-index.json",""))
 
-    def to_pandas_df(self):
-        '''Returns the Pandas DataFrame representation of the index.'''
+    def to_pandas_df(self, max_rows=1000, **kwargs):
+        """Returns the pandas dataframe representation of the index.
+
+        Parameters
+        ----------
+        max_rows: int
+            Max rows returned in the pandas dataframe.
+
+        Optional kwargs controlled by concrete implementations.
+
+        Returns
+        ----------
+        pandas.DataFrame
+            Returns a dataframe of the manifest data of the baskets in the
+            pantry.
+        """
         if self.sync:
             if not self.is_index_current():
                 self.sync_index()
         elif self.index_df is None:
             self.sync_index()
-        return self.index_df
+        return self.index_df.head(max_rows)
 
     def clean_up_indices(self, n_keep=20):
         '''Deletes any index basket except the latest n index baskets.
@@ -133,8 +146,16 @@ class PandasIndex(IndexABC):
                       for i in index_paths]
         return all((self.index_json_time >= i for i in index_times))
 
-    def generate_index(self):
-        '''Generates index and stores it in a basket'''
+    def generate_index(self, **kwargs):
+        """Populates the index from the file system.
+
+        Generate the index by scraping the pantry and adding the manifest data
+        of found baskets to the index.
+
+        Parameters
+        ----------
+        Optional kwargs controlled by concrete implementations.
+        """
         index = create_index_from_fs(self.pantry_path, self.file_system)
         self._upload_index(index=index)
 
@@ -313,7 +334,7 @@ class PandasIndex(IndexABC):
         if (not self.file_system.exists(basket_address) and
             basket_address not in self.index_df.uuid.values):
             raise FileNotFoundError(
-                f"basket path or uuid does not exist '{basket}'"
+                f"basket path or uuid does not exist '{basket_address}'"
             )
 
         if self.file_system.exists(basket_address):
@@ -454,11 +475,13 @@ class PandasIndex(IndexABC):
         """
         if start_time is None and end_time is None:
             raise ValueError("Either start time or end time must not be None")
-        elif start_time is None:
+
+        if start_time is None:
             return self.index_df[
                 self.index_df["upload_time"] <= end_time
             ].head(max_rows)
-        elif end_time is None:
+
+        if end_time is None:
             return self.index_df[
                 self.index_df["upload_time"] >= start_time
             ].head(max_rows)

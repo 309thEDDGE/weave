@@ -7,7 +7,6 @@ import warnings
 import jsonschema
 from jsonschema import validate
 
-from .pantry import Pantry
 from .config import manifest_schema, supplement_schema
 
 
@@ -318,12 +317,11 @@ def _validate_parent_uuids(data, pantry):
     if len(data["parent_uuids"]) == 0:
         return
 
-    # TODO: Offload iteration to index if accepted.
-    # TODO: How to handle if uid doesn't exist in get_basket
     def basket_exists(pantry, uid):
         try:
             pantry.index.get_basket(uid)
-        except:
+            return None
+        except ValueError:
             return uid
     missing_uids = [basket_exists(pantry,uid) for uid in data["parent_uuids"]]
     missing_uids = [uid for uid in missing_uids if uid is not None]
