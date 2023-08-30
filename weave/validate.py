@@ -318,9 +318,9 @@ def _handle_none_of_the_above(file, file_system, index_df):
 def _validate_parent_uuids(data, _file_system, index_df):
     """Validate that all the parent_uuids from the manifest exist in the pantry
 
-    If there are parent uuids that don't actually exist in the pantry, a warning
-    will be raised for each of those, along with the basket's uuid where we
-    found the error.
+    If there are parent uuids that don't actually exist in the pantry,
+    a warning will be raised for each of those, along with the
+    basket's uuid where the error occurred.
 
     Parameters
     ----------

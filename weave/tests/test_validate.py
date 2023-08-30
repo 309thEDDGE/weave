@@ -38,8 +38,8 @@ class ValidateForTest(BucketForTest):
         for each of these files is the man_data, sup_data, and meta_data.
 
         Because the upload_basket function can't be directly controlled,
-        if you want to change whether there is a manifest, supplement, or metadata
-        file in the basket, use these set-up functions instead.
+        if you want to change whether there is a manifest, supplement, or
+        metadata file in the basket, use these set-up functions instead.
         Same if you want to change the schema to something invalid.
 
         Parameters
@@ -137,7 +137,8 @@ class ValidateForTest(BucketForTest):
         self, tmp_basket_dir, new_dir_name="nested_dir", is_basket=False
     ):
         """Added the is_basket as a work around to test a deeply nested basket
-        because the set_up_basket or upload_basket functions would not upload it
+        because the set_up_basket and upload_basket functions
+        would not upload it
         """
         new_directory = tmp_basket_dir.mkdir(new_dir_name)
         new_directory.join("nested_file.txt").write(
@@ -223,7 +224,7 @@ def test_validate_no_supplement_file(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. No Supplement file found at: "
     )
-    # Check the invalid basket path is what is expected (disregarding FS prefix)
+    # Check the invalid basket path is what is expected (ignoring FS prefix)
     assert warning_1.args[1].endswith(basket_path)
 
 
@@ -921,7 +922,7 @@ def test_validate_supplement_schema_empty_integrity_data(test_validate):
     # Check that the correct warning is raised
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement Schema does not match at: "
-
+    )
     # Check the invalid basket path is what is expected (ignoring FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_schema",
