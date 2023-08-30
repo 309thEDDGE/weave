@@ -83,7 +83,7 @@ pylint <local file path>
 ### Variables
 <p>Variable names should be written in all lowercase with underscores between each word.</p>
 
-<p>It is encouraged that variable names be consistent between classes,functions/methods, and different files. This is done because of increased readability and simplicity. If an object is named 'temp_basket_dir' in a couple functions, then strive to keep that name consistent throughout weave. You are encouraged to make consistent names, but not required.</p>
+<p>It is encouraged that variable names be consistent between classes, functions/methods, and different files. This is done because of increased readability and simplicity. If an object is named 'temp_basket_dir' in a couple functions, then strive to keep that name consistent throughout weave. You are encouraged to make consistent names, but not required.</p>
 
 <p>Variable names should be short, but descriptive.</p>
 
