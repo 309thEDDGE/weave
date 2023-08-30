@@ -86,13 +86,13 @@ class Pantry():
             dealing with large files.
         basket_type: str
             Type of basket being uploaded.
-        **parent_ids: optional [str]
+        **parent_ids: [str] (optional)
             List of unique ids associated with the parent baskets
             used to derive the new basket being uploaded.
-        **metadata: optional dict,
+        **metadata: dict (optional)
             Python dictionary that will be written to metadata.json
             and stored in the basket in upload file_system.
-        **label: optional str,
+        **label: str (optional)
             Optional user friendly label associated with the basket.
         """
         parent_ids = kwargs.get("parent_ids", [])
