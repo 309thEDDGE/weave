@@ -14,7 +14,7 @@ class Pantry():
     """Facilitate user interaction with the index of a Weave data warehouse.
     """
 
-    def __init__(self, index: IndexABC, pantry_name="basket-data", **kwargs):
+    def __init__(self, index: IndexABC, pantry_path="basket-data", **kwargs):
         """Initialize Pantry object
 
         A pantry is a collection of baskets. This class facilitates the upload,
@@ -27,7 +27,7 @@ class Pantry():
         index: IndexABC
             The concrete implementation of an IndexABC. This is used to track
             the contents within the pantry.
-        pantry_name: str
+        pantry_path: str
             Name of the pantry this object is associated with.
         **file_system: fsspec object
             The fsspec object which hosts the bucket we desire to index.
@@ -35,9 +35,9 @@ class Pantry():
             config.
         """
         self.file_system = kwargs.get("file_system", get_file_system())
-        self.pantry_name = str(pantry_name)
+        self.pantry_path = str(pantry_path)
         self.index = index(file_system=self.file_system,
-                           pantry_path=self.pantry_name,
+                           pantry_path=self.pantry_path,
         )
 
 
@@ -56,17 +56,16 @@ class Pantry():
             Additional parameters to pass to the index
         '''
         basket_address = str(basket_address)
-        remove_item = self.index.get_basket(basket_address)
+        remove_item = self.index.get_row(basket_address)
 
-        if len(self.index.get_children(remove_item.basket_address)) > 0:
+        if len(self.index.get_children(remove_item.iloc[0].uuid)) > 0:
             raise ValueError(
                 f"The provided value for basket_uuid {basket_address} " +
                 "is listed as a parent UUID for another basket. Please " +
                 "delete that basket before deleting it's parent basket."
             )
-
-        self.file_system.rm(remove_item.basket_address, recursive=True)
-        self.index.untrack_basket(remove_item.basket_address, **kwargs)
+        self.file_system.rm(remove_item.iloc[0].address, recursive=True)
+        self.index.untrack_basket(remove_item.iloc[0].address, **kwargs)
 
     def upload_basket(self, upload_items, basket_type, **kwargs):
         """Upload a basket to the same pantry referenced by the Index
@@ -105,7 +104,7 @@ class Pantry():
             upload_items=upload_items,
             basket_type=basket_type,
             file_system=self.file_system,
-            pantry_name=self.pantry_name,
+            pantry_name=self.pantry_path,
             parent_ids=parent_ids,
             metadata=metadata,
             label=label,
@@ -131,4 +130,7 @@ class Pantry():
         # Create a Basket from the given address, and the index's file_system
         # and bucket name. Basket will catch invalid inputs and raise
         # appropriate errors.
-        return Basket(basket_address, pantry=self)
+        row = self.index.get_row(basket_address)
+        if len(row) == 0:
+            raise ValueError(f"Basket does not exist: {basket_address}")
+        return Basket(row.iloc[0].address, pantry=self)

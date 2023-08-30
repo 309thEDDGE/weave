@@ -31,10 +31,10 @@ def validate_pantry(pantry):
     no warnings are raised)
     """
 
-    if not pantry.file_system.exists(pantry.pantry_name):
+    if not pantry.file_system.exists(pantry.pantry_path):
         raise ValueError(
             f"Invalid pantry Path. Pantry does not exist at: "
-            f"{pantry.pantry_name}"
+            f"{pantry.pantry_path}"
         )
 
     # Here we are catching the warnings that are shown from calling
@@ -50,7 +50,7 @@ def validate_pantry(pantry):
     # Call check level, with a path, but since we're just starting,
     # We just use the pantry_name as the path
     with warnings.catch_warnings(record=True) as warn:
-        _check_level(pantry.pantry_name, pantry=pantry)
+        _check_level(pantry.pantry_path, pantry=pantry)
         # Iterate through warn and return the list of warning messages.
         # Enumerate does not work here. prefer to use range and len
         # pylint: disable-next=consider-using-enumerate

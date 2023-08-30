@@ -72,10 +72,8 @@ class BasketInitializer:
 
         pantry = kwargs['pantry']
         try:
-            # TODO: This is weird. This call returns what this constructor should make
-            # TODO: Maybe we can have an option to return just the manifest row
-            path = pantry.index.get_basket(basket_address).basket_address
-            self.set_up_basket_from_path(basket_address=path)
+            row = pantry.index.get_row(basket_address)
+            self.set_up_basket_from_path(basket_address=row.iloc[0].address)
         except BaseException as error:
             self.basket_address = basket_address
             self.validate_basket_path()

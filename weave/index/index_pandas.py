@@ -413,6 +413,32 @@ class PandasIndex(IndexABC):
                              f"{basket_address} does not exist.")
         return Basket(basket.iloc[0].address, file_system=self.file_system)
 
+    def get_row(self, basket_address, **kwargs):
+        """Returns a pd.DataFrame row information of given UUID or path.
+
+        Parameters
+        ----------
+        basket_address: str or [str]
+            Argument can take one of two forms: either a path to the basket
+            directory, or the UUID of the basket. These may also be passed in
+            as a list.
+
+        Optional kwargs controlled by concrete implementations.
+
+        Returns
+        ----------
+        rows: pd.DataFrame
+            Manifest information for the requested basket.
+        """
+        if self.index_df is None:
+            self.generate_index()
+        if not isinstance(basket_address, list):
+            basket_address = [basket_address]
+        rows = self.index_df[(self.index_df["uuid"].isin(basket_address))
+                           | (self.index_df["address"].isin(basket_address))
+                      ]
+        return rows
+
     def get_baskets_of_type(self, basket_type, max_rows=1000, **kwargs):
         """Returns a pandas dataframe containing baskets of basket_type.
 
