@@ -42,7 +42,7 @@ def validate_upload_item(upload_item):
 
 def derive_integrity_data(file_path, byte_count=10**8):
     """
-    Derive basic integrity data from a file.
+    Derives basic integrity data from a file.
 
     This function takes in a file path and calculates
     the file checksum, file size, and access date (current time).
@@ -145,22 +145,21 @@ class UploadBasket:
             without uploading the data itself. This is especially useful when
             dealing with large files.
 
-        kwargs:
-        upload_directory: str
+        **upload_directory: str
             Path where basket is to be uploaded (on the upload FS).
-        unique_id: str
+        **unique_id: str
             Unique ID to identify the basket once uploaded.
-        basket_type: str
+        **basket_type: str
             Type of basket being uploaded.
-        parent_ids: optional [str]
+        **parent_ids: [str] (optional)
             List of unique ids associated with the parent baskets
             used to derive the new basket being uploaded.
-        metadata: optional dict,
+        **metadata: dict (optional)
             Python dictionary that will be written to metadata.json
             and stored in the basket in the upload FS.
-        label: optional str,
+        **label: str (optional)
             Optional user friendly label associated with the basket.
-        file_system: fsspec object
+        **file_system: fsspec object
             The file system to upload to (ie s3fs, local fs, etc).
             If None it will use the default fs from the weave.config.
 
@@ -273,6 +272,8 @@ class UploadBasket:
 
     def _get_path(self):
         """Either make sure upload_path is in kwargs or make it"""
+        if "unique_id" not in self.kwargs:
+            self.kwargs["unique_id"] = uuid.uuid1().hex
         if "upload_directory" not in self.kwargs:
             if not ("pantry_name" and "basket_type" in self.kwargs):
                 raise ValueError(
@@ -280,8 +281,6 @@ class UploadBasket:
                     "combination of 'pantry_name' and 'basket_type' as kwargs "
                     "for UploadBasket"
                 )
-            if "unique_id" not in self.kwargs:
-                self.kwargs["unique_id"] = uuid.uuid1().hex
             self.kwargs["upload_directory"] = os.path.join(
                 self.kwargs.get("test_prefix", ""),
                 self.kwargs.get("pantry_name"),
