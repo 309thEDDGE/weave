@@ -217,7 +217,7 @@ def _handle_manifest(pantry_name, file, file_system):
         ))
 
 
-def _handle_supplement(_pantry_name, file, file_system):
+def _handle_supplement(pantry_name, file, file_system):
     """Handles case if supplement
 
     Parameters:
@@ -234,7 +234,7 @@ def _handle_supplement(_pantry_name, file, file_system):
         data = json.load(file_system.open(file))
         validate(instance=data, schema=supplement_schema)
         basket_dir, _ = os.path.split(file)
-        _validate_supplement_files(basket_dir, data, file_system)
+        _validate_supplement_files(pantry_name, basket_dir, data, file_system)
 
     except jsonschema.exceptions.ValidationError:
         warnings.warn(UserWarning(
@@ -325,7 +325,7 @@ def _validate_parent_uuids(pantry_name, data, file_system):
                       f"index, which was found inside basket: {data['uuid']}")
 
 
-def _validate_supplement_files(basket_dir, data, file_system):
+def _validate_supplement_files(pantry_name, basket_dir, data, file_system):
     """Validate the files listed in the supplement's integrity_data
 
     Parameters
@@ -338,34 +338,115 @@ def _validate_supplement_files(basket_dir, data, file_system):
         The file system to use.
     """
     sys_file_list = file_system.find(path=basket_dir, withdirs=False)
-    print()
-    for i in sys_file_list:
-        print(i)
+
+    manifest_path = os.path.join(basket_dir, "basket_manifest.json")
+    supplement_path = os.path.join(basket_dir, "basket_supplement.json")
+    metadata_path = os.path.join(basket_dir, "basket_metadata.json")
 
     # Grab all the files, but remove manifest, supplement, and metadata
-    system_file_list = [file for file in sys_file_list if not file.endswith((
-        "basket_manifest.json",
-        "basket_supplement.json",
-        "basket_metadata.json"
-    ))]
+    system_file_list = [
+        file for file in sys_file_list if file not in [manifest_path,
+                                                       supplement_path,
+                                                       metadata_path]
+    ]
 
-    supp_file_list = [file["upload_path"] for file in data["integrity_data"] if not file["upload_path"].endswith((
-        "basket_manifest.json",
-        "basket_supplement.json",
-        "basket_metadata.json"
-    ))]
+    supp_file_list = [file["upload_path"] for file in data["integrity_data"]]
     
-    # supp_file_list = []
     
-    print()
+    
+    
+    print('\n\npantry name: ', pantry_name)
+    print('basket_dir : ', basket_dir)
+    
+    
+    
+    
+    
+#     system_file_list = []
+#     supp_file_list = []
+    
+#     for i in range(10):
+#         supp_file_list.append(f"pytest-temp-bucket/test_basket/0000/file_0{i}.txt")
+#         if (str(type(file_system)) == "<class 's3fs.core.S3FileSystem'>"):
+#             system_file_list.append(f"pytest-temp-bucket/test_basket/0000/file_0{i}.txt")
+#         else:
+#             system_file_list.append(f"home/joyvan/pytest-temp-bucket/test_basket/0000/file_0{i}.txt")
+
+#     for i in range(2):
+#         supp_file_list.append(f"pytest-temp-bucket/test_basket/0000/IN_SUPP_{i}.txt")
+#         if (str(type(file_system)) == "<class 's3fs.core.S3FileSystem'>"):
+#             system_file_list.append(f"pytest-temp-bucket/test_basket/0000/IN_SYS_{i}.txt")
+#         else:
+#             system_file_list.append(f"home/joyvan/pytest-temp-bucket/test_basket/0000/IN_SYS_{i}.txt")
+
+    print('\n\tTEST_SUPP_LIST:')
     for i in supp_file_list:
         print(i)
 
+    print('\n\tTEST_SYS_LIST:')
+    for j in system_file_list:
+        print(j)
+
+
+    # new_system_file_list = []
+    
+    system_file_list = [file[file.find(pantry_name):] for file in system_file_list]
+    supp_file_list = [file[file.find(pantry_name):] for file in supp_file_list]
+    
+    system_file_set = set(system_file_list)
+    supp_file_set = set(supp_file_list)
+    
+    files_not_in_system = supp_file_set - system_file_set
+    files_not_in_supp = system_file_set - supp_file_set
+    
+    for file in files_not_in_system:
+        warnings.warn(
+            UserWarning("File listed in the basket_supplement.json does not "
+                        "exist in the file system: ", file)
+        )
+    
+    for file in files_not_in_supp:
+        warnings.warn(
+            UserWarning("File found in the file system is not listed in "
+                        "the basket_supplement.json: ", file)
+        )
+    
+    # print("files not in system: ", files_not_in_system)
+    # print("files not in supplement: ", files_not_in_supp)
+    
+    
+#     for k in system_file_list:
+        
+#         # new_system_file_list.append(os.path.relpath(k, pantry_name))
+#         new_system_file_list.append(k[k.find(pantry_name):])
+        
+    
+    # print('\n\tNEW_SYS_LIST:')
+    # for i in system_file_list:
+    #     print(i)
+
+
+
+
+
+
+
+
+#     print('\nsystem file list: length: ', len(system_file_list))
+#     for i in system_file_list:
+#         print(i)
+
+#     print('\n\nsupp file list: len: ', len(supp_file_list))
+#     for i in supp_file_list:
+#         print(i)
+
+
+"""
     # Check if all the system files exist in the supplement file list
     for sys_file in system_file_list:
         if list(filter(sys_file.endswith, supp_file_list)) == []:
-            print("File found in the file system is not listed in "
-                  "the basket_supplement.json: ", sys_file)
+            # print("File found in the file system is not listed in "
+            #       "the basket_supplement.json: ", sys_file)
             warnings.warn(
                 UserWarning("File found in the file system is not listed in "
                             "the basket_supplement.json: ", sys_file)
@@ -383,9 +464,10 @@ def _validate_supplement_files(basket_dir, data, file_system):
     ]
 
     for file in wrong_supp_files:
-        print("File listed in the basket_supplement.json does not "
-              "exist in the file system: ", file)
+        # print("File listed in the basket_supplement.json does not "
+        #       "exist in the file system: ", file)
         warnings.warn(
              UserWarning("File listed in the basket_supplement.json does not "
                          "exist in the file system: ", file)
          )
+         """

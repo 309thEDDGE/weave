@@ -81,6 +81,9 @@ class ValidateForTest(BucketForTest):
         meta_data=kwargs.get("meta_data", "")
         tmp_basket_dir = self.tmpdir.mkdir(tmp_dir_name)
 
+        tmp_basket_txt_file = tmp_basket_dir.join("test.txt")
+        tmp_basket_txt_file.write("This is a test")
+
         if is_man:
             tmp_manifest = tmp_basket_dir.join("basket_manifest.json")
 
@@ -96,6 +99,9 @@ class ValidateForTest(BucketForTest):
 
             tmp_manifest.write(man_data)
 
+
+        print('\ntmp basket dir: ', tmp_basket_dir)
+
         if is_sup:
             tmp_supplement = tmp_basket_dir.join("basket_supplement.json")
 
@@ -104,7 +110,7 @@ class ValidateForTest(BucketForTest):
                 sup_data = """{
                     "upload_items":
                     [
-                    { "path": "str", "stub": false}
+                    { "path": "test.txt", "stub": false}
                     ],
 
                     "integrity_data":
@@ -116,7 +122,7 @@ class ValidateForTest(BucketForTest):
                         "source_path": "string",
                         "byte_count": 1,
                         "stub": false,
-                        "upload_path": ""
+                        "upload_path": "test.txt"
                     }
                     ]
                 }"""
