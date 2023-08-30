@@ -146,7 +146,7 @@ def set_up_malformed_baskets(request, tmpdir):
             tmp_basket_dir=tmp_basket_dir, uid=f"000{i}"
         )
 
-        # change a key in the bad baske_manifests
+        # change a key in the bad basket_manifests
         if (i % 3) == 0:
             bad_addresses.append(address)
 
@@ -274,7 +274,7 @@ def test_delete_basket_deletes_basket(test_pantry):
 
     # Verify pantry object still tracks the file system
     assert len(fs_baskets) == 1
-    # Verify patnry index updated
+    # Verify pantry index updated
     assert len(pantry.index) == 1
     # Verify the correct basket was deleted from filesystem
     check_path = os.path.join(test_pantry.pantry_path,"test_basket","0002")
