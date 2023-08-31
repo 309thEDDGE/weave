@@ -575,8 +575,8 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
         file_system=test_basket.file_system,
     )
 
-    print(uploaded_basket.unique_id)
-    assert uploaded_basket.unique_id is not None
+    print(uploaded_basket.kwargs.get("unique_id"))
+    assert uploaded_basket.kwargs.get("unique_id") is not None
 
 
 def test_upload_basket_upload_items_is_not_a_string(test_basket):
