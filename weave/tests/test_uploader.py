@@ -576,7 +576,7 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
     )
     assert uploading_basket.kwargs.get("unique_id") is not None
 
-    manifest_file_path = os.join(upload_path, 'basket_manifest.json')
+    manifest_file_path = os.path.join(upload_path, 'basket_manifest.json')
     with open(manifest_file_path, "w", encoding="utf-8") as outfile:
         manifest_data = json.load(outfile)
     print(manifest_data)
