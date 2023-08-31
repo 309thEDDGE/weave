@@ -37,7 +37,7 @@ class BasketInitializer:
 
             if 'pantry' not in kwargs:
                 raise KeyError("pantry, required to set up basket from UUID,"
-                               "is not in kwargs.")
+                               "is not in kwargs.") from error
             self.set_up_basket_from_uuid(basket_address, kwargs['pantry'])
         self.manifest_path = f"{self.basket_address}/basket_manifest.json"
         self.supplement_path = f"{self.basket_address}/basket_supplement.json"

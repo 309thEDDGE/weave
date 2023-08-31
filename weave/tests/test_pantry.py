@@ -61,7 +61,6 @@ def test_pantry(request, tmpdir):
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
 
-
 def test_root_dir_does_not_exist(test_pantry):
     """try to create an index in a bucket that doesn't exist,
     check that it throws an error
@@ -289,9 +288,9 @@ def test_delete_basket_deletes_basket(test_pantry):
     check_path = os.path.join(test_pantry.pantry_path,"test_basket","0002")
     assert check_path not in fs_baskets
     # Verify the correct basket was deleted from the Index
-    error_msg = "The provided value for basket_uuid 0002 does not exist."
+    error_msg = "Basket does not exist: 0002"
     with pytest.raises(ValueError, match=error_msg):
-        pantry.index.get_basket("0002")
+        pantry.get_basket("0002")
 
 
 def test_pantry_delete_basket_with_parents(test_pantry):

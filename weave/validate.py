@@ -314,14 +314,8 @@ def _validate_parent_uuids(data, pantry):
     if len(data["parent_uuids"]) == 0:
         return
 
-    def basket_exists(pantry, uid):
-        try:
-            pantry.index.get_basket(uid)
-            return None
-        except ValueError:
-            return uid
-    missing_uids = [basket_exists(pantry,uid) for uid in data["parent_uuids"]]
-    missing_uids = [uid for uid in missing_uids if uid is not None]
+    found_parents = list(pantry.index.get_row(data['parent_uuids'])['uuid'])
+    missing_uids = [uid for uid in data["parent_uuids"] if uid not in found_parents]
 
     if missing_uids:
         warnings.warn(f"The uuids: {missing_uids} were not found in the "

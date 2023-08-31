@@ -7,7 +7,6 @@ from time import time_ns
 
 import pandas as pd
 
-from ..basket import Basket
 from ..upload import UploadBasket
 from .create_index import create_index_from_fs
 from .index_abc import IndexABC
@@ -406,35 +405,12 @@ class PandasIndex(IndexABC):
         Parameters
         ----------
         entry_df : pd.DataFrame
-            Uploaded baskets to append to the index.
         """
         self.sync_index()
         self._upload_index(
             pd.concat([self.index_df, entry_df], ignore_index=True)
         )
 
-    def get_basket(self, basket_address, **kwargs):
-        """Returns a Basket of given UUID or path.
-
-        Parameters
-        ----------
-        basket_address: str
-            Argument can take one of two forms: either a path to the basket
-            directory, or the UUID of the basket.
-
-        Returns
-        ----------
-        Basket
-            Returns the Basket object.
-        """
-        basket = self.index_df[(self.index_df["uuid"] == basket_address)
-                               | (self.index_df["address"] == basket_address)
-                      ]
-
-        if len(basket) == 0:
-            raise ValueError(f"The provided value for basket_uuid "
-                             f"{basket_address} does not exist.")
-        return Basket(basket.iloc[0].address, file_system=self.file_system)
 
     def get_row(self, basket_address, **kwargs):
         """Returns a pd.DataFrame row information of given UUID or path.

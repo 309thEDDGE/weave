@@ -495,29 +495,23 @@ def test_basket_init_fails_if_uuid_does_not_exist(test_pantry):
             pantry=pantry,
         )
 
-# TODO: Redo this test
-# def test_basket_pantry_path_does_not_exist(test_pantry):
-#     """
-#     Test than an error is raised when trying to initialize a basket using a
-#     UUID, but using a bucket name that does not exist.
-#     """
-#     # Put basket in the temporary bucket
-#     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
-#     uuid = "0000"
-#     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
-#     index = PandasIndex(test_pantry.pantry_path,
-#                         file_system=test_pantry.file_system
-#             )
-#     pantry = Pantry(index,
-#                     pantry_path=test_pantry.pantry_path,
-#                     file_system=test_pantry.file_system)
-#     pantry.index.generate_index()
-#     print(pantry.index.index_df)
-#     with pytest.raises(ValueError, match=f"Basket does not exist: {uuid}"):
-#         Basket(
-#             basket_address=uuid,
-#             pantry=pantry,
-#         )
+
+def test_basket_pantry_name_does_not_exist(test_pantry):
+    """
+    Test than an error is raised when trying to initialize a basket using a
+    UUID, but using a bucket name that does not exist.
+    """
+    # Put basket in the temporary bucket
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    uuid = "0000"
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
+
+    pantry_path = "the wrong bucket 007"
+    error_msg = f'Invalid pantry Path. Pantry does not exist at: {pantry_path}'
+    with pytest.raises(ValueError, match=error_msg):
+        pantry = Pantry(PandasIndex,
+                pantry_path=pantry_path,
+                file_system=test_pantry.file_system)
 
 
 def test_basket_from_uuid_with_many_baskets(test_pantry):
