@@ -10,6 +10,7 @@ import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
 import weave
+from weave import Basket
 from weave.tests.pytest_resources import BucketForTest, file_path_in_list
 from weave.upload import (
     UploadBasket,
@@ -568,14 +569,17 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
     basket_type = "test_basket"
     upload_path = os.path.join(test_basket.pantry_name, basket_type)
 
-    uploaded_basket = weave.upload.UploadBasket(
+    uploading_basket = weave.upload.UploadBasket(
         upload_items=upload_items,
         upload_directory=upload_path,
         basket_type=basket_type,
         file_system=test_basket.file_system,
     )
-    assert uploaded_basket.kwargs.get("unique_id") is not None
-    assert test_basket.get_manifest()['uuid'] != 'null'
+    assert uploading_basket.kwargs.get("unique_id") is not None
+
+    uploaded_basket = Basket(uploading_basket.get_upload_path(),\
+                            tmp_basket_dir_name)
+    assert uploaded_basket.get_manifest()['uuid'] != 'null'
 
 
 def test_upload_basket_upload_items_is_not_a_string(test_basket):
