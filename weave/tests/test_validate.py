@@ -88,7 +88,7 @@ class ValidateForTest(BucketForTest):
             if man_data == "":
                 man_data = """{
                     "uuid": "str",
-                    "upload_time": "1970-01-01 01:01:12",
+                    "upload_time": "1970-01-01T01:01:12+0:00",
                     "parent_uuids": [],
                     "basket_type": "basket type string",
                     "label": "label string"
@@ -150,7 +150,7 @@ class ValidateForTest(BucketForTest):
             new_directory.join("basket_manifest.json").write(
                 """{
                 "uuid": "str",
-                "upload_time": "1970-01-01 01:01:12",
+                "upload_time": "1970-01-01T01:01:12+0:00",
                 "parent_uuids": [],
                 "basket_type": "basket type string",
                 "label": "label string"
@@ -254,7 +254,7 @@ def test_validate_invalid_manifest_schema(test_validate):
     # this is invalid against the schema.
     bad_manifest_data = """{
         "uuid": 100,
-        "upload_time": "1970-01-01 01:01:12",
+        "upload_time": "1970-01-01T01:01:12+0:00",
         "parent_uuids": [ "str1", "str2", "str3" ],
         "basket_type": "str",
         "label": "str"
@@ -300,7 +300,7 @@ def test_validate_manifest_schema_missing_field(test_validate):
     # The manifest is missing the uuid field
     # this is invalid against the schema.
     bad_manifest_data = """{
-        "upload_time": "1970-01-01 01:01:12",
+        "upload_time": "1970-01-01T01:01:12+0:00",
         "parent_uuids": [  ],
         "basket_type": "str",
         "label": "str"
@@ -347,7 +347,7 @@ def test_validate_manifest_schema_additional_field(test_validate):
     # this is invalid against the schema.
     bad_manifest_data = """{
         "uuid": "str",
-        "upload_time": "1970-01-01 01:01:12",
+        "upload_time": "1970-01-01T01:01:12+0:00",
         "parent_uuids": [],
         "basket_type": "basket type string",
         "label": "label string",
@@ -1274,7 +1274,7 @@ def test_validate_bad_manifest_and_supplement_schema(test_validate):
     # The manifest is missing the uuid field
     # this is invalid against the schema.
     bad_manifest_data = """{
-        "upload_time": "1970-01-01 01:01:12",
+        "upload_time": "1970-01-01T01:01:12+0:00",
         "parent_uuids": [ "str1", "str2", "str3" ],
         "basket_type": "str",
         "label": "str"
@@ -1423,7 +1423,7 @@ def test_validate_check_parent_uuids_missing_basket(test_validate):
     # Manifest has parent_uuids that don't exist
     manifest_data_1 = """{
         "uuid": "001",
-        "upload_time": "1970-01-01 01:01:12",
+        "upload_time": "1970-01-01T01:01:12+0:00",
         "parent_uuids": [ "002", "BAD123123" ],
         "basket_type": "str",
         "label": "str"
