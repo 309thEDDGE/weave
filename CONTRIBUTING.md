@@ -22,9 +22,9 @@
 ## Coding Standards
 <p>There are four tests run in the Weave CI/CD workflow: pytest, ruff, pylint, and version_check.</p>
 
-<p>Pytest ensures that all of the pytests created in the repository pass. Ruff will statically analyze your code. Pylint will check if your code follows the <a href="https://pep8.org">PEP-8 style guide</a>, which is the style guide that we follow for this repository. Version_check will check that the Weave version has been updated in <a href="https://github.com/309thEDDGE/weave/blob/OPAL-1135/weave/__init__.py">weave/__init__.py</a>.</p>
+<p>Pytest ensures that all of the pytests created in the repository pass. Ruff will statically analyze your code. Pylint will check if your code follows the <a href="https://pep8.org">PEP-8 style guide</a>, which is the style guide that we follow for this repository. Version_check will check that the Weave version has been updated in <a href="https://github.com/309thEDDGE/weave/blob/main/weave/__init__.py">weave/__init__.py</a>.</p>
 
-<p>When a pull request is created, the code must pass the four checks in the Weave CI/CD workflow expalined in the <a href="https://github.com/309thEDDGE/weave/blob/OPAL-1135/CONTRIBUTING.md#githubworkflows">.github/workflows</a> folder. This helps ensures that the code follows our repository style guidelines.</p>
+<p>When a pull request is created, the code must pass the four checks in the Weave CI/CD workflow expalined in the <a href="https://github.com/309thEDDGE/weave/blob/main/CONTRIBUTING.md#githubworkflows">.github/workflows</a> folder. This helps ensures that the code follows our repository style guidelines.</p>
 
 <p>Note: Pylint MUST pass with a score of 10/10.</p>
 
@@ -74,7 +74,7 @@ pylint <local file path>
 ### Functions and Methods
 <p>Function and Method names should be written in all lowercase, with underscores between each word.</p>
 
-<p>For Function and Method Docstrings, go to <a href="https://github.com/309thEDDGE/weave/blob/OPAL-1135/CONTRIBUTING.md#docstrings">Docstrings</a>.</p>
+<p>For Function and Method Docstrings, go to <a href="https://github.com/309thEDDGE/weave/blob/main/CONTRIBUTING.md#docstrings">Docstrings</a>.</p>
 
 <p>If you have a function that exceeds the line limit, check <a href="https://peps.python.org/pep-0008/#indentation">PEP-8 Indentation</a> guide.</p>
 
