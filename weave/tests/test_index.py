@@ -1267,10 +1267,8 @@ def test_upload_basket_updates_the_index(test_pantry):
             basket_type="test",
         )
         if i == 0:
-            first_time = pd.to_datetime(\
-                            ind.index_df.iloc[1].upload_time).isoformat()
-    time_diff = first_time - pd.to_datetime(\
-                            ind.index_df.iloc[1].upload_time).isoformat()
+            first_time = pd.to_datetime(ind.index_df.iloc[1].upload_time)
+    time_diff = first_time - pd.to_datetime(ind.index_df.iloc[1].upload_time)
 
     assert all(ind.index_df.iloc[-1] == new_basket.iloc[0])
     assert time_diff.total_seconds() == 0
