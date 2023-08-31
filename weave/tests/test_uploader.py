@@ -529,7 +529,7 @@ def test_basket(request, tmpdir):
     test_bucket.cleanup_bucket()
 
 
-def test_upload_basket_without_uuid_creates_uuid(test_basket)
+def test_upload_basket_without_uuid_creates_uuid(test_basket):
     """
     Test that upload_basket creates a uuid when unique_id is not
     initialized
