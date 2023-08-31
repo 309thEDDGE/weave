@@ -20,8 +20,8 @@ def validate_pantry(pantry_name, file_system):
 
     Parameters
     ----------
-    pantry_name: string
-        the name of the pantry we are validating
+    pantry_name: str
+        Current working pantry
     file_system: fsspec object
         the file system (s3fs, local fs, etc.) of the pantry
         to validate
@@ -52,7 +52,10 @@ def validate_pantry(pantry_name, file_system):
     # Call check level, with a path, but since we're just starting,
     # We just use the pantry_name as the path
     with warnings.catch_warnings(record=True) as warn:
-        _check_level(pantry_name, file_system=file_system, index_df=index_df)
+        _check_level(pantry_name,
+                     pantry_name,
+                     file_system=file_system,
+                     index_df=index_df)
         # Iterate through warn and return the list of warning messages.
         # Enumerate does not work here. prefer to use range and len
         # pylint: disable-next=consider-using-enumerate
@@ -60,7 +63,7 @@ def validate_pantry(pantry_name, file_system):
         return warning_list
 
 
-def _check_level(current_dir, **kwargs):
+def _check_level(pantry_name, current_dir, **kwargs):
     """Check all immediate subdirs in dir, check for manifest
 
     Checks all the immediate subdirectories and files in the given directory
@@ -71,6 +74,8 @@ def _check_level(current_dir, **kwargs):
 
     Parameters
     ----------
+    pantry_name: str
+        Current working pantry
     current_dir: string
         the current directory that we want to search all files and
         directories of
@@ -112,7 +117,10 @@ def _check_level(current_dir, **kwargs):
         # we found it, we don't need to validate the nested basket
         if in_basket:
             return True
-        return _validate_basket(current_dir, file_system, index_df)
+        return _validate_basket(pantry_name,
+                                current_dir,
+                                file_system,
+                                index_df)
 
     # go through all the other files, if it's a directory, we need to check it
     dirs_and_files = file_system.ls(path=current_dir, refresh=True)
@@ -125,7 +133,8 @@ def _check_level(current_dir, **kwargs):
             # and return true, this will return true to the _validate_basket
             # and throw an error or warning
             if in_basket:
-                return _check_level(file_or_dir,
+                return _check_level(pantry_name,
+                                    file_or_dir,
                                     file_system=file_system,
                                     index_df=index_df,
                                     in_basket=in_basket)
@@ -134,7 +143,8 @@ def _check_level(current_dir, **kwargs):
             # if it isn't valid, we go in and return false
             # we don't want to return _check_level because we want to keep
             # looking at all the sub-directories
-            if not _check_level(file_or_dir,
+            if not _check_level(pantry_name,
+                                file_or_dir,
                                 file_system=file_system,
                                 index_df=index_df,
                                 in_basket=in_basket):
@@ -148,7 +158,7 @@ def _check_level(current_dir, **kwargs):
     return not in_basket
 
 
-def _validate_basket(basket_dir, file_system, index_df):
+def _validate_basket(pantry_name, basket_dir, file_system, index_df):
     """Takes the root directory of a basket and validates it
 
     Validation means there is a required basket_manifest.json and
@@ -167,6 +177,8 @@ def _validate_basket(basket_dir, file_system, index_df):
 
     Parameters
     ----------
+    pantry_name: str
+        Current working pantry
     basket_dir: string
         the path in the file system to the basket root directory
     file_system: fsspec object
@@ -204,17 +216,19 @@ def _validate_basket(basket_dir, file_system, index_df):
             "basket_metadata.json": _handle_metadata
         }.get(
             file_name, _handle_none_of_the_above
-        )(file, file_system, index_df)
+        )(pantry_name, file, file_system, index_df)
 
     # default return true if we don't find any problems with this basket
     return True
 
 
-def _handle_manifest(file, file_system, index_df):
+def _handle_manifest(_pantry_name, file, file_system, index_df):
     """Handles case if manifest
 
     Parameters:
     -----------
+    pantry_name: str
+        Current working pantry (currently unused)
     file: str
         Path to the file.
     file_system: fsspec-like obj
@@ -247,6 +261,8 @@ def _handle_supplement(pantry_name, file, file_system, _index_df):
 
     Parameters:
     -----------
+    pantry_name: str
+        Current working pantry
     file: str
         Path to the file.
     file_system: fsspec-like obj
@@ -259,7 +275,7 @@ def _handle_supplement(pantry_name, file, file_system, _index_df):
         data = json.load(file_system.open(file))
         validate(instance=data, schema=supplement_schema)
         basket_dir, _ = os.path.split(file)
-        # _validate_supplement_files(pantry_name, basket_dir, data, file_system)
+        _validate_supplement_files(pantry_name, basket_dir, data, file_system)
 
     except jsonschema.exceptions.ValidationError:
         warnings.warn(UserWarning(
@@ -274,11 +290,13 @@ def _handle_supplement(pantry_name, file, file_system, _index_df):
         ))
 
 
-def _handle_metadata(file, file_system, _index_df):
+def _handle_metadata(_pantry_name, file, file_system, _index_df):
     """Handles case if metadata
 
     Parameters:
     -----------
+    pantry_name: str
+        Current working pantry (currently unused)
     file: str
         Path to the file.
     file_system: fsspec-like obj
@@ -296,11 +314,13 @@ def _handle_metadata(file, file_system, _index_df):
         ))
 
 
-def _handle_none_of_the_above(file, file_system, index_df):
+def _handle_none_of_the_above(pantry_name, file, file_system, index_df):
     """Handles case if none of the above
 
     Parameters:
     -----------
+    pantry_name: str
+        Current working pantry
     file: str
         Path to the file.
     file_system: fsspec-like obj
@@ -310,7 +330,8 @@ def _handle_none_of_the_above(file, file_system, index_df):
     """
     basket_dir, _ = os.path.split(file)
     if file_system.info(file)['type'] == 'directory':
-        if _check_level(file,
+        if _check_level(pantry_name,
+                        file,
                         file_system=file_system,
                         index_df=index_df,
                         in_basket=True):
@@ -356,6 +377,8 @@ def _validate_supplement_files(pantry_name, basket_dir, data, file_system):
 
     Parameters
     ----------
+    pantry_name: str
+        Current working pantry
     basket_dir: str
         the path to the current working basket
     data: dictionary
@@ -377,123 +400,26 @@ def _validate_supplement_files(pantry_name, basket_dir, data, file_system):
     ]
 
     supp_file_list = [file["upload_path"] for file in data["integrity_data"]]
-    
-    
-    
-    
-    # print('\n\npantry name: ', pantry_name)
-    # print('basket_dir : ', basket_dir)
-    
-    
-    
-    
-    
-#     system_file_list = []
-#     supp_file_list = []
-    
-#     for i in range(10):
-#         supp_file_list.append(f"pytest-temp-bucket/test_basket/0000/file_0{i}.txt")
-#         if (str(type(file_system)) == "<class 's3fs.core.S3FileSystem'>"):
-#             system_file_list.append(f"pytest-temp-bucket/test_basket/0000/file_0{i}.txt")
-#         else:
-#             system_file_list.append(f"home/joyvan/pytest-temp-bucket/test_basket/0000/file_0{i}.txt")
 
-#     for i in range(2):
-#         supp_file_list.append(f"pytest-temp-bucket/test_basket/0000/IN_SUPP_{i}.txt")
-#         if (str(type(file_system)) == "<class 's3fs.core.S3FileSystem'>"):
-#             system_file_list.append(f"pytest-temp-bucket/test_basket/0000/IN_SYS_{i}.txt")
-#         else:
-#             system_file_list.append(f"home/joyvan/pytest-temp-bucket/test_basket/0000/IN_SYS_{i}.txt")
-
-#     print('\n\tTEST_SUPP_LIST:')
-#     for i in supp_file_list:
-#         print(i)
-
-#     print('\n\tTEST_SYS_LIST:')
-#     for j in system_file_list:
-#         print(j)
-
-
-    # new_system_file_list = []
-    
-    system_file_list = [file[file.find(pantry_name):] for file in system_file_list]
+    system_file_list = [
+        file[file.find(pantry_name):] for file in system_file_list
+    ]
     supp_file_list = [file[file.find(pantry_name):] for file in supp_file_list]
-    
+
     system_file_set = set(system_file_list)
     supp_file_set = set(supp_file_list)
-    
+
     files_not_in_system = supp_file_set - system_file_set
     files_not_in_supp = system_file_set - supp_file_set
-    
+
     for file in files_not_in_system:
         warnings.warn(
             UserWarning("File listed in the basket_supplement.json does not "
                         "exist in the file system: ", file)
         )
-    
+
     for file in files_not_in_supp:
         warnings.warn(
             UserWarning("File found in the file system is not listed in "
                         "the basket_supplement.json: ", file)
         )
-    
-    # print("files not in system: ", files_not_in_system)
-    # print("files not in supplement: ", files_not_in_supp)
-    
-    
-#     for k in system_file_list:
-        
-#         # new_system_file_list.append(os.path.relpath(k, pantry_name))
-#         new_system_file_list.append(k[k.find(pantry_name):])
-        
-    
-    # print('\n\tNEW_SYS_LIST:')
-    # for i in system_file_list:
-    #     print(i)
-
-
-
-
-
-
-
-
-#     print('\nsystem file list: length: ', len(system_file_list))
-#     for i in system_file_list:
-#         print(i)
-
-#     print('\n\nsupp file list: len: ', len(supp_file_list))
-#     for i in supp_file_list:
-#         print(i)
-
-
-"""
-    # Check if all the system files exist in the supplement file list
-    for sys_file in system_file_list:
-        if list(filter(sys_file.endswith, supp_file_list)) == []:
-            # print("File found in the file system is not listed in "
-            #       "the basket_supplement.json: ", sys_file)
-            warnings.warn(
-                UserWarning("File found in the file system is not listed in "
-                            "the basket_supplement.json: ", sys_file)
-            )
-
-    # Collect all the correct supplement files
-    correct_supp_files = []
-    for supp_file in supp_file_list:
-        for sys_file in system_file_list:
-            if sys_file.endswith(supp_file):
-                correct_supp_files.append(supp_file)
-
-    wrong_supp_files = [
-        x for x in supp_file_list if x not in correct_supp_files
-    ]
-
-    for file in wrong_supp_files:
-        # print("File listed in the basket_supplement.json does not "
-        #       "exist in the file system: ", file)
-        warnings.warn(
-             UserWarning("File listed in the basket_supplement.json does not "
-                         "exist in the file system: ", file)
-         )
-         """
