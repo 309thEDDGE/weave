@@ -3,7 +3,7 @@ This class builds the user-facing Index class. It pulls from the _Index class
 which uses Pandas as it's backend to build and interface with the on disk
 Index baskets.
 """
-
+import json
 import os
 
 from .basket import Basket
@@ -38,12 +38,18 @@ class Pantry():
             config.
         """
         self.file_system = kwargs.pop("file_system", get_file_system())
+        if not self.file_system.exists(pantry_path):
+            raise ValueError(
+                f"Invalid pantry Path. Pantry does not exist at: "
+                f"{pantry_path}"
+            )
+
         self.pantry_path = str(pantry_path)
         self.load_metadata()
 
         self.index = index(file_system=self.file_system,
                            pantry_path=self.pantry_path,
-                           metadata=self.metadata,
+                           metadata=self.metadata['index_metadata'],
                            **kwargs
         )
         self.metadata['index_metadata'] = self.index.get_metadata()
@@ -58,9 +64,11 @@ class Pantry():
                 self.metadata = json.load(file)
         else:
             self.metadata = {}
-
+        if 'index_metadata' not in self.metadata:
+            self.metadata['index_metadata'] = {}
     def save_metadata(self):
         """Dump metadata to to pantry metadata file"""
+        self.metadata['index_metadata'] = self.index.metadata
         with self.file_system.open(
                     self.metadata_path, "w", encoding="utf-8"
         ) as outfile:
@@ -91,18 +99,16 @@ class Pantry():
             Additional parameters to pass to the index
         '''
         basket_address = str(basket_address)
+        remove_item = self.index.get_row(basket_address)
 
-        remove_item = self.index.get_basket(basket_address)
-
-        if len(self.index.get_children(remove_item.uuid)) > 0:
+        if len(self.index.get_children(remove_item.iloc[0].uuid)) > 0:
             raise ValueError(
                 f"The provided value for basket_uuid {basket_address} " +
                 "is listed as a parent UUID for another basket. Please " +
                 "delete that basket before deleting it's parent basket."
             )
-
-        self.file_system.rm(remove_item.address, recursive=True)
-        self.index.delete_basket(remove_item.address, **kwargs)
+        self.file_system.rm(remove_item.iloc[0].address, recursive=True)
+        self.index.untrack_basket(remove_item.iloc[0].address, **kwargs)
 
     def upload_basket(self, upload_items, basket_type, **kwargs):
         """Upload a basket to the same pantry referenced by the Index
@@ -141,14 +147,14 @@ class Pantry():
             upload_items=upload_items,
             basket_type=basket_type,
             file_system=self.file_system,
-            pantry_name=self.pantry_name,
+            pantry_name=self.pantry_path,
             parent_ids=parent_ids,
             metadata=metadata,
             label=label,
         ).get_upload_path()
 
         single_indice_index = create_index_from_fs(up_dir, self.file_system)
-        self.index.upload_basket(single_indice_index)
+        self.index.track_basket(single_indice_index)
         return single_indice_index
 
     def get_basket(self, basket_address):
@@ -168,4 +174,6 @@ class Pantry():
         # and bucket name. Basket will catch invalid inputs and raise
         # appropriate errors.
         row = self.index.get_row(basket_address)
+        if len(row) == 0:
+            raise ValueError(f"Basket does not exist: {basket_address}")
         return Basket(row.iloc[0].address, pantry=self)
