@@ -66,6 +66,7 @@ class Pantry():
             self.metadata = {}
         if 'index_metadata' not in self.metadata:
             self.metadata['index_metadata'] = {}
+
     def save_metadata(self):
         """Dump metadata to to pantry metadata file"""
         self.metadata['index_metadata'] = self.index.metadata
@@ -142,7 +143,6 @@ class Pantry():
         metadata = kwargs.get("metadata", {})
         label = kwargs.get("label", "")
 
-        self.index.sync_index()
         up_dir = UploadBasket(
             upload_items=upload_items,
             basket_type=basket_type,
