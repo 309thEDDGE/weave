@@ -1,4 +1,5 @@
 """Pytests for the uploader functionality"""
+import json
 import os
 import time
 import uuid
