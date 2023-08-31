@@ -575,15 +575,12 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
         file_system=test_basket.file_system,
     )
     assert uploading_basket.kwargs.get("unique_id") is not None
-    print(tmp_dir)
-    print(test_basket.file_system.ls(tmp_dir))
-    print(upload_path)
-    print(test_basket.file_system.ls(upload_path))
-    print(test_basket.file_system.ls(\
-    '/tmp/pytest-of-runner/pytest-0/test_upload_basket_without_uui1/'))  
-    print(test_basket.file_system.ls(\
-    '/tmp/pytest-of-runner/pytest-0/test_upload_basket_without_uui1/test_basket_tmp_dir/'))
-    assert uploaded_basket.get_manifest()['uuid'] != 'null'
+
+    manifest_file_path = os.join(upload_path, 'basket_manifest.json')
+    with open(manifest_file_path, "w", encoding="utf-8") as outfile:
+        manifest_data = json.load(outfile)
+    print(manifest_data)
+    assert manifest_data['uuid'] != 'null'
 
 
 def test_upload_basket_upload_items_is_not_a_string(test_basket):
