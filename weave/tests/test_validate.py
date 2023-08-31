@@ -186,7 +186,7 @@ def test_validate(request, tmpdir):
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
 
-## TODO: Maybe this test should be in pantry
+# TODO: Maybe this test should be in pantry
 def test_validate_pantry_does_not_exist(test_validate):
     """Give a bucket path that does not exist and check that it throws
        an error.

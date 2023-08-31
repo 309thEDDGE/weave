@@ -35,7 +35,10 @@ class PandasIndex(IndexABC):
             If file_system is None, then the default fs is retrieved from the
             config.
         '''
-        super().__init__(file_system=file_system, pantry_path=pantry_path)
+        super().__init__(file_system=file_system,
+                         pantry_path=pantry_path,
+                         **kwargs
+        )
         self.index_basket_dir_name = 'index' # AKA basket type
         self.index_basket_dir_path = os.path.join(
             self.pantry_path, self.index_basket_dir_name
@@ -66,6 +69,15 @@ class PandasIndex(IndexABC):
         """The pantry path referenced by this Index."""
         return self._pantry_path
 
+    def get_metadata(self, **kwargs):
+        """Populates the metadata for the index.
+
+        Parameters
+        ----------
+        Optional kwargs controlled by concrete implementations.
+        """
+        super().get_metadata(**kwargs)
+        return self.metadata
 
     def sync_index(self):
         '''Gets index from latest index basket'''

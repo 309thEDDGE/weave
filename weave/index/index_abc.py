@@ -23,6 +23,8 @@ class IndexABC(abc.ABC):
         '''
         self._file_system = file_system
         self._pantry_path = pantry_path
+        self.metadata = kwargs.get('metadata', {})
+        self.get_metadata()
 
     @property
     @abc.abstractmethod
@@ -42,6 +44,7 @@ class IndexABC(abc.ABC):
         ----------
         Optional kwargs controlled by concrete implementations.
         """
+        self.metadata['name'] = str(self)
 
     @abc.abstractmethod
     def generate_index(self, **kwargs):
