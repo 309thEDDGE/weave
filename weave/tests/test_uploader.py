@@ -575,7 +575,10 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
         file_system=test_basket.file_system,
     )
     assert uploading_basket.kwargs.get("unique_id") is not None
-    print(test_basket.file_system.ls(tmp_dir))
+    print(test_basket.file_system.ls(\
+    '/tmp/pytest-of-runner/pytest-0/test_upload_basket_without_uui1/'))  
+    print(test_basket.file_system.ls(\
+    '/tmp/pytest-of-runner/pytest-0/test_upload_basket_without_uui1/test_basket_tmp_dir/'))
     assert uploaded_basket.get_manifest()['uuid'] != 'null'
 
 
