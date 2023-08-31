@@ -43,6 +43,11 @@ class IndexABC(abc.ABC):
         Parameters
         ----------
         Optional kwargs controlled by concrete implementations.
+
+        Returns
+        ----------
+        dict
+            A dictionary of metadata for the index.
         """
         self.metadata['name'] = str(self)
 

@@ -34,7 +34,11 @@ class BasketInitializer:
         except ValueError as error:
             if str(error) != f"Basket does not exist: {self.basket_address}":
                 raise error
-            self.set_up_basket_from_uuid(basket_address, **kwargs)
+
+            if 'pantry' not in kwargs:
+                raise KeyError("pantry, required to set up basket from UUID,"
+                               "is not in kwargs.")
+            self.set_up_basket_from_uuid(basket_address, kwargs['pantry'])
         self.manifest_path = f"{self.basket_address}/basket_manifest.json"
         self.supplement_path = f"{self.basket_address}/basket_supplement.json"
         self.metadata_path = f"{self.basket_address}/basket_metadata.json"
@@ -53,7 +57,7 @@ class BasketInitializer:
         self.basket_address = os.fspath(basket_address)
         self.validate_basket_path()
 
-    def set_up_basket_from_uuid(self, basket_address, **kwargs):
+    def set_up_basket_from_uuid(self, basket_address, pantry):
         """Attempts to set up a basket from a uuid.
 
         Note that if the basket cannot be set up from a uuid then an attempt to
@@ -63,14 +67,10 @@ class BasketInitializer:
             Argument can take one of two forms: either a path to the Basket
             directory, or the UUID of the basket. In this case it is assumed to
             be the UUID of the basket.
-        **pantry: weave.Pantry (required)
+        pantry: weave.Pantry
             The pantry which the basket uuid is associated with.
         """
-        if 'pantry' not in kwargs:
-            raise KeyError("Pantry, required to set up basket from UUID,"
-                           " is not in kwargs.")
 
-        pantry = kwargs['pantry']
         try:
             row = pantry.index.get_row(basket_address)
             self.set_up_basket_from_path(basket_address=row.iloc[0].address)
