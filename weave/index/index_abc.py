@@ -35,6 +35,15 @@ class IndexABC(abc.ABC):
         """The pantry path referenced by this Index."""
 
     @abc.abstractmethod
+    def get_metadata(self, **kwargs):
+        """Populates the metadata for the index.
+
+        Parameters
+        ----------
+        Optional kwargs controlled by concrete implementations.
+        """
+
+    @abc.abstractmethod
     def generate_index(self, **kwargs):
         """Populates the index from the file system.
 

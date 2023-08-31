@@ -4,6 +4,8 @@ which uses Pandas as it's backend to build and interface with the on disk
 Index baskets.
 """
 
+import os
+
 from .basket import Basket
 from .config import get_file_system
 from .index.create_index import create_index_from_fs
@@ -37,10 +39,33 @@ class Pantry():
         """
         self.file_system = kwargs.pop("file_system", get_file_system())
         self.pantry_path = str(pantry_path)
+        self.load_metadata()
+
         self.index = index(file_system=self.file_system,
                            pantry_path=self.pantry_path,
+                           metadata=self.metadata,
                            **kwargs
         )
+        self.metadata['index_metadata'] = self.index.get_metadata()
+
+    def load_metadata(self):
+        """Load pantry metadata from pantry_metadata.json"""
+        self.metadata_path = os.path.join(
+                                self.pantry_path,'pantry_metadata.json'
+        )
+        if self.file_system.exists(self.metadata_path):
+            with self.file_system.open(self.metadata_path, "rb") as file:
+                self.metadata = json.load(file)
+        else:
+            self.metadata = {}
+
+    def save_metadata(self):
+        """Dump metadata to to pantry metadata file"""
+        with self.file_system.open(
+                    self.metadata_path, "w", encoding="utf-8"
+        ) as outfile:
+            json.dump(self.metadata, outfile)
+
     def validate(self):
         """Convenient wrapper function to validate the pantry.
 
