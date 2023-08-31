@@ -15,12 +15,12 @@ from .create_index import create_index_from_fs
 class _Index():
     '''Handles Pandas based functionality of the Index'''
 
-    def __init__(self, bucket_name="basket-data", sync=True, **kwargs):
+    def __init__(self, pantry_name="basket-data", sync=True, **kwargs):
         '''Initializes the Index class.
 
         Parameters
         ----------
-        bucket_name: [string]
+        pantry_name: [string]
             Name of the bucket which the desired index is associated with.
         sync: [bool]
             Whether or not to check the index on disk to ensure this Index
@@ -38,10 +38,10 @@ class _Index():
         '''
         self.file_system = kwargs.get("file_system", get_file_system())
 
-        self.bucket_name = str(bucket_name)
+        self.pantry_name = str(pantry_name)
         self.index_basket_dir_name = 'index' # AKA basket type
         self.index_basket_dir_path = os.path.join(
-            self.bucket_name, self.index_basket_dir_name
+            self.pantry_name, self.index_basket_dir_name
         )
         self.sync = bool(sync)
         self.index_json_time = 0 # 0 is essentially same as None in this case
@@ -105,8 +105,8 @@ class _Index():
                         f"{self.index_basket_dir_path}/**/" +
                         f"{index_time}-index.json"
                     )[0]
-                    uuid = path.split(os.path.sep)[-2]
-                    self.delete_basket(basket_uuid=uuid, upload_index=False)
+                    parent_path = path.rsplit(os.path.sep,1)[0]
+                    self.file_system.rm(parent_path,recursive = True)
                 except ValueError as error:
                     warnings.warn(error)
 
@@ -125,7 +125,7 @@ class _Index():
 
     def generate_index(self):
         '''Generates index and stores it in a basket'''
-        index = create_index_from_fs(self.bucket_name, self.file_system)
+        index = create_index_from_fs(self.pantry_name, self.file_system)
         self._upload_index(index=index)
 
     def _upload_index(self, index):
@@ -133,12 +133,12 @@ class _Index():
         with tempfile.TemporaryDirectory() as out:
             n_secs = time_ns()
             temp_json_path = os.path.join(out, f"{n_secs}-index.json")
-            index.to_json(temp_json_path, date_format='iso')
+            index.to_json(temp_json_path, date_format='iso', date_unit='ns')
             UploadBasket(
                 upload_items=[{'path':temp_json_path, 'stub':False}],
                 basket_type=self.index_basket_dir_name,
                 file_system=self.file_system,
-                bucket_name=self.bucket_name
+                pantry_name=self.pantry_name
             )
         self.index_df = index
         self.index_json_time = n_secs
@@ -185,6 +185,7 @@ class _Index():
         self.index_df.reset_index(drop=True, inplace=True)
         if upload_index:
             self._upload_index(self.index_df)
+
 
     def get_parents(self, basket, **kwargs):
         """Recursively gathers all parents of basket and returns index
@@ -399,7 +400,7 @@ class _Index():
             upload_items=upload_items,
             basket_type=basket_type,
             file_system=self.file_system,
-            bucket_name=self.bucket_name,
+            pantry_name=self.pantry_name,
             parent_ids=parent_ids,
             metadata=metadata,
             label=label,
@@ -408,3 +409,4 @@ class _Index():
         self._upload_index(
             pd.concat([self.index_df, single_indice_index], ignore_index=True)
         )
+        return single_indice_index

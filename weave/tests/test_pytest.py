@@ -31,11 +31,11 @@ def test_weave_pytest_suffix(set_up_tb_no_cleanup):
     """Test that env var suffix works, and buckets are still deleted."""
     # Check bucket name includes suffix if applicable.
     suffix = os.environ.get('WEAVE_PYTEST_SUFFIX', '')
-    assert set_up_tb_no_cleanup.bucket_name == f"pytest-temp-bucket{suffix}"
+    assert set_up_tb_no_cleanup.pantry_name == f"pytest-temp-bucket{suffix}"
 
     # Check the bucket was made.
     assert set_up_tb_no_cleanup.file_system.exists(
-        set_up_tb_no_cleanup.bucket_name
+        set_up_tb_no_cleanup.pantry_name
     )
 
     # Cleanup the bucket.
@@ -43,5 +43,5 @@ def test_weave_pytest_suffix(set_up_tb_no_cleanup):
 
     # Check the bucket is actually deleted.
     assert not set_up_tb_no_cleanup.file_system.exists(
-        set_up_tb_no_cleanup.bucket_name
+        set_up_tb_no_cleanup.pantry_name
     )
