@@ -186,16 +186,12 @@ def test_validate(request, tmpdir):
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
 
-# TODO: Maybe this test should be in pantry
 def test_validate_pantry_does_not_exist(test_validate):
     """Give a bucket path that does not exist and check that it throws
        an error.
     """
 
     bucket_path = Path("THISisNOTaPROPERbucketNAMEorPATH")
-    pantry = Pantry(PandasIndex,
-                    pantry_path=bucket_path,
-                    file_system=test_validate.file_system)
 
     # Check that the correct error is raised
     with pytest.raises(
@@ -203,6 +199,9 @@ def test_validate_pantry_does_not_exist(test_validate):
         match=f"Invalid pantry Path. "
         f"Pantry does not exist at: {bucket_path}"
     ):
+        pantry = Pantry(PandasIndex,
+                        pantry_path=bucket_path,
+                        file_system=test_validate.file_system)
         validate.validate_pantry(pantry)
 
 
