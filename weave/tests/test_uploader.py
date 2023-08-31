@@ -552,6 +552,32 @@ def test_basket(request, tmpdir):
     yield test_bucket
     test_bucket.cleanup_bucket()
 
+
+def test_upload_basket_without_uuid_creates_uuid(test_basket):
+    """
+    Test that upload_basket creates a uuid when unique_id is not
+    initialized
+    """
+    
+    # Create a temporary basket with a test file.
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    test_basket.set_up_basket(tmp_basket_dir_name)
+    
+    #Initialize all kwargs except unique_id
+    upload_items = [{"path": tmp_dir.strpath, "stub": False}]
+    basket_type = "test_basket"
+    upload_path = os.path.join(test_basket.pantry_name, basket_type, unique_id)
+    
+    UploadBasket(
+        upload_items=upload_items,
+        upload_directory=upload_path,
+        basket_type=basket_type,
+        file_system=test_basket.file_system,
+    )
+    
+    assert test_basket.unique_id is not null
+
+
 def test_upload_basket_upload_items_is_not_a_string(test_basket):
     """
     Test that upload_basket raises a TypeError when upload_items is not a list
