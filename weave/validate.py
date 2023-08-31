@@ -234,7 +234,7 @@ def _handle_supplement(pantry_name, file, file_system):
         data = json.load(file_system.open(file))
         validate(instance=data, schema=supplement_schema)
         basket_dir, _ = os.path.split(file)
-        _validate_supplement_files(pantry_name, basket_dir, data, file_system)
+        # _validate_supplement_files(pantry_name, basket_dir, data, file_system)
 
     except jsonschema.exceptions.ValidationError:
         warnings.warn(UserWarning(
@@ -355,8 +355,8 @@ def _validate_supplement_files(pantry_name, basket_dir, data, file_system):
     
     
     
-    print('\n\npantry name: ', pantry_name)
-    print('basket_dir : ', basket_dir)
+    # print('\n\npantry name: ', pantry_name)
+    # print('basket_dir : ', basket_dir)
     
     
     
@@ -379,13 +379,13 @@ def _validate_supplement_files(pantry_name, basket_dir, data, file_system):
 #         else:
 #             system_file_list.append(f"home/joyvan/pytest-temp-bucket/test_basket/0000/IN_SYS_{i}.txt")
 
-    print('\n\tTEST_SUPP_LIST:')
-    for i in supp_file_list:
-        print(i)
+#     print('\n\tTEST_SUPP_LIST:')
+#     for i in supp_file_list:
+#         print(i)
 
-    print('\n\tTEST_SYS_LIST:')
-    for j in system_file_list:
-        print(j)
+#     print('\n\tTEST_SYS_LIST:')
+#     for j in system_file_list:
+#         print(j)
 
 
     # new_system_file_list = []
