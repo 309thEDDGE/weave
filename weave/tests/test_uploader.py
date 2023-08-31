@@ -577,7 +577,7 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
     )
     assert uploading_basket.kwargs.get("unique_id") is not None
 
-    uploaded_basket = Basket(tmp_dir, tmp_basket_dir_name)
+    uploaded_basket = Basket(upload_path, tmp_basket_dir_name)
     assert uploaded_basket.get_manifest()['uuid'] != 'null'
 
 
