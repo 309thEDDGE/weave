@@ -35,6 +35,20 @@ class IndexABC(abc.ABC):
         """The pantry path referenced by this Index."""
 
     @abc.abstractmethod
+    def get_metadata(self, **kwargs):
+        """Populates the metadata for the index.
+
+        Parameters
+        ----------
+        Optional kwargs controlled by concrete implementations.
+
+        Returns
+        ----------
+        dict
+            A dictionary of metadata for the index.
+        """
+
+    @abc.abstractmethod
     def generate_index(self, **kwargs):
         """Populates the index from the file system.
 
@@ -66,7 +80,7 @@ class IndexABC(abc.ABC):
 
     @abc.abstractmethod
     def track_basket(self, entry_df, **kwargs):
-        """Track a basket to from the pantry referenced by the Index
+        """Track a basket from the pantry with the Index.
 
         Parameters
         ----------
@@ -80,29 +94,31 @@ class IndexABC(abc.ABC):
 
         Parameters
         ----------
-        basket_address: str
+        basket_address: str or [str]
             Argument can take one of two forms: either a path to the basket
-            directory, or the UUID of the basket.
+            directory, or the UUID of the basket. These may also be passed in
+            as a list.
 
         Optional kwargs controlled by concrete implementations.
         """
 
     @abc.abstractmethod
-    def get_basket(self, basket_address, **kwargs):
-        """Returns a Basket of given UUID or path.
+    def get_row(self, basket_address, **kwargs):
+        """Returns a pd.DataFrame row information of given UUID or path.
 
         Parameters
         ----------
-        basket_address: str
+        basket_address: str or [str]
             Argument can take one of two forms: either a path to the basket
-            directory, or the UUID of the basket.
+            directory, or the UUID of the basket. These may also be passed in
+            as a list.
 
         Optional kwargs controlled by concrete implementations.
 
         Returns
         ----------
-        Basket
-            Returns the Basket object.
+        row: pd.DataFrame
+            Manifest information for the requested basket.
         """
 
     @abc.abstractmethod
