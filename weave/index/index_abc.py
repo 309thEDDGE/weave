@@ -104,21 +104,7 @@ class IndexABC(abc.ABC):
 
     @abc.abstractmethod
     def get_row(self, basket_address, **kwargs):
-        """Returns a pd.DataFrame row information of given UUID or path.
-
-        Parameters
-        ----------
-        basket_address: str or [str]
-            Argument can take one of two forms: either a path to the basket
-            directory, or the UUID of the basket. These may also be passed in
-            as a list.
-
-        Optional kwargs controlled by concrete implementations.
-        """
-
-    @abc.abstractmethod
-    def get_row(self, basket_address, **kwargs):
-        """Returns a pd.DataFrame row information of given UUID or path.
+        """Returns a pandas.DataFrame row information of given UUID or path.
 
         Parameters
         ----------
