@@ -8,17 +8,17 @@ class IndexABC(abc.ABC):
     """Abstract Base Class for the Index"""
     @abc.abstractmethod
     def __init__(self, file_system, pantry_path, **kwargs):
-        '''Initializes the Index class.
+        """Initializes the Index class.
 
         Parameters
         ----------
         file_system: fsspec object
             The fsspec object which hosts the pantry we desire to index.
-        pantry_path: string
+        pantry_path: str
             Path to the pantry root which we want to index.
 
         Optional kwargs controlled by concrete implementations.
-        '''
+        """
         self._file_system = file_system
         self._pantry_path = pantry_path
 
@@ -39,6 +39,11 @@ class IndexABC(abc.ABC):
         Parameters
         ----------
         Optional kwargs controlled by concrete implementations.
+
+        Returns
+        ----------
+        dict
+            A dictionary of metadata for the index.
         """
 
     @abc.abstractmethod
@@ -77,7 +82,7 @@ class IndexABC(abc.ABC):
 
         Parameters
         ----------
-        entry_df : pd.DataFrame
+        entry_df : pandas.DataFrame
             Uploaded baskets to append to the index.
 
         Optional kwargs controlled by concrete implementations.
@@ -86,6 +91,20 @@ class IndexABC(abc.ABC):
     @abc.abstractmethod
     def untrack_basket(self, basket_address, **kwargs):
         """Remove a basket from being tracked of given UUID or path.
+
+        Parameters
+        ----------
+        basket_address: str or [str]
+            Argument can take one of two forms: either a path to the basket
+            directory, or the UUID of the basket. These may also be passed in
+            as a list.
+
+        Optional kwargs controlled by concrete implementations.
+        """
+
+    @abc.abstractmethod
+    def get_row(self, basket_address, **kwargs):
+        """Returns a pd.DataFrame row information of given UUID or path.
 
         Parameters
         ----------
@@ -235,4 +254,4 @@ class IndexABC(abc.ABC):
 
     @abc.abstractmethod
     def __str__(self):
-        """Returns the str instantiation type of this Index (ie 'SQLIndex')."""
+        """Returns the str instantiation type of this Index (ie 'IndexSQL')."""

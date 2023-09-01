@@ -1,3 +1,7 @@
+<h1 align="center">
+<img src="./weave_transparent.png" width="300">
+</h1>
+
 # Weave
 
 Weave is a custom package used to facilitate the creation and maintenance of
@@ -107,9 +111,9 @@ The default pantry name for Weave classes is 'basket-data'. A pantry can be
 named any valid fsspec directory name. This can be done as follows:
 
 ```python
-    pantry_name = 'basket-data'
-    s3_fs.mkdir(path_to_pantry + os.path.sep + pantry_name)
-    local_fs.mkdir(path_to_pantry + os.path.sep + pantry_name)
+pantry_name = 'basket-data'
+s3_fs.mkdir(path_to_pantry + os.path.sep + pantry_name)
+local_fs.mkdir(path_to_pantry + os.path.sep + pantry_name)
 ```
 
 ### Baskets
@@ -166,7 +170,21 @@ basket = Basket(basket_address, pantry_name=Optional)
 basket.get_manifest()
 basket.get_supplement()
 basket.get_metadata()
-basket.ls()
+basket_contents = basket.ls()
+```
+
+#### Using Basket to access files
+
+Basket can readily list and access files within the file system using
+basket.ls(). Once the the ls() retrieves the avaialable files, they are used
+like any file path. The following example loads a csv using Basket.
+
+```python
+s3 = s3fs.S3FileSystem(
+    client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+)
+basket_contents = [pantry_name/basket_type/uuid/data.csv]
+df = pd.read_csv(s3.open(basket_contents[0], mode='rb'))
 ```
 
 ### Using an Index
@@ -233,4 +251,5 @@ warnings = validate.validate_pantry(pantry_name, file_system)
 Anyone who desires to contribute to Weave is encouraged to create a branch,
 make the changes as they see fit, and submit them for review to a member of
 309th EDDGE. Make sure contributions follow proper test driven development
-practices and PEP 8 style guidelines.
+practices and PEP 8 style guidelines. The contribution guide can be found
+<a href="https://github.com/309thEDDGE/weave/blob/main/CONTRIBUTING.md">here</a>

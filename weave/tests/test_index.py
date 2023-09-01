@@ -13,7 +13,6 @@ import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
 from weave import Basket
-from weave.index.create_index import create_index_from_fs
 from weave.index.index import Index
 from weave.tests.pytest_resources import BucketForTest
 
@@ -59,191 +58,6 @@ def test_pantry(request, tmpdir):
 # We need to ignore pylint's warning "redefined-outer-name" as this is simply
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
-
-
-def test_root_dir_does_not_exist(test_pantry):
-    """try to create an index in a bucket that doesn't exist,
-    check that it throws an error
-    """
-    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
-    with pytest.raises(FileNotFoundError, match="'root_dir' does not exist"):
-        create_index_from_fs(
-            os.path.join(tmp_basket_dir_one, "NOT-A-BUCKET"),
-            test_pantry.file_system,
-        )
-
-
-def test_root_dir_is_string(test_pantry):
-    """Tests create_index_from_fs to make sure it errors when root dir is
-    not a string"""
-    with pytest.raises(TypeError, match="'root_dir' must be a string"):
-        create_index_from_fs(765, test_pantry.file_system)
-
-
-def test_correct_index(test_pantry):
-    """Tests create_index_from_fs to make sure it returns as expected"""
-    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
-    addr_one = test_pantry.upload_basket(
-        tmp_basket_dir=tmp_basket_dir_one, uid="0001"
-    )
-
-    tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
-    addr_two = test_pantry.upload_basket(
-        tmp_basket_dir=tmp_basket_dir_two, uid="0002", parent_ids=["0001"]
-    )
-
-    addresses = [addr_one, addr_two]
-    truth_index_dict = {
-        "uuid": ["0001", "0002"],
-        "upload_time": ["whatever", "dont matter"],
-        "parent_uuids": [[], ["0001"]],
-        "basket_type": "test_basket",
-        "label": "",
-        "address": addresses,
-        "storage_type": test_pantry.file_system.__class__.__name__,
-    }
-    expected_index = pd.DataFrame(truth_index_dict)
-
-    actual_index = create_index_from_fs(
-        test_pantry.pantry_name, test_pantry.file_system
-    )
-
-    # Check that the indexes match, ignoring 'upload_time', and 'address'
-    # (address needs to be checked regardless of FS prefix--see next assert)
-    assert (
-        (expected_index == actual_index)
-        .drop(columns=["upload_time", "address"])
-        .all()
-        .all()
-    )
-
-    # Check the addresses are the same, ignoring any FS dependent prefixes.
-    assert all(
-        (
-            actual_index["address"].iloc[i].endswith(addr)
-            for i, addr in enumerate(addresses)
-        )
-    )
-
-
-# Test with two different fsspec file systems (top of file).
-@pytest.fixture(params=[s3fs, local_fs])
-def set_up_malformed_baskets(request, tmpdir):
-    """
-    upload a basket with a basket_details.json with incorrect keys.
-    """
-    file_system = request.param
-    test_pantry = BucketForTest(tmpdir, file_system)
-
-    good_addresses = []
-    bad_addresses = []
-    for i in range(10):
-        tmp_basket_dir = test_pantry.set_up_basket(f"basket_{i}")
-        address = test_pantry.upload_basket(
-            tmp_basket_dir=tmp_basket_dir, uid=f"000{i}"
-        )
-
-        # change a key in the bad baske_manifests
-        if (i % 3) == 0:
-            bad_addresses.append(address)
-
-            basket_dict = {}
-            manifest_address = (
-                f"{test_pantry.pantry_name}/test_basket/"
-                f"000{i}/basket_manifest.json"
-            )
-
-            with test_pantry.file_system.open(
-                manifest_address, "rb"
-            ) as tp_file:
-                basket_dict = json.load(tp_file)
-                basket_dict.pop("uuid")
-            basket_path = os.path.join(tmp_basket_dir, "basket_manifest.json")
-            with open(basket_path, "w", encoding="utf-8") as tp_file:
-                json.dump(basket_dict, tp_file)
-
-            test_pantry.file_system.upload(basket_path, manifest_address)
-
-        else:
-            good_addresses.append(address)
-
-    yield test_pantry, good_addresses, bad_addresses
-    test_pantry.cleanup_bucket()
-
-
-def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
-    """Check that the index is made correctly when a malformed basket
-    exists."""
-    test_pantry, good_addresses, _ = set_up_malformed_baskets
-
-    truth_index_dict = {
-        "uuid": [f"000{i}" for i in [1, 2, 4, 5, 7, 8]],
-        "upload_time": "whatever",
-        "parent_uuids": [[], [], [], [], [], []],
-        "basket_type": "test_basket",
-        "label": "",
-        "address": good_addresses,
-        "storage_type": test_pantry.file_system.__class__.__name__,
-    }
-    expected_index = pd.DataFrame(truth_index_dict)
-
-    # We catch the warnings here, as it will warn for bad baskets, but we don't
-    # want the warning to drop through to the pytest log in this test.
-    # (Checking the warnings are correct is tested in the next unit test.)
-    with warnings.catch_warnings(record=True) as warn:
-        actual_index = create_index_from_fs(
-            test_pantry.pantry_name, test_pantry.file_system
-        )
-        message = (
-            "baskets found in the following locations "
-            "do not follow specified weave schema:\n"
-        )
-
-        # Check that the indexes match, ignoring 'upload_time', and 'address'
-        # (address needs to be checked regardless of FS prefix-see next assert)
-        assert (expected_index == actual_index).drop(
-            columns=["upload_time", "address"]
-        ).all().all() and str(warn[0].message).startswith(message)
-
-    # Check the addresses are the same, ignoring any FS dependent prefixes.
-    assert all(
-        (
-            actual_index["address"].iloc[i].endswith(addr)
-            for i, addr in enumerate(good_addresses)
-        )
-    )
-
-
-def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
-    """Check that a warning is thrown during index creation."""
-    test_pantry, _, bad_addresses = set_up_malformed_baskets
-
-    with warnings.catch_warnings(record=True) as warn:
-        create_index_from_fs(test_pantry.pantry_name, test_pantry.file_system)
-        message = (
-            "baskets found in the following locations "
-            "do not follow specified weave schema:"
-        )
-        # {bad_addresses} would be included in the message, but we can't do a
-        # direct string comparison due to FS dependent prefixes.
-
-        warn_msg = str(warn[0].message)
-
-        # Check the warning message header/info is correct.
-        warn_header_str = warn_msg[: warn_msg.find("\n")]
-        assert warn_header_str == message
-
-        # Check the addresses returned in the warning are the ones we expect.
-        warning_addrs_str = warn_msg[warn_msg.find("\n") + 1 :]
-        warning_addrs_list = (
-            warning_addrs_str.strip("[]").replace("'", "").split(", ")
-        )
-        assert all(
-            (
-                a_addr.endswith(e_addr)
-                for a_addr, e_addr in zip(warning_addrs_list, bad_addresses)
-            )
-        )
 
 
 def test_sync_index_gets_latest_index(test_pantry):
@@ -420,36 +234,7 @@ def test_is_index_current(test_pantry):
     ind2.generate_index()
     assert ind2.is_index_current() is True and ind.is_index_current() is False
 
-
-def test_generate_index(test_pantry):
-    """Tests the generation of the Index.pandas_df member variable after a
-    basket is uploaded without the Index object knowing."""
-    # Put basket in the temporary bucket
-    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
-
-    # Create index
-    ind = Index(
-        pantry_name=test_pantry.pantry_name,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    ind.to_pandas_df()
-
-    # Add another basket
-    tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
-    ind.generate_index()
-
-    # Assert length of index includes both baskets and excludes the index
-    assert len(ind.to_pandas_df()) == 2
-
-    #assert all baskets in index are not index baskets
-    for i in range(len(ind.to_pandas_df())):
-        basket_type = ind.to_pandas_df()["basket_type"][i]
-        assert basket_type != "index"
-
-
+# TODO: Delete file system items from here. Only test index
 def test_delete_basket_deletes_basket(test_pantry):
     """Tests Index.delete_basket to make sure it does, in fact, delete the
     basket."""
@@ -1238,7 +1023,7 @@ def test_get_children_from_uuid(test_pantry):
 
     assert child_answer.equals(results)
 
-
+# TODO: Implement for only the index checking
 def test_upload_basket_updates_the_index(test_pantry):
     """
     In this test the index already exists with one basket inside of it.
@@ -1274,7 +1059,6 @@ def test_upload_basket_updates_the_index(test_pantry):
     assert time_diff.total_seconds() == 0
     assert len(ind.index_df) == 4
 
-
 def test_upload_basket_works_on_empty_basket(test_pantry):
     """
     In this test the Index object will upload a basket to a pantry that does
@@ -1292,105 +1076,3 @@ def test_upload_basket_works_on_empty_basket(test_pantry):
         basket_type="test",
     )
     assert len(ind.index_df) == 1
-
-
-@patch.object(uuid, "uuid1")
-@patch("weave.upload.UploadBasket.upload_basket_supplement_to_fs")
-def test_upload_basket_gracefully_fails(
-    mocked_obj_1, mocked_obj_2, test_pantry
-):
-    """
-    In this test an engineered failure to upload the basket occurs.
-    Index.upload_basket() should not add anything to the index_df.
-    Additionally, the basket in question should be deleted from storage (I will
-    make the process fail only after a partial upload).
-    """
-    tmp_basket = test_pantry.set_up_basket("basket_one")
-
-    ind = Index(
-        pantry_name=test_pantry.pantry_name,
-        file_system=test_pantry.file_system
-    )
-
-    non_unique_id = "0001"
-    with pytest.raises(
-        ValueError,
-        match="This error provided for test_upload_basket_gracefully_fails",
-    ):
-        mocked_obj_1.side_effect = ValueError(
-            "This error provided for test_upload_basket_gracefully_fails"
-        )
-        mocked_obj_2.return_value.hex = non_unique_id
-        ind.upload_basket(
-            upload_items=[{"path": str(tmp_basket.realpath()), "stub": False}],
-            basket_type="test",
-        )
-
-    assert not test_pantry.file_system.exists(
-        os.path.join(test_pantry.pantry_name, "test", non_unique_id)
-    )
-
-
-def test_index_get_basket_works_correctly(test_pantry):
-    """Test that Index.get_basket() returns a Basket object with correct
-    values
-    """
-
-    uid = "0001"
-    tmp_basket_name = "basket_one"
-    tmp_basket_type = "test_basket"
-    txt_file_name = "test.txt"
-
-    tmp_basket_dir = test_pantry.set_up_basket(
-        tmp_basket_name, file_name=txt_file_name
-    )
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_basket_dir, uid=uid, basket_type=tmp_basket_type
-    )
-
-    expected_basket = Basket(
-        uid,
-        pantry_name=test_pantry.pantry_name,
-        file_system=test_pantry.file_system
-    )
-
-    ind = Index(
-        pantry_name=test_pantry.pantry_name,
-        file_system=test_pantry.file_system
-    )
-    retrieved_basket = ind.get_basket(uid)
-
-    expected_file_path = os.path.join(
-        test_pantry.pantry_name,
-        tmp_basket_type,
-        uid,
-        tmp_basket_name,
-        txt_file_name,
-    )
-
-    assert retrieved_basket.ls(tmp_basket_name)[0].endswith(expected_file_path)
-
-    assert expected_basket.manifest_path == retrieved_basket.manifest_path
-    assert expected_basket.supplement_path == retrieved_basket.supplement_path
-    assert expected_basket.metadata_path == retrieved_basket.metadata_path
-
-    assert expected_basket.get_manifest() == retrieved_basket.get_manifest()
-    assert (
-        expected_basket.get_supplement() == retrieved_basket.get_supplement()
-    )
-    assert expected_basket.get_metadata() == retrieved_basket.get_metadata()
-
-
-def test_index_get_basket_graceful_fail(test_pantry):
-    """Test Index.get_basket() throws proper ValueErrors with invalid
-    inputs.
-    """
-
-    bad_uid = "DOESNT EXIST LOL"
-    ind = Index(
-        pantry_name=test_pantry.pantry_name,
-        file_system=test_pantry.file_system
-    )
-
-    with pytest.raises(ValueError, match=f"Basket does not exist: {bad_uid}"):
-        ind.get_basket(bad_uid)
