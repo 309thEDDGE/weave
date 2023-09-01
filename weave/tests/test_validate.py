@@ -1488,7 +1488,7 @@ def test_validate_file_not_in_supplement(test_validate):
 
     # Make a file and upload it to the file system
     upload_file_path = os.path.join(temp, "MY_UNFOUND_FILE.txt")
-    with open("MY_UNFOUND_FILE.txt", 'w') as file:
+    with open("MY_UNFOUND_FILE.txt", 'w', encoding="utf-8") as file:
         json.dump("TEST FAKE FILE", file)
 
     test_validate.file_system.upload("MY_UNFOUND_FILE.txt", upload_file_path)
@@ -1550,7 +1550,7 @@ def test_validate_file_not_in_file_system(test_validate):
     ]
 
     # Add the new supplement data to the current file
-    with open("basket_supplement.json", "w") as file:
+    with open("basket_supplement.json", "w", encoding="utf-8") as file:
         json.dump(supplement_dict, file)
 
     # Upload the supplement file to the file system, and remove the local one
