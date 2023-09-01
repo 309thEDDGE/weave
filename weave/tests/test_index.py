@@ -12,9 +12,11 @@ import pytest
 import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
+import weave
 from weave import Basket
 from weave.index.index import Index
 from weave import IndexSQLite
+from weave.index.create_index import create_index_from_fs
 from weave.tests.pytest_resources import BucketForTest, IndexForTest
 
 
@@ -57,6 +59,7 @@ for file_system in file_systems:
     for index in indexes:
         params.append((file_system, index))
 
+
 @pytest.fixture(params=params)
 def test_pantry(request, tmpdir):
     """Sets up test bucket for the tests"""
@@ -79,9 +82,42 @@ def test_pantry(request, tmpdir):
     test_bucket.cleanup_bucket()
     test_index.cleanup_index()
 
+
+@pytest.fixture(params=indexes)
+def test_index_only(request):
+    """Sets up only the index for a test (USES DEFAULT FILE_SYSTEM ARGS).
+
+    Use this fixture for tests that DO NOT manipulate the pantry (ie
+    type checking tests, etc.)
+    """
+    index_constructor = request.param
+    file_system = weave.config.get_file_system()
+    pantry_path = (
+        "pytest-temp-bucket" f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
+    )
+
+    test_index = IndexForTest(
+        index_constructor=index_constructor,
+        file_system=file_system,
+        pantry_path=pantry_path
+    )
+    index = test_index.index
+
+    yield index
+    test_index.cleanup_index()
+
+
 # We need to ignore pylint's warning "redefined-outer-name" as this is simply
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
+def test_index_abc_get_metadata_returns_dict(test_index_only):
+    """Test IndexABC get_metadata returns a python dictionary."""
+    ind = test_index_only
+
+    metadata = ind.get_metadata()
+    assert isinstance(metadata, dict), "Index.get_metadata must return a dict."
+
+
 def test_index_abc_generate_index_works(test_pantry):
     """Tests IndexABC generate_index uses the pantry fs to add to the index."""
     # Unpack the test_pantry into two variables for the pantry and index.
@@ -104,8 +140,8 @@ def test_index_abc_generate_index_works(test_pantry):
     assert len(ind_df) == 1, "Incorrect number of elements in dataframe"
 
     # Add another basket to the temporary pantry
-    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_two")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0002")
 
     # Regenerate the index
     ind.generate_index()
@@ -138,26 +174,26 @@ def test_index_abc_to_pandas_df_works(test_pantry):
 
     # Check df columns are correctly named.
     assert (
-        list(ind_df.columns) = ["uuid", "upload_time", "parent_uuids",
+        list(ind_df.columns) == ["uuid", "upload_time", "parent_uuids",
                                 "basket_type", "label", "address",
                                 "storage_type"]
-    )
+    ), "Dataframe columns do not match"
 
     # Check values of basket are accurate
     assert (
         ind_df.iloc[0]["uuid"] == uid and
-        ind_df.iloc[0]["parent_uuids"] == [] and
+        ind_df.iloc[0]["parent_uuids"] == "[]" and
         ind_df.iloc[0]["basket_type"] == basket_type and
         ind_df.iloc[0]["label"] == label and
-        ind_df.iloc[0]["address"] == up_dir and
+        ind_df.iloc[0]["address"].endswith(up_dir) and
         ind_df.iloc[0]["storage_type"] == \
             test_pantry.file_system.__class__.__name__
-    )
+    ), "Retrieved manifest values do not match."
 
     # Upload another basket
     uid, basket_type, label = "0002", "test_basket", "test_label"
     parent_ids = ["0001"]
-    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_two")
     up_dir = test_pantry.upload_basket(
         tmp_basket_dir=tmp_basket_dir_one,
         uid=uid,
@@ -175,35 +211,142 @@ def test_index_abc_to_pandas_df_works(test_pantry):
 
     # Check df columns are correctly named.
     assert (
-        list(ind_df.columns) = ["uuid", "upload_time", "parent_uuids",
+        list(ind_df.columns) == ["uuid", "upload_time", "parent_uuids",
                                 "basket_type", "label", "address",
                                 "storage_type"]
-    )
+    ), "Dataframe columns do not match"
 
     # Check values of basket are accurate
     assert (
         ind_df.iloc[1]["uuid"] == uid and
-        ind_df.iloc[1]["parent_uuids"] == parent_ids and
+        ind_df.iloc[1]["parent_uuids"] == f"{parent_ids}" and
         ind_df.iloc[1]["basket_type"] == basket_type and
         ind_df.iloc[1]["label"] == label and
-        ind_df.iloc[1]["address"] == up_dir and
+        ind_df.iloc[1]["address"].endswith(up_dir) and
         ind_df.iloc[1]["storage_type"] == \
             test_pantry.file_system.__class__.__name__
-    )
-
-
-def test_index_abc_get_metadata_returns_dict():
-    raise NotImplementedError
+    ), "Retrieved manifest values do not match."
 
 
 def test_index_abc_track_basket_adds_single_basket(test_pantry):
     """Test IndexABC track_basket works when passing a single basket df."""
-    raise NotImplementedError
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+    # Generate the index.
+    ind.generate_index()
+    ind_df = ind.to_pandas_df()
+
+    assert len(ind_df) == 0, "Incorrect number of elements in dataframe"
+
+    # Put basket in the temporary bucket
+    uid, basket_type, label = "0001", "test_basket", "test_label"
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    up_dir = test_pantry.upload_basket(
+        tmp_basket_dir=tmp_basket_dir_one,
+        uid=uid,
+        basket_type=basket_type,
+        label=label
+    )
+
+    single_indice_index = create_index_from_fs(
+        up_dir,
+        test_pantry.file_system
+    )
+
+    ind.track_basket(single_indice_index)
+    ind_df = ind.to_pandas_df()
+
+    assert len(ind_df) == 1, "Incorrect number of elements in dataframe"
+
+    # Check values of basket are accurate
+    assert (
+        ind_df.iloc[0]["uuid"] == uid and
+        ind_df.iloc[0]["parent_uuids"] == "[]" and
+        ind_df.iloc[0]["basket_type"] == basket_type and
+        ind_df.iloc[0]["label"] == label and
+        ind_df.iloc[0]["address"].endswith(up_dir) and
+        ind_df.iloc[0]["storage_type"] == \
+            test_pantry.file_system.__class__.__name__
+    ), "Retrieved manifest values do not match."
 
 
 def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
     """Test IndexABC track_basket works when passing a multi-basket df."""
-    raise NotImplementedError
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+    # Generate the index.
+    ind.generate_index()
+
+    # Put basket in the temporary bucket
+    uid1, basket_type1, label1 = "0001", "test_basket", "test_label"
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    up_dir1 = test_pantry.upload_basket(
+        tmp_basket_dir=tmp_basket_dir_one,
+        uid=uid1,
+        basket_type=basket_type1,
+        label=label1
+    )
+
+    first_slice_df = create_index_from_fs(up_dir1, test_pantry.file_system)
+    first_slice_df["parent_uuids"] = first_slice_df["parent_uuids"].astype(str)
+
+    # Upload another basket
+    uid2, basket_type2, label2 = "0002", "test_basket", "test_label"
+    parent_ids2 = ["0001"]
+    tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
+    up_dir2 = test_pantry.upload_basket(
+        tmp_basket_dir=tmp_basket_dir_two,
+        uid=uid2,
+        basket_type=basket_type2,
+        parent_ids=parent_ids2,
+        label=label2
+    )
+
+    second_slice_df = create_index_from_fs(up_dir2, test_pantry.file_system)
+    second_slice_df["parent_uuids"] = (
+        second_slice_df["parent_uuids"].astype(str)
+    )
+
+    dual_slice_df = pd.concat([first_slice_df, second_slice_df])
+    assert len(dual_slice_df) == 2, "Invalid dual_indice_index values."
+
+    ind.track_basket(dual_slice_df)
+    ind_df = ind.to_pandas_df()
+
+    # Check we get a pandas dataframe of the correct length.
+    assert (
+        len(ind_df) == 2 and isinstance(ind_df, pd.DataFrame)
+    ), "track_basket failed to add multiple items."
+
+    # Check values of basket are accurate
+    assert (
+        ind_df.iloc[0]["uuid"] == uid1 and
+        ind_df.iloc[0]["parent_uuids"] == "[]" and
+        ind_df.iloc[0]["basket_type"] == basket_type1 and
+        ind_df.iloc[0]["label"] == label1 and
+        ind_df.iloc[0]["address"].endswith(up_dir1) and
+        ind_df.iloc[0]["storage_type"] == \
+            test_pantry.file_system.__class__.__name__
+    ), "Retrieved manifest values do not match first record."
+
+    assert (
+        ind_df.iloc[1]["uuid"] == uid2 and
+        ind_df.iloc[1]["parent_uuids"] == f"{parent_ids2}" and
+        ind_df.iloc[1]["basket_type"] == basket_type2 and
+        ind_df.iloc[1]["label"] == label2 and
+        ind_df.iloc[1]["address"].endswith(up_dir2) and
+        ind_df.iloc[1]["storage_type"] == \
+            test_pantry.file_system.__class__.__name__
+    ), "Retrieved manifest values do not match second record."
+
+    # Check df columns are correctly named.
+    assert (
+        list(ind_df.columns) == ["uuid", "upload_time", "parent_uuids",
+                                "basket_type", "label", "address",
+                                "storage_type"]
+    ), "Dataframe columns do not match"
 
 
 def test_index_abc_untrack_basket_removes_single_basket(test_pantry):

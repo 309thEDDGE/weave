@@ -5,6 +5,7 @@ import warnings
 
 import datetime
 import sqlite3
+import pandas as pd
 
 from weave import Basket
 from ..config import index_schema
@@ -63,7 +64,7 @@ class IndexSQLite(IndexABC):
 
     def get_metadata(self, **kwargs):
         """Populates the metadata for the index."""
-        raise NotImplementedError
+        return {"db_path": self.db_path}
 
     def generate_index(self, **kwargs):
         """Populates the index from the file system.
@@ -146,13 +147,14 @@ class IndexSQLite(IndexABC):
             Returns a dataframe of the manifest data of the baskets in the
             pantry.
         """
-        ind_df = pd.DataFrame(
-            self.cur.execute("SELECT * FROM pantry_index LIMIT ?", (max_rows,))
-            .fetchall()
-        )
-        ind_df.columns = (
+        columns = (
             [info[1] for info in
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
+        )
+        ind_df = pd.DataFrame(
+            self.cur.execute("SELECT * FROM pantry_index LIMIT ?", (max_rows,))
+            .fetchall(),
+            columns=columns
         )
         return ind_df
 
@@ -164,6 +166,10 @@ class IndexSQLite(IndexABC):
         entry_df : pd.DataFrame
             Uploaded baskets' manifest data to append to the index.
         """
+        entry_df["parent_uuids"] = entry_df["parent_uuids"].astype(str)
+        entry_df.to_sql("pantry_index", self.con,
+                        if_exists="append", method="multi", index=False)
+
 
     def untrack_basket(self, basket_address, **kwargs):
         """Remove a basket from being tracked of given UUID or path.
@@ -234,7 +240,6 @@ class IndexSQLite(IndexABC):
             file_system=self.file_system
         )
 
-    @abc.abstractmethod
     def get_row(self, basket_address, **kwargs):
         """Returns a pd.DataFrame row information of given UUID or path.
 
