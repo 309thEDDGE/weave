@@ -26,11 +26,7 @@ class ValidateForTest(BucketForTest):
     # which is over-riding BucketForTest.set_up_basket. Pylint hates it, but
     # here we are:
     # pylint: disable-next=arguments-differ
-    def set_up_basket(
-        self,
-        tmp_dir_name,
-        **kwargs
-    ):
+    def set_up_basket(self, tmp_dir_name, **kwargs):
         """Overrides BucketForTest's set_up_basket to better test_validate.py
 
         Sets up the basket with a nested basket depending on the values of
