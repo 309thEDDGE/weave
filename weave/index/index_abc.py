@@ -6,6 +6,22 @@ import abc
 
 class IndexABC(abc.ABC):
     """Abstract Base Class for the Index"""
+    @abc.abstractmethod
+    def __init__(self, file_system, pantry_path, **kwargs):
+        """Initializes the Index class.
+
+        Parameters
+        ----------
+        file_system: fsspec object
+            The fsspec object which hosts the pantry we desire to index.
+        pantry_path: str
+            Path to the pantry root which we want to index.
+
+        Optional kwargs controlled by concrete implementations.
+        """
+        self._file_system = file_system
+        self._pantry_path = pantry_path
+
     @property
     @abc.abstractmethod
     def file_system(self):
@@ -15,6 +31,20 @@ class IndexABC(abc.ABC):
     @abc.abstractmethod
     def pantry_path(self):
         """The pantry path referenced by this Index."""
+
+    @abc.abstractmethod
+    def get_metadata(self, **kwargs):
+        """Populates the metadata for the index.
+
+        Parameters
+        ----------
+        Optional kwargs controlled by concrete implementations.
+
+        Returns
+        ----------
+        dict
+            A dictionary of metadata for the index.
+        """
 
     @abc.abstractmethod
     def generate_index(self, **kwargs):
@@ -47,58 +77,48 @@ class IndexABC(abc.ABC):
         """
 
     @abc.abstractmethod
-    def upload_basket(self, upload_items, basket_type, **kwargs):
-        """Upload a basket to the pantry referenced by the Index.
+    def track_basket(self, entry_df, **kwargs):
+        """Track a basket (or many baskets) from the pantry with the Index.
 
         Parameters
         ----------
-        upload_items : [dict]
-            List of python dictionaries with the following schema:
-            {
-                'path': path to the file or folder being uploaded (str),
-                'stub': True/False (bool)
-            }
-            'path' can be a file or folder to be uploaded. Every filename
-            and folder name must be unique. If 'stub' is set to True, integrity
-            data will be included without uploading the actual file or folder.
-            Stubs are useful when original file source information is desired
-            without uploading the data itself. This is especially useful when
-            dealing with large files.
-        basket_type: str
-            Type of basket being uploaded.
+        entry_df : pandas.DataFrame
+            Uploaded baskets to append to the index.
 
         Optional kwargs controlled by concrete implementations.
         """
 
     @abc.abstractmethod
-    def delete_basket(self, basket_address, **kwargs):
-        """Deletes a basket of given UUID or path.
+    def untrack_basket(self, basket_address, **kwargs):
+        """Remove a basket from being tracked of given UUID or path.
 
         Parameters
         ----------
-        basket_address: str
+        basket_address: str or [str]
             Argument can take one of two forms: either a path to the basket
-            directory, or the UUID of the basket.
+            directory, or the UUID of the basket. These may also be passed in
+            as a list.
 
         Optional kwargs controlled by concrete implementations.
         """
 
     @abc.abstractmethod
-    def get_basket(self, basket_address, **kwargs):
-        """Returns a Basket of given UUID or path.
+    def get_row(self, basket_address, **kwargs):
+        """Returns a pandas.DataFrame row information of given UUID or path.
 
         Parameters
         ----------
-        basket_address: str
+        basket_address: str or [str]
             Argument can take one of two forms: either a path to the basket
-            directory, or the UUID of the basket.
+            directory, or the UUID of the basket. These may also be passed in
+            as a list.
 
         Optional kwargs controlled by concrete implementations.
 
         Returns
         ----------
-        Basket
-            Returns the Basket object.
+        pandas.DataFrame
+            Manifest information for the requested basket(s).
         """
 
     @abc.abstractmethod
@@ -220,4 +240,4 @@ class IndexABC(abc.ABC):
 
     @abc.abstractmethod
     def __str__(self):
-        """Returns the str instantiation type of this Index (ie 'SQLIndex')."""
+        """Returns the str instantiation type of this Index (ie 'IndexSQL')."""

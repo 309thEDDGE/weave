@@ -363,50 +363,15 @@ class _Index():
                                       ancestors=ancestors.copy())
         return data
 
-    def upload_basket(self, upload_items, basket_type, **kwargs):
+    def upload_basket(self, upload_index):
         """Upload a basket to the same pantry referenced by the Index
 
         Parameters
         ----------
-        upload_items : [dict]
-            List of python dictionaries with the following schema:
-            {
-                'path': path to the file or folder being uploaded (string),
-                'stub': true/false (bool)
-            }
-            'path' can be a file or folder to be uploaded. Every filename
-            and folder name must be unique. If 'stub' is set to True, integrity
-            data will be included without uploading the actual file or folder.
-            Stubs are useful when original file source information is desired
-            without uploading the data itself. This is especially useful when
-            dealing with large files.
-        basket_type: str
-            Type of basket being uploaded.
-        parent_ids: optional [str]
-            List of unique ids associated with the parent baskets
-            used to derive the new basket being uploaded.
-        metadata: optional dict,
-            Python dictionary that will be written to metadata.json
-            and stored in the basket in upload file_system.
-        label: optional str,
-            Optional user friendly label associated with the basket.
+        upload_index : pd.DataFrame
+            Uploaded baskets to append to the index.
         """
-        parent_ids = kwargs.get("parent_ids", [])
-        metadata = kwargs.get("metadata", {})
-        label = kwargs.get("label", "")
-
         self.sync_index()
-        up_dir = UploadBasket(
-            upload_items=upload_items,
-            basket_type=basket_type,
-            file_system=self.file_system,
-            pantry_path=self.pantry_path,
-            parent_ids=parent_ids,
-            metadata=metadata,
-            label=label,
-        ).get_upload_path()
-        single_indice_index = create_index_from_fs(up_dir, self.file_system)
         self._upload_index(
-            pd.concat([self.index_df, single_indice_index], ignore_index=True)
+            pd.concat([self.index_df, upload_index], ignore_index=True)
         )
-        return single_indice_index
