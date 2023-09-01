@@ -14,7 +14,8 @@ from fsspec.implementations.local import LocalFileSystem
 
 from weave import Basket
 from weave.index.index import Index
-from weave.tests.pytest_resources import BucketForTest
+from weave import IndexSQLite
+from weave.tests.pytest_resources import BucketForTest, IndexForTest
 
 
 ###############################################################################
@@ -39,1040 +40,352 @@ from weave.tests.pytest_resources import BucketForTest
 # point in the future we need to differentiate the two.
 # pylint: disable=duplicate-code
 
+# Create fsspec objects to be tested, and add to file_systems list.
 s3fs = s3fs.S3FileSystem(
     client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
 )
 local_fs = LocalFileSystem()
+file_systems = [s3fs, local_fs]
 
+# Create Index CONSTRUCTORS of Indexes to be tested, and add to indexes list.
+sqlite_index = IndexSQLite
+indexes = [sqlite_index]
 
-# Test with two different fsspec file systems (above).
-@pytest.fixture(params=[s3fs, local_fs])
+# Create combinations of the above parameters to pass into the fixture..
+params = []
+for file_system in file_systems:
+    for index in indexes:
+        params.append((file_system, index))
+
+@pytest.fixture(params=params)
 def test_pantry(request, tmpdir):
     """Sets up test bucket for the tests"""
-    file_system = request.param
-    test_bucket = BucketForTest(tmpdir, file_system)
-    yield test_bucket
-    test_bucket.cleanup_bucket()
+    file_system = request.param[0]
+    pantry_path = (
+        "pytest-temp-bucket" f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
+    )
 
+    test_bucket = BucketForTest(tmpdir, file_system, pantry_path=pantry_path)
+
+    index_constructor = request.param[1]
+    test_index = IndexForTest(
+        index_constructor=index_constructor,
+        file_system=file_system,
+        pantry_path=pantry_path
+    )
+    index = test_index.index
+
+    yield test_bucket, index
+    test_bucket.cleanup_bucket()
+    test_index.cleanup_index()
 
 # We need to ignore pylint's warning "redefined-outer-name" as this is simply
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
+def test_index_abc_generate_index_works(test_pantry):
+    """Tests IndexABC generate_index uses the pantry fs to add to the index."""
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
 
-
-def test_sync_index_gets_latest_index(test_pantry):
-    """Tests Index.sync_index by generating two distinct Index objects and
-    making sure that they are both syncing to the index pandas DF (represented
-    by JSON) on the file_system"""
-    # Put basket in the temporary bucket
-    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
-
-    # Create index
-    ind = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    ind.to_pandas_df()
-
-    # Add another basket
-    tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
-
-    # Regenerate index outside of current index object
-    ind2 = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    ind2.generate_index()
-
-    # assert length of index includes both baskets and excludes the index
-    assert len(ind.to_pandas_df()) == 2
-
-    #assert all baskets in index are not index baskets
-    for i in range(len(ind.to_pandas_df())):
-        basket_type = ind.to_pandas_df()["basket_type"][i]
-        assert basket_type != "index"
-
-
-def test_sync_index_calls_generate_index_if_no_index(test_pantry):
-    """Test to make sure that if there isn't a index available then
-    generate_index will still be called."""
-    # Put basket in the temporary bucket
-    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
-
-    # Create index
-    ind = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    assert len(ind.to_pandas_df()) == 1
-
-
-def test_get_index_time_from_path(test_pantry):
-    """Tests Index._get_index_time_from_path to ensure it returns the correct
-    string."""
-    path = "C:/asdf/gsdjls/1234567890-index.json"
-    # Obviously we need to test a protected access var here.
-    # pylint: disable-next=protected-access
-    time = Index(
-        file_system=test_pantry.file_system
-    )._get_index_time_from_path(path=path)
-    assert time == 1234567890
-
-
-def test_to_pandas_df(test_pantry):
-    """Test that Index.to_pandas_df returns a pandas df of the appropriate
-    length"""
-    # Put basket in the temporary bucket
-    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
-
-    # Create index
-    ind = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    dataframe = ind.to_pandas_df()
-    assert len(dataframe) == 1 and isinstance(dataframe, pd.DataFrame)
-
-
-def test_clean_up_indices_n_not_int(test_pantry):
-    """Tests that Index.clean_up_indices errors on a str (should be int)"""
-    test_str = "the test"
-    with pytest.raises(
-        ValueError,
-        match=re.escape("invalid literal for int() with base 10: 'the test'"),
-    ):
-        ind = Index(file_system=test_pantry.file_system)
-        ind.clean_up_indices(n_keep=test_str)
-
-
-def test_clean_up_indices_leaves_n_indices(test_pantry):
-    """Tests that Index.clean_up_indices leaves behind the correct number of
-    indices."""
-    # Put basket in the temporary bucket
-    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
-
-    # Create index
-    ind = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    ind.to_pandas_df()
-
-    # Add another basket
-    tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
+    # Generate the index.
     ind.generate_index()
+    ind_df = ind.to_pandas_df()
 
-    # Now there should be two index baskets. clean up all but one of them:
-    ind.clean_up_indices(n_keep=1)
-    index_path = os.path.join(test_pantry.pantry_path, "index")
-    assert len(test_pantry.file_system.ls(index_path)) == 1
+    assert len(ind_df) == 0, "Incorrect number of elements in dataframe"
 
-
-def test_clean_up_indices_with_n_greater_than_num_of_indices(test_pantry):
-    """Tests that Index.clean_up_indices behaves well when given a number
-    greater than the total number of indices."""
     # Put basket in the temporary bucket
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
-    # Create index
-    ind = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    ind.to_pandas_df()
-
-    # Add another basket
-    tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
+    # Generate the index.
     ind.generate_index()
+    ind_df = ind.to_pandas_df()
 
-    # Now there should be two index baskets. clean up all but three of them:
-    # (this should fail, obvs)
-    ind.clean_up_indices(n_keep=3)
-    index_path = os.path.join(test_pantry.pantry_path, "index")
-    assert len(test_pantry.file_system.ls(index_path)) == 2
+    assert len(ind_df) == 1, "Incorrect number of elements in dataframe"
 
-
-def test_is_index_current(test_pantry):
-    """Creates two Index objects and pits them against eachother in order to
-    ensure that Index.is_index_current is working as expected."""
-    # Put basket in the temporary bucket
+    # Add another basket to the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
-    # Create index
-    ind = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    ind.to_pandas_df()
-
-    # Add another basket
-    tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
-
-    # Regenerate index outside of current index object
-    ind2 = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    ind2.generate_index()
-    assert ind2.is_index_current() is True and ind.is_index_current() is False
-
-# TODO: Delete file system items from here. Only test index
-def test_delete_basket_deletes_basket(test_pantry):
-    """Tests Index.delete_basket to make sure it does, in fact, delete the
-    basket."""
-    # Put basket in the temporary bucket
-    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
-
-    # Create index
-    ind = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    ind.to_pandas_df()
-
-    # Add another basket
-    tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_two, uid="0002")
-
+    # Regenerate the index
     ind.generate_index()
-    ind.delete_basket(basket_uuid="0002")
+    ind_df = ind.to_pandas_df()
 
-    # fs_baskets: Baskets in the file system
-    fs_baskets = test_pantry.file_system.ls(
-        f"{test_pantry.pantry_path}/test_basket"
-    )
-    # index_baskets: Baskets in the index object
-    index_baskets = ind.index_df[ind.index_df["basket_type"] == "test_basket"]
-
-    # Verify basket removed from the index object
-    assert len(index_baskets) == 1
-    # Verify index object still tracks the file system
-    assert len(fs_baskets) == len(index_baskets)
-    # Verify the correct basket was deleted
-    assert "0002" not in ind.index_df["uuid"].to_list()
+    assert len(ind_df) == 2, "Incorrect number of elements in dataframe"
 
 
-def test_delete_basket_fails_if_basket_is_parent(test_pantry):
-    """Ensures that Index.delete_basket fails if the basket is found to be a
-    parent."""
+def test_index_abc_to_pandas_df_works(test_pantry):
+    """Tests IndexABC to_pandas_df returns dataframe with proper values."""
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
     # Put basket in the temporary bucket
+    uid, basket_type, label = "0001", "test_basket", "test_label"
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
-    tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_basket_dir_two, uid="0002", parent_ids=["0001"]
-    )
-    ind = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    with pytest.raises(
-        ValueError,
-        match=(
-            "The provided value for basket_uuid 0001 is listed as a parent "
-            + "UUID for another basket. Please delete that basket before "
-            + "deleting it's parent basket."
-        ),
-    ):
-        ind.delete_basket(basket_uuid="0001")
-
-
-def test_get_parents_valid(test_pantry):
-    """setup a valid basket structure, validate the returned index"""
-
-    # setup random strucutre of parents and children
-    tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
-
-    tmp_dir = test_pantry.set_up_basket("great_grandparent_3_1")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3003")
-
-    tmp_dir = test_pantry.set_up_basket("great_grandparent_3_2")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3333")
-
-    tmp_dir = test_pantry.set_up_basket("great_grandparent_3_3")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3303")
-
-    tmp_dir = test_pantry.set_up_basket("grandparent_2")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="2000", parent_ids=["3000", "3003", "3333"]
+    up_dir = test_pantry.upload_basket(
+        tmp_basket_dir=tmp_basket_dir_one,
+        uid=uid,
+        basket_type=basket_type,
+        label=label
     )
 
-    tmp_dir = test_pantry.set_up_basket("grandparent_2_1")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="2002")
-
-    tmp_dir = test_pantry.set_up_basket("parent_1")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="1000", parent_ids=["2000", "2002", "3303"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("parent_1_1")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="1001")
-
-    tmp_dir = test_pantry.set_up_basket("child_0")
-    child = test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="0000", parent_ids=["1001", "1000"]
-    )
-
-    # string to shorten things for ruff
-    gen_lvl = "generation_level"
-
-    ind = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
+    # Generate the index.
     ind.generate_index()
+    ind_df = ind.to_pandas_df()
 
-    # setup df of the right answer
-    parent_ids = [
-        "1000",
-        "1001",
-        "2000",
-        "2002",
-        "3303",
-        "3000",
-        "3003",
-        "3333",
-    ]
-    parent_gens = [1, 1, 2, 2, 2, 3, 3, 3]
-    index = ind.index_df
-    parent_answer = index.loc[index["uuid"].isin(parent_ids)]
+    # Check we get a pandas dataframe of the correct length.
+    assert len(ind_df) == 1 and isinstance(ind_df, pd.DataFrame)
 
-    # pandas wants to make a copy before adding a column
-    # used to remove warning in pytest
-    parent_answer = parent_answer.copy()
-    # add the generation levels
-    for i, j in zip(parent_ids, parent_gens):
-        parent_answer.loc[parent_answer["uuid"] == i, gen_lvl] = j
-
-    # get the results
-    results = ind.get_parents(child)
-
-    # sort so that they can be properly compared to
-    parent_answer = parent_answer.sort_values(by="uuid")
-    results = results.sort_values(by="uuid")
-
-    # cast to int64 so datatypes match
-    parent_answer[gen_lvl] = parent_answer[gen_lvl].astype(np.int64)
-
-    assert parent_answer.equals(results)
-
-
-def test_get_parents_invalid_basket_address(test_pantry):
-    """try and find the parents of an invalid basket path/address"""
-
-    basket_path = "INVALIDpath"
-
-    index = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
+    # Check df columns are correctly named.
+    assert (
+        list(ind_df.columns) = ["uuid", "upload_time", "parent_uuids",
+                                "basket_type", "label", "address",
+                                "storage_type"]
     )
 
-    with pytest.raises(
-        FileNotFoundError,
-        match=f"basket path or uuid does not exist '{basket_path}'",
-    ):
-        index.get_parents(basket_path)
+    # Check values of basket are accurate
+    assert (
+        ind_df.iloc[0]["uuid"] == uid and
+        ind_df.iloc[0]["parent_uuids"] == [] and
+        ind_df.iloc[0]["basket_type"] == basket_type and
+        ind_df.iloc[0]["label"] == label and
+        ind_df.iloc[0]["address"] == up_dir and
+        ind_df.iloc[0]["storage_type"] == \
+            test_pantry.file_system.__class__.__name__
+    )
+
+    # Upload another basket
+    uid, basket_type, label = "0002", "test_basket", "test_label"
+    parent_ids = ["0001"]
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    up_dir = test_pantry.upload_basket(
+        tmp_basket_dir=tmp_basket_dir_one,
+        uid=uid,
+        basket_type=basket_type,
+        parent_ids=parent_ids,
+        label=label
+    )
+
+    # Generate the index.
+    ind.generate_index()
+    ind_df = ind.to_pandas_df()
+
+    # Check we get a pandas dataframe of the correct length.
+    assert len(ind_df) == 2 and isinstance(ind_df, pd.DataFrame)
+
+    # Check df columns are correctly named.
+    assert (
+        list(ind_df.columns) = ["uuid", "upload_time", "parent_uuids",
+                                "basket_type", "label", "address",
+                                "storage_type"]
+    )
+
+    # Check values of basket are accurate
+    assert (
+        ind_df.iloc[1]["uuid"] == uid and
+        ind_df.iloc[1]["parent_uuids"] == parent_ids and
+        ind_df.iloc[1]["basket_type"] == basket_type and
+        ind_df.iloc[1]["label"] == label and
+        ind_df.iloc[1]["address"] == up_dir and
+        ind_df.iloc[1]["storage_type"] == \
+            test_pantry.file_system.__class__.__name__
+    )
 
 
-def test_get_parents_no_parents(test_pantry):
-    """try and get all parents of basket with no parent uuids.
+def test_index_abc_get_metadata_returns_dict():
+    raise NotImplementedError
 
-    check that it returns an empty dataframe/index
+
+def test_index_abc_track_basket_adds_single_basket(test_pantry):
+    """Test IndexABC track_basket works when passing a single basket df."""
+    raise NotImplementedError
+
+
+def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
+    """Test IndexABC track_basket works when passing a multi-basket df."""
+    raise NotImplementedError
+
+
+def test_index_abc_untrack_basket_removes_single_basket(test_pantry):
+    """Test IndexABC untrack_basket works when passing a basket address."""
+    raise NotImplementedError
+
+
+def test_index_abc_untrack_basket_removes_multiple_baskets(test_pantry):
+    """Test IndexABC untrack_basket works when passing a multi-address list."""
+    raise NotImplementedError
+
+
+def test_index_abc_get_row_works(test_pantry):
+    """Test IndexABC get_row returns manifest data of basket addresses."""
+    raise NotImplementedError
+
+
+def test_index_abc_get_parents_path_works(test_pantry):
+    """Test IndexABC get_parents(path) returns proper structure and values."""
+    raise NotImplementedError
+
+
+def test_index_abc_get_parents_uuid_works(test_pantry):
+    """Test IndexABC get_parents(uuid) returns proper structure and values."""
+    raise NotImplementedError
+
+
+def test_index_abc_get_parents_invalid_basket_address(test_pantry):
+    """Test IndexABC get_parents fails given an invalid basket address."""
+    raise NotImplementedError
+
+
+def test_index_abc_get_parents_no_parents(test_pantry):
+    """Test IndexABC get_parents returns an empty dataframe when a basket has
+    no parents."""
+    raise NotImplementedError
+
+
+def test_index_abc_get_parents_parent_is_child_loop(test_pantry):
+    """Test IndexABC get_parents fails if parent-child loop exists.
+
+    Set up 3 baskets, child, parent, grandparent, but the grandparent's
+    parent_ids has the child's uid. This causes an infinite loop,
+    check that it throw error.
     """
-
-    no_parents = test_pantry.set_up_basket("no_parents")
-    no_parents_path = test_pantry.upload_basket(
-        tmp_basket_dir=no_parents, uid="0001"
-    )
-
-    index = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    index.generate_index()
-
-    parent_indeces = index.get_parents(no_parents_path)
-
-    assert parent_indeces.empty
+    raise NotImplementedError
 
 
-def test_get_parents_parent_is_child(test_pantry):
-    """set up basket structure with parent-child loop, check that it fails
+def test_index_abc_get_parents_15_deep(test_pantry):
+    """Test IndexABC get_parents works with deep parent-child structures.
 
-    set up 3 baskets, child, parent, grandparent, but the grandparent's
-    parent_ids has the child's uid. this causes an infinite loop,
-    check that it throw error
+    Make a parent-child relationship of baskets 15 deep, get all the parents
+    Pass a child with a great*15 grandparent, and return all the grandparents
+    for the child.
+    Manually make the data and compare with the result.
     """
-
-    # create a basket structure with child, parent, and grandparent, but
-    # the grandparent's parent, is the child, making an loop for the
-    # parent-child relationship
-    tmp_dir = test_pantry.set_up_basket("grandparent")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="3000", parent_ids=["1000"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("parent")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="2000", parent_ids=["3000"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("child")
-    child = test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="1000", parent_ids=["2000"]
-    )
-
-    index = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    index.generate_index()
-
-    fail = "1000"
-
-    with pytest.raises(
-        ValueError, match=f"Parent-Child loop found at uuid: {fail}"
-    ):
-        index.get_parents(child)
+    raise NotImplementedError
 
 
-def test_get_children_valid(test_pantry):
-    """setup a valid basket structure, validate the returned dataframe"""
-
-    # setup random strucutre of parents and children
-    tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
-    great_grandparent = test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="3000"
-    )
-
-    tmp_dir = test_pantry.set_up_basket("great_grandparent_3_1")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3003")
-
-    tmp_dir = test_pantry.set_up_basket("great_grandparent_3_2")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3333")
-
-    tmp_dir = test_pantry.set_up_basket("great_grandparent_3_3")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3303")
-
-    tmp_dir = test_pantry.set_up_basket("grandparent_2")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="2000", parent_ids=["3000", "3003", "3333"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("grandparent_2_1")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="2002")
-
-    tmp_dir = test_pantry.set_up_basket("parent_1")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="1000", parent_ids=["2000", "2002", "3303"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("parent_1_1")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="1001")
-
-    tmp_dir = test_pantry.set_up_basket("child_0")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="0000", parent_ids=["1001", "1000"]
-    )
-
-    # string to shorten things for ruff
-    gen_lvl = "generation_level"
-
-    ind = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    ind.generate_index()
-
-    # setup df of the right answer
-    child_ids = ["2000", "1000", "0000"]
-    child_gens = [-1, -2, -3]
-    index = ind.index_df
-    child_answer = index.loc[index["uuid"].isin(child_ids)]
-
-    # pandas wants to make a copy before adding a column
-    # used to remove warning in pytest
-    child_answer = child_answer.copy()
-    # add the generation levels
-    for i, j in zip(child_ids, child_gens):
-        child_answer.loc[child_answer["uuid"] == i, gen_lvl] = j
-
-    # get the results
-    results = ind.get_children(great_grandparent)
-
-    # sort so that they can be properly compared to
-    child_answer = child_answer.sort_values(by="uuid")
-    results = results.sort_values(by="uuid")
-
-    # cast to int64 so datatypes match
-    child_answer[gen_lvl] = child_answer[gen_lvl].astype(np.int64)
-
-    assert child_answer.equals(results)
+def test_index_abc_get_parents_complex_fail(test_pantry):
+    """Test IndexABC get_parents fails on an invalid complicated loop tree."""
+    raise NotImplementedError
 
 
-def test_get_children_invalid_basket_address(test_pantry):
-    """try and find he children of an invalid basket path/address"""
-
-    basket_path = "INVALIDpath"
-
-    index = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-
-    with pytest.raises(
-        FileNotFoundError,
-        match=f"basket path or uuid does not exist '{basket_path}'",
-    ):
-        index.get_children(basket_path)
+def test_index_abc_get_children_path_works(test_pantry):
+    """Test IndexABC get_children(path) returns proper structure and values."""
+    raise NotImplementedError
 
 
-def test_get_children_no_children(test_pantry):
-    """try and get all children of basket that has no children
+def test_index_abc_get_children_uuid_works(test_pantry):
+    """Test IndexABC get_children(uuid) returns proper structure and values."""
+    raise NotImplementedError
 
-    check that it returns an empty dataframe/index
+
+def test_index_abc_get_children_invalid_basket_address(test_pantry):
+    """Test IndexABC get_children fails given an invalid basket address."""
+    raise NotImplementedError
+
+
+def test_index_abc_get_children_no_children(test_pantry):
+    """Test IndexABC get_children returns an empty dataframe when a basket has
+    no children."""
+    raise NotImplementedError
+
+
+def test_index_abc_get_children_child_is_parent_loop(test_pantry):
+    """Test IndexABC get_children fails if parent-child loop exists.
+
+    Set up 3 baskets, child, parent, grandparent, but the grandparents's
+    parent_ids has the child's uid. This causes an infinite loop,
+    check that it throw error.
     """
-
-    no_children = test_pantry.set_up_basket("no_children")
-    no_children_path = test_pantry.upload_basket(
-        tmp_basket_dir=no_children, uid="0001"
-    )
-
-    index = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    index.generate_index()
-
-    children_indexes = index.get_children(no_children_path)
-
-    assert children_indexes.empty
+    raise NotImplementedError
 
 
-def test_get_children_child_is_parent(test_pantry):
-    """set up a basket structure with a parent-child loop, check that it fails
+def test_index_abc_get_children_15_deep(test_pantry):
+    """Test IndexABC get_children works with deep parent-child structures.
 
-    set up 3 baskets, child, parent, grandparent, but the grandparents's
-    parent_ids has the child's uid. this causes an infinite loop,
-    check that it throw error
-    """
-
-    # create a basket structure with child, parent, and grandparent, but
-    # the grandparent's parent, is the child, making an loop for the
-    # parent-child relationship
-    tmp_dir = test_pantry.set_up_basket("grandparent")
-    grandparent_basket = test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="3000", parent_ids=["1000"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("parent")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="2000", parent_ids=["3000"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("child")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="1000", parent_ids=["2000"]
-    )
-
-    index = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    index.generate_index()
-
-    fail = "3000"
-
-    with pytest.raises(
-        ValueError, match=re.escape(f"Parent-Child loop found at uuid: {fail}")
-    ):
-        index.get_children(grandparent_basket)
-
-
-def test_get_parents_15_deep(test_pantry):
-    """Make a parent-child relationship of baskets 15 deep, get all the parents
-
-    so a child with a great*15 grandparent, and return all the grandparents
-    for the child
-    manually make the data and compare with the result
-    """
-
-    parent_id = "x"
-
-    for i in range(15):
-        child_id = parent_id
-        parent_id = str(i)
-        tmp = test_pantry.set_up_basket("basket_" + child_id)
-        test_pantry.upload_basket(
-            tmp_basket_dir=tmp, uid=child_id, parent_ids=[parent_id]
-        )
-
-    ind = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    ind.generate_index()
-    index = ind.index_df
-
-    child_path = index.loc[index["uuid"] == "x"]["address"].values[0]
-
-    results = ind.get_parents(child_path)
-
-    # Get the anwser to compare to the results we got
-    par_ids = [
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "10",
-        "11",
-        "12",
-        "13",
-    ]
-    par_gens = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
-    answer = index.loc[index["uuid"].isin(par_ids)]
-
-    gen_lvl = "generation_level"
-
-    # pandas wants to make a copy before adding a column
-    # used to remove warning in pytest
-    answer = answer.copy()
-    for i, j in zip(par_ids, par_gens):
-        answer.loc[answer["uuid"] == i, gen_lvl] = j
-
-    # format and sort so .equals can be properly used
-    answer = answer.sort_values(by="uuid")
-    results = results.sort_values(by="uuid")
-    answer[gen_lvl] = answer[gen_lvl].astype(np.int64)
-
-    assert answer.equals(results)
-
-
-def test_get_children_15_deep(test_pantry):
-    """Make a parent-child relationship of baskets 15 deep, get the children.
-
-    so a child with great*15 grandparent, and return all the grandchildren
+    Make a parent-child relationship of baskets 15 deep, get the children.
+    Pass a child with great*15 grandparent, and return all the grandchildren
     for the highest grandparent.
-    manually make the data and compare with the result
+    Manually make the data and compare with the result.
     """
+    raise NotImplementedError
 
-    parent_id = "x"
 
-    for i in range(15):
-        child_id = parent_id
-        parent_id = str(i)
-        tmp = test_pantry.set_up_basket("basket_" + child_id)
-        test_pantry.upload_basket(
-            tmp_basket_dir=tmp, uid=child_id, parent_ids=[parent_id]
-        )
+def test_index_abc_get_children_complex_fail(test_pantry):
+    """Test IndexABC get_children fails on an invalid complicated loop tree."""
+    raise NotImplementedError
 
-    ind = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    ind.generate_index()
-    index = ind.index_df
 
-    parent_path = index.loc[index["uuid"] == "13"]["address"].values[0]
+def test_index_abc_get_baskets_of_type_works(test_pantry):
+    """Test IndexABC get_baskets_of_type returns correct dataframe."""
+    raise NotImplementedError
 
-    results = ind.get_children(parent_path)
 
-    # Get the anwser to compare to the results we got
-    child_ids = [
-        "x",
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "10",
-        "11",
-        "12",
-    ]
-    child_gens = [-14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1]
-    answer = index.loc[index["uuid"].isin(child_ids)]
+def test_index_abc_get_baskets_of_type_max_rows_works(test_pantry):
+    """Test IndexABC get_baskets_of_type max_rows argument works properly."""
+    raise NotImplementedError
 
-    gen_lvl = "generation_level"
 
-    # pandas wants to make a copy before adding a column
-    # used to remove warning in pytest
-    answer = answer.copy()
-    for i, j in zip(child_ids, child_gens):
-        answer.loc[answer["uuid"] == i, gen_lvl] = j
-
-    # format and sort so .equals can be properly used
-    answer = answer.sort_values(by="uuid")
-    results = results.sort_values(by="uuid")
-    answer[gen_lvl] = answer[gen_lvl].astype(np.int64)
-
-    assert answer.equals(results)
-
-
-def test_get_parents_complex_fail(test_pantry):
-    """Make a complicated tree with a loop to test new algorithm"""
-
-    tmp_dir = test_pantry.set_up_basket("parent_8")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="008", parent_ids=["007"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("parent_7")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="007", parent_ids=["000"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("parent_6")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="006", parent_ids=["008"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("parent_5")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="005", parent_ids=["007"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("parent_4")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="004")
-
-    tmp_dir = test_pantry.set_up_basket("parent_3")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="003", parent_ids=["006"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("parent_2")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="002", parent_ids=["0004", "005", "008"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("parent_1")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="001", parent_ids=["004"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("child")
-    child_path = test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="000", parent_ids=["001", "002", "003"]
-    )
-
-    ind = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    ind.generate_index()
-
-    with pytest.raises(
-        ValueError, match=re.escape("Parent-Child loop found at uuid: 000")
-    ):
-        ind.get_parents(child_path)
-
-
-def test_get_children_complex_fail(test_pantry):
-    """Make a complicated tree with a loop to test new algorithm"""
-
-    tmp_dir = test_pantry.set_up_basket("parent_8")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="008", parent_ids=["007"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("parent_7")
-    parent_path = test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="007", parent_ids=["003"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("parent_6")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="006", parent_ids=["008"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("parent_5")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="005", parent_ids=["007"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("parent_4")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="004")
-
-    tmp_dir = test_pantry.set_up_basket("parent_3")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="003", parent_ids=["006"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("parent_2")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="002", parent_ids=["004", "005", "008"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("parent_1")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="001", parent_ids=["004"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("child")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="000", parent_ids=["001", "002", "003"]
-    )
-
-    ind = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    ind.generate_index()
-
-    with pytest.raises(
-        ValueError, match=re.escape("Parent-Child loop found at uuid: 007")
-    ):
-        ind.get_children(parent_path)
-
-
-def test_get_parents_from_uuid(test_pantry):
-    """setup a valid basket structure, validate the returned index from uuid"""
-
-    # setup random strucutre of parents and children
-    tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
-
-    tmp_dir = test_pantry.set_up_basket("great_grandparent_3_1")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3003")
-
-    tmp_dir = test_pantry.set_up_basket("great_grandparent_3_2")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3333")
-
-    tmp_dir = test_pantry.set_up_basket("great_grandparent_3_3")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3303")
-
-    tmp_dir = test_pantry.set_up_basket("grandparent_2")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="2000", parent_ids=["3000", "3003", "3333"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("grandparent_2_1")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="2002")
-
-    tmp_dir = test_pantry.set_up_basket("parent_1")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="1000", parent_ids=["2000", "2002", "3303"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("parent_1_1")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="1001")
-
-    tmp_dir = test_pantry.set_up_basket("child_0")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="0000", parent_ids=["1001", "1000"]
-    )
-
-    # string to shorten things for ruff
-    gen_lvl = "generation_level"
-
-    ind = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    ind.generate_index()
-
-    # setup df of the right answer
-    parent_ids = [
-        "1000",
-        "1001",
-        "2000",
-        "2002",
-        "3303",
-        "3000",
-        "3003",
-        "3333",
-    ]
-    parent_gens = [1, 1, 2, 2, 2, 3, 3, 3]
-    index = ind.index_df
-    parent_answer = index.loc[index["uuid"].isin(parent_ids)]
-
-    # pandas wants to make a copy before adding a column
-    # used to remove warning in pytest
-    parent_answer = parent_answer.copy()
-    # add the generation levels
-    for i, j in zip(parent_ids, parent_gens):
-        parent_answer.loc[parent_answer["uuid"] == i, gen_lvl] = j
-
-    # get the results
-    results = ind.get_parents("0000")
-
-    # sort so that they can be properly compared to
-    parent_answer = parent_answer.sort_values(by="uuid")
-    results = results.sort_values(by="uuid")
-
-    # cast to int64 so datatypes match
-    parent_answer[gen_lvl] = parent_answer[gen_lvl].astype(np.int64)
-
-    assert parent_answer.equals(results)
-
-
-def test_get_children_from_uuid(test_pantry):
-    """setup a valid basket structure, validate the returned index from uuid"""
-
-    # setup random strucutre of parents and children
-    tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
-
-    tmp_dir = test_pantry.set_up_basket("great_grandparent_3_1")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3003")
-
-    tmp_dir = test_pantry.set_up_basket("great_grandparent_3_2")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3333")
-
-    tmp_dir = test_pantry.set_up_basket("great_grandparent_3_3")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3303")
-
-    tmp_dir = test_pantry.set_up_basket("grandparent_2")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="2000", parent_ids=["3000", "3003", "3333"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("grandparent_2_1")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="2002")
-
-    tmp_dir = test_pantry.set_up_basket("parent_1")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="1000", parent_ids=["2000", "2002", "3303"]
-    )
-
-    tmp_dir = test_pantry.set_up_basket("parent_1_1")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="1001")
-
-    tmp_dir = test_pantry.set_up_basket("child_0")
-    test_pantry.upload_basket(
-        tmp_basket_dir=tmp_dir, uid="0000", parent_ids=["1001", "1000"]
-    )
-
-    # string to shorten things for ruff
-    gen_lvl = "generation_level"
-
-    ind = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    ind.generate_index()
-
-    # setup df of the right answer
-    child_ids = ["2000", "1000", "0000"]
-    child_gens = [-1, -2, -3]
-    index = ind.index_df
-    child_answer = index.loc[index["uuid"].isin(child_ids)]
-
-    # pandas wants to make a copy before adding a column
-    # used to remove warning in pytest
-    child_answer = child_answer.copy()
-    # add the generation levels
-    for i, j in zip(child_ids, child_gens):
-        child_answer.loc[child_answer["uuid"] == i, gen_lvl] = j
-
-    # get the results with uid of the great grandparent
-    results = ind.get_children("3000")
-
-    # sort so that they can be properly compared to
-    child_answer = child_answer.sort_values(by="uuid")
-    results = results.sort_values(by="uuid")
-
-    # cast to int64 so datatypes match
-    child_answer[gen_lvl] = child_answer[gen_lvl].astype(np.int64)
-
-    assert child_answer.equals(results)
-
-# TODO: Implement for only the index checking
-def test_upload_basket_updates_the_index(test_pantry):
+def test_index_abc_get_baskets_of_type_returns_empty_df(test_pantry):
+    """Test IndexABC get_baskets_of_type returns empty df if no baskets of type
     """
-    In this test the index already exists with one basket inside of it.
-    This test will add another basket using Index.upload_basket, and then check
-    to ensure that the index_df has been updated.
-    """
-    # Put basket in the temporary bucket
-    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+    raise NotImplementedError
 
-    # create index
-    ind = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system,
-        sync=True,
-    )
-    ind.generate_index()
 
-    # add some baskets
-    tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
-    for i in range(3):
-        new_basket = ind.upload_basket(
-            upload_items=[
-                {"path": str(tmp_basket_dir_two.realpath()), "stub": False}
-            ],
-            basket_type="test",
-        )
-        if i == 0:
-            first_time = pd.to_datetime(ind.index_df.iloc[1].upload_time)
-    time_diff = first_time - pd.to_datetime(ind.index_df.iloc[1].upload_time)
+def test_index_abc_get_baskets_of_label_works(test_pantry):
+    """Test IndexABC get_baskets_of_label returns correct dataframe."""
+    raise NotImplementedError
 
-    assert all(ind.index_df.iloc[-1] == new_basket.iloc[0])
-    assert time_diff.total_seconds() == 0
-    assert len(ind.index_df) == 4
 
-def test_upload_basket_works_on_empty_basket(test_pantry):
-    """
-    In this test the Index object will upload a basket to a pantry that does
-    not have any baskets yet. This test will make sure that this functionality
-    is present, and that the index_df has been updated.
-    """
-    # Put basket in the temporary bucket
-    tmp_basket = test_pantry.set_up_basket("basket_one")
-    ind = Index(
-        pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system
-    )
-    ind.upload_basket(
-        upload_items=[{"path": str(tmp_basket.realpath()), "stub": False}],
-        basket_type="test",
-    )
-    assert len(ind.index_df) == 1
+def test_index_abc_get_baskets_of_label_max_rows_works(test_pantry):
+    """Test IndexABC get_baskets_of_label max_rows argument works properly."""
+    raise NotImplementedError
+
+
+def test_index_abc_get_baskets_of_label_returns_empty_df(test_pantry):
+    """Test IndexABC get_baskets_of_label returns empty df if no baskets have
+    the given label."""
+    raise NotImplementedError
+
+
+def test_index_abc_get_baskets_by_upload_time_raises_value_error1(test_pantry):
+    """Test IndexABC get_baskets_by_upload_time raises a ValueError when
+    neither start nor end times are specified."""
+    raise NotImplementedError
+
+
+def test_index_abc_get_baskets_by_upload_time_raises_value_error2(test_pantry):
+    """Test IndexABC get_baskets_by_upload_time raises a ValueError when
+    either start or stop times are not valid datetime format (ie, not UTC)."""
+    raise NotImplementedError
+
+
+def test_index_abc_get_baskets_by_upload_time_start_works(test_pantry):
+    """Test IndexABC get_baskets_by_upload_time works with only a start time"""
+    raise NotImplementedError
+
+
+def test_index_abc_get_baskets_by_upload_time_end_works(test_pantry):
+    """Test IndexABC get_baskets_by_upload_time works with only an end time"""
+    raise NotImplementedError
+
+
+def test_index_abc_get_baskets_by_upload_time_start_end_works(test_pantry):
+    """Test IndexABC get_baskets_by_upload_time works with both start and end
+    times supplied."""
+    raise NotImplementedError
+
+
+def test_index_abc_get_baskets_by_upload_time_returns_empty_df(test_pantry):
+    """Test IndexABC get_baskets_by_upload_time returns empty df when no entry
+    is found between start/end."""
+    raise NotImplementedError
+
+
+def test_index_abc_builtin_len_works(test_pantry):
+    """Test IndexABC builtin __len__ returns number of baskets being tracked"""
+    raise NotImplementedError
+
+
+def test_index_abc_builtin_str_works(test_pantry):
+    """Test IndexABC builtin __str__ returns str of the concrete class name."""
+    raise NotImplementedError

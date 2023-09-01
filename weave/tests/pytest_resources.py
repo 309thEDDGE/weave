@@ -37,13 +37,17 @@ def file_path_in_list(search_path, search_list):
 class BucketForTest:
     """Handles resources for much of weave testing."""
 
-    def __init__(self, tmpdir, file_system):
+    def __init__(self, tmpdir, file_system, pantry_path=None):
         self.tmpdir = tmpdir
-        self.pantry_path = (
-            "pytest-temp-bucket" f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
-        )
-        self.basket_list = []
         self.file_system = file_system
+        self.pantry_path = pantry_path
+
+        if self.pantry_path is None:
+            self.pantry_path = (
+                "pytest-temp-bucket"
+                f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
+            )
+        self.basket_list = []
         self._set_up_bucket()
 
     def _set_up_bucket(self):
@@ -98,3 +102,31 @@ class BucketForTest:
     def cleanup_bucket(self):
         """Delete the temporary test bucket, including any uploaded baskets."""
         self.file_system.rm(self.pantry_path, recursive=True)
+
+
+class IndexForTest:
+    def __init__(self, index_constructor, file_system, pantry_path=None):
+        self.file_system = file_system
+        self.pantry_path = pantry_path
+
+        if self.pantry_path is None:
+            self.pantry_path = (
+                "pytest-temp-bucket"
+                f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
+            )
+
+        # This is only used in the sqlite implementation and will not affect
+        # other implmentations.
+        self.db_path = f"{self.pantry_path}.db"
+
+        self.index = index_constructor(
+            file_system=self.file_system,
+            pantry_path=self.pantry_path,
+            db_path=self.db_path,
+        )
+
+    def cleanup_index(self):
+        """Clean up any artifacts created by index implementations."""
+        # Remove SQLite db file.
+        if os.path.exists(self.db_path):
+            os.remove(self.db_path)
