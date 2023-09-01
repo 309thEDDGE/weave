@@ -15,11 +15,24 @@ from .validate_basket import validate_basket_dict
 
 class IndexSQLite(IndexABC):
     """Concrete implementation of Index, using SQLite."""
-    def __init__(self, file_system, pantry_path, db_path):
+    def __init__(self, file_system, pantry_path, **kwargs):
+        '''Initializes the Index class.
+
+        Parameters
+        ----------
+        file_system: fsspec object
+            The fsspec object which hosts the pantry we desire to index.
+        pantry_path: string
+            Path to the pantry root which we want to index.
+        **db_path: string
+            Path to the sqlite db file to be used. If none is set, defaults to
+            'basket-data.db'
+        '''
         self._file_system = file_system
         self._pantry_path = pantry_path
 
-        self.con = sqlite3.connect(db_path)
+        self.db_path = kwargs.get("db_path", "basket-data.db")
+        self.con = sqlite3.connect(self.db_path)
         self.cur = self.con.cursor()
         self.connect_db()
 
@@ -36,6 +49,7 @@ class IndexSQLite(IndexABC):
                 uuid TEXT, parent_uuid TEXT,
                 PRIMARY KEY(uuid, parent_uuid), UNIQUE(uuid, parent_uuid));
         """)
+        self.con.commit()
 
     @property
     def file_system(self):
@@ -46,6 +60,10 @@ class IndexSQLite(IndexABC):
     def pantry_path(self):
         """The pantry path referenced by this Index."""
         return self._pantry_path
+
+    def get_metadata(self, **kwargs):
+        """Populates the metadata for the index."""
+        raise NotImplementedError
 
     def generate_index(self, **kwargs):
         """Populates the index from the file system.
@@ -105,14 +123,12 @@ class IndexSQLite(IndexABC):
                 for parent_uuid in parent_uuids:
                     self.cur.execute(sql, (basket_dict['uuid'], parent_uuid))
 
-
         if len(bad_baskets) != 0:
             warnings.warn('baskets found in the following locations '
                           'do not follow specified weave schema:\n'
                           f'{bad_baskets}')
 
         self.con.commit()
-
 
     def to_pandas_df(self, max_rows=1000, **kwargs):
         """Returns the pandas dataframe representation of the index.
@@ -140,37 +156,24 @@ class IndexSQLite(IndexABC):
         )
         return ind_df
 
-    def upload_basket(self, upload_items, basket_type, **kwargs):
-        """Starts tracking the basket in the index.
+    def track_basket(self, entry_df, **kwargs):
+        """Track a basket (or many baskets) from the pantry with the Index.
 
         Parameters
         ----------
-        upload_items : [dict]
-            List of python dictionaries with the following schema:
-            {
-                'path': path to the file or folder being uploaded (str),
-                'stub': True/False (bool)
-            }
-            'path' can be a file or folder to be uploaded. Every filename
-            and folder name must be unique. If 'stub' is set to True, integrity
-            data will be included without uploading the actual file or folder.
-            Stubs are useful when original file source information is desired
-            without uploading the data itself. This is especially useful when
-            dealing with large files.
-        basket_type: str
-            Type of basket being uploaded.
-
-        Optional kwargs controlled by concrete implementations.
+        entry_df : pd.DataFrame
+            Uploaded baskets' manifest data to append to the index.
         """
 
-    def delete_basket(self, basket_address, **kwargs):
-        """Untracks a basket entry of given UUID or path from the index.
+    def untrack_basket(self, basket_address, **kwargs):
+        """Remove a basket from being tracked of given UUID or path.
 
         Parameters
         ----------
-        basket_address: str
+        basket_address: str or [str]
             Argument can take one of two forms: either a path to the basket
-            directory, or the UUID of the basket.
+            directory, or the UUID of the basket. These may also be passed in
+            as a list.
 
         Optional kwargs controlled by concrete implementations.
         """
@@ -230,6 +233,25 @@ class IndexSQLite(IndexABC):
             basket_address=basket_path,
             file_system=self.file_system
         )
+
+    @abc.abstractmethod
+    def get_row(self, basket_address, **kwargs):
+        """Returns a pd.DataFrame row information of given UUID or path.
+
+        Parameters
+        ----------
+        basket_address: str or [str]
+            Argument can take one of two forms: either a path to the basket
+            directory, or the UUID of the basket. These may also be passed in
+            as a list.
+
+        Optional kwargs controlled by concrete implementations.
+
+        Returns
+        ----------
+        pandas.DataFrame
+            Manifest information for the requested basket(s).
+        """
 
     def get_parents(self, basket_address, **kwargs):
         """Returns a pandas dataframe of all parents of a basket.
