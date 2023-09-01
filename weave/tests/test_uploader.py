@@ -576,7 +576,6 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
         file_system=test_basket.file_system,
     )
     assert uploading_basket.kwargs.get("unique_id") is not None
-    print(test_basket.file_system.ls(tmp_dir))
     print(upload_path)
     print(test_basket.file_system.ls('/'))
     print(test_basket.file_system.ls('/home/'))
