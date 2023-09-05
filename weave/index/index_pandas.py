@@ -406,7 +406,6 @@ class PandasIndex(IndexABC):
         ----------
         entry_df : pd.DataFrame
         """
-        self.sync_index()
         self._upload_index(
             pd.concat([self.index_df, entry_df], ignore_index=True)
         )

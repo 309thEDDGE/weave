@@ -509,3 +509,30 @@ def test_pantry_get_metadata_existing_data(test_pantry):
 
     assert pantry2.metadata['test'] == 'test'
     assert pantry2.index.metadata['test'] == 'test'
+
+
+def test_upload_basket_works_on_empty_basket(test_pantry):
+    """
+    In this test the Index object will upload a basket to a pantry that does
+    not have any baskets yet. This test will make sure that this functionality
+    is present, and that the index_df has been updated.
+    """
+    # Put basket in the temporary bucket
+    tmp_basket = test_pantry.set_up_basket("basket_one")
+    pantry = Pantry(PandasIndex,
+                pantry_path=test_pantry.pantry_path,
+                file_system=test_pantry.file_system
+    )
+
+    pantry.upload_basket(
+        upload_items=[{"path": str(tmp_basket.realpath()), "stub": False}],
+        basket_type="test",
+    )
+
+    # file_system_baskets: Baskets in the file system
+    file_system_baskets = test_pantry.file_system.ls(
+        os.path.join(test_pantry.pantry_path,"test")
+    )
+
+    assert len(file_system_baskets) == 1
+    assert len(pantry.index.get_baskets_of_type('test')) == 1
