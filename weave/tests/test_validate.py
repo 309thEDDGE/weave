@@ -987,8 +987,6 @@ def test_validate_invalid_metadata_json(test_validate):
     """Make a basket with invalid metadata json, check that it collects
        one warning.
     """
-
-    # tmp_basket_dir = test_validate.set_up_basket("bad_meta")
     tmp_basket_dir = test_validate.set_up_basket(
         "bad_meta",
         is_man=True,
@@ -1480,7 +1478,7 @@ def test_validate_check_parent_uuids_missing_basket(test_validate):
 
 def test_validate_file_not_in_supplement(test_validate):
     """Add a file to the file system that is not listed in the supplement file.
-    Validate that a warning it thrown.
+    Validate that a warning is thrown.
     """
     tmp_basket_dir = test_validate.set_up_basket("my_basket")
     test_validate.add_lower_dir_to_temp_basket(tmp_basket_dir=tmp_basket_dir)
@@ -1510,7 +1508,7 @@ def test_validate_file_not_in_supplement(test_validate):
 
 
 def test_validate_file_not_in_file_system(test_validate):
-    """Add a file to the supplement data and validate that a warning it thrown
+    """Add a file to the supplement data and validate that a warning is thrown
     because it does not exist in the file system.
     """
     # Make a basket
@@ -1532,7 +1530,7 @@ def test_validate_file_not_in_file_system(test_validate):
         {
             "file_size": 100,
             "hash": "fakehash",
-            "access_date": "07/27/2023 15:13:01",
+            "access_date": "2023‐09‐05T17:22:15Z",
             "source_path": "/tmp/pytest-of-jovyan/pytest-17/MY_FAIL_FILE.TXT",
             "byte_count": 456456,
             "stub": False,
@@ -1541,7 +1539,7 @@ def test_validate_file_not_in_file_system(test_validate):
         {
             "file_size": 100,
             "hash": "fakehash",
-            "access_date": "07/27/2023 15:13:01",
+            "access_date": "2023‐09‐05T17:22:15Z",
             "source_path": "/tmp/pytest-of-jovyan/pytest-17/ANOTHER_FAKE.TXT",
             "byte_count": 456456,
             "stub": False,
