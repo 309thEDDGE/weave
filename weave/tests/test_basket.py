@@ -512,6 +512,7 @@ def test_basket_pantry_name_does_not_exist(test_pantry):
         pantry = Pantry(PandasIndex,
                 pantry_path=pantry_path,
                 file_system=test_pantry.file_system)
+        pantry.index.generate_index()
 
 
 def test_basket_from_uuid_with_many_baskets(test_pantry):

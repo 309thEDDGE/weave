@@ -19,20 +19,19 @@ class PandasIndex(IndexABC):
 
         Parameters
         ----------
-        pantry_path: [string]
+        pantry_path: str
             Name of the bucket which the desired index is associated with.
-        sync: [bool]
+        file_system: fsspec object
+            The fsspec object which hosts the bucket we desire to index.
+            If file_system is None, then the default fs is retrieved from the
+            config.
+        **sync: bool
             Whether or not to check the index on disk to ensure this Index
             object stays current. If True, then some operations may take
             slightly longer, as they will check to see if the current Index
             object has the same information as the index on the disk. If False,
             then the Index object may be stale, but operations will perform
             at a higher speed.
-
-        **file_system: fsspec object
-            The fsspec object which hosts the bucket we desire to index.
-            If file_system is None, then the default fs is retrieved from the
-            config.
         '''
         super().__init__(file_system=file_system,
                          pantry_path=pantry_path,
@@ -68,14 +67,14 @@ class PandasIndex(IndexABC):
         """The pantry path referenced by this Index."""
         return self._pantry_path
 
-    def get_metadata(self, **kwargs):
+    def generate_metadata(self, **kwargs):
         """Populates the metadata for the index.
 
         Parameters
         ----------
-        Optional kwargs controlled by concrete implementations.
+        **kwargs unused for this class.
         """
-        super().get_metadata(**kwargs)
+        super().generate_metadata(**kwargs)
         return self.metadata
 
     def sync_index(self):
@@ -108,10 +107,10 @@ class PandasIndex(IndexABC):
 
         Parameters
         ----------
-        max_rows: int
+        max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
 
-        Optional kwargs controlled by concrete implementations.
+        **kwargs unused for this class.
 
         Returns
         ----------
@@ -176,7 +175,7 @@ class PandasIndex(IndexABC):
 
         Parameters
         ----------
-        Optional kwargs controlled by concrete implementations.
+        **kwargs unused for this class.
         """
         index = create_index_from_fs(self.pantry_path, self.file_system)
         self._upload_index(index=index)
@@ -206,7 +205,7 @@ class PandasIndex(IndexABC):
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
 
-        Optional kwargs controlled by concrete implementations.
+        **kwargs unused for this class.
         """
         upload_index = kwargs.get("upload_index", True)
         basket_address = str(basket_address)
@@ -405,13 +404,16 @@ class PandasIndex(IndexABC):
         Parameters
         ----------
         entry_df : pd.DataFrame
+            The entry to be added to the index.
+
+        **kwargs unused for this class.
         """
         self._upload_index(
             pd.concat([self.index_df, entry_df], ignore_index=True)
         )
 
 
-    def get_row(self, basket_address, **kwargs):
+    def get_rows(self, basket_address, **kwargs):
         """Returns a pd.DataFrame row information of given UUID or path.
 
         Parameters
@@ -421,7 +423,7 @@ class PandasIndex(IndexABC):
             directory, or the UUID of the basket. These may also be passed in
             as a list.
 
-        Optional kwargs controlled by concrete implementations.
+       **kwargs unused for this class.
 
         Returns
         ----------
@@ -444,10 +446,10 @@ class PandasIndex(IndexABC):
         ----------
         basket_type: str
             The basket type to filter for.
-        max_rows: int
+        max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
 
-        Optional kwargs controlled by concrete implementations.
+       **kwargs unused for this class.
 
         Returns
         ----------
@@ -464,8 +466,9 @@ class PandasIndex(IndexABC):
         ----------
         basket_label: str
             The label to filter for.
-        max_rows: int
+        max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+       **kwargs unused for this class.
 
         Returns
         ----------
@@ -481,16 +484,16 @@ class PandasIndex(IndexABC):
 
         Parameters
         ----------
-        start_time: datetime.datetime
+        start_time: datetime.datetime (optional)
             The start datetime object to filter between. If None, will filter
             from the beginning of time.
-        end_time: datetime.datetime
+        end_time: datetime.datetime (optional)
             The end datetime object to filter between. If None, will filter
             to the current datetime.
-        max_rows: int
+        max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
 
-        Optional kwargs controlled by concrete implementations.
+       **kwargs unused for this class.
 
         Returns
         ----------
@@ -498,20 +501,18 @@ class PandasIndex(IndexABC):
         between the start and end times.
         """
         if start_time is None and end_time is None:
-            raise ValueError("Either start time or end time must not be None")
-
+            return self.to_pandas_df()
         if start_time is None:
             return self.index_df[
                 self.index_df["upload_time"] <= end_time
             ].head(max_rows)
-
         if end_time is None:
             return self.index_df[
                 self.index_df["upload_time"] >= start_time
             ].head(max_rows)
-
-        return self.index_df[ (self.index_df["upload_time"] >= start_time)
-                             & (self.index_df["upload_time"] <= end_time)
+        return self.index_df[
+            (self.index_df["upload_time"] >= start_time)
+             & (self.index_df["upload_time"] <= end_time)
             ].head(max_rows)
 
     def query(self, expr, **kwargs):
@@ -521,6 +522,7 @@ class PandasIndex(IndexABC):
         ----------
         expr: str
            Pass SQL Query to the pandas dataframe
+       **kwargs unused for this class.
 
         Returns
         ----------

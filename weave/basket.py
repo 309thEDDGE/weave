@@ -70,9 +70,8 @@ class BasketInitializer:
         pantry: weave.Pantry
             The pantry which the basket uuid is associated with.
         """
-
         try:
-            row = pantry.index.get_row(basket_address)
+            row = pantry.index.get_rows(basket_address)
             self.set_up_basket_from_path(basket_address=row.iloc[0].address)
         except BaseException as error:
             self.basket_address = basket_address

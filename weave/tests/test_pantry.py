@@ -1,12 +1,10 @@
 """Pytest tests for the index directory."""
 import json
 import os
-import re
 import uuid
 import warnings
 from unittest.mock import patch
 
-import numpy as np
 import pandas as pd
 import pytest
 import s3fs
@@ -252,9 +250,13 @@ def test_pantry_fails_with_bad_path(test_pantry):
     bad_path = 'BadPath'
     error_msg = f"Invalid pantry Path. Pantry does not exist at: {bad_path}"
     with pytest.raises(ValueError, match=error_msg):
-        pantry = Pantry(PandasIndex,
-                        pantry_path="BadPath",
-                        file_system=test_pantry.file_system)
+        pantry = Pantry(
+            PandasIndex,
+            pantry_path=bad_path,
+            file_system=test_pantry.file_system
+        )
+        pantry.index.generate_index()
+
 
 
 def test_delete_basket_deletes_basket(test_pantry):
@@ -264,9 +266,11 @@ def test_delete_basket_deletes_basket(test_pantry):
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
-    pantry = Pantry(PandasIndex,
-                    pantry_path=test_pantry.pantry_path,
-                    file_system=test_pantry.file_system)
+    pantry = Pantry(
+        PandasIndex,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system
+    )
 
     # Add another basket
     tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
@@ -305,14 +309,16 @@ def test_pantry_delete_basket_with_parents(test_pantry):
         tmp_basket_dir=tmp_basket_dir_two, uid="0002", parent_ids=["0001"]
     )
 
-    pantry = Pantry(PandasIndex,
-                pantry_path=test_pantry.pantry_path,
-                file_system=test_pantry.file_system)
+    pantry = Pantry(
+        PandasIndex,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system
+    )
     pantry.index.generate_index()
 
     error_msg = ("The provided value for basket_uuid 0001 is listed as a "
                  "parent UUID for another basket. Please delete that basket "
-                 "before deleting it's parent basket.")
+                 "before deleting its parent basket.")
     with pytest.raises(ValueError, match=error_msg):
         pantry.delete_basket(basket_address="0001")
 
@@ -328,27 +334,22 @@ def test_upload_basket_updates_the_pantry(test_pantry):
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # Create index
-    pantry = Pantry(PandasIndex,
-                    pantry_path=test_pantry.pantry_path,
-                    file_system=test_pantry.file_system)
+    pantry = Pantry(
+        PandasIndex,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system
+    )
     pantry.index.generate_index()
 
     # add some baskets
     tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
-    for i in range(3):
+    for _ in range(3):
         new_basket = pantry.upload_basket(
             upload_items=[
                 {"path": str(tmp_basket_dir_two.realpath()), "stub": False}
             ],
             basket_type="test_basket",
         )
-        if i == 0:
-            first_time = pd.to_datetime(
-                            pantry.index.index_df.iloc[1].upload_time
-            )
-    time_diff = first_time - pd.to_datetime(
-                                    pantry.index.index_df.iloc[1].upload_time
-    )
 
     # Make sure the index row hasn't changed
     assert all(pantry.index.index_df.iloc[-1] == new_basket.iloc[0])
@@ -375,12 +376,12 @@ def test_upload_basket_gracefully_fails(
     """
     tmp_basket = test_pantry.set_up_basket("basket_one")
 
-    pantry = Pantry(PandasIndex,
-                    pantry_path=test_pantry.pantry_path,
-                    file_system=test_pantry.file_system
+    pantry = Pantry(
+        PandasIndex,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system
     )
 
-    # TODO: This part should go in Index testing too
     non_unique_id = "0001"
     with pytest.raises(
         ValueError,
@@ -417,10 +418,12 @@ def test_index_get_basket_works_correctly(test_pantry):
         tmp_basket_dir=tmp_basket_dir, uid=uid, basket_type=tmp_basket_type
     )
 
-    pantry = Pantry(PandasIndex,
-                    pantry_path=test_pantry.pantry_path,
-                    file_system=test_pantry.file_system
+    pantry = Pantry(
+        PandasIndex,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system
     )
+
     pantry.index.generate_index()
     retrieved_basket = pantry.get_basket(uid)
 
@@ -456,9 +459,10 @@ def test_index_get_basket_graceful_fail(test_pantry):
     """
 
     bad_uid = "DOESNT EXIST LOL"
-    pantry = Pantry(PandasIndex,
-                    pantry_path=test_pantry.pantry_path,
-                    file_system=test_pantry.file_system
+    pantry = Pantry(
+        PandasIndex,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system
     )
 
     with pytest.raises(ValueError, match=f"Basket does not exist: {bad_uid}"):
@@ -467,9 +471,10 @@ def test_index_get_basket_graceful_fail(test_pantry):
 
 def test_pantry_get_metadata_no_data(test_pantry):
     """Test the pantry reads in empty metadata and the index metadata."""
-    pantry = Pantry(PandasIndex,
-                pantry_path=test_pantry.pantry_path,
-                file_system=test_pantry.file_system
+    pantry = Pantry(
+        PandasIndex,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system
     )
 
     assert len(pantry.metadata) == 1
@@ -478,9 +483,10 @@ def test_pantry_get_metadata_no_data(test_pantry):
 
 def test_pantry_save_metadata(test_pantry):
     """Test Pantry can save metadata correctly."""
-    pantry = Pantry(PandasIndex,
-                pantry_path=test_pantry.pantry_path,
-                file_system=test_pantry.file_system
+    pantry = Pantry(
+        PandasIndex,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system
     )
     pantry.save_metadata()
 
@@ -494,17 +500,19 @@ def test_pantry_save_metadata(test_pantry):
 
 def test_pantry_get_metadata_existing_data(test_pantry):
     """Test the Pantry and Index can load in existing metadata."""
-    pantry = Pantry(PandasIndex,
-                pantry_path=test_pantry.pantry_path,
-                file_system=test_pantry.file_system
+    pantry = Pantry(
+        PandasIndex,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system
     )
     pantry.metadata['test'] = 'test'
     pantry.metadata['index_metadata']['test'] = 'test'
     pantry.save_metadata()
 
-    pantry2 = Pantry(PandasIndex,
-                pantry_path=test_pantry.pantry_path,
-                file_system=test_pantry.file_system
+    pantry2 = Pantry(
+        PandasIndex,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system
     )
 
     assert pantry2.metadata['test'] == 'test'
@@ -519,9 +527,10 @@ def test_upload_basket_works_on_empty_basket(test_pantry):
     """
     # Put basket in the temporary bucket
     tmp_basket = test_pantry.set_up_basket("basket_one")
-    pantry = Pantry(PandasIndex,
-                pantry_path=test_pantry.pantry_path,
-                file_system=test_pantry.file_system
+    pantry = Pantry(
+        PandasIndex,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system
     )
 
     pantry.upload_basket(

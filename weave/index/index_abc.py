@@ -18,13 +18,14 @@ class IndexABC(abc.ABC):
             config.
         pantry_path: [string]
             Name of the bucket which the desired index is associated with.
+        **metadata: Existing metadata for the Index
 
         Optional kwargs controlled by concrete implementations.
         '''
         self._file_system = file_system
         self._pantry_path = pantry_path
         self.metadata = kwargs.get('metadata', {})
-        self.get_metadata()
+        self.generate_metadata()
 
     @property
     @abc.abstractmethod
@@ -37,8 +38,8 @@ class IndexABC(abc.ABC):
         """The pantry path referenced by this Index."""
 
     @abc.abstractmethod
-    def get_metadata(self, **kwargs):
-        """Populates the metadata for the index.
+    def generate_metadata(self, **kwargs):
+        """Generate the metadata for the index.
 
         Parameters
         ----------
@@ -106,7 +107,7 @@ class IndexABC(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_row(self, basket_address, **kwargs):
+    def get_rows(self, basket_address, **kwargs):
         """Returns a pd.DataFrame row information of given UUID or path.
 
         Parameters

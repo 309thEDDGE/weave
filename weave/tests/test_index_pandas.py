@@ -1,18 +1,11 @@
 """Pytest tests for the index directory."""
-import json
 import os
 import re
-import uuid
-import warnings
-from unittest.mock import patch
 
-import numpy as np
-import pandas as pd
 import pytest
 import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
-from weave import Basket
 from weave.pantry import Pantry
 from weave.index.index_pandas import PandasIndex
 from weave.tests.pytest_resources import BucketForTest

@@ -314,7 +314,7 @@ def _validate_parent_uuids(data, pantry):
     if len(data["parent_uuids"]) == 0:
         return
 
-    found_parents = list(pantry.index.get_row(data['parent_uuids'])['uuid'])
+    found_parents = list(pantry.index.get_rows(data['parent_uuids'])['uuid'])
     missing_uids = [uid for uid in data["parent_uuids"] if uid not in found_parents]
 
     if missing_uids:
