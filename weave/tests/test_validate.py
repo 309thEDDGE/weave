@@ -284,7 +284,7 @@ def test_validate_invalid_manifest_schema(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. Manifest Schema does not match at: "
     )
-    # Check the invalid basket path is what is expected 
+    # Check the invalid basket path is what is expected
     # (ignoring File System prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_man_schema",
