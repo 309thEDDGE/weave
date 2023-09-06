@@ -581,6 +581,9 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
     print(upload_path)
     print(full_upload_path)
     print(full_upload_path[0])
+    print(os.path.exists(full_upload_path[0]))
+    print(os.path.realpath(full_upload_path[0]))
+    print(os.path.relpath(full_upload_path[0]))
     with open(full_upload_path[0], "r", encoding="utf-8") as outfile:
         manifest_data = json.load(outfile)
     print(manifest_data)
