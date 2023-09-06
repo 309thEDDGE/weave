@@ -399,6 +399,7 @@ def _validate_supplement_files(pantry_name, basket_dir, data, file_system):
 
     supp_file_list = [file["upload_path"] for file in data["integrity_data"]]
 
+    # Remove path up until the pantry directory in both lists
     system_file_list = [
         file[file.find(pantry_name):] for file in system_file_list
     ]
