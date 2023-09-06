@@ -501,7 +501,7 @@ class PandasIndex(IndexABC):
         between the start and end times.
         """
         if start_time is None and end_time is None:
-            return self.to_pandas_df()
+            return self.to_pandas_df(max_rows, **kwargs)
         if start_time is None:
             return self.index_df[
                 self.index_df["upload_time"] <= end_time
