@@ -19,10 +19,10 @@ from weave.upload import (
 )
 
 # This module is long and has many tests. Pylint is complaining that it is too
-# long. This isn't necessarily bad in this case, as the alternative
-# would be to write the tests continuuing in a different script, which would
-# be unnecesarily complex.
-# Disabling this warning for this script.
+# long. I don't necessarily think that is bad in this case, as the alternative
+# would be to write the tests continuuing in a different script, which I think
+# is unnecesarily complex. Therefor, I am disabling this warning for this
+# script.
 # pylint: disable=too-many-lines
 
 
@@ -46,7 +46,7 @@ class UploadForTest(BucketForTest):
             }
         ]
         basket_type = "test-basket"
-        metadata = {"oh": "I don't know", "something": "stupid"}
+        metadata = {"oh": "i don't know", "something": "stupid"}
         label = "my label"
         parent_ids = [uuid.uuid1().hex]
 
@@ -81,7 +81,7 @@ def set_up_tu(request, tmpdir):
     test_upload.cleanup_bucket()
 
 
-# Ignoring pylint's warning "redefined-outer-name" as this is simply
+# We need to ignore pylint's warning "redefined-outer-name" as this is simply
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
 
@@ -261,7 +261,15 @@ def test_validate_upload_item_valid_inputs(tmp_path):
 
     valid_upload_item = {"path": str(test_file), "stub": True}
 
-    validate_upload_item(valid_upload_item)
+    try:
+        validate_upload_item(valid_upload_item)
+    # I'm going to be honest. I'm not sure what this test is testing (I'm the
+    # sorry sucker who got assigned the task of fixing all of the pylint
+    # errors, as apposed to the person who wrote this test) but I think in this
+    # case we need to ignore the general exception error. I could be wrong.
+    # pylint: disable-next=broad-exception-caught
+    except Exception as error:
+        pytest.fail(f"Unexpected error occurred:{error}")
 
 
 def test_validate_upload_item_file_exists():
@@ -291,7 +299,15 @@ def test_validate_upload_item_folder_exists(tmp_path):
     # Test using the FOLDER path
     valid_upload_item = {"path": str(tmp_path), "stub": True}
 
-    validate_upload_item(valid_upload_item)
+    try:
+        validate_upload_item(valid_upload_item)
+    # I'm going to be honest. I'm not sure what this test is testing (I'm the
+    # sorry sucker who got assigned the task of fixing all of the pylint
+    # errors, as apposed to the person who wrote this test) but I think in this
+    # case we need to ignore the general exception error. I could be wrong.
+    # pylint: disable-next=broad-exception-caught
+    except Exception as error:
+        pytest.fail(f"Unexpected error occurred:{error}")
 
 
 def test_validate_upload_item_validate_dictionary():
@@ -517,7 +533,15 @@ def test_derive_integrity_data_max_byte_count_exact(tmp_path):
 
     byte_count_in = 300 * 10**6 + 1
 
-    derive_integrity_data(str(test_file), byte_count=byte_count_in - 1)
+    try:
+        derive_integrity_data(str(test_file), byte_count=byte_count_in - 1)
+    # I'm going to be honest. I'm not sure what this test is testing (I'm the
+    # sorry sucker who got assigned the task of fixing all of the pylint
+    # errors, as apposed to the person who wrote this test) but I think in this
+    # case we need to ignore the general exception error. I could be wrong.
+    # pylint: disable-next=broad-exception-caught
+    except Exception as error:
+        pytest.fail(f"Unexpected error occurred:{error}")
 
 
 # Test with two different fsspec file systems (top of file).
@@ -553,13 +577,9 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
     )
     assert uploading_basket.kwargs.get("unique_id") is not None
 
-    full_upload_path = test_basket.file_system.ls(upload_path)
-    print(upload_path)
-    print(full_upload_path)
-    print(full_upload_path[0])
-    print(os.path.exists(full_upload_path[0]))
-    print(os.path.realpath(full_upload_path[0]))
-    print(os.path.relpath(full_upload_path[0]))
+    partial_upload_path = test_basket.file_system.ls(upload_path)
+    full_upload_path = os.path.realpath(partial_upload_path[0])
+    print(os.path.exists(full_upload_path))
     with open(full_upload_path[0], "r", encoding="utf-8") as outfile:
         manifest_data = json.load(outfile)
     print(manifest_data)
