@@ -556,7 +556,10 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
     partial_upload_path = test_basket.file_system.ls(upload_path)
     full_upload_path = os.path.realpath(partial_upload_path[0])
 
-    with open(full_upload_path, "r", encoding="utf-8") as outfile:
+    print(os.listdir())
+    print(os.getcwd())
+    os.chdir(upload_path)
+    with open("basket_manifest.json", "r", encoding="utf-8") as outfile:
         manifest_data = json.load(outfile)
     print(manifest_data)
     print(manifest_data['uuid'])
