@@ -225,7 +225,7 @@ def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
             "do not follow specified weave schema:"
         )
         # {bad_addresses} would be included in the message, but
-        # due to File System dependent prefixes 
+        # due to File System dependent prefixes
         # direct string comparison is not possible
 
         warn_msg = str(warn[0].message)
