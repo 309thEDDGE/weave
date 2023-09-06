@@ -326,11 +326,11 @@ def test_validate_manifest_schema_missing_field(test_validate):
     with test_validate.file_system.open(supplement_path, "rb",) as file:
         supplement_dict = json.load(file)
 
-    for i in supplement_dict["integrity_data"]:
-        if i["upload_path"].endswith("basket_supplement.json"):
-            nested_supp_path = i["upload_path"]
-        if i["upload_path"].endswith(".txt"):
-            test_txt_path = i["upload_path"]
+    for integrity_data in supplement_dict["integrity_data"]:
+        if integrity_data["upload_path"].endswith("basket_supplement.json"):
+            nested_supp_path = integrity_data["upload_path"]
+        if integrity_data["upload_path"].endswith(".txt"):
+            test_txt_path = integrity_data["upload_path"]
 
     with test_validate.file_system.open(nested_supp_path, "rb",) as supp_file:
         nested_supp_dict = json.load(supp_file)
@@ -403,11 +403,11 @@ def test_validate_manifest_schema_additional_field(test_validate):
     with test_validate.file_system.open(supplement_path, "rb",) as file:
         supplement_dict = json.load(file)
 
-    for i in supplement_dict["integrity_data"]:
-        if i["upload_path"].endswith("basket_supplement.json"):
-            nested_supp_path = i["upload_path"]
-        if i["upload_path"].endswith(".txt"):
-            test_txt_path = i["upload_path"]
+    for integrity_data in supplement_dict["integrity_data"]:
+        if integrity_data["upload_path"].endswith("basket_supplement.json"):
+            nested_supp_path = integrity_data["upload_path"]
+        if integrity_data["upload_path"].endswith(".txt"):
+            test_txt_path = integrity_data["upload_path"]
 
     with test_validate.file_system.open(nested_supp_path, "rb",) as supp_file:
         nested_supp_dict = json.load(supp_file)
@@ -1047,11 +1047,11 @@ def test_validate_invalid_metadata_json(test_validate):
     with test_validate.file_system.open(supplement_path, "rb",) as file:
         supplement_dict = json.load(file)
 
-    for i in supplement_dict["integrity_data"]:
-        if i["upload_path"].endswith("basket_supplement.json"):
-            nested_supp_path = i["upload_path"]
-        if i["upload_path"].endswith(".txt"):
-            test_txt_path = i["upload_path"]
+    for integrity_data in supplement_dict["integrity_data"]:
+        if integrity_data["upload_path"].endswith("basket_supplement.json"):
+            nested_supp_path = integrity_data["upload_path"]
+        if integrity_data["upload_path"].endswith(".txt"):
+            test_txt_path = integrity_data["upload_path"]
 
     with test_validate.file_system.open(nested_supp_path, "rb",) as supp_file:
         nested_supp_dict = json.load(supp_file)
@@ -1582,8 +1582,8 @@ def test_validate_file_not_in_file_system(test_validate):
     with test_validate.file_system.open(supplement_to_change, "rb",) as file:
         supplement_dict = json.load(file)
 
-    error_file_path = "pytest-temp-bucket/test_basket/0000/MY_FAIL_FILE.txt"
-    error_file_path_2 = "pytest-temp-bucket/test_basket/0000/ANOTHER_FAKE.txt"
+    error_file_path = os.path.join(temp, "MY_FAIL_FILE.TXT")
+    error_file_path_2 = os.path.join(temp, "ANOTHER_FAKE.txt")
 
     # New supplement data with the fake file
     supplement_dict["integrity_data"] += [
