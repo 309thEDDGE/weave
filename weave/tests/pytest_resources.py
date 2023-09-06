@@ -12,19 +12,22 @@ def file_path_in_list(search_path, search_list):
 
     Parameters
     ----------
-    search_path: string
-        The file path we want to search for.
-    search_list: [string]
+    search_path: str
+        The file path being searched for.
+    search_list: [str]
         A list of strings (presumably file paths)
 
-    Returns True if any of the file paths in the search list end with the
-    file path we're searching for, otherwise False.
+    Returns
+    ----------
+    bool: True if any of the file paths in the search list end with the
+    file path being searched for, otherwise False.
 
     This allows us to determine if a file is in the list regardless of file
     system dependent prefixes such as /home/user/ which can usually be ignored.
-    For example, if we have a list of file paths:
+    For example, given a list of file paths:
     ['/home/user/data/file.txt', '/home/user/data/this/is/test.txt']
-    and we search for 'data/file.txt', we return True as the file exists.
+    and the function is searching for 'data/file.txt',
+    the function will return True as the file exists.
     """
     search_path = str(search_path)
     for file_path in search_list:

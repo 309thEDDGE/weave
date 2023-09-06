@@ -12,19 +12,18 @@ from weave import validate
 from weave.tests.pytest_resources import BucketForTest
 
 # This module is long and has many tests. Pylint is complaining that it is too
-# long. I don't necessarily think that is bad in this case, as the alternative
-# would be to write the tests continuuing in a different script, which I think
-# is unnecesarily complex. Therefor, I am disabling this warning for this
-# script.
+# long. This isn't necessarily bad in this case, as the alternative
+# would be to write the tests continuing in a different script, which would
+# be unnecessarily complex.
+# Disabling this warning for this script.
 # pylint: disable=too-many-lines
 
 
 class ValidateForTest(BucketForTest):
     """A class to test functions in validate.py"""
 
-    # Well I think we probably need different args for the below function,
-    # which is over-riding BucketForTest.set_up_basket. Pylint hates it, but
-    # here we are:
+    # The arguments for the below function should be changed,
+    # as it is over-riding BucketForTest.set_up_basket. Pylint hates it.
     # pylint: disable-next=arguments-differ
     def set_up_basket(self, tmp_dir_name, **kwargs):
         """Overrides BucketForTest's set_up_basket to better test_validate.py
@@ -32,38 +31,36 @@ class ValidateForTest(BucketForTest):
         Sets up the basket with a nested basket depending on the values of
         the boolean params when this is called. if the is_man is true, a
         nested manifest file will be put in the basket, same with is_sup for
-        supplement and is_meta for metadata. We can also input our own data
+        supplement and is_meta for metadata. Custom data can also be input
         for each of these files is the man_data, sup_data, and meta_data.
 
-        Because I can't directly control the upload_basket function, if you
-        want to modify if there is a manifest, supplement, or metadata in
-        the basket, I use these. Same if you want to change the schema to
-        something invalid.
+        Because the upload_basket function can't be directly controlled,
+        if you want to change whether there is a manifest, supplement, or
+        metadata file in the basket, use these set-up functions instead.
+        Same if you want to change the schema to something invalid.
 
         Parameters
         ----------
-        tmp_dir_name: string
-            the directory name of where the nested basket will be
+        tmp_dir_name: str
+            The directory name of where the nested basket will be
 
-        Key-word Arguments:
-        -------------------
-        is_man: boolean
-            a bool that signals if ther should be a manifest file
+        **is_man: bool
+            A bool that signals if there should be a manifest file
             defaults to no manifest
-        is_sup: boolean
-            a bool that signals if ther should be a supplement file
+        **is_sup: bool
+            A bool that signals if there should be a supplement file
             defaults to no supplement
-        is_meta: boolean
-            a bool that signals if ther should be a metadata file
+        **is_meta: bool
+            A bool that signals if there should be a metadata file
             defaults to no metadata
-        man_data: string
-            the json data we want to be put into the manifest file
+        **man_data: str
+            The json data to be put into the manifest file
             defaults to a valid manifest schema
-        sup_data: string
-            the json data we want to be put into the supplement file
+        **sup_data: str
+            The json data to be put into the supplement file
             defaults to a valid supplement schema
-        meta_data: string
-            the json data we want to be put into the metadata file
+        **meta_data: str
+            The json data to be put into the metadata file
             defaults to a valid json object
 
         Returns
@@ -138,8 +135,8 @@ class ValidateForTest(BucketForTest):
         self, tmp_basket_dir, new_dir_name="nested_dir", is_basket=False
     ):
         """Added the is_basket as a work around to test a deeply nested basket
-        because I couldn't get it to upload one using the set_up_basket
-        or upload_basket function
+        because the set_up_basket and upload_basket functions
+        would not upload it
         """
         new_directory = tmp_basket_dir.mkdir(new_dir_name)
         new_directory.join("nested_file.txt").write(
@@ -159,9 +156,9 @@ class ValidateForTest(BucketForTest):
 
         return new_directory
 
-# Pylint doesn't like that we are redefining the test fixture here from
-# test_basket, but I think this is the right way to do this in case at some
-# point in the future we need to differentiate the two.
+# Pylint doesn't like that the test fixture is being redefined here from
+# test_basket, but this is the right way to do this if at some
+# point in the future the two need to differentiated.
 # pylint: disable=duplicate-code
 
 s3fs = s3fs.S3FileSystem(
@@ -180,7 +177,7 @@ def test_validate(request, tmpdir):
     test_validate_obj.cleanup_bucket()
 
 
-# We need to ignore pylint's warning "redefined-outer-name" as this is simply
+# Ignoring pylint's warning "redefined-outer-name" as this is simply
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
 
@@ -225,7 +222,8 @@ def test_validate_no_supplement_file(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. No Supplement file found at: "
     )
-    # Check the invalid basket path is what we expect (disregarding FS prefix)
+    # Check the invalid basket path is what is expected
+    # (ignoring File System prefix)
     assert warning_1.args[1].endswith(basket_path)
 
 
@@ -286,7 +284,8 @@ def test_validate_invalid_manifest_schema(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. Manifest Schema does not match at: "
     )
-    # Check the invalid basket path is what we expect (disregarding FS prefix)
+    # Check the invalid basket path is what is expected
+    # (ignoring File System prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_man_schema",
                                                    "basket_manifest.json"))
@@ -297,7 +296,7 @@ def test_validate_manifest_schema_missing_field(test_validate):
        warning.
     """
     # The manifest is missing the uuid field
-    # this is invalid against the schema.
+    # This is invalid against the schema.
     bad_manifest_data = """{
         "upload_time": "1970-01-01 01:01:12",
         "parent_uuids": [  ],
@@ -360,7 +359,8 @@ def test_validate_manifest_schema_missing_field(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. Manifest Schema does not match at: "
     )
-    # Check the invalid basket path is what we expect (disregarding FS prefix)
+    # Check the invalid basket path is what is expected
+    # (ignoring File System prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_man_schema",
                                                    "basket_manifest.json"))
@@ -372,7 +372,7 @@ def test_validate_manifest_schema_additional_field(test_validate):
     """
 
     # The manifest has the additional "error" field
-    # this is invalid against the schema.
+    # This is invalid against the schema.
     bad_manifest_data = """{
         "uuid": "str",
         "upload_time": "1970-01-01 01:01:12",
@@ -437,7 +437,8 @@ def test_validate_manifest_schema_additional_field(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. Manifest Schema does not match at: "
     )
-    # Check the invalid basket path is what we expect (disregarding FS prefix)
+    # Check the invalid basket path is what is expected
+    # (ignoring File System prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_man_schema",
                                                    "basket_manifest.json"))
@@ -479,7 +480,7 @@ def test_validate_invalid_supplement_schema(test_validate):
     """
 
     # The stub ('1231231') is supposed to be a boolean, not a number,
-    # this is invalid against the schema.
+    # This is invalid against the schema.
     bad_supplement_data = """{
         "upload_items":
         [
@@ -526,7 +527,8 @@ def test_validate_invalid_supplement_schema(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement Schema does not match at: "
     )
-    # Check the invalid basket path is what we expect (disregarding FS prefix)
+    # Check the invalid basket path is what is expected
+    # (ignoring File System prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_schema",
                                                    "basket_supplement.json"))
@@ -538,7 +540,7 @@ def test_validate_supplement_schema_missing_field(test_validate):
     """
 
     # The supplement is missing the integrity_data field
-    # this is invalid against the schema.
+    # This is invalid against the schema.
     bad_supplement_data = """{
         "upload_items":
         [
@@ -572,7 +574,7 @@ def test_validate_supplement_schema_missing_field(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement Schema does not match at: "
     )
-    # Check the invalid basket path is what we expect (disregarding FS prefix)
+    # Check the invalid basket path is what is expected (ignoring FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_schema",
                                                    "basket_supplement.json"))
@@ -584,7 +586,7 @@ def test_validate_supplement_schema_missing_array_field(test_validate):
     """
 
     # The supplement is missing the upload_path field inside
-    # the integrity_data array this is invalid against the schema.
+    # the integrity_data array, this is invalid against the schema.
     bad_supplement_data = """{
         "upload_items":
         [
@@ -630,7 +632,7 @@ def test_validate_supplement_schema_missing_array_field(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement Schema does not match at: "
     )
-    # Check the invalid basket path is what we expect (disregarding FS prefix)
+    # Check the invalid basket path is what is expect (ignoring FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_schema",
                                                    "basket_supplement.json"))
@@ -642,7 +644,7 @@ def test_validate_supplement_schema_missing_array_field_2(test_validate):
     """
 
     # The supplement is missing the stub field inside
-    # the upload_items array this is invalid against the schema.
+    # the upload_items array, this is invalid against the schema.
     bad_supplement_data = """{
         "upload_items":
         [
@@ -689,7 +691,7 @@ def test_validate_supplement_schema_missing_array_field_2(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement Schema does not match at: "
     )
-    # Check the invalid basket path is what we expect (disregarding FS prefix)
+    # Check the invalid basket path is what is expected (ignoring FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_schema",
                                                    "basket_supplement.json"))
@@ -701,7 +703,7 @@ def test_validate_supplement_schema_added_array_field(test_validate):
     """
 
     # The supplement has an additional field of "error" in
-    # the upload_items array this is invalid against the schema.
+    # the upload_items array, this is invalid against the schema.
     bad_supplement_data = """{
         "upload_items":
         [
@@ -752,7 +754,7 @@ def test_validate_supplement_schema_added_array_field(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement Schema does not match at: "
     )
-    # Check the invalid basket path is what we expect (disregarding FS prefix)
+    # Check the invalid basket path is what is expected (ignoring FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_schema",
                                                    "basket_supplement.json"))
@@ -764,7 +766,7 @@ def test_validate_supplement_schema_added_array_field_2(test_validate):
     """
 
     # The supplement has an additional field of "error" in
-    # the integrity_data array this is invalid against the schema.
+    # the integrity_data array, this is invalid against the schema.
     bad_supplement_data = """{
         "upload_items":
         [
@@ -815,7 +817,7 @@ def test_validate_supplement_schema_added_array_field_2(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement Schema does not match at: "
     )
-    # Check the invalid basket path is what we expect (disregarding FS prefix)
+    # Check the invalid basket path is what is expected (ignoring FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_schema",
                                                    "basket_supplement.json"))
@@ -827,7 +829,7 @@ def test_validate_supplement_schema_additional_field(test_validate):
     """
 
     # The supplement has an additional my_extra_field field
-    # this is invalid against the schema.
+    # This is invalid against the schema.
     bad_supplement_data = """{
         "upload_items":
         [
@@ -876,7 +878,7 @@ def test_validate_supplement_schema_additional_field(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement Schema does not match at: "
     )
-    # Check the invalid basket path is what we expect (disregarding FS prefix)
+    # Check the invalid basket path is what is expected (ignoring FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_schema",
                                                    "basket_supplement.json"))
@@ -888,7 +890,7 @@ def test_validate_supplement_schema_empty_upload_items(test_validate):
     """
 
     # The supplement has an empty array of "upload_items"
-    # this is invalid against the schema.
+    # This is invalid against the schema.
     bad_supplement_data = """{
         "upload_items": [],
 
@@ -932,7 +934,7 @@ def test_validate_supplement_schema_empty_upload_items(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement Schema does not match at: "
     )
-    # Check the invalid basket path is what we expect (disregarding FS prefix)
+    # Check the invalid basket path is what is expected (ignoring FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_schema",
                                                    "basket_supplement.json"))
@@ -944,7 +946,7 @@ def test_validate_supplement_schema_empty_integrity_data(test_validate):
     """
 
     # The supplement an empty array of "integrity_data"
-    # this is invalid against the schema.
+    # This is invalid against the schema.
     bad_supplement_data = """{
         "upload_items":
         [
@@ -980,7 +982,7 @@ def test_validate_supplement_schema_empty_integrity_data(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement Schema does not match at: "
     )
-    # Check the invalid basket path is what we expect (disregarding FS prefix)
+    # Check the invalid basket path is what is expected (ignoring FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_schema",
                                                    "basket_supplement.json"))
@@ -1017,7 +1019,7 @@ def test_validate_invalid_supplement_json(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement could not be loaded into json at: "
     )
-    # Check the invalid basket path is what we expect (disregarding FS prefix)
+    # Check the invalid basket path is what is expected (ignoring FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup",
                                                    "basket_supplement.json"))
@@ -1085,7 +1087,7 @@ def test_validate_invalid_metadata_json(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. Metadata could not be loaded into json at: "
     )
-    # Check the invalid basket path is what we expect (disregarding FS prefix)
+    # Check the invalid basket path is what is expected (ignoring FS prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_meta",
                                                    "basket_metadata.json"))
@@ -1115,7 +1117,7 @@ def test_validate_nested_basket(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. Manifest File found in sub directory of basket at: "
     )
-    # Check the invalid basket path is what we expect (disregarding FS prefix)
+    # Check the invalid basket path is what is expected (ignoring FS prefix)
     assert warning_1.args[1].endswith(basket_path)
 
 
@@ -1133,7 +1135,7 @@ def test_validate_deeply_nested(test_validate):
         new_dir_name='nest_level'
     )
 
-    # Create a deep directory 10 deep that we can use
+    # Create a 10 directory deep basket
     for i in range(10):
         nested_dir_name = "nest_level_" + str(i)
         my_nested_dir = test_validate.add_lower_dir_to_temp_basket(
@@ -1168,7 +1170,7 @@ def test_validate_deeply_nested(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. Manifest File found in sub directory of basket at: "
     )
-    # Check the invalid basket path is what we expect (disregarding FS prefix)
+    # Check the invalid basket path is what is expected (ignoring FS prefix)
     assert warning_1.args[1].endswith(basket_path)
 
 
@@ -1257,7 +1259,7 @@ def test_validate_twenty_baskets_invalid(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. Manifest File found in sub directory of basket at: "
     )
-    # Check the invalid basket path is what we expect (disregarding FS prefix)
+    # Check the invalid basket path is what is expect (ignoring FS prefix)
     assert warning_1.args[1].endswith(invalid_basket_path)
 
 
@@ -1296,9 +1298,9 @@ def test_validate_call_check_level(test_validate):
     """Create basket, call _check_level()
 
     Create a basket, call _check_level() which is a private function,
-    check that it returns true. it returns true, because the _check_level
+    check that it returns true. It returns true, because the _check_level
     function checks all files an directories of the given dir, so it just
-    acts like we are at a random dir instead of the root of the bucket.
+    acts like it is at a random dir instead of the root of the bucket.
     """
 
     tmp_basket_dir = test_validate.set_up_basket("my_basket")
@@ -1308,10 +1310,9 @@ def test_validate_call_check_level(test_validate):
         tmp_basket_dir=tmp_basket_dir, metadata={"Test":1, "test_bool":True}
     )
 
-    # We input pantry_name twice because _check_level wants the pantry name
+    # pantry_name is input twice because _check_level wants the pantry name
     # and the current working directory
-    # We are purposefully accessing the protected class to test
-    # its functionality in pytest
+    # Testing a protected access class
     # pylint: disable-next=protected-access
     assert validate._check_level(
         test_validate.pantry_name,
@@ -1342,10 +1343,9 @@ def test_validate_call_validate_basket(test_validate):
         match=f"Invalid Path. "
         f"No Basket found at: {test_validate.pantry_name}"
     ):
-        # We input pantry_name twice because _check_level wants the pantry name
+        # pantry_name is input twice because _check_level wants the pantry name
         # and the current working directory
-        # We are purposefully accessing the protected class to test
-        # its functionality in pytest
+        # Testing a protected access class
         # pylint: disable-next=protected-access
         validate._validate_basket(
             test_validate.pantry_name,
