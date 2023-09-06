@@ -535,7 +535,6 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
     Test that upload_basket creates a uuid when unique_id is not
     initialized
     """
-    os.environ["WEAVE_PYTEST_SUFFIX"] = "GODZILLA_SUFFIX"
     # Create a temporary basket with a test file.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_dir = test_basket.set_up_basket(tmp_basket_dir_name)
