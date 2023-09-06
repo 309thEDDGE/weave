@@ -1,4 +1,5 @@
 """Pytest tests for the index directory."""
+from datetime import datetime
 import json
 import os
 import re
@@ -734,10 +735,45 @@ def test_index_abc_get_baskets_by_upload_time_end_works(test_pantry):
 def test_index_abc_get_baskets_by_upload_time_start_end_works(test_pantry):
     """Test IndexABC get_baskets_by_upload_time works with both start and end
     times supplied."""
-    raise NotImplementedError
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+    start = datetime.now()
+
+    # Put basket in the temporary bucket.
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+
+    end = datetime.now()
+
+    # Put basket in the temporary bucket.
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_two")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0002")
+
+    # Generate the index.
+    ind.generate_index()
+
+    baskets = ind.get_baskets_by_upload_time(start_time=start, end_time=end)
+
+    assert len(baskets) == 1
+    assert "0001" not in baskets["uuid"].to_list()
 
 
 def test_index_abc_get_baskets_by_upload_time_returns_empty_df(test_pantry):
     """Test IndexABC get_baskets_by_upload_time returns empty df when no entry
     is found between start/end."""
-    raise NotImplementedError
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+    start = datetime.now()
+    end = datetime.now()
+
+    # Put basket in the temporary bucket.
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+
+    # Generate the index.
+    ind.generate_index()
+
+    baskets = ind.get_baskets_by_upload_time(start_time=start, end_time=end)
+    assert len(baskets) == 0
