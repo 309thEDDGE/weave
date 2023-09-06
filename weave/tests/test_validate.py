@@ -326,12 +326,14 @@ def test_validate_manifest_schema_missing_field(test_validate):
     with test_validate.file_system.open(supplement_path, "rb",) as file:
         supplement_dict = json.load(file)
 
-    nested_supp_path = supplement_dict["integrity_data"][2]["upload_path"]
+    for i in supplement_dict["integrity_data"]:
+        if i["upload_path"].endswith("basket_supplement.json"):
+            nested_supp_path = i["upload_path"]
+        if i["upload_path"].endswith(".txt"):
+            test_txt_path = i["upload_path"]
 
     with test_validate.file_system.open(nested_supp_path, "rb",) as supp_file:
         nested_supp_dict = json.load(supp_file)
-
-    test_txt_path = supplement_dict["integrity_data"][0]["upload_path"]
 
     nested_supp_dict["integrity_data"][0]["upload_path"] = test_txt_path
 
@@ -401,12 +403,14 @@ def test_validate_manifest_schema_additional_field(test_validate):
     with test_validate.file_system.open(supplement_path, "rb",) as file:
         supplement_dict = json.load(file)
 
-    nested_supp_path = supplement_dict["integrity_data"][2]["upload_path"]
+    for i in supplement_dict["integrity_data"]:
+        if i["upload_path"].endswith("basket_supplement.json"):
+            nested_supp_path = i["upload_path"]
+        if i["upload_path"].endswith(".txt"):
+            test_txt_path = i["upload_path"]
 
     with test_validate.file_system.open(nested_supp_path, "rb",) as supp_file:
         nested_supp_dict = json.load(supp_file)
-
-    test_txt_path = supplement_dict["integrity_data"][0]["upload_path"]
 
     nested_supp_dict["integrity_data"][0]["upload_path"] = test_txt_path
 
