@@ -17,18 +17,18 @@ from .validate_basket import validate_basket_dict
 class IndexSQLite(IndexABC):
     """Concrete implementation of Index, using SQLite."""
     def __init__(self, file_system, pantry_path, **kwargs):
-        '''Initializes the Index class.
+        """Initializes the Index class.
 
         Parameters
         ----------
         file_system: fsspec object
             The fsspec object which hosts the pantry we desire to index.
-        pantry_path: string
+        pantry_path: str
             Path to the pantry root which we want to index.
-        **db_path: string
+        **db_path: str
             Path to the sqlite db file to be used. If none is set, defaults to
             'basket-data.db'
-        '''
+        """
         self._file_system = file_system
         self._pantry_path = pantry_path
 
@@ -71,10 +71,6 @@ class IndexSQLite(IndexABC):
 
         Generate the index by scraping the pantry and adding the manifest data
         of found baskets to the index.
-
-        Parameters
-        ----------
-        Optional kwargs controlled by concrete implementations.
         """
         if not isinstance(self.pantry_path, str):
             raise TypeError("'pantry_path' must be a string: "
@@ -104,7 +100,11 @@ class IndexSQLite(IndexABC):
                 if basket_dict["basket_type"] == "index":
                     continue
 
-                basket_dict["address"] = os.path.dirname(basket_json_address)
+                absolute_path = os.path.dirname(basket_json_address)
+                relative_path = (
+                    absolute_path[absolute_path.find(self.pantry_path):]
+                )
+                basket_dict["address"] = relative_path
                 basket_dict["storage_type"] = storage_type
 
                 # parent_uuids = basket_dict.pop("parent_uuids")
@@ -138,8 +138,6 @@ class IndexSQLite(IndexABC):
         ----------
         max_rows: int
             Max rows returned in the pandas dataframe.
-
-        Optional kwargs controlled by concrete implementations.
 
         Returns
         ----------
@@ -180,23 +178,31 @@ class IndexSQLite(IndexABC):
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket. These may also be passed in
             as a list.
-
-        Optional kwargs controlled by concrete implementations.
         """
-        # Get the basket UUID.
-        if self.file_system.exists(os.fspath(basket_address)):
-            basket_uuid = self.cur.execute(
-                "SELECT uuid FROM pantry_index WHERE address = ?",
-                (basket_address,)
-            ).fetchone()
-        else:
-            basket_uuid = basket_address
+        if not isinstance(basket_address, list):
+            basket_address = [basket_address]
 
-        self.cur.execute(
-            "DELETE FROM pantry_index WHERE uuid = ?",
-            (basket_uuid,)
+        if self.file_system.exists(os.fspath(basket_address[0])):
+            id_column = "address"
+        else:
+            id_column = "uuid"
+
+        query = (
+            f"DELETE FROM pantry_index WHERE {id_column} in "
+            f"({','.join(['?']*len(basket_address))})"
         )
+        self.cur.execute(query, basket_address)
+        if self.cur.rowcount != len(basket_address):
+            warnings.warn(
+                UserWarning(
+                    "Incomplete Request. Index could not untrack baskets, "
+                    "as some were not being tracked to begin with.",
+                    len(basket_address) - self.cur.rowcount
+                )
+            )
+
         self.con.commit()
+
 
     def get_basket(self, basket_address, **kwargs):
         """Returns a Basket of given UUID or path.
@@ -206,8 +212,6 @@ class IndexSQLite(IndexABC):
         basket_address: str
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
-
-        Optional kwargs controlled by concrete implementations.
 
         Returns
         ----------
@@ -250,8 +254,6 @@ class IndexSQLite(IndexABC):
             directory, or the UUID of the basket. These may also be passed in
             as a list.
 
-        Optional kwargs controlled by concrete implementations.
-
         Returns
         ----------
         pandas.DataFrame
@@ -266,8 +268,6 @@ class IndexSQLite(IndexABC):
         basket_address: str
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
-
-        Optional kwargs controlled by concrete implementations.
 
         Returns
         ----------
@@ -313,8 +313,6 @@ class IndexSQLite(IndexABC):
         basket_address: str
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
-
-        Optional kwargs controlled by concrete implementations.
 
         Returns
         ----------
@@ -362,8 +360,6 @@ class IndexSQLite(IndexABC):
         max_rows: int
             Max rows returned in the pandas dataframe.
 
-        Optional kwargs controlled by concrete implementations.
-
         Returns
         ----------
         pandas.DataFrame containing the manifest data of baskets of the type.
@@ -389,8 +385,6 @@ class IndexSQLite(IndexABC):
             The label to filter for.
         max_rows: int
             Max rows returned in the pandas dataframe.
-
-        Optional kwargs controlled by concrete implementations.
 
         Returns
         ----------
@@ -423,35 +417,40 @@ class IndexSQLite(IndexABC):
         max_rows: int
             Max rows returned in the pandas dataframe.
 
-        Optional kwargs controlled by concrete implementations.
-
         Returns
         ----------
         pandas.DataFrame containing the manifest data of baskets uploaded
         between the start and end times.
         """
-        if start_time and end_time:
-            results = self.cur.execute(
-                """SELECT * FROM pantry_index
-                WHERE upload_time BETWEEN date(?) AND date(?)
-                """, (start_time, end_time)).fetchall()
-        elif start_time:
-            results = self.cur.execute(
-                """SELECT * FROM pantry_index
-                WHERE upload_time < date(?)
-                """, (start_time,)).fetchall()
-        elif end_time:
-            results = self.cur.execute(
-                """SELECT * FROM pantry_index
-                WHERE upload_time > date(?)
-                """, (end_time,)).fetchall()
-        filtered_df = pd.DataFrame(results)
-
-        filtered_df.columns = (
+        columns = (
             [info[1] for info in
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
         )
-        return filtered_df
+
+        if start_time and end_time:
+            results = self.cur.execute(
+                """SELECT * FROM pantry_index
+                WHERE upload_time BETWEEN date(?) AND date(?) LIMIT ?
+                """, (start_time, end_time, max_rows)).fetchall()
+        elif start_time:
+            results = self.cur.execute(
+                """SELECT * FROM pantry_index
+                WHERE upload_time < date(?) LIMIT ?
+                """, (start_time, max_rows)).fetchall()
+        elif end_time:
+            results = self.cur.execute(
+                """SELECT * FROM pantry_index
+                WHERE upload_time > date(?) LIMIT ?
+                """, (end_time, max_rows)).fetchall()
+        elif start_time is None and end_time is None:
+            return self.to_pandas_df(max_rows=max_rows)
+
+        ind_df = pd.DataFrame(
+            results,
+            columns=columns
+        )
+
+        return ind_df
 
     def query(self, expr, **kwargs):
         """Returns a pandas dataframe of the results of the query.
@@ -461,8 +460,9 @@ class IndexSQLite(IndexABC):
         expr: str
             An expression passed to the backend. An example could be a SQL or
             pandas query. Largely dependent on concrete implementations.
-
-        Optional kwargs controlled by concrete implementations.
+        **query_args: tuple
+            Arguments to pass to the Sqlite query. Should be in the form:
+            (arg1, arg2) or (arg1,) if only one argument.
 
         Returns
         ----------

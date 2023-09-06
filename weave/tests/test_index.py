@@ -110,6 +110,32 @@ def test_index_only(request):
 # We need to ignore pylint's warning "redefined-outer-name" as this is simply
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
+def test_index_abc_builtin_len_works(test_pantry):
+    """Test IndexABC builtin __len__ returns number of baskets being tracked"""
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+    # Put basket in the temporary bucket.
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_two")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0002")
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_three")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0003")
+
+    # Generate the index.
+    ind.generate_index()
+    assert len(ind) == 3, f"Builtin len returns inaccurate value: {len(ind)}"
+
+
+def test_index_abc_builtin_str_works(test_index_only):
+    """Test IndexABC builtin __str__ returns str of the concrete class name."""
+    ind = test_index_only
+    assert ind.__class__.__name__ == str(ind), (
+        f"Buildin str returns incorrect value: {str(ind)}"
+    )
+
+
 def test_index_abc_get_metadata_returns_dict(test_index_only):
     """Test IndexABC get_metadata returns a python dictionary."""
     ind = test_index_only
@@ -125,9 +151,7 @@ def test_index_abc_generate_index_works(test_pantry):
 
     # Generate the index.
     ind.generate_index()
-    ind_df = ind.to_pandas_df()
-
-    assert len(ind_df) == 0, "Incorrect number of elements in dataframe"
+    assert len(ind) == 0, "Incorrect number of elements in the index."
 
     # Put basket in the temporary bucket
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
@@ -135,9 +159,7 @@ def test_index_abc_generate_index_works(test_pantry):
 
     # Generate the index.
     ind.generate_index()
-    ind_df = ind.to_pandas_df()
-
-    assert len(ind_df) == 1, "Incorrect number of elements in dataframe"
+    assert len(ind) == 1, "Incorrect number of elements in the index."
 
     # Add another basket to the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_two")
@@ -145,9 +167,7 @@ def test_index_abc_generate_index_works(test_pantry):
 
     # Regenerate the index
     ind.generate_index()
-    ind_df = ind.to_pandas_df()
-
-    assert len(ind_df) == 2, "Incorrect number of elements in dataframe"
+    assert len(ind) == 2, "Incorrect number of elements in the index."
 
 
 def test_index_abc_to_pandas_df_works(test_pantry):
@@ -172,7 +192,7 @@ def test_index_abc_to_pandas_df_works(test_pantry):
     # Check we get a pandas dataframe of the correct length.
     assert len(ind_df) == 1 and isinstance(ind_df, pd.DataFrame)
 
-    # Check df columns are correctly named.
+    # Check df columns are named correctly.
     assert (
         list(ind_df.columns) == ["uuid", "upload_time", "parent_uuids",
                                 "basket_type", "label", "address",
@@ -209,7 +229,7 @@ def test_index_abc_to_pandas_df_works(test_pantry):
     # Check we get a pandas dataframe of the correct length.
     assert len(ind_df) == 2 and isinstance(ind_df, pd.DataFrame)
 
-    # Check df columns are correctly named.
+    # Check df columns are named correctly.
     assert (
         list(ind_df.columns) == ["uuid", "upload_time", "parent_uuids",
                                 "basket_type", "label", "address",
@@ -235,9 +255,7 @@ def test_index_abc_track_basket_adds_single_basket(test_pantry):
 
     # Generate the index.
     ind.generate_index()
-    ind_df = ind.to_pandas_df()
-
-    assert len(ind_df) == 0, "Incorrect number of elements in dataframe"
+    assert len(ind) == 0, "Incorrect number of elements in the index."
 
     # Put basket in the temporary bucket
     uid, basket_type, label = "0001", "test_basket", "test_label"
@@ -256,8 +274,7 @@ def test_index_abc_track_basket_adds_single_basket(test_pantry):
 
     ind.track_basket(single_indice_index)
     ind_df = ind.to_pandas_df()
-
-    assert len(ind_df) == 1, "Incorrect number of elements in dataframe"
+    assert len(ind) == 1, "Incorrect number of elements in the Index"
 
     # Check values of basket are accurate
     assert (
@@ -341,7 +358,7 @@ def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
             test_pantry.file_system.__class__.__name__
     ), "Retrieved manifest values do not match second record."
 
-    # Check df columns are correctly named.
+    # Check df columns are named correctly.
     assert (
         list(ind_df.columns) == ["uuid", "upload_time", "parent_uuids",
                                 "basket_type", "label", "address",
@@ -351,16 +368,115 @@ def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
 
 def test_index_abc_untrack_basket_removes_single_basket(test_pantry):
     """Test IndexABC untrack_basket works when passing a basket address."""
-    raise NotImplementedError
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+    # Put basket in the temporary bucket.
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_two")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0002")
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_three")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0003")
+
+    # Create the addresses to remove the last two baskets.
+    untrack_uuid = "0002"
+    untrack_path = os.path.join(test_pantry.pantry_path, "test_basket", "0003")
+
+    # Generate the index.
+    ind.generate_index()
+
+    ind.untrack_basket(untrack_uuid)
+    assert len(ind) == 2, "untrack_basket(uuid) failed to update index."
+
+    ind.untrack_basket(untrack_path)
+    assert len(ind) == 1, "untrack_basket(path) failed to update index."
+
+
+def test_index_abc_untrack_basket_raises_warning(test_pantry):
+    """Test IndexABC untrack_basket raises a warning when the address to be
+    untracked wasn't tracked to begin with."""
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+    # Put basket in the temporary bucket.
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+
+    untracked_uuid = "0009"
+    untracked_path = os.path.join("test-pantry-that-isnt-real", "fake_basket")
+
+    # Generate the index.
+    ind.generate_index()
+
+    # Test the warning is raised when untracking an already untracked UUID.
+    with warnings.catch_warnings(record=True) as warn:
+        ind.untrack_basket(untracked_uuid)
+    warning_list = [warn[i].message for i in range(len(warn))]
+    warning_1 = warning_list[0]
+    assert warning_1.args[0] == (
+        "Incomplete Request. Index could not untrack baskets, "
+        "as some were not being tracked to begin with."
+    )
+    assert warning_1.args[1] == 1
+
+    # Test the warning is raised when untracking an already untracked PATH.
+    with warnings.catch_warnings(record=True) as warn:
+        ind.untrack_basket(untracked_path)
+    warning_list = [warn[i].message for i in range(len(warn))]
+    warning_2 = warning_list[0]
+    assert warning_2.args[0] == (
+        "Incomplete Request. Index could not untrack baskets, "
+        "as some were not being tracked to begin with."
+    )
+    assert warning_2.args[1] == 1
 
 
 def test_index_abc_untrack_basket_removes_multiple_baskets(test_pantry):
     """Test IndexABC untrack_basket works when passing a multi-address list."""
-    raise NotImplementedError
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+    # Put basket in the temporary bucket.
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_two")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0002")
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_three")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0003")
+
+    # Generate the index.
+    ind.generate_index()
+
+    # Create a list of addresses to remove the last two baskets.
+    untrack_uuids = ["0002", "0003"]
+
+    ind.untrack_basket(untrack_uuids)
+    assert len(ind) == 1, "untrack_basket([uuid]) failed to update index."
 
 
-def test_index_abc_get_row_works(test_pantry):
-    """Test IndexABC get_row returns manifest data of basket addresses."""
+def test_index_abc_get_row_single_address_works(test_pantry):
+    """Test IndexABC get_row returns manifest data of a single address."""
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+    # Put basket in the temporary bucket.
+    uid = 
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_two")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0002")
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_three")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0003")
+
+    # Generate the index.
+    ind.generate_index()
+    single_row_df = ind.get_row("0001")
+
+
+def test_index_abc_get_row_multiple_address_works(test_pantry):
+    """Test IndexABC get_row returns manifest data of multiple addresses."""
     raise NotImplementedError
 
 
@@ -521,14 +637,4 @@ def test_index_abc_get_baskets_by_upload_time_start_end_works(test_pantry):
 def test_index_abc_get_baskets_by_upload_time_returns_empty_df(test_pantry):
     """Test IndexABC get_baskets_by_upload_time returns empty df when no entry
     is found between start/end."""
-    raise NotImplementedError
-
-
-def test_index_abc_builtin_len_works(test_pantry):
-    """Test IndexABC builtin __len__ returns number of baskets being tracked"""
-    raise NotImplementedError
-
-
-def test_index_abc_builtin_str_works(test_pantry):
-    """Test IndexABC builtin __str__ returns str of the concrete class name."""
     raise NotImplementedError
