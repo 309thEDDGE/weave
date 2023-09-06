@@ -2,6 +2,7 @@
 Wherein is contained the Abstract Base Class for Index.
 """
 import abc
+from datetime import datetime
 
 
 class IndexABC(abc.ABC):
@@ -220,6 +221,10 @@ class IndexABC(abc.ABC):
         pandas.DataFrame containing the manifest data of baskets uploaded
         between the start and end times.
         """
+        if start_time is not None and not isinstance(start_time,datetime):
+            raise ValueError('start_time is not datetime object.')
+        if end_time is not None and not isinstance(end_time,datetime):
+            raise ValueError('end_time is not datetime object.')
 
     @abc.abstractmethod
     def query(self, expr, **kwargs):

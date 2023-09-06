@@ -446,6 +446,7 @@ class IndexSQLite(IndexABC):
         pandas.DataFrame containing the manifest data of baskets uploaded
         between the start and end times.
         """
+        super().get_baskets_by_upload_time(start_time, end_time)
         columns = (
             [info[1] for info in
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]

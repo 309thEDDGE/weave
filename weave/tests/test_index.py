@@ -710,16 +710,17 @@ def test_index_abc_get_baskets_of_label_returns_empty_df(test_pantry):
     raise NotImplementedError
 
 
-def test_index_abc_get_baskets_by_upload_time_raises_value_error1(test_pantry):
-    """Test IndexABC get_baskets_by_upload_time raises a ValueError when
-    neither start nor end times are specified."""
-    raise NotImplementedError
-
-
 def test_index_abc_get_baskets_by_upload_time_raises_value_error2(test_pantry):
     """Test IndexABC get_baskets_by_upload_time raises a ValueError when
     either start or stop times are not valid datetime format (ie, not UTC)."""
-    raise NotImplementedError
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+    with pytest.raises(ValueError, match="start_time is not datetime object."):
+        baskets = ind.get_baskets_by_upload_time(start_time=1)
+    with pytest.raises(ValueError, match="end_time is not datetime object."):
+        time_str = "2022-02-03 11:12:13"
+        baskets = ind.get_baskets_by_upload_time(end_time=time_str)
 
 
 def test_index_abc_get_baskets_by_upload_time_start_works(test_pantry):
