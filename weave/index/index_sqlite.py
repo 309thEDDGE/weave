@@ -299,34 +299,45 @@ class IndexSQLite(IndexABC):
         of parents (and recursively their parents) of the given basket.
         """
         if self.file_system.exists(os.fspath(basket_address)):
-            basket_uuid = self.cur.execute(
-                "SELECT uuid FROM pantry_index WHERE address = ?",
-                (basket_address,)
-            ).fetchone()
+            id_column = "address"
         else:
-            basket_uuid = basket_address
+            id_column = "uuid"
+        basket_uuid = self.cur.execute(
+            f"SELECT uuid FROM pantry_index WHERE {id_column} = ?",
+            (basket_address,)
+        ).fetchone()
 
-        parent_df = pd.DataFrame(self.cur.execute(
-            """WITH RECURSIVE
-                child_record(level, id) AS (
-                    VALUES(0, ?)
-                    UNION
-                    SELECT child_record.level+1, parent_uuids.parent_uuid
-                    FROM parent_uuids, child_record
-                    WHERE parent_uuids.uuid = child_record.id
-                )
-            SELECT pantry_index.*, child_record.level
-            FROM pantry_index, parent_uuids, child_record
-            WHERE pantry_index.uuid = parent_uuids.uuid
-                AND parent_uuids.uuid = child_record.id
-            ORDER BY child_record.level ASC""", (basket_uuid,)
-        ).fetchall())
+        if basket_uuid is None:
+            raise FileNotFoundError(
+                f"basket path or uuid does not exist '{basket_address}'"
+            )
+        basket_uuid = basket_uuid[0]
+
         columns = (
             [info[1] for info in
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
         )
         columns.append("generation_level")
-        parent_df.columns = columns
+        parent_df = pd.DataFrame(self.cur.execute(
+                """WITH RECURSIVE
+                    child_record(level, id) AS (
+                        VALUES(0, ?)
+                        UNION
+                        SELECT child_record.level+1, parent_uuids.parent_uuid
+                        FROM parent_uuids, child_record
+                        WHERE parent_uuids.uuid = child_record.id
+                    )
+                SELECT pantry_index.*, child_record.level
+                FROM pantry_index, parent_uuids, child_record
+                WHERE pantry_index.uuid = parent_uuids.uuid
+                AND parent_uuids.uuid = child_record.id
+                ORDER BY child_record.level ASC""", (basket_uuid,)
+            ).fetchall(),
+            columns=columns,
+        )
+
+        parent_df = parent_df.drop_duplicates()
+        parent_df = parent_df[parent_df['uuid'] != basket_uuid]
         return parent_df
 
     def get_children(self, basket_address, **kwargs):
@@ -353,7 +364,9 @@ class IndexSQLite(IndexABC):
         ).fetchone()
 
         if basket_uuid is None:
-            raise FileNotFoundError(f"basket path or uuid does not exist '{basket_address}'")
+            raise FileNotFoundError(
+                f"basket path or uuid does not exist '{basket_address}'"
+            )
         basket_uuid = basket_uuid[0]
 
         columns = (
