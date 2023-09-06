@@ -696,18 +696,71 @@ def test_index_abc_get_baskets_of_type_returns_empty_df(test_pantry):
 
 def test_index_abc_get_baskets_of_label_works(test_pantry):
     """Test IndexABC get_baskets_of_label returns correct dataframe."""
-    raise NotImplementedError
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+    # Put basket in the temporary bucket.
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_basket_dir_one,
+        uid="0001",
+        label='good_label',
+    )
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_two")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_basket_dir_one,
+        uid="0002",
+        label='bad_label',
+    )
+
+    # Generate the index.
+    ind.generate_index()
+
+    baskets = ind.get_baskets_of_label("good_label")
+    assert len(baskets) == 1
+    assert "0001" in baskets["uuid"].to_list()
 
 
 def test_index_abc_get_baskets_of_label_max_rows_works(test_pantry):
     """Test IndexABC get_baskets_of_label max_rows argument works properly."""
-    raise NotImplementedError
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+    # Put basket in the temporary bucket.
+    for basket_iter in range(3):
+        tmp_basket_dir_one = test_pantry.set_up_basket(f"basket_{basket_iter}")
+        test_pantry.upload_basket(
+            tmp_basket_dir=tmp_basket_dir_one,
+            uid=f"000{basket_iter}",
+            label='good_label',
+        )
+
+    # Generate the index.
+    ind.generate_index()
+
+    baskets = ind.get_baskets_of_label("good_label", max_rows=2)
+    assert len(baskets) == 2
 
 
 def test_index_abc_get_baskets_of_label_returns_empty_df(test_pantry):
     """Test IndexABC get_baskets_of_label returns empty df if no baskets have
     the given label."""
-    raise NotImplementedError
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+    # Put basket in the temporary bucket.
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_basket_dir_one,
+        uid="0001",
+        label='good_label',
+    )
+
+    # Generate the index.
+    ind.generate_index()
+
+    baskets = ind.get_baskets_of_label("bad_label")
+    assert len(baskets) == 0
 
 
 def test_index_abc_get_baskets_by_upload_time_raises_value_error2(test_pantry):
