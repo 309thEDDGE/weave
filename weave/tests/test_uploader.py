@@ -578,9 +578,13 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
     assert uploading_basket.kwargs.get("unique_id") is not None
 
     full_upload_path = test_basket.file_system.ls(upload_path)
+    print(upload_path)
+    print(full_upload_path)
+    print(full_upload_path[0])
     with open(full_upload_path[0], "r", encoding="utf-8") as outfile:
         manifest_data = json.load(outfile)
     print(manifest_data)
+    print(manifest_data['uuid'])
     assert manifest_data['uuid'] != 'null'
 
 
