@@ -14,7 +14,6 @@ from fsspec.implementations.local import LocalFileSystem
 
 import weave
 from weave import Basket
-from weave.index.index import Index
 from weave import IndexSQLite
 from weave.index.create_index import create_index_from_fs
 from weave.tests.pytest_resources import BucketForTest, IndexForTest
@@ -440,44 +439,148 @@ def test_index_abc_untrack_basket_removes_multiple_baskets(test_pantry):
     # Put basket in the temporary bucket.
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_two")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0002")
+
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_three")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0003")
 
     # Generate the index.
     ind.generate_index()
 
-    # Create a list of addresses to remove the last two baskets.
-    untrack_uuids = ["0002", "0003"]
+    # Create a list of addresses to remove the first two baskets.
+    untrack_uuids = ["0001", "0002"]
 
     ind.untrack_basket(untrack_uuids)
     assert len(ind) == 1, "untrack_basket([uuid]) failed to update index."
 
 
-def test_index_abc_get_row_single_address_works(test_pantry):
-    """Test IndexABC get_row returns manifest data of a single address."""
+def test_index_abc_get_rows_single_address_works(test_pantry):
+    """Test IndexABC get_rows returns manifest data of a single address."""
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    # Put basket in the temporary bucket.
-    uid = 
-    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+    basket_type = "test_basket_type"
 
-    tmp_basket_dir_one = test_pantry.set_up_basket("basket_two")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0002")
-    tmp_basket_dir_one = test_pantry.set_up_basket("basket_three")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0003")
+    uid1 = "0001"
+    label1 = "label_1"
+    parent_ids1 = []
+
+    # Put basket in the temporary bucket.
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    up_dir1 = test_pantry.upload_basket(
+        tmp_basket_dir=tmp_basket_dir_one,
+        basket_type=basket_type,
+        uid=uid1,
+        label=label1,
+        parent_ids=parent_ids1,
+    )
+
+    uid2 = "0002"
+    label2 = "label_2"
+    parent_ids2 = [uid1]
+
+    tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
+    up_dir2 = test_pantry.upload_basket(
+        tmp_basket_dir=tmp_basket_dir_two,
+        basket_type=basket_type,
+        uid=uid2,
+        label=label2,
+        parent_ids=parent_ids2,
+    )
+
+    tmp_basket_dir_three = test_pantry.set_up_basket("basket_three")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_three, uid="0003")
 
     # Generate the index.
     ind.generate_index()
-    single_row_df = ind.get_row("0001")
+
+    first_row_df = ind.get_rows("0001")
+    assert isinstance(first_row_df, pd.DataFrame) and len(first_row_df) == 1
+    assert (
+        first_row_df.iloc[0]["uuid"] == uid1 and
+        first_row_df.iloc[0]["parent_uuids"] == f"{parent_ids1}" and
+        first_row_df.iloc[0]["basket_type"] == basket_type and
+        first_row_df.iloc[0]["label"] == label1 and
+        first_row_df.iloc[0]["address"].endswith(up_dir1) and
+        first_row_df.iloc[0]["storage_type"] == \
+            test_pantry.file_system.__class__.__name__
+    ), "Retrieved manifest values do not match first record."
+
+    second_row_df = ind.get_rows(up_dir2)
+    assert isinstance(second_row_df, pd.DataFrame) and len(second_row_df) == 1
+    assert (
+        second_row_df.iloc[0]["uuid"] == uid2 and
+        second_row_df.iloc[0]["parent_uuids"] == f"{parent_ids2}" and
+        second_row_df.iloc[0]["basket_type"] == basket_type and
+        second_row_df.iloc[0]["label"] == label2 and
+        second_row_df.iloc[0]["address"].endswith(up_dir2) and
+        second_row_df.iloc[0]["storage_type"] == \
+            test_pantry.file_system.__class__.__name__
+    ), "Retrieved manifest values do not match second record."
 
 
-def test_index_abc_get_row_multiple_address_works(test_pantry):
-    """Test IndexABC get_row returns manifest data of multiple addresses."""
-    raise NotImplementedError
+def test_index_abc_get_rows_multiple_address_works(test_pantry):
+    """Test IndexABC get_rows returns manifest data of multiple addresses."""
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+    basket_type = "test_basket_type"
+
+    uid1 = "0001"
+    label1 = "label_1"
+    parent_ids1 = []
+
+    # Put basket in the temporary bucket.
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    up_dir1 = test_pantry.upload_basket(
+        tmp_basket_dir=tmp_basket_dir_one,
+        basket_type=basket_type,
+        uid=uid1,
+        label=label1,
+        parent_ids=parent_ids1,
+    )
+
+    uid2 = "0002"
+    label2 = "label_2"
+    parent_ids2 = [uid1]
+
+    tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
+    up_dir2 = test_pantry.upload_basket(
+        tmp_basket_dir=tmp_basket_dir_two,
+        basket_type=basket_type,
+        uid=uid2,
+        label=label2,
+        parent_ids=parent_ids2,
+    )
+
+    tmp_basket_dir_three = test_pantry.set_up_basket("basket_three")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_three, uid="0003")
+
+    # Generate the index.
+    ind.generate_index()
+
+    rows_df = ind.get_rows(["0001", "0002"])
+    assert isinstance(rows_df, pd.DataFrame) and len(rows_df) == 2
+    assert (
+        rows_df.iloc[0]["uuid"] == uid1 and
+        rows_df.iloc[0]["parent_uuids"] == f"{parent_ids1}" and
+        rows_df.iloc[0]["basket_type"] == basket_type and
+        rows_df.iloc[0]["label"] == label1 and
+        rows_df.iloc[0]["address"].endswith(up_dir1) and
+        rows_df.iloc[0]["storage_type"] == \
+            test_pantry.file_system.__class__.__name__
+    ), "Retrieved manifest values do not match first record."
+    assert (
+        rows_df.iloc[1]["uuid"] == uid2 and
+        rows_df.iloc[1]["parent_uuids"] == f"{parent_ids2}" and
+        rows_df.iloc[1]["basket_type"] == basket_type and
+        rows_df.iloc[1]["label"] == label2 and
+        rows_df.iloc[1]["address"].endswith(up_dir2) and
+        rows_df.iloc[1]["storage_type"] == \
+            test_pantry.file_system.__class__.__name__
+    ), "Retrieved manifest values do not match second record."
 
 
 def test_index_abc_get_parents_path_works(test_pantry):

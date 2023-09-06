@@ -62,7 +62,7 @@ class IndexSQLite(IndexABC):
         """The pantry path referenced by this Index."""
         return self._pantry_path
 
-    def get_metadata(self, **kwargs):
+    def generate_metadata(self, **kwargs):
         """Populates the metadata for the index."""
         return {"db_path": self.db_path}
 
@@ -244,7 +244,7 @@ class IndexSQLite(IndexABC):
             file_system=self.file_system
         )
 
-    def get_row(self, basket_address, **kwargs):
+    def get_rows(self, basket_address, **kwargs):
         """Returns a pd.DataFrame row information of given UUID or path.
 
         Parameters
@@ -259,6 +259,30 @@ class IndexSQLite(IndexABC):
         pandas.DataFrame
             Manifest information for the requested basket(s).
         """
+        if not isinstance(basket_address, list):
+            basket_address = [basket_address]
+
+        if self.file_system.exists(os.fspath(basket_address[0])):
+            id_column = "address"
+        else:
+            id_column = "uuid"
+
+        query = (
+            f"SELECT * FROM pantry_index WHERE {id_column} in "
+            f"({','.join(['?']*len(basket_address))})"
+        )
+        results = self.cur.execute(query, basket_address).fetchall()
+
+        columns = (
+            [info[1] for info in
+             self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
+        )
+        ind_df = pd.DataFrame(
+            results,
+            columns=columns
+        )
+        return ind_df
+
 
     def get_parents(self, basket_address, **kwargs):
         """Returns a pandas dataframe of all parents of a basket.
