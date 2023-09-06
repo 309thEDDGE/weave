@@ -553,8 +553,12 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
     )
     assert uploading_basket.kwargs.get("unique_id") is not None
 
-    full_upload_path = os.path.join(os.getcwd(),upload_path)
     current_working_directory = os.getcwd()
+    full_upload_path = os.path.join(os.getcwd(),upload_path)
+    print(os.listdir())
+    print(os.getcwd())
+    print(os.isdir(upload_path))
+    print(os.isdir(full_upload_path))
     os.chdir(full_upload_path)
 
     with open("basket_manifest.json", "r", encoding="utf-8") as outfile:
