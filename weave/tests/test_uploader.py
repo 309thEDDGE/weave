@@ -535,18 +535,16 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
     Test that upload_basket creates a uuid when unique_id is not
     initialized
     """
-
+    os.environ["WEAVE_PYTEST_SUFFIX"] = "GODZILLA_SUFFIX"
     # Create a temporary basket with a test file.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_dir = test_basket.set_up_basket(tmp_basket_dir_name)
-    print(tmp_dir)
-    print(os.listdir())
+
     #Initialize all kwargs except unique_id
     upload_items = [{"path": tmp_dir.strpath, "stub": False}]
     basket_type = "test_basket"
     upload_path = os.path.join(test_basket.pantry_name, basket_type)
-    print(upload_path)
-    print(os.listdir())
+
     uploading_basket = weave.upload.UploadBasket(
         upload_items=upload_items,
         upload_directory=upload_path,
@@ -554,16 +552,9 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
         file_system=test_basket.file_system,
     )
     assert uploading_basket.kwargs.get("unique_id") is not None
-    print(os.listdir())
+
     current_working_directory = os.getcwd()
     full_upload_path = os.path.join(os.getcwd(),upload_path)
-    print(full_upload_path)
-    print(os.listdir())
-    print(os.getcwd())
-    print(os.path.isdir(os.getcwd()))
-    print(os.path.isdir(upload_path))
-    print(os.path.isdir(full_upload_path))
-    print(os.path.abspath(full_upload_path))
     os.chdir(full_upload_path)
 
     with open("basket_manifest.json", "r", encoding="utf-8") as outfile:
