@@ -28,10 +28,10 @@ def validate_pantry(pantry):
     no warnings are raised)
     """
 
-    if not pantry.file_system.exists(pantry.pantry_name):
+    if not pantry.file_system.exists(pantry.pantry_path):
         raise ValueError(
             f"Invalid pantry Path. Pantry does not exist at: "
-            f"{pantry.pantry_name}"
+            f"{pantry.pantry_path}"
         )
 
     # Here we are catching the warnings that are shown from calling
@@ -47,7 +47,7 @@ def validate_pantry(pantry):
     # Call check level, with a path, but since we're just starting,
     # We just use the pantry_name as the path
     with warnings.catch_warnings(record=True) as warn:
-        _check_level(pantry.pantry_name, pantry=pantry)
+        _check_level(pantry.pantry_path, pantry=pantry)
         # Iterate through warn and return the list of warning messages.
         # Enumerate does not work here. prefer to use range and len
         # pylint: disable-next=consider-using-enumerate
@@ -314,14 +314,8 @@ def _validate_parent_uuids(data, pantry):
     if len(data["parent_uuids"]) == 0:
         return
 
-    def basket_exists(pantry, uid):
-        try:
-            pantry.index.get_basket(uid)
-            return None
-        except ValueError:
-            return uid
-    missing_uids = [basket_exists(pantry,uid) for uid in data["parent_uuids"]]
-    missing_uids = [uid for uid in missing_uids if uid is not None]
+    found_parents = list(pantry.index.get_rows(data['parent_uuids'])['uuid'])
+    missing_uids = [uid for uid in data["parent_uuids"] if uid not in found_parents]
 
     if missing_uids:
         warnings.warn(f"The uuids: {missing_uids} were not found in the "

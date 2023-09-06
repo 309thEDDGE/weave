@@ -52,7 +52,7 @@ class Pantry():
                            metadata=self.metadata['index_metadata'],
                            **kwargs
         )
-        self.metadata['index_metadata'] = self.index.get_metadata()
+        self.metadata['index_metadata'] = self.index.generate_metadata()
 
     def load_metadata(self):
         """Load pantry metadata from pantry_metadata.json"""
@@ -100,13 +100,13 @@ class Pantry():
             Additional parameters to pass to the index
         '''
         basket_address = str(basket_address)
-        remove_item = self.index.get_row(basket_address)
+        remove_item = self.index.get_rows(basket_address)
 
         if len(self.index.get_children(remove_item.iloc[0].uuid)) > 0:
             raise ValueError(
                 f"The provided value for basket_uuid {basket_address} " +
                 "is listed as a parent UUID for another basket. Please " +
-                "delete that basket before deleting it's parent basket."
+                "delete that basket before deleting its parent basket."
             )
         self.file_system.rm(remove_item.iloc[0].address, recursive=True)
         self.index.untrack_basket(remove_item.iloc[0].address, **kwargs)
@@ -173,7 +173,7 @@ class Pantry():
         # Create a Basket from the given address, and the index's file_system
         # and bucket name. Basket will catch invalid inputs and raise
         # appropriate errors.
-        row = self.index.get_row(basket_address)
+        row = self.index.get_rows(basket_address)
         if len(row) == 0:
             raise ValueError(f"Basket does not exist: {basket_address}")
         return Basket(row.iloc[0].address, pantry=self)
