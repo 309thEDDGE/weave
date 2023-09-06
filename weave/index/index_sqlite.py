@@ -388,15 +388,16 @@ class IndexSQLite(IndexABC):
         ----------
         pandas.DataFrame containing the manifest data of baskets of the type.
         """
-        ind_df = pd.DataFrame(
-            self.cur.execute(
-                "SELECT * FROM pantry_index"
-                "WHERE basket_type = ? LIMIT ?", (basket_type, max_rows)
-            ).fetchall()
-        )
-        ind_df.columns = (
+        columns = (
             [info[1] for info in
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
+        )
+        ind_df = pd.DataFrame(
+            self.cur.execute(
+                """SELECT * FROM pantry_index
+                WHERE basket_type = ? LIMIT ?""", (basket_type, max_rows)
+            ).fetchall(),
+            columns=columns,
         )
         return ind_df
 
