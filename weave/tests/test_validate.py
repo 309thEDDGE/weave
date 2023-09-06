@@ -296,7 +296,6 @@ def test_validate_manifest_schema_missing_field(test_validate):
     """Make basket with invalid manifest schema, check that it collects one
        warning.
     """
-
     # The manifest is missing the uuid field
     # this is invalid against the schema.
     bad_manifest_data = """{
@@ -316,25 +315,44 @@ def test_validate_manifest_schema_missing_field(test_validate):
 
     basket_path = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
+    # Get paths ready to use and for removal
     manifest_path = os.path.join(basket_path, "basket_manifest.json")
     supplement_path = os.path.join(basket_path, "basket_supplement.json")
+
+    # In this next section, find the supplement, which has a bad path in it,
+    # pull it down, and modify it to have the proper path inside the
+    # supplement's integrity data. Do this because the custom supplement
+    # dictionary didn't have the correct upload path
+    with test_validate.file_system.open(supplement_path, "rb",) as file:
+        supplement_dict = json.load(file)
+
+    nested_supp_path = supplement_dict["integrity_data"][2]["upload_path"]
+
+    with test_validate.file_system.open(nested_supp_path, "rb",) as supp_file:
+        nested_supp_dict = json.load(supp_file)
+
+    test_txt_path = supplement_dict["integrity_data"][0]["upload_path"]
+
+    nested_supp_dict["integrity_data"][0]["upload_path"] = test_txt_path
+
+    with open("basket_supplement.json", "w", encoding="utf-8") as file:
+        json.dump(nested_supp_dict, file)
+
+    test_validate.file_system.upload("basket_supplement.json",
+                                     nested_supp_path)
+
+    os.remove("basket_supplement.json")
+
+    # Remove the default manifest and supplement
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
+    # Catch warnings and validate it throws 1 and is correct
     warn_info = validate.validate_pantry(test_validate.pantry_name,
                                          test_validate.file_system)
     warning_1 = warn_info[0]
 
-    # Check that there is only one warning raised
-    # NOTE TO THE REVIEWERS: I added this here because I'm having a problem
-    # with how the warnings are being thrown. We need to have our own custom
-    # manifest/supplement/metadata .json files, but when doing that
-    # I cannot have the correct upload_path in the supplement integrity data
-    # because the only paths we have are tmp dirs. I could hard code it, but
-    # then if you have a custom environment variable for the pantry name, that
-    # would break the tests. We know that it is throwing 2 extra warnings
-    # and I'm just upping the warnings to catch those.
-    assert len(warn_info) == 3
+    assert len(warn_info) == 1
 
     # Check that the correct warning is raised
     assert warning_1.args[0] == (
@@ -375,6 +393,32 @@ def test_validate_manifest_schema_additional_field(test_validate):
 
     manifest_path = os.path.join(basket_path, "basket_manifest.json")
     supplement_path = os.path.join(basket_path, "basket_supplement.json")
+
+    # In this next section, find the supplement, which has a bad path in it,
+    # pull it down, and modify it to have the proper path inside the
+    # supplement's integrity data. Do this because the custom supplement
+    # dictionary didn't have the correct upload path
+    with test_validate.file_system.open(supplement_path, "rb",) as file:
+        supplement_dict = json.load(file)
+
+    nested_supp_path = supplement_dict["integrity_data"][2]["upload_path"]
+
+    with test_validate.file_system.open(nested_supp_path, "rb",) as supp_file:
+        nested_supp_dict = json.load(supp_file)
+
+    test_txt_path = supplement_dict["integrity_data"][0]["upload_path"]
+
+    nested_supp_dict["integrity_data"][0]["upload_path"] = test_txt_path
+
+    with open("basket_supplement.json", "w", encoding="utf-8") as file:
+        json.dump(nested_supp_dict, file)
+
+    test_validate.file_system.upload("basket_supplement.json",
+                                     nested_supp_path)
+
+    os.remove("basket_supplement.json")
+
+    # Remove the default manifest and supplement
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
@@ -383,15 +427,7 @@ def test_validate_manifest_schema_additional_field(test_validate):
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
-    # NOTE TO THE REVIEWERS: I added this here because I'm having a problem
-    # with how the warnings are being thrown. We need to have our own custom
-    # manifest/supplement/metadata .json files, but when doing that
-    # I cannot have the correct upload_path in the supplement integrity data
-    # because the only paths we have are tmp dirs. I could hard code it, but
-    # then if you have a custom environment variable for the pantry name, that
-    # would break the tests. We know that it is throwing 2 extra warnings
-    # and I'm just upping the warnings to catch those.
-    assert len(warn_info) == 3
+    assert len(warn_info) == 1
 
     # Check that the correct warning is raised
     assert warning_1.args[0] == (
@@ -999,6 +1035,32 @@ def test_validate_invalid_metadata_json(test_validate):
 
     manifest_path = os.path.join(basket_path, "basket_manifest.json")
     supplement_path = os.path.join(basket_path, "basket_supplement.json")
+
+     # In this next section, find the supplement, which has a bad path in it,
+    # pull it down, and modify it to have the proper path inside the
+    # supplement's integrity data. Do this because the custom supplement
+    # dictionary didn't have the correct upload path
+    with test_validate.file_system.open(supplement_path, "rb",) as file:
+        supplement_dict = json.load(file)
+
+    nested_supp_path = supplement_dict["integrity_data"][2]["upload_path"]
+
+    with test_validate.file_system.open(nested_supp_path, "rb",) as supp_file:
+        nested_supp_dict = json.load(supp_file)
+
+    test_txt_path = supplement_dict["integrity_data"][0]["upload_path"]
+
+    nested_supp_dict["integrity_data"][0]["upload_path"] = test_txt_path
+
+    with open("basket_supplement.json", "w", encoding="utf-8") as file:
+        json.dump(nested_supp_dict, file)
+
+    test_validate.file_system.upload("basket_supplement.json",
+                                     nested_supp_path)
+
+    os.remove("basket_supplement.json")
+
+    # Remove the default manifest and supplement
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
@@ -1011,15 +1073,7 @@ def test_validate_invalid_metadata_json(test_validate):
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
-    # NOTE TO THE REVIEWERS: I added this here because I'm having a problem
-    # with how the warnings are being thrown. We need to have our own custom
-    # manifest/supplement/metadata .json files, but when doing that
-    # I cannot have the correct upload_path in the supplement integrity data
-    # because the only paths we have are tmp dirs. I could hard code it, but
-    # then if you have a custom environment variable for the pantry name, that
-    # would break the tests. We know that it is throwing 2 extra warnings
-    # and I'm just upping the warnings to catch those.
-    assert len(warn_info) == 3
+    assert len(warn_info) == 1
 
     # Check that the correct warning is raised
     assert warning_1.args[0] == (
