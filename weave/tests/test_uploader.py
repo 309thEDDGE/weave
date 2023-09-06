@@ -52,7 +52,11 @@ class UploadForTest(BucketForTest):
         upload_path = weave.upload.UploadBasket(
             upload_items=upload_items,
             basket_type=basket_type,
+<<<<<<< HEAD
             pantry_path=self.pantry_path,
+=======
+            pantry_name=self.pantry_path,
+>>>>>>> 90bf70c804e9287e61f5731c80207a22468da5fd
             parent_ids=parent_ids,
             metadata=metadata,
             label=label,
@@ -175,7 +179,11 @@ def test_upload_pantry_path_is_string():
         match="Invalid datatype: 'pantry_path: must be type <class 'str'>'",
     ):
         weave.upload.UploadBasket(
+<<<<<<< HEAD
             upload_items, basket_type="test_basket", pantry_path=pantry_path
+=======
+            upload_items, basket_type="test_basket", pantry_name=pantry_path
+>>>>>>> 90bf70c804e9287e61f5731c80207a22468da5fd
         )
 
 

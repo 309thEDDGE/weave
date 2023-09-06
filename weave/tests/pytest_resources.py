@@ -83,8 +83,6 @@ class BucketForTest:
         self, tmp_basket_dir, uid="0000", basket_type="test_basket", **kwargs
     ):
         """Upload a temporary (local) basket to the S3 test bucket."""
-        # up_dir = os.path.join(self.pantry_path, basket_type, uid)
-
         upload_items = [
             {"path": str(tmp_basket_dir.realpath()), "stub": False}
         ]

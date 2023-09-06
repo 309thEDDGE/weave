@@ -16,11 +16,14 @@ class IndexABC(abc.ABC):
             The fsspec object which hosts the pantry we desire to index.
         pantry_path: str
             Path to the pantry root which we want to index.
+        **metadata: Existing metadata for the Index
 
         Optional kwargs controlled by concrete implementations.
         """
         self._file_system = file_system
         self._pantry_path = pantry_path
+        self.metadata = kwargs.get('metadata', {})
+        self.generate_metadata()
 
     @property
     @abc.abstractmethod
@@ -33,8 +36,8 @@ class IndexABC(abc.ABC):
         """The pantry path referenced by this Index."""
 
     @abc.abstractmethod
-    def get_metadata(self, **kwargs):
-        """Populates the metadata for the index.
+    def generate_metadata(self, **kwargs):
+        """Generate the metadata for the index.
 
         Parameters
         ----------
@@ -45,6 +48,7 @@ class IndexABC(abc.ABC):
         dict
             A dictionary of metadata for the index.
         """
+        self.metadata['name'] = str(self)
 
     @abc.abstractmethod
     def generate_index(self, **kwargs):
@@ -103,8 +107,8 @@ class IndexABC(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_row(self, basket_address, **kwargs):
-        """Returns a pandas.DataFrame row information of given UUID or path.
+    def get_rows(self, basket_address, **kwargs):
+        """Returns a pd.DataFrame row information of given UUID or path.
 
         Parameters
         ----------
