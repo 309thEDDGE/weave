@@ -464,7 +464,7 @@ def test_basket_ls_after_find(test_pantry):
 
 def test_basket_init_from_uuid(test_pantry):
     """
-    Test that a basket can successfully initialized from a UUID.
+    Test that a basket can be successfully initialized from a UUID.
     """
     # Put basket in the temporary bucket
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")

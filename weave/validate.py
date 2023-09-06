@@ -73,12 +73,12 @@ def _check_level(current_dir, **kwargs):
     current_dir: str
         the current directory being searched
 
-    kwargs:
-    file_system: fsspec object
+    
+    **file_system: fsspec object
         the file system (s3fs, local fs, etc.) of the directory being searched
-    index_df: dataframe
+    **index_df: dataframe
         a dataframe representing the index
-    in_basket: bool
+    **in_basket: bool
         optional parameter. This is a flag to signify that the directory
         is a basket and to search for nested baskets
 
@@ -118,7 +118,7 @@ def _check_level(current_dir, **kwargs):
         file_type = file_system.info(file_or_dir)['type']
 
         if file_type == 'directory':
-            # If directory is a basket, check evrything under it,
+            # If directory is a basket, check everything under it,
             # for a manifest and return true,
             # this will return true to the _validate_basket
             # and throw an error or warning

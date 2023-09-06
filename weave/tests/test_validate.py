@@ -12,8 +12,8 @@ from weave.tests.pytest_resources import BucketForTest
 
 # This module is long and has many tests. Pylint is complaining that it is too
 # long. This isn't necessarily bad in this case, as the alternative
-# would be to write the tests continuuing in a different script, which would
-# be unnecesarily complex.
+# would be to write the tests continuing in a different script, which would
+# be unnecessarily complex.
 # Disabling this warning for this script.
 # pylint: disable=too-many-lines
 
@@ -48,13 +48,13 @@ class ValidateForTest(BucketForTest):
             The directory name of where the nested basket will be
 
         **is_man: bool
-            A bool that signals if ther should be a manifest file
+            A bool that signals if there should be a manifest file
             defaults to no manifest
         **is_sup: bool
-            A bool that signals if ther should be a supplement file
+            A bool that signals if there should be a supplement file
             defaults to no supplement
         **is_meta: bool
-            A bool that signals if ther should be a metadata file
+            A bool that signals if there should be a metadata file
             defaults to no metadata
         **man_data: str
             The json data to be put into the manifest file
@@ -222,7 +222,8 @@ def test_validate_no_supplement_file(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. No Supplement file found at: "
     )
-    # Check the invalid basket path is what is expected (ignoring FS prefix)
+    # Check the invalid basket path is what is expected
+    # (ignoring File System prefix)
     assert warning_1.args[1].endswith(basket_path)
 
 
@@ -283,7 +284,8 @@ def test_validate_invalid_manifest_schema(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. Manifest Schema does not match at: "
     )
-    # Check the invalid basket path is what is expected (ignoring FS prefix)
+    # Check the invalid basket path is what is expected 
+    # (ignoring File System prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_man_schema",
                                                    "basket_manifest.json"))
@@ -329,7 +331,8 @@ def test_validate_manifest_schema_missing_field(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. Manifest Schema does not match at: "
     )
-    # Check the invalid basket path is what is expected (ignoring FS prefix)
+    # Check the invalid basket path is what is expected
+    # (ignoring File System prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_man_schema",
                                                    "basket_manifest.json"))
@@ -378,7 +381,8 @@ def test_validate_manifest_schema_additional_field(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. Manifest Schema does not match at: "
     )
-    # Check the invalid basket path is what is expected (ignoring FS prefix)
+    # Check the invalid basket path is what is expected
+    # (ignoring File System prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_man_schema",
                                                    "basket_manifest.json"))
@@ -467,7 +471,8 @@ def test_validate_invalid_supplement_schema(test_validate):
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement Schema does not match at: "
     )
-    # Check the invalid basket path is what is expected (ignoring FS prefix)
+    # Check the invalid basket path is what is expected
+    # (ignoring File System prefix)
     assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_schema",
                                                    "basket_supplement.json"))
@@ -1043,7 +1048,7 @@ def test_validate_deeply_nested(test_validate):
         new_dir_name='nest_level'
     )
 
-    # Create a deep directory 10 deep
+    # Create a 10 directory deep basket
     for i in range(10):
         nested_dir_name = "nest_level_" + str(i)
         my_nested_dir = test_validate.add_lower_dir_to_temp_basket(

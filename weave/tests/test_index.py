@@ -225,7 +225,8 @@ def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
             "do not follow specified weave schema:"
         )
         # {bad_addresses} would be included in the message, but
-        # due to FS dependent prefixes direct string comparison is not possible
+        # due to File System dependent prefixes 
+        # direct string comparison is not possible
 
         warn_msg = str(warn[0].message)
 
@@ -1303,7 +1304,7 @@ def test_upload_basket_gracefully_fails(
     In this test an engineered failure to upload the basket occurs.
     Index.upload_basket() should not add anything to the index_df.
     Additionally, the basket in question should be deleted from storage
-    (The process fail after only after a partial upload).
+    (The process fails after only after a partial upload).
     """
     tmp_basket = test_pantry.set_up_basket("basket_one")
 

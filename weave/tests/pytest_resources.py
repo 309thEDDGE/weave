@@ -26,7 +26,7 @@ def file_path_in_list(search_path, search_list):
     system dependent prefixes such as /home/user/ which can usually be ignored.
     For example, given a list of file paths:
     ['/home/user/data/file.txt', '/home/user/data/this/is/test.txt']
-    and the fcuntion is searching for 'data/file.txt',
+    and the function is searching for 'data/file.txt',
     the function will return True as the file exists.
     """
     search_path = str(search_path)
