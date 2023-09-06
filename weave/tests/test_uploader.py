@@ -562,7 +562,7 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
 
     assert manifest_data['uuid'] != 'null'
     os.chdir(current_working_directory)
-    os.environ["WEAVE_PYTEST_SUFFIX"] = None
+    os.environ["WEAVE_PYTEST_SUFFIX"] = ""
 
 def test_upload_basket_upload_items_is_not_a_string(test_basket):
     """
