@@ -724,13 +724,50 @@ def test_index_abc_get_baskets_by_upload_time_raises_value_error2(test_pantry):
 
 def test_index_abc_get_baskets_by_upload_time_start_works(test_pantry):
     """Test IndexABC get_baskets_by_upload_time works with only a start time"""
-    raise NotImplementedError
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+    # Put basket in the temporary bucket.
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+
+    start = datetime.now()
+
+    # Put basket in the temporary bucket.
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_two")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0002")
+
+    # Generate the index.
+    ind.generate_index()
+
+    baskets = ind.get_baskets_by_upload_time(start_time=start)
+
+    assert len(baskets) == 1
+    assert "0001" not in baskets["uuid"].to_list()
 
 
 def test_index_abc_get_baskets_by_upload_time_end_works(test_pantry):
     """Test IndexABC get_baskets_by_upload_time works with only an end time"""
-    raise NotImplementedError
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
 
+    # Put basket in the temporary bucket.
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+
+    end = datetime.now()
+
+    # Put basket in the temporary bucket.
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_two")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0002")
+
+    # Generate the index.
+    ind.generate_index()
+
+    baskets = ind.get_baskets_by_upload_time(end_time=end)
+
+    assert len(baskets) == 1
+    assert "0002" not in baskets["uuid"].to_list()
 
 def test_index_abc_get_baskets_by_upload_time_start_end_works(test_pantry):
     """Test IndexABC get_baskets_by_upload_time works with both start and end
@@ -756,7 +793,7 @@ def test_index_abc_get_baskets_by_upload_time_start_end_works(test_pantry):
     baskets = ind.get_baskets_by_upload_time(start_time=start, end_time=end)
 
     assert len(baskets) == 1
-    assert "0001" not in baskets["uuid"].to_list()
+    assert "0002" not in baskets["uuid"].to_list()
 
 
 def test_index_abc_get_baskets_by_upload_time_returns_empty_df(test_pantry):
