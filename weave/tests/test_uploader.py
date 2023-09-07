@@ -556,13 +556,9 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
     current_working_directory = os.getcwd()
     full_upload_path = os.path.join(os.getcwd(),upload_path)
     tmp_files = test_basket.file_system.ls("pytest-temp-bucket/test_basket")
-    print(test_basket.file_system)
-    print(test_basket.file_system.ls("pytest-temp-bucket/test_basket"))
-    print(os.getcwd())
-    print(full_upload_path)
-    print(os.listdir())
 
-    with open(tmp_files[0], "r", encoding="utf-8") as outfile:
+    with test_basket.file_system.open(tmp_files[0], "r", encoding="utf-8")\
+            as outfile:
         manifest_data = json.load(outfile)
 
     assert manifest_data['uuid'] != 'null'
