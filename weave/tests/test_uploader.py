@@ -556,7 +556,7 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
     current_working_directory = os.getcwd()
     full_upload_path = os.path.join(os.getcwd(),upload_path)
     print(test_basket.file_system)
-    print(test_basket.file_system.ls(os.getcwd())
+    print(test_basket.file_system.ls(os.getcwd()))
     print(os.getcwd())
     print(full_upload_path)
     print(os.listdir())
