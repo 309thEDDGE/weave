@@ -534,3 +534,31 @@ def test_basket_from_uuid_with_many_baskets(test_pantry):
         f"{test_pantry.pantry_name}/test_basket/{uuid}"
         f"/temp_basket_{uuid}/test.txt"
     )
+
+
+def test_basket_check_member_variables(test_pantry):
+    """Check that you can access member variables in the basket"""
+    # Upload a basket
+    tmp_basket_dir = test_pantry.set_up_basket("basket")
+    uuid = "0000"
+    basket_path = test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir,
+                                            uid=uuid)
+
+    my_basket = Basket(basket_address=uuid,
+                       pantry_name=test_pantry.pantry_name,
+                       file_system=test_pantry.file_system)
+
+    # Open the manifest to get the file system data
+    manifest_path = os.path.join(basket_path, "basket_manifest.json")
+
+    with test_pantry.file_system.open(manifest_path, "rb",) as file:
+        manifest_dict = json.load(file)
+
+    # Validate the basket object's member variables match the file system data
+    assert manifest_dict["uuid"] == my_basket.uuid
+    assert manifest_dict["upload_time"] == my_basket.upload_time
+    assert manifest_dict["parent_uuids"] == my_basket.parent_uuids
+    assert manifest_dict["basket_type"] == my_basket.basket_type
+    assert manifest_dict["label"] == my_basket.label
+    assert my_basket.address.endswith(basket_path)
+    assert test_pantry.file_system.__class__.__name__ == my_basket.storage_type
