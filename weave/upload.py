@@ -272,6 +272,8 @@ class UploadBasket:
 
     def _get_path(self):
         """Either make sure upload_path is in kwargs or make it"""
+        if "unique_id" not in self.kwargs:
+            self.kwargs["unique_id"] = uuid.uuid1().hex
         if "upload_directory" not in self.kwargs:
             if not ("pantry_name" and "basket_type" in self.kwargs):
                 raise ValueError(
@@ -279,8 +281,6 @@ class UploadBasket:
                     "combination of 'pantry_name' and 'basket_type' as kwargs "
                     "for UploadBasket"
                 )
-            if "unique_id" not in self.kwargs:
-                self.kwargs["unique_id"] = uuid.uuid1().hex
             self.kwargs["upload_directory"] = os.path.join(
                 self.kwargs.get("test_prefix", ""),
                 self.kwargs.get("pantry_name"),
