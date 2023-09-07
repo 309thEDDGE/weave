@@ -1,4 +1,5 @@
 """Pytests for the validate functionality."""
+import json
 import os
 from pathlib import Path
 
@@ -24,11 +25,7 @@ class ValidateForTest(BucketForTest):
     # The arguments for the below function should be changed,
     # as it is over-riding BucketForTest.set_up_basket. Pylint hates it.
     # pylint: disable-next=arguments-differ
-    def set_up_basket(
-        self,
-        tmp_dir_name,
-        **kwargs
-    ):
+    def set_up_basket(self, tmp_dir_name, **kwargs):
         """Overrides BucketForTest's set_up_basket to better test_validate.py
 
         Sets up the basket with a nested basket depending on the values of
@@ -78,6 +75,9 @@ class ValidateForTest(BucketForTest):
         meta_data=kwargs.get("meta_data", "")
         tmp_basket_dir = self.tmpdir.mkdir(tmp_dir_name)
 
+        tmp_basket_txt_file = tmp_basket_dir.join("test.txt")
+        tmp_basket_txt_file.write("This is a test")
+
         if is_man:
             tmp_manifest = tmp_basket_dir.join("basket_manifest.json")
 
@@ -101,7 +101,7 @@ class ValidateForTest(BucketForTest):
                 sup_data = """{
                     "upload_items":
                     [
-                    { "path": "str", "stub": false}
+                    { "path": "test.txt", "stub": false}
                     ],
 
                     "integrity_data":
@@ -113,7 +113,7 @@ class ValidateForTest(BucketForTest):
                         "source_path": "string",
                         "byte_count": 1,
                         "stub": false,
-                        "upload_path": "string"
+                        "upload_path": "test.txt"
                     }
                     ]
                 }"""
@@ -278,7 +278,7 @@ def test_validate_invalid_manifest_schema(test_validate):
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
-    assert len(warn_info) == 1
+    assert len(warn_info) == 3
 
     # Check that the correct warning is raised
     assert warning_1.args[0] == (
@@ -295,7 +295,6 @@ def test_validate_manifest_schema_missing_field(test_validate):
     """Make basket with invalid manifest schema, check that it collects one
        warning.
     """
-
     # The manifest is missing the uuid field
     # This is invalid against the schema.
     bad_manifest_data = """{
@@ -315,16 +314,45 @@ def test_validate_manifest_schema_missing_field(test_validate):
 
     basket_path = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
+    # Get paths ready to use and for removal
     manifest_path = os.path.join(basket_path, "basket_manifest.json")
     supplement_path = os.path.join(basket_path, "basket_supplement.json")
+
+    # In this next section, find the supplement, which has a bad path in it,
+    # pull it down, and modify it to have the proper path inside the
+    # supplement's integrity data. Do this because the custom supplement
+    # dictionary didn't have the correct upload path
+    with test_validate.file_system.open(supplement_path, "rb",) as file:
+        supplement_dict = json.load(file)
+
+    for integrity_data in supplement_dict["integrity_data"]:
+        if integrity_data["upload_path"].endswith("basket_supplement.json"):
+            nested_supp_path = integrity_data["upload_path"]
+        if integrity_data["upload_path"].endswith(".txt"):
+            test_txt_path = integrity_data["upload_path"]
+
+    with test_validate.file_system.open(nested_supp_path, "rb",) as supp_file:
+        nested_supp_dict = json.load(supp_file)
+
+    nested_supp_dict["integrity_data"][0]["upload_path"] = test_txt_path
+
+    with open("basket_supplement.json", "w", encoding="utf-8") as file:
+        json.dump(nested_supp_dict, file)
+
+    test_validate.file_system.upload("basket_supplement.json",
+                                     nested_supp_path)
+
+    os.remove("basket_supplement.json")
+
+    # Remove the default manifest and supplement
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
+    # Catch warnings and validate it throws 1 and is correct
     warn_info = validate.validate_pantry(test_validate.pantry_name,
                                          test_validate.file_system)
     warning_1 = warn_info[0]
 
-    # Check that there is only one warning raised
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
@@ -367,6 +395,34 @@ def test_validate_manifest_schema_additional_field(test_validate):
 
     manifest_path = os.path.join(basket_path, "basket_manifest.json")
     supplement_path = os.path.join(basket_path, "basket_supplement.json")
+
+    # In this next section, find the supplement, which has a bad path in it,
+    # pull it down, and modify it to have the proper path inside the
+    # supplement's integrity data. Do this because the custom supplement
+    # dictionary didn't have the correct upload path
+    with test_validate.file_system.open(supplement_path, "rb",) as file:
+        supplement_dict = json.load(file)
+
+    for integrity_data in supplement_dict["integrity_data"]:
+        if integrity_data["upload_path"].endswith("basket_supplement.json"):
+            nested_supp_path = integrity_data["upload_path"]
+        if integrity_data["upload_path"].endswith(".txt"):
+            test_txt_path = integrity_data["upload_path"]
+
+    with test_validate.file_system.open(nested_supp_path, "rb",) as supp_file:
+        nested_supp_dict = json.load(supp_file)
+
+    nested_supp_dict["integrity_data"][0]["upload_path"] = test_txt_path
+
+    with open("basket_supplement.json", "w", encoding="utf-8") as file:
+        json.dump(nested_supp_dict, file)
+
+    test_validate.file_system.upload("basket_supplement.json",
+                                     nested_supp_path)
+
+    os.remove("basket_supplement.json")
+
+    # Remove the default manifest and supplement
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
@@ -440,7 +496,7 @@ def test_validate_invalid_supplement_schema(test_validate):
             "source_path": "str",
             "byte_count": 1,
             "stub": false,
-            "upload_path": "str"
+            "upload_path": "test.txt"
         }
         ]
     }"""
@@ -604,7 +660,7 @@ def test_validate_supplement_schema_missing_array_field_2(test_validate):
             "source_path": "string",
             "byte_count": 1,
             "stub": false,
-            "upload_path": "string"
+            "upload_path": "test.txt"
         }
         ]
     }"""
@@ -667,7 +723,7 @@ def test_validate_supplement_schema_added_array_field(test_validate):
             "source_path": "string",
             "byte_count": 1,
             "stub": false,
-            "upload_path": "string"
+            "upload_path": "test.txt"
         }
         ]
     }"""
@@ -729,7 +785,7 @@ def test_validate_supplement_schema_added_array_field_2(test_validate):
             "source_path": "string",
             "byte_count": 1,
             "stub": false,
-            "upload_path": "string",
+            "upload_path": "test.txt",
             "error": "additional field"
         }
         ]
@@ -789,7 +845,7 @@ def test_validate_supplement_schema_additional_field(test_validate):
             "source_path": "string",
             "byte_count": 1,
             "stub": false,
-            "upload_path": "string"
+            "upload_path": "test.txt"
         }
         ],
 
@@ -847,7 +903,7 @@ def test_validate_supplement_schema_empty_upload_items(test_validate):
             "source_path": "string",
             "byte_count": 1,
             "stub": false,
-            "upload_path": "string"
+            "upload_path": "text.txt"
         }
         ]
     }"""
@@ -973,7 +1029,6 @@ def test_validate_invalid_metadata_json(test_validate):
     """Make a basket with invalid metadata json, check that it collects
        one warning.
     """
-
     tmp_basket_dir = test_validate.set_up_basket(
         "bad_meta",
         is_man=True,
@@ -986,11 +1041,43 @@ def test_validate_invalid_metadata_json(test_validate):
 
     manifest_path = os.path.join(basket_path, "basket_manifest.json")
     supplement_path = os.path.join(basket_path, "basket_supplement.json")
+
+     # In this next section, find the supplement, which has a bad path in it,
+    # pull it down, and modify it to have the proper path inside the
+    # supplement's integrity data. Do this because the custom supplement
+    # dictionary didn't have the correct upload path
+    with test_validate.file_system.open(supplement_path, "rb",) as file:
+        supplement_dict = json.load(file)
+
+    for integrity_data in supplement_dict["integrity_data"]:
+        if integrity_data["upload_path"].endswith("basket_supplement.json"):
+            nested_supp_path = integrity_data["upload_path"]
+        if integrity_data["upload_path"].endswith(".txt"):
+            test_txt_path = integrity_data["upload_path"]
+
+    with test_validate.file_system.open(nested_supp_path, "rb",) as supp_file:
+        nested_supp_dict = json.load(supp_file)
+
+    nested_supp_dict["integrity_data"][0]["upload_path"] = test_txt_path
+
+    with open("basket_supplement.json", "w", encoding="utf-8") as file:
+        json.dump(nested_supp_dict, file)
+
+    test_validate.file_system.upload("basket_supplement.json",
+                                     nested_supp_path)
+
+    os.remove("basket_supplement.json")
+
+    # Remove the default manifest and supplement
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
     warn_info = validate.validate_pantry(test_validate.pantry_name,
                                          test_validate.file_system)
+
+    # Sort the warnings so they are in proper order
+    warn_info = sorted(warn_info, key=lambda x: x.args[1])
+
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -1063,17 +1150,17 @@ def test_validate_deeply_nested(test_validate):
         is_basket=True
     )
 
-    test_validate.set_up_basket(
-        "my_nested_basket",
-        is_man=True,
-        is_sup=True,
-        is_meta=False
-    )
+    test_validate.set_up_basket("my_nested_basket",
+                                is_man=True,
+                                is_sup=True,
+                                is_meta=False)
 
     basket_path = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
     warn_info = validate.validate_pantry(test_validate.pantry_name,
                                          test_validate.file_system)
+
+    warn_info = sorted(warn_info, key=lambda x: x.args[1])
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -1229,6 +1316,7 @@ def test_validate_call_check_level(test_validate):
     # pylint: disable-next=protected-access
     assert validate._check_level(
         test_validate.pantry_name,
+        test_validate.pantry_name,
         file_system=test_validate.file_system,
         index_df=pd.DataFrame()
     )
@@ -1260,6 +1348,7 @@ def test_validate_call_validate_basket(test_validate):
         # Testing a protected access class
         # pylint: disable-next=protected-access
         validate._validate_basket(
+            test_validate.pantry_name,
             test_validate.pantry_name,
             file_system=test_validate.file_system,
             index_df=pd.DataFrame()
@@ -1297,7 +1386,7 @@ def test_validate_bad_manifest_and_supplement_schema(test_validate):
             "source_path": "string",
             "byte_count": 1,
             "stub": false,
-            "upload_path": "string"
+            "upload_path": "test.txt"
         }
         ],
 
@@ -1420,56 +1509,20 @@ def test_validate_check_parent_uuids_missing_basket(test_validate):
     This also checks that valid ones are safe because of the uuid '002' in the
     manifest_data_1's 'parent_uuids'
     """
-    # Manifest has parent_uuids that don't exist
-    manifest_data_1 = """{
-        "uuid": "001",
-        "upload_time": "1970-01-01 01:01:12",
-        "parent_uuids": [ "002", "BAD123123" ],
-        "basket_type": "str",
-        "label": "str"
-    }"""
+    tmp_basket_dir = test_validate.set_up_basket("with_parents_1")
+    tmp_basket_dir2 = test_validate.set_up_basket("with_parents_2")
 
-    # Manifest has parent_uuids that don't exist
-    manifest_data_2 = """{
-        "uuid": "002",
-        "upload_time": "1970-01-01 01:01:12",
-        "parent_uuids": [ "003", "BAD!", "BAD2", "BAD323" ],
-        "basket_type": "str",
-        "label": "str"
-    }"""
-
-    tmp_basket_dir = test_validate.set_up_basket(
-        "with_parents_1",
-        is_man=True,
-        man_data=manifest_data_1,
-        is_sup=True,
-        is_meta=False
-    )
-
-    tmp_basket_dir2 = test_validate.set_up_basket(
-        "with_parents_2",
-        is_man=True,
-        man_data=manifest_data_2,
-        is_sup=True,
-        is_meta=False
-    )
-
-    basket_path = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir,
-                                              uid="001")
-    basket_path_2 = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir2,
-                                                uid="002")
-
-    paths = []
-    paths.append(os.path.join(basket_path, "basket_manifest.json"))
-    paths.append(os.path.join(basket_path, "basket_supplement.json"))
-    paths.append(os.path.join(basket_path_2, "basket_manifest.json"))
-    paths.append(os.path.join(basket_path_2, "basket_supplement.json"))
-
-    for file_path in paths:
-        test_validate.file_system.rm(file_path)
+    test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir,
+                                uid="001",
+                                parent_ids=["002", "BAD123123"])
+    test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir2,
+                                uid="002",
+                                parent_ids=["003", "BAD!", "BAD2", "BAD323"])
 
     warn_info = validate.validate_pantry(test_validate.pantry_name,
                                          test_validate.file_system)
+
+    assert len(warn_info) == 2
 
     warning_1 = warn_info[0].args[0]
     warning_2 = warn_info[1].args[0]
@@ -1481,3 +1534,110 @@ def test_validate_check_parent_uuids_missing_basket(test_validate):
     warn_msg_2 = ("The uuids: ['003', 'BAD!', 'BAD2', 'BAD323'] were not "
                   "found in the index, which was found inside basket: 002")
     assert warning_2 == warn_msg_2
+
+
+def test_validate_file_not_in_supplement(test_validate):
+    """Add a file to the file system that is not listed in the supplement file.
+    Validate that a warning is thrown.
+    """
+    tmp_basket_dir = test_validate.set_up_basket("my_basket")
+    test_validate.add_lower_dir_to_temp_basket(tmp_basket_dir=tmp_basket_dir)
+    temp = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
+
+    # Make a file and upload it to the file system
+    upload_file_path = os.path.join(temp, "MY_UNFOUND_FILE.txt")
+    with open("MY_UNFOUND_FILE.txt", 'w', encoding="utf-8") as file:
+        json.dump("TEST FAKE FILE", file)
+
+    test_validate.file_system.upload("MY_UNFOUND_FILE.txt", upload_file_path)
+
+    # Remove the local file that we created
+    os.remove("MY_UNFOUND_FILE.txt")
+
+    # Call validate_bucket, see that it returns a list of basket errors
+    warn_list = validate.validate_pantry(test_validate.pantry_name,
+                                         test_validate.file_system)
+
+    warning_msg = warn_list[0].args[0]
+    warning_path = warn_list[0].args[1]
+
+    assert len(warn_list) == 1
+    assert warning_msg == ("File found in the file system is not listed in "
+                           "the basket_supplement.json: ")
+    assert warning_path.endswith(upload_file_path)
+
+
+def test_validate_file_not_in_file_system(test_validate):
+    """Add a file to the supplement data and validate that a warning is thrown
+    because it does not exist in the file system.
+    """
+    # Make a basket
+    tmp_basket_dir = test_validate.set_up_basket("my_basket")
+    test_validate.add_lower_dir_to_temp_basket(tmp_basket_dir=tmp_basket_dir)
+    temp = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
+
+    supplement_to_change = os.path.join(temp, "basket_supplement.json")
+
+    # Modify the supplement file
+    with test_validate.file_system.open(supplement_to_change, "rb",) as file:
+        supplement_dict = json.load(file)
+
+    error_file_path = os.path.join(temp, "MY_FAIL_FILE.TXT")
+    error_file_path_2 = os.path.join(temp, "ANOTHER_FAKE.txt")
+
+    # New supplement data with the fake file
+    supplement_dict["integrity_data"] += [
+        {
+            "file_size": 100,
+            "hash": "fakehash",
+            "access_date": "2023‐09‐05T17:22:15Z",
+            "source_path": "/tmp/pytest-of-jovyan/pytest-17/MY_FAIL_FILE.TXT",
+            "byte_count": 456456,
+            "stub": False,
+            "upload_path": error_file_path
+        },
+        {
+            "file_size": 100,
+            "hash": "fakehash",
+            "access_date": "2023‐09‐05T17:22:15Z",
+            "source_path": "/tmp/pytest-of-jovyan/pytest-17/ANOTHER_FAKE.TXT",
+            "byte_count": 456456,
+            "stub": False,
+            "upload_path": error_file_path_2
+        }
+    ]
+
+    # Add the new supplement data to the current file
+    with open("basket_supplement.json", "w", encoding="utf-8") as file:
+        json.dump(supplement_dict, file)
+
+    # Upload the supplement file to the file system, and remove the local one
+    test_validate.file_system.upload("basket_supplement.json",
+                                     supplement_to_change)
+
+    # Remove the local basket_supplement file
+    os.remove("basket_supplement.json")
+
+    # Call validate_pantry, see that it returns warnings
+    warning_list = validate.validate_pantry(test_validate.pantry_name,
+                                            test_validate.file_system)
+
+    # Sort the warnings
+    warning_list = sorted(warning_list, key=lambda x: x.args[1])
+
+    # Validate all the warnings are correct
+    assert len(warning_list) == 2
+
+    warning_msg_1 = warning_list[1].args[0]
+    warning_path_1 = warning_list[1].args[1]
+
+    assert warning_msg_1 == ("File listed in the basket_supplement.json does "
+                             "not exist in the file system: ")
+    assert warning_path_1.endswith(error_file_path)
+
+    warning_msg_2 = warning_list[0].args[0]
+    warning_path_2 = warning_list[0].args[1]
+
+    assert warning_msg_2 == ("File listed in the basket_supplement.json does "
+                             "not exist in the file system: ")
+    assert warning_path_2.endswith(error_file_path_2)
