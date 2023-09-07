@@ -4,6 +4,7 @@ import os
 import warnings
 
 import datetime
+import dateutil
 import sqlite3
 import pandas as pd
 
@@ -40,7 +41,7 @@ class IndexSQLite(IndexABC):
     def connect_db(self):
         self.cur.execute("""
             CREATE TABLE IF NOT EXISTS pantry_index(
-                uuid TEXT, upload_time TEXT, parent_uuids TEXT,
+                uuid TEXT, upload_time TIMESTAMP, parent_uuids TEXT,
                 basket_type TEXT, label TEXT, address TEXT, storage_type TEXT,
                 PRIMARY KEY(uuid), UNIQUE(uuid));
         """)
@@ -107,7 +108,10 @@ class IndexSQLite(IndexABC):
                 basket_dict["address"] = relative_path
                 basket_dict["storage_type"] = storage_type
 
-                # parent_uuids = basket_dict.pop("parent_uuids")
+                basket_dict["upload_time"] = dateutil.parser.parse(
+                    basket_dict["upload_time"]
+                )
+
                 parent_uuids = basket_dict["parent_uuids"]
                 basket_dict["parent_uuids"] = str(basket_dict["parent_uuids"])
 
@@ -449,6 +453,9 @@ class IndexSQLite(IndexABC):
         between the start and end times.
         """
         super().get_baskets_by_upload_time(start_time, end_time)
+        if start_time is None and end_time is None:
+            return self.to_pandas_df(max_rows=max_rows)
+
         columns = (
             [info[1] for info in
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
@@ -457,20 +464,20 @@ class IndexSQLite(IndexABC):
         if start_time and end_time:
             results = self.cur.execute(
                 """SELECT * FROM pantry_index
-                WHERE upload_time BETWEEN date(?) AND date(?) LIMIT ?
+                WHERE datetime(upload_time) BETWEEN datetime(?) AND datetime(?)
+                LIMIT ?
                 """, (start_time, end_time, max_rows)).fetchall()
         elif start_time:
             results = self.cur.execute(
                 """SELECT * FROM pantry_index
-                WHERE upload_time < date(?) LIMIT ?
+                WHERE datetime(upload_time) >= datetime(?) LIMIT ?
                 """, (start_time, max_rows)).fetchall()
         elif end_time:
             results = self.cur.execute(
                 """SELECT * FROM pantry_index
-                WHERE upload_time > date(?) LIMIT ?
+                WHERE datetime(upload_time) <= datetime(?) LIMIT ?
                 """, (end_time, max_rows)).fetchall()
-        elif start_time is None and end_time is None:
-            return self.to_pandas_df(max_rows=max_rows)
+
 
         ind_df = pd.DataFrame(
             results,
