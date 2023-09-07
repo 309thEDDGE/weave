@@ -321,7 +321,7 @@ class IndexSQLite(IndexABC):
         parent_df = pd.DataFrame(self.cur.execute(
                 """WITH RECURSIVE
                     child_record(level, id) AS (
-                        VALUES(0, ?)
+                        VALUES(1, ?)
                         UNION
                         SELECT child_record.level+1, parent_uuids.parent_uuid
                         FROM parent_uuids, child_record
@@ -329,7 +329,7 @@ class IndexSQLite(IndexABC):
                     )
                 SELECT pantry_index.*, child_record.level
                 FROM pantry_index, parent_uuids, child_record
-                WHERE pantry_index.uuid = parent_uuids.uuid
+                WHERE pantry_index.uuid = parent_uuids.parent_uuid
                 AND parent_uuids.uuid = child_record.id
                 ORDER BY child_record.level ASC""", (basket_uuid,)
             ).fetchall(),

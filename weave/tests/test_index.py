@@ -663,15 +663,87 @@ def test_index_abc_get_parents_path_works(test_pantry):
     # cast to int64 so datatypes match
     parent_answer[gen_lvl] = parent_answer[gen_lvl].astype(np.int64)
 
-    print(ind)
-    print(parent_answer)
-    print(results)
     assert parent_answer.equals(results)
 
 
 def test_index_abc_get_parents_uuid_works(test_pantry):
     """Test IndexABC get_parents(uuid) returns proper structure and values."""
-    raise NotImplementedError
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+
+    # setup random strucutre of parents and children
+    tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
+
+    tmp_dir = test_pantry.set_up_basket("great_grandparent_3_1")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3003")
+
+    tmp_dir = test_pantry.set_up_basket("great_grandparent_3_2")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3333")
+
+    tmp_dir = test_pantry.set_up_basket("great_grandparent_3_3")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3303")
+
+    tmp_dir = test_pantry.set_up_basket("grandparent_2")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_dir, uid="2000", parent_ids=["3000", "3003", "3333"]
+    )
+
+    tmp_dir = test_pantry.set_up_basket("grandparent_2_1")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="2002")
+
+    tmp_dir = test_pantry.set_up_basket("parent_1")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_dir, uid="1000", parent_ids=["2000", "2002", "3303"]
+    )
+
+    tmp_dir = test_pantry.set_up_basket("parent_1_1")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="1001")
+
+    tmp_dir = test_pantry.set_up_basket("child_0")
+    child = test_pantry.upload_basket(
+        tmp_basket_dir=tmp_dir, uid="0000", parent_ids=["1001", "1000"]
+    )
+
+    # string to shorten things for ruff
+    gen_lvl = "generation_level"
+
+    ind.generate_index()
+
+    # setup df of the right answer
+    parent_ids = [
+        "1000",
+        "1001",
+        "2000",
+        "2002",
+        "3303",
+        "3000",
+        "3003",
+        "3333",
+    ]
+    parent_gens = [1, 1, 2, 2, 2, 3, 3, 3]
+    index = ind.to_pandas_df()
+    parent_answer = index.loc[index["uuid"].isin(parent_ids)]
+
+    # pandas wants to make a copy before adding a column
+    # used to remove warning in pytest
+    parent_answer = parent_answer.copy()
+    # add the generation levels
+    for i, j in zip(parent_ids, parent_gens):
+        parent_answer.loc[parent_answer["uuid"] == i, gen_lvl] = j
+
+    # get the results
+    results = ind.get_parents("0000")
+
+    # sort so that they can be properly compared to
+    parent_answer = parent_answer.sort_values(by="uuid").reset_index(drop=True)
+    results = results.sort_values(by="uuid").reset_index(drop=True)
+
+    # cast to int64 so datatypes match
+    parent_answer[gen_lvl] = parent_answer[gen_lvl].astype(np.int64)
+
+    assert parent_answer.equals(results)
 
 
 def test_index_abc_get_parents_invalid_basket_address(test_pantry):
@@ -714,7 +786,36 @@ def test_index_abc_get_parents_parent_is_child_loop(test_pantry):
     parent_ids has the child's uid. This causes an infinite loop,
     check that it throw error.
     """
-    raise NotImplementedError
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+
+    # create a basket structure with child, parent, and grandparent, but
+    # the grandparent's parent, is the child, making an loop for the
+    # parent-child relationship
+    tmp_dir = test_pantry.set_up_basket("grandparent")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_dir, uid="3000", parent_ids=["1000"]
+    )
+
+    tmp_dir = test_pantry.set_up_basket("parent")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_dir, uid="2000", parent_ids=["3000"]
+    )
+
+    tmp_dir = test_pantry.set_up_basket("child")
+    child = test_pantry.upload_basket(
+        tmp_basket_dir=tmp_dir, uid="1000", parent_ids=["2000"]
+    )
+
+    ind.generate_index()
+
+    fail = "1000"
+
+    with pytest.raises(
+        ValueError, match=f"Parent-Child loop found at uuid: {fail}"
+    ):
+        ind.get_parents(child)
 
 
 def test_index_abc_get_parents_15_deep(test_pantry):
@@ -725,7 +826,60 @@ def test_index_abc_get_parents_15_deep(test_pantry):
     for the child.
     Manually make the data and compare with the result.
     """
-    raise NotImplementedError
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+
+    parent_id = "x"
+
+    for i in range(15):
+        child_id = parent_id
+        parent_id = str(i)
+        tmp = test_pantry.set_up_basket("basket_" + child_id)
+        test_pantry.upload_basket(
+            tmp_basket_dir=tmp, uid=child_id, parent_ids=[parent_id]
+        )
+
+    ind.generate_index()
+    index = ind.to_pandas_df()
+
+    child_path = index.loc[index["uuid"] == "x"]["address"].values[0]
+
+    results = ind.get_parents(child_path)
+
+    # Get the anwser to compare to the results we got
+    par_ids = [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+    ]
+    par_gens = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+    answer = index.loc[index["uuid"].isin(par_ids)]
+
+    gen_lvl = "generation_level"
+
+    # pandas wants to make a copy before adding a column
+    # used to remove warning in pytest
+    answer = answer.copy()
+    for i, j in zip(par_ids, par_gens):
+        answer.loc[answer["uuid"] == i, gen_lvl] = j
+
+    # format and sort so .equals can be properly used
+    answer = answer.sort_values(by="uuid").reset_index(drop=True)
+    results = results.sort_values(by="uuid").reset_index(drop=True)
+    answer[gen_lvl] = answer[gen_lvl].astype(np.int64)
+    assert answer.equals(results)
 
 
 def test_index_abc_get_parents_complex_fail(test_pantry):
