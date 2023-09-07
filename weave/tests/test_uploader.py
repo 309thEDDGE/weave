@@ -555,18 +555,19 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
 
     current_working_directory = os.getcwd()
     full_upload_path = os.path.join(os.getcwd(),upload_path)
+    print(test_basket.file_system)
+    print(test_basket.file_system.ls(os.getcwd())
+    print(os.getcwd())
     print(full_upload_path)
     print(os.listdir())
-    print(os.getcwd())
     os.chdir(full_upload_path)
     print(os.listdir())
     print(os.getcwd())
+
     with open("basket_manifest.json", "r", encoding="utf-8") as outfile:
         manifest_data = json.load(outfile)
-    print(manifest_data)
-    print(manifest_data['uuid'])
-    assert manifest_data['uuid'] != 'null'
 
+    assert manifest_data['uuid'] != 'null'
     os.chdir(current_working_directory)
 
 
