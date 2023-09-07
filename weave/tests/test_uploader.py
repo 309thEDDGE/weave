@@ -553,16 +553,12 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
 
     assert uploading_basket.kwargs.get("unique_id") is not None
 
-    current_working_directory = os.getcwd()
-    full_upload_path = os.path.join(os.getcwd(),upload_path)
-    tmp_files = test_basket.file_system.ls("pytest-temp-bucket/test_basket")
-
+    tmp_files = test_basket.file_system.ls(upload_path)
     with test_basket.file_system.open(tmp_files[0], "r", encoding="utf-8")\
             as outfile:
         manifest_data = json.load(outfile)
 
     assert manifest_data['uuid'] != 'null'
-    os.chdir(current_working_directory)
 
 
 def test_upload_basket_upload_items_is_not_a_string(test_basket):
