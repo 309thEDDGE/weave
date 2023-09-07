@@ -1,12 +1,12 @@
 """Pytest tests for the index directory."""
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import os
 import re
 import uuid
 import warnings
 from unittest.mock import patch
-
+import time
 import numpy as np
 import pandas as pd
 import pytest
@@ -1376,21 +1376,49 @@ def test_index_abc_get_baskets_by_upload_time_start_works(test_pantry):
     test_pantry, ind = test_pantry
 
     # Put basket in the temporary bucket.
-    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+    columns = (
+        [info[1] for info in
+        ind.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
+    )
 
-    start = datetime.now()
+    # Save the current time, and set the 'end' time to 5 seconds ago.
+    start = datetime.now() - timedelta(seconds=5)
 
-    # Put basket in the temporary bucket.
-    tmp_basket_dir_one = test_pantry.set_up_basket("basket_two")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0002")
+    # Create a placeholder record that will have the time and uuid replaced.
+    manifest_values = (
+        ["PLACEHOLDER"],
+        [start],
+        [[]],
+        ["test_basket_type"],
+        ["test_label"],
+        ["temp-pantry"],
+        ["fake-storage"]
+    )
+    manifest_dict = {}
+    for key, value in zip(columns, manifest_values, strict=True):
+        manifest_dict[key] = value
 
-    # Generate the index.
-    ind.generate_index()
+    # Create and track a record, with the upload time 1 second before start.
+    manifest_dict["uuid"] = ["0001"]
+    manifest_dict["upload_time"] = [start - timedelta(seconds=1)]
+    basket_df = pd.DataFrame.from_dict(manifest_dict)
+    ind.track_basket(basket_df)
+
+    # Create and track a record, with the upload time at the start.
+    manifest_dict["uuid"] = ["0002"]
+    manifest_dict["upload_time"] = [start]
+    basket_df = pd.DataFrame.from_dict(manifest_dict)
+    ind.track_basket(basket_df)
+
+    # Create and track a record, with the upload time 1 second after the start.
+    manifest_dict["uuid"] = ["0003"]
+    manifest_dict["upload_time"] = [start + timedelta(seconds=1)]
+    basket_df = pd.DataFrame.from_dict(manifest_dict)
+    ind.track_basket(basket_df)
 
     baskets = ind.get_baskets_by_upload_time(start_time=start)
 
-    assert len(baskets) == 1
+    assert len(baskets) == 2
     assert "0001" not in baskets["uuid"].to_list()
 
 
@@ -1400,22 +1428,51 @@ def test_index_abc_get_baskets_by_upload_time_end_works(test_pantry):
     test_pantry, ind = test_pantry
 
     # Put basket in the temporary bucket.
-    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+    columns = (
+        [info[1] for info in
+        ind.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
+    )
 
-    end = datetime.now()
+    # Save the current time, and set the 'end' time to 5 seconds ago.
+    end = datetime.now() - timedelta(seconds=5)
 
-    # Put basket in the temporary bucket.
-    tmp_basket_dir_one = test_pantry.set_up_basket("basket_two")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0002")
+    # Create a placeholder record that will have the time and uuid replaced.
+    manifest_values = (
+        ["PLACEHOLDER"],
+        [end],
+        [[]],
+        ["test_basket_type"],
+        ["test_label"],
+        ["temp-pantry"],
+        ["fake-storage"]
+    )
+    manifest_dict = {}
+    for key, value in zip(columns, manifest_values, strict=True):
+        manifest_dict[key] = value
 
-    # Generate the index.
-    ind.generate_index()
+    # Create and track a record, with the upload time 1 second before the end.
+    manifest_dict["uuid"] = ["0001"]
+    manifest_dict["upload_time"] = [end - timedelta(seconds=1)]
+    basket_df = pd.DataFrame.from_dict(manifest_dict)
+    ind.track_basket(basket_df)
+
+    # Create and track a record, with the upload time at the end.
+    manifest_dict["uuid"] = ["0002"]
+    manifest_dict["upload_time"] = [end]
+    basket_df = pd.DataFrame.from_dict(manifest_dict)
+    ind.track_basket(basket_df)
+
+    # Create and track a record, with the upload time 1 second after the end.
+    manifest_dict["uuid"] = ["0003"]
+    manifest_dict["upload_time"] = [end + timedelta(seconds=1)]
+    basket_df = pd.DataFrame.from_dict(manifest_dict)
+    ind.track_basket(basket_df)
 
     baskets = ind.get_baskets_by_upload_time(end_time=end)
 
-    assert len(baskets) == 1
-    assert "0002" not in baskets["uuid"].to_list()
+    assert len(baskets) == 2
+    assert "0003" not in baskets["uuid"].to_list()
+
 
 def test_index_abc_get_baskets_by_upload_time_start_end_works(test_pantry):
     """Test IndexABC get_baskets_by_upload_time works with both start and end
@@ -1423,25 +1480,61 @@ def test_index_abc_get_baskets_by_upload_time_start_end_works(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
+    # Put basket in the temporary bucket.
+    columns = (
+        [info[1] for info in
+        ind.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
+    )
+
+    # Save the current time, and set the 'start' time to now.
     start = datetime.now()
 
-    # Put basket in the temporary bucket.
-    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+    # Create a placeholder record that will have the time and uuid replaced.
+    manifest_values = (
+        ["PLACEHOLDER"],
+        [start],
+        [[]],
+        ["test_basket_type"],
+        ["test_label"],
+        ["temp-pantry"],
+        ["fake-storage"]
+    )
+    manifest_dict = {}
+    for key, value in zip(columns, manifest_values, strict=True):
+        manifest_dict[key] = value
 
-    end = datetime.now()
+    # Create and track a record, with the upload time 1 second after the start.
+    manifest_dict["uuid"] = ["0001"]
+    manifest_dict["upload_time"] = [start]
+    basket_df = pd.DataFrame.from_dict(manifest_dict)
+    ind.track_basket(basket_df)
 
-    # Put basket in the temporary bucket.
-    tmp_basket_dir_one = test_pantry.set_up_basket("basket_two")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0002")
+    # Create and track a record, with the upload time 1 second after the start.
+    manifest_dict["uuid"] = ["0002"]
+    manifest_dict["upload_time"] = [start + timedelta(seconds=1)]
+    basket_df = pd.DataFrame.from_dict(manifest_dict)
+    ind.track_basket(basket_df)
 
-    # Generate the index.
-    ind.generate_index()
+    # Make the stop time 2 seconds after the start.
+    end = start + timedelta(seconds=2)
 
+    # Create and track a record, with the upload time at the end time.
+    manifest_dict["uuid"] = ["0003"]
+    manifest_dict["upload_time"] = [end]
+    basket_df = pd.DataFrame.from_dict(manifest_dict)
+    ind.track_basket(basket_df)
+
+    # Create and track a record, with the upload time 1 second after the end.
+    manifest_dict["uuid"] = ["0004"]
+    manifest_dict["upload_time"] = [end + timedelta(seconds=1)]
+    basket_df = pd.DataFrame.from_dict(manifest_dict)
+    ind.track_basket(basket_df)
+
+    # Get the baskets inbetween start and end times (1 basket).
     baskets = ind.get_baskets_by_upload_time(start_time=start, end_time=end)
 
-    assert len(baskets) == 1
-    assert "0002" not in baskets["uuid"].to_list()
+    assert len(baskets) == 3
+    assert "0004" not in baskets["uuid"].to_list()
 
 
 def test_index_abc_get_baskets_by_upload_time_returns_empty_df(test_pantry):
@@ -1450,15 +1543,43 @@ def test_index_abc_get_baskets_by_upload_time_returns_empty_df(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    start = datetime.now()
-    end = datetime.now()
-
     # Put basket in the temporary bucket.
-    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
-    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+    columns = (
+        [info[1] for info in
+        ind.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
+    )
 
-    # Generate the index.
-    ind.generate_index()
+    # Save the current time, and set the 'start' time to now.
+    start = datetime.now()
+    end = start + timedelta(seconds=2)
 
+    # Create a placeholder record that will have the time and uuid replaced.
+    manifest_values = (
+        ["PLACEHOLDER"],
+        [start],
+        [[]],
+        ["test_basket_type"],
+        ["test_label"],
+        ["temp-pantry"],
+        ["fake-storage"]
+    )
+    manifest_dict = {}
+    for key, value in zip(columns, manifest_values, strict=True):
+        manifest_dict[key] = value
+
+    # Create and track a record, with the upload time 1 second before the start.
+    manifest_dict["uuid"] = ["0001"]
+    manifest_dict["upload_time"] = [start - timedelta(seconds=1)]
+    basket_df = pd.DataFrame.from_dict(manifest_dict)
+    ind.track_basket(basket_df)
+
+    # Create and track a record, with the upload time 1 second after the end.
+    manifest_dict["uuid"] = ["0002"]
+    manifest_dict["upload_time"] = [end + timedelta(seconds=1)]
+    basket_df = pd.DataFrame.from_dict(manifest_dict)
+    ind.track_basket(basket_df)
+
+    # Get the baskets inbetween start and end times (1 basket).
     baskets = ind.get_baskets_by_upload_time(start_time=start, end_time=end)
-    assert len(baskets) == 0
+
+    assert isinstance(baskets, pd.DataFrame) and len(baskets) == 0
