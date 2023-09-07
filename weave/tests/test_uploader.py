@@ -535,13 +535,9 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
     Test that upload_basket creates a uuid when unique_id is not
     initialized
     """
-    print(os.listdir())
-
     # Create a temporary basket with a test file.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_dir = test_basket.set_up_basket(tmp_basket_dir_name)
-
-    print(os.listdir())
 
     #Initialize all kwargs except unique_id
     upload_items = [{"path": tmp_dir.strpath, "stub": False}]
@@ -555,22 +551,22 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
         file_system=test_basket.file_system,
     )
 
-    print(os.listdir())
-
     assert uploading_basket.kwargs.get("unique_id") is not None
 
     current_working_directory = os.getcwd()
     full_upload_path = os.path.join(os.getcwd(),upload_path)
-    print(current_working_directory)
-    print(upload_path)
     print(full_upload_path)
     print(os.listdir())
+    print(os.getcwd())
     os.chdir(full_upload_path)
-
+    print(os.listdir())
+    print(os.getcwd())
     with open("basket_manifest.json", "r", encoding="utf-8") as outfile:
         manifest_data = json.load(outfile)
-
+    print(manifest_data)
+    print(manifest_data['uuid'])
     assert manifest_data['uuid'] != 'null'
+
     os.chdir(current_working_directory)
 
 
