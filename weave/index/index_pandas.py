@@ -308,6 +308,9 @@ class PandasIndex(IndexABC):
                                     gen_level=gen_level+1,
                                     data=data,
                                     descendants=descendants.copy())
+        data = data.drop_duplicates(
+            subset=['uuid', 'generation_level']
+        ).reset_index(drop=True)
         return data
 
     def get_children(self, basket_address, **kwargs):
@@ -396,6 +399,9 @@ class PandasIndex(IndexABC):
                                       gen_level=gen_level-1,
                                       data=data,
                                       ancestors=ancestors.copy())
+        data = data.drop_duplicates(
+            subset=['uuid', 'generation_level']
+        ).reset_index(drop=True)
         return data
 
     def track_basket(self, entry_df, **kwargs):
