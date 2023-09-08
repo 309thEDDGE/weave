@@ -10,6 +10,8 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 
+import weave
+# from weave import __version__
 from .config import get_file_system, prohibited_filenames
 
 
@@ -209,6 +211,7 @@ class UploadBasket:
                          "parent_ids": list,
                          "metadata": dict,
                          "label": str,
+                         "weave_version": str,
                          "pantry_name": str,
                          "test_prefix": str}
         for key, value in self.kwargs.items():
@@ -371,6 +374,8 @@ class UploadBasket:
         basket_json["parent_uuids"] = self.kwargs.get("parent_ids", [])
         basket_json["basket_type"] = self.kwargs.get("basket_type")
         basket_json["label"] = self.kwargs.get("label","")
+        # print('\n\nversion: ', weave.__version__)
+        basket_json["weave_version"] = weave.__version__
 
         with open(basket_json_path, "w", encoding="utf-8") as outfile:
             json.dump(basket_json, outfile)
