@@ -336,7 +336,10 @@ class IndexSQLite(IndexABC):
                         path || '/' || parent_uuids.parent_uuid
                     FROM parent_uuids
                     JOIN child_record ON parent_uuids.uuid = child_record.id
-                    WHERE path NOT LIKE '%' || parent_uuids.parent_uuid || '%'
+                    WHERE path NOT LIKE parent_uuids.parent_uuid || '/%'
+                        AND path NOT LIKE '%' || parent_uuids.parent_uuid
+                        AND path
+                            NOT LIKE '%' || parent_uuids.parent_uuid || '/%'
                 )
             SELECT pantry_index.*, child_record.level, child_record.path
             FROM pantry_index
@@ -349,9 +352,8 @@ class IndexSQLite(IndexABC):
         parent_df = parent_df.drop_duplicates()
         parent_df = parent_df[parent_df["uuid"] != basket_uuid]
 
-        print('\n\n')
-        print(parent_df)
-        print(f"basket_uuid: {basket_uuid}")
+        if parent_df.empty:
+            return parent_df
 
         last_row = parent_df.iloc[-1]
         if basket_uuid in last_row["parent_uuids"]:
