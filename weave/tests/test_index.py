@@ -1187,6 +1187,7 @@ def test_index_abc_get_children_15_deep(test_pantry):
     ind.generate_index()
     index = ind.to_pandas_df()
     results = ind.get_children("13")
+    print(results)
 
     # Get the anwser to compare to the results we got
     child_ids = [
