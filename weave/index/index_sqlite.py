@@ -420,6 +420,9 @@ class IndexSQLite(IndexABC):
             columns=columns,
         )
         child_df = child_df.drop_duplicates()
+        child_df['parent_uuids'] = child_df['parent_uuids'].apply(
+            ast.literal_eval
+        )
 
         parents = {}
         for _, row in child_df.iterrows():
