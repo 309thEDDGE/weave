@@ -590,6 +590,7 @@ def test_index_abc_get_parents_path_works(test_pantry):
     """Test IndexABC get_parents(path) returns proper structure and values."""
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
+    print(ind)
 
 
     # setup random strucutre of parents and children
@@ -655,6 +656,8 @@ def test_index_abc_get_parents_path_works(test_pantry):
 
     # get the results
     results = ind.get_parents(child)
+    print('\n\n')
+    print(results)
 
     # sort so that they can be properly compared to
     parent_answer = parent_answer.sort_values(by="uuid").reset_index(drop=True)
@@ -788,6 +791,7 @@ def test_index_abc_get_parents_parent_is_child_loop(test_pantry):
     """
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
+    print(ind)
 
 
     # create a basket structure with child, parent, and grandparent, but
@@ -884,13 +888,66 @@ def test_index_abc_get_parents_15_deep(test_pantry):
 
 def test_index_abc_get_parents_complex_fail(test_pantry):
     """Test IndexABC get_parents fails on an invalid complicated loop tree."""
-    raise NotImplementedError
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+
+    tmp_dir = test_pantry.set_up_basket("parent_8")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_dir, uid="008", parent_ids=["007"]
+    )
+
+    tmp_dir = test_pantry.set_up_basket("parent_7")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_dir, uid="007", parent_ids=["000"]
+    )
+
+    tmp_dir = test_pantry.set_up_basket("parent_6")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_dir, uid="006", parent_ids=["008"]
+    )
+
+    tmp_dir = test_pantry.set_up_basket("parent_5")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_dir, uid="005", parent_ids=["007"]
+    )
+
+    tmp_dir = test_pantry.set_up_basket("parent_4")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="004")
+
+    tmp_dir = test_pantry.set_up_basket("parent_3")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_dir, uid="003", parent_ids=["006"]
+    )
+
+    tmp_dir = test_pantry.set_up_basket("parent_2")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_dir, uid="002", parent_ids=["0004", "005", "008"]
+    )
+
+    tmp_dir = test_pantry.set_up_basket("parent_1")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_dir, uid="001", parent_ids=["004"]
+    )
+
+    tmp_dir = test_pantry.set_up_basket("child")
+    child_path = test_pantry.upload_basket(
+        tmp_basket_dir=tmp_dir, uid="000", parent_ids=["001", "002", "003"]
+    )
+
+    ind.generate_index()
+
+    with pytest.raises(
+        ValueError, match=re.escape("Parent-Child loop found at uuid: 000")
+    ):
+        ind.get_parents(child_path)
 
 
 def test_index_abc_get_children_path_works(test_pantry):
     """Test IndexABC get_children(path) returns proper structure and values."""
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
+    print(ind)
 
 
     # setup random strucutre of parents and children
@@ -949,6 +1006,8 @@ def test_index_abc_get_children_path_works(test_pantry):
 
     # get the results
     results = ind.get_children(great_grandparent)
+
+    print(results)
 
     # sort so that they can be properly compared to
     child_answer = child_answer.sort_values(by="uuid").reset_index(drop=True)
@@ -1020,6 +1079,7 @@ def test_index_abc_get_children_uuid_works(test_pantry):
 
     # get the results
     results = ind.get_children("3000")
+    print(results)
 
     # sort so that they can be properly compared to
     child_answer = child_answer.sort_values(by="uuid").reset_index(drop=True)

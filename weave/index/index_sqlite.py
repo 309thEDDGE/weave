@@ -322,26 +322,39 @@ class IndexSQLite(IndexABC):
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
         )
         columns.append("generation_level")
+        columns.append("path")
+
         parent_df = pd.DataFrame(self.cur.execute(
-                """WITH RECURSIVE
-                    child_record(level, id) AS (
-                        VALUES(1, ?)
-                        UNION
-                        SELECT child_record.level+1, parent_uuids.parent_uuid
-                        FROM parent_uuids, child_record
-                        WHERE parent_uuids.uuid = child_record.id
-                    )
-                SELECT pantry_index.*, child_record.level
-                FROM pantry_index, parent_uuids, child_record
-                WHERE pantry_index.uuid = parent_uuids.parent_uuid
-                AND parent_uuids.uuid = child_record.id
-                ORDER BY child_record.level ASC""", (basket_uuid,)
-            ).fetchall(),
+            """WITH RECURSIVE
+                child_record(level, id, path) AS (
+                    VALUES(0, ?, ?)
+                    UNION
+                    SELECT child_record.level + 1, parent_uuids.parent_uuid,
+                        path || '/' || parent_uuids.parent_uuid
+                    FROM parent_uuids
+                    JOIN child_record ON parent_uuids.uuid = child_record.id
+                    WHERE path NOT LIKE '%' || parent_uuids.parent_uuid || '%'
+                )
+            SELECT pantry_index.*, child_record.level, child_record.path
+            FROM pantry_index
+            JOIN child_record ON pantry_index.uuid = child_record.id
+            ORDER BY child_record.level ASC;""", (basket_uuid, basket_uuid)
+        ).fetchall(),
             columns=columns,
         )
 
         parent_df = parent_df.drop_duplicates()
-        parent_df = parent_df[parent_df['uuid'] != basket_uuid]
+        parent_df = parent_df[parent_df["uuid"] != basket_uuid]
+
+        print('\n\n')
+        print(parent_df)
+        print(f"basket_uuid: {basket_uuid}")
+
+        last_row = parent_df.iloc[-1]
+        if basket_uuid in last_row["parent_uuids"]:
+            raise ValueError(f"Parent-Child loop found at uuid: {basket_uuid}")
+
+        parent_df.drop(columns="path", inplace=True)
         return parent_df
 
     def get_children(self, basket_address, **kwargs):
@@ -378,25 +391,46 @@ class IndexSQLite(IndexABC):
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
         )
         columns.append("generation_level")
+        columns.append("path")
+
         child_df = pd.DataFrame(self.cur.execute(
                 """WITH RECURSIVE
-                    child_record(level, id) AS (
-                        VALUES(0, ?)
+                    child_record(level, id, path) AS (
+                        VALUES(0, ?, ?)
                         UNION
-                        SELECT child_record.level-1, parent_uuids.uuid
-                        FROM parent_uuids, child_record
-                        WHERE parent_uuids.parent_uuid = child_record.id
+                        SELECT child_record.level - 1, parent_uuids.uuid,
+                            path || '/' || parent_uuids.uuid
+                        FROM parent_uuids
+                        JOIN child_record
+                            ON parent_uuids.parent_uuid = child_record.id
+                        WHERE path NOT LIKE '%' || parent_uuids.uuid || '%'
                     )
-                SELECT pantry_index.*, child_record.level
-                FROM pantry_index, parent_uuids, child_record
-                WHERE pantry_index.uuid = parent_uuids.uuid
-                AND parent_uuids.uuid = child_record.id
-                ORDER BY child_record.level ASC""", (basket_uuid,)
+                SELECT pantry_index.*, child_record.level, child_record.path
+                FROM pantry_index
+                JOIN child_record ON pantry_index.uuid = child_record.id
+                ORDER BY child_record.level DESC""", (basket_uuid, basket_uuid)
             ).fetchall(),
             columns=columns,
         )
         child_df = child_df.drop_duplicates()
-        child_df = child_df[child_df['uuid'] != basket_uuid]
+        start_basket_parents = child_df.iloc[0]["parent_uuids"]
+        # child_df = child_df[child_df['uuid'] != basket_uuid]
+
+        print('\n\n')
+        print(child_df)
+        print(f"basket_uuid: {basket_uuid}")
+
+        last_row = child_df.iloc[-1]
+        path = last_row["path"]
+        strip_idx = path.rfind("/")
+
+        path_last_id = path if strip_idx == -1 else path[strip_idx+1:]
+
+        # if basket_uuid in last_row["parent_uuids"]:
+        if path_last_id in start_basket_parents:
+            raise ValueError(f"Parent-Child loop found at uuid: {basket_uuid}")
+
+        child_df.drop(columns="path", inplace=True)
         return child_df
 
     def get_baskets_of_type(self, basket_type, max_rows=1000, **kwargs):
