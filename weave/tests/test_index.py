@@ -146,6 +146,7 @@ def test_index_abc_generate_metadata_returns_dict(test_index_only):
     assert isinstance(metadata, dict), "Index.generate_metadata must return a dict."
 
 
+
 def test_index_abc_generate_index_works(test_pantry):
     """Tests IndexABC generate_index uses the pantry fs to add to the index."""
     # Unpack the test_pantry into two variables for the pantry and index.

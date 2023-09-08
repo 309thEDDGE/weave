@@ -423,7 +423,9 @@ class IndexSQLite(IndexABC):
             parents[row['uuid']] = row['parent_uuids']
             for prev in row['path'].split('/'):
                 if row['uuid'] in parents[prev]:
-                    raise ValueError(f"Parent-Child loop found at uuid: {basket_uuid}")
+                    raise ValueError(
+                        f"Parent-Child loop found at uuid: {basket_uuid}"
+                    )
 
         child_df = child_df[child_df['uuid'] != basket_uuid]
         child_df.drop(columns="path", inplace=True)
