@@ -138,12 +138,12 @@ def test_index_abc_builtin_str_works(test_index_only):
     )
 
 
-def test_index_abc_get_metadata_returns_dict(test_index_only):
-    """Test IndexABC get_metadata returns a python dictionary."""
+def test_index_abc_generate_metadata_returns_dict(test_index_only):
+    """Test IndexABC generate_metadata returns a python dictionary."""
     ind = test_index_only
 
-    metadata = ind.get_metadata()
-    assert isinstance(metadata, dict), "Index.get_metadata must return a dict."
+    metadata = ind.generate_metadata()
+    assert isinstance(metadata, dict), "Index.generate_metadata must return a dict."
 
 
 def test_index_abc_generate_index_works(test_pantry):
@@ -590,8 +590,6 @@ def test_index_abc_get_parents_path_works(test_pantry):
     """Test IndexABC get_parents(path) returns proper structure and values."""
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
-    print(ind)
-
 
     # setup random strucutre of parents and children
     tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
@@ -656,8 +654,6 @@ def test_index_abc_get_parents_path_works(test_pantry):
 
     # get the results
     results = ind.get_parents(child)
-    print('\n\n')
-    print(results)
 
     # sort so that they can be properly compared to
     parent_answer = parent_answer.sort_values(by="uuid").reset_index(drop=True)
@@ -791,8 +787,6 @@ def test_index_abc_get_parents_parent_is_child_loop(test_pantry):
     """
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
-    print(ind)
-
 
     # create a basket structure with child, parent, and grandparent, but
     # the grandparent's parent, is the child, making an loop for the
@@ -947,8 +941,6 @@ def test_index_abc_get_children_path_works(test_pantry):
     """Test IndexABC get_children(path) returns proper structure and values."""
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
-    print(ind)
-
 
     # setup random strucutre of parents and children
     tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
@@ -1006,8 +998,6 @@ def test_index_abc_get_children_path_works(test_pantry):
 
     # get the results
     results = ind.get_children(great_grandparent)
-
-    print(results)
 
     # sort so that they can be properly compared to
     child_answer = child_answer.sort_values(by="uuid").reset_index(drop=True)
@@ -1079,7 +1069,6 @@ def test_index_abc_get_children_uuid_works(test_pantry):
 
     # get the results
     results = ind.get_children("3000")
-    print(results)
 
     # sort so that they can be properly compared to
     child_answer = child_answer.sort_values(by="uuid").reset_index(drop=True)
@@ -1187,7 +1176,6 @@ def test_index_abc_get_children_15_deep(test_pantry):
     ind.generate_index()
     index = ind.to_pandas_df()
     results = ind.get_children("0013")
-    print(results)
 
     # Get the anwser to compare to the results we got
     child_ids = [
@@ -1437,10 +1425,15 @@ def test_index_abc_get_baskets_by_upload_time_start_works(test_pantry):
     test_pantry, ind = test_pantry
 
     # Put basket in the temporary bucket.
-    columns = (
-        [info[1] for info in
-        ind.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
-    )
+    columns = [
+        "uuid",
+        "upload_time",
+        "parent_uuids",
+        "basket_type",
+        "label",
+        "address",
+        "storage_type"
+    ]
 
     # Save the current time, and set the 'end' time to 5 seconds ago.
     start = datetime.now() - timedelta(seconds=5)
@@ -1489,10 +1482,15 @@ def test_index_abc_get_baskets_by_upload_time_end_works(test_pantry):
     test_pantry, ind = test_pantry
 
     # Put basket in the temporary bucket.
-    columns = (
-        [info[1] for info in
-        ind.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
-    )
+    columns = [
+        "uuid",
+        "upload_time",
+        "parent_uuids",
+        "basket_type",
+        "label",
+        "address",
+        "storage_type"
+    ]
 
     # Save the current time, and set the 'end' time to 5 seconds ago.
     end = datetime.now() - timedelta(seconds=5)
@@ -1542,10 +1540,15 @@ def test_index_abc_get_baskets_by_upload_time_start_end_works(test_pantry):
     test_pantry, ind = test_pantry
 
     # Put basket in the temporary bucket.
-    columns = (
-        [info[1] for info in
-        ind.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
-    )
+    columns = [
+        "uuid",
+        "upload_time",
+        "parent_uuids",
+        "basket_type",
+        "label",
+        "address",
+        "storage_type"
+    ]
 
     # Save the current time, and set the 'start' time to now.
     start = datetime.now()
@@ -1605,10 +1608,15 @@ def test_index_abc_get_baskets_by_upload_time_returns_empty_df(test_pantry):
     test_pantry, ind = test_pantry
 
     # Put basket in the temporary bucket.
-    columns = (
-        [info[1] for info in
-        ind.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
-    )
+    columns = [
+        "uuid",
+        "upload_time",
+        "parent_uuids",
+        "basket_type",
+        "label",
+        "address",
+        "storage_type"
+    ]
 
     # Save the current time, and set the 'start' time to now.
     start = datetime.now()
