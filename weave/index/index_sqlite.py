@@ -415,23 +415,16 @@ class IndexSQLite(IndexABC):
             columns=columns,
         )
         child_df = child_df.drop_duplicates()
-        start_basket_parents = child_df.iloc[0]["parent_uuids"]
+
+        parents = {}
+        for _, row in child_df.iterrows():
+            parents[row['uuid']] = row['parent_uuids']
+            for prev in row['path'].split('/'):
+                if row['uuid'] in parents[prev]:
+                    # print(f"Loop: {prev}")
+                    raise ValueError(f"Parent-Child loop found at uuid: {basket_uuid}")
+
         child_df = child_df[child_df['uuid'] != basket_uuid]
-
-        print('\n\n')
-        print(child_df)
-        print(f"basket_uuid: {basket_uuid}")
-
-        last_row = child_df.iloc[-1]
-        path = last_row["path"]
-        strip_idx = path.rfind("/")
-
-        path_last_id = path if strip_idx == -1 else path[strip_idx+1:]
-
-        # if basket_uuid in last_row["parent_uuids"]:
-        if path_last_id in start_basket_parents:
-            raise ValueError(f"Parent-Child loop found at uuid: {basket_uuid}")
-
         child_df.drop(columns="path", inplace=True)
         return child_df
 
