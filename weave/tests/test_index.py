@@ -1178,7 +1178,7 @@ def test_index_abc_get_children_15_deep(test_pantry):
 
     for i in range(15):
         child_id = parent_id
-        parent_id = str(i)
+        parent_id = f"00{i}"
         tmp = test_pantry.set_up_basket("basket_" + child_id)
         test_pantry.upload_basket(
             tmp_basket_dir=tmp, uid=child_id, parent_ids=[parent_id]
@@ -1186,25 +1186,25 @@ def test_index_abc_get_children_15_deep(test_pantry):
 
     ind.generate_index()
     index = ind.to_pandas_df()
-    results = ind.get_children("13")
+    results = ind.get_children("0013")
     print(results)
 
     # Get the anwser to compare to the results we got
     child_ids = [
         "x",
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "10",
-        "11",
-        "12",
+        "000",
+        "001",
+        "002",
+        "003",
+        "004",
+        "005",
+        "006",
+        "007",
+        "008",
+        "009",
+        "0010",
+        "0011",
+        "0012",
     ]
     child_gens = [-14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1]
     answer = index.loc[index["uuid"].isin(child_ids)]

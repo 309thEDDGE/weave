@@ -393,32 +393,27 @@ class IndexSQLite(IndexABC):
         columns.append("generation_level")
         columns.append("path")
 
-        self.cur.execute("CREATE TEMP TABLE visited_uuids(uuid TEXT)")
-        self.cur.execute(
-            "INSERT INTO visited_uuids VALUES (?)", (basket_uuid,)
-        )
-
         child_df = pd.DataFrame(self.cur.execute(
-            """
-            WITH RECURSIVE child_record AS (
-                SELECT 0 AS level, pi.uuid AS id, pi.uuid AS path
-                FROM pantry_index pi
-                WHERE pi.uuid = ?
-                UNION
-                SELECT cr.level - 1, pu.uuid, cr.path || '/' || pu.uuid
-                FROM parent_uuids pu
-                JOIN child_record cr ON pu.parent_uuid = cr.id
-                WHERE pu.uuid NOT IN (SELECT uuid FROM visited_uuids)
-            )
-            SELECT pi.*, cr.level, cr.path
-            FROM pantry_index pi
-            JOIN child_record cr ON pi.uuid = cr.id
-            ORDER BY cr.level DESC;
-            """, (basket_uuid, )).fetchall(),
+                """WITH RECURSIVE
+                    child_record(level, id, path) AS (
+                        VALUES(0, ?, ?)
+                        UNION
+                        SELECT child_record.level - 1, parent_uuids.uuid,
+                            path || '/' || parent_uuids.uuid
+                        FROM parent_uuids
+                        JOIN child_record
+                            ON parent_uuids.parent_uuid = child_record.id
+                        WHERE path NOT LIKE parent_uuids.uuid || '/%'
+                            AND path NOT LIKE '%' || parent_uuids.uuid
+                            AND path NOT LIKE '%' || parent_uuids.uuid || '/%'
+                    )
+                SELECT pantry_index.*, child_record.level, child_record.path
+                FROM pantry_index
+                JOIN child_record ON pantry_index.uuid = child_record.id
+                ORDER BY child_record.level DESC""", (basket_uuid, basket_uuid)
+            ).fetchall(),
             columns=columns,
         )
-
-        self.cur.execute("DROP TABLE visited_uuids;")
         child_df = child_df.drop_duplicates()
         start_basket_parents = child_df.iloc[0]["parent_uuids"]
         child_df = child_df[child_df['uuid'] != basket_uuid]
