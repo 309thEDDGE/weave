@@ -208,13 +208,24 @@ class PandasIndex(IndexABC):
         **kwargs unused for this class.
         """
         upload_index = kwargs.get("upload_index", True)
-        basket_address = str(basket_address)
+        if not isinstance(basket_address, list):
+            basket_address = [basket_address]
         if self.index_df is None:
             self.sync_index()
 
-        remove_item = self.index_df[(self.index_df["uuid"] == basket_address)
-                               | (self.index_df["address"] == basket_address)
+        remove_item = self.index_df[(self.index_df["uuid"].isin(basket_address))
+                               | (self.index_df["address"].isin(basket_address))
                       ]
+        if len(remove_item) != len(basket_address):
+            warnings.warn(
+                UserWarning(
+                    "Incomplete Request. Index could not untrack baskets, "
+                    "as some were not being tracked to begin with.",
+                    len(basket_address) - len(remove_item)
+                )
+            )
+        if len(remove_item) == 0:
+            return
 
         self.index_df.drop(remove_item.index, inplace=True)
         self.index_df.reset_index(drop=True, inplace=True)

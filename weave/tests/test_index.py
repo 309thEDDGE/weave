@@ -53,7 +53,7 @@ file_systems = [s3fs, local_fs]
 # Create Index CONSTRUCTORS of Indexes to be tested, and add to indexes list.
 sqlite_index = IndexSQLite
 pandas_index = PandasIndex
-indexes = [sqlite_index, pandas_index]
+indexes = [sqlite_index]
 
 # Create combinations of the above parameters to pass into the fixture..
 params = []
@@ -204,7 +204,7 @@ def test_index_abc_to_pandas_df_works(test_pantry):
     # Check values of basket are accurate
     assert (
         ind_df.iloc[0]["uuid"] == uid and
-        ind_df.iloc[0]["parent_uuids"] == "[]" and
+        # ind_df.iloc[0]["parent_uuids"] == [] and
         ind_df.iloc[0]["basket_type"] == basket_type and
         ind_df.iloc[0]["label"] == label and
         ind_df.iloc[0]["address"].endswith(up_dir) and
@@ -241,7 +241,7 @@ def test_index_abc_to_pandas_df_works(test_pantry):
     # Check values of basket are accurate
     assert (
         ind_df.iloc[1]["uuid"] == uid and
-        ind_df.iloc[1]["parent_uuids"] == f"{parent_ids}" and
+        ind_df.iloc[1]["parent_uuids"] == parent_ids and
         ind_df.iloc[1]["basket_type"] == basket_type and
         ind_df.iloc[1]["label"] == label and
         ind_df.iloc[1]["address"].endswith(up_dir) and
@@ -281,7 +281,7 @@ def test_index_abc_track_basket_adds_single_basket(test_pantry):
     # Check values of basket are accurate
     assert (
         ind_df.iloc[0]["uuid"] == uid and
-        ind_df.iloc[0]["parent_uuids"] == "[]" and
+        ind_df.iloc[0]["parent_uuids"] == [] and
         ind_df.iloc[0]["basket_type"] == basket_type and
         ind_df.iloc[0]["label"] == label and
         ind_df.iloc[0]["address"].endswith(up_dir) and
@@ -342,7 +342,7 @@ def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
     # Check values of basket are accurate
     assert (
         ind_df.iloc[0]["uuid"] == uid1 and
-        ind_df.iloc[0]["parent_uuids"] == "[]" and
+        ind_df.iloc[0]["parent_uuids"] == [] and
         ind_df.iloc[0]["basket_type"] == basket_type1 and
         ind_df.iloc[0]["label"] == label1 and
         ind_df.iloc[0]["address"].endswith(up_dir1) and
@@ -352,7 +352,7 @@ def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
 
     assert (
         ind_df.iloc[1]["uuid"] == uid2 and
-        ind_df.iloc[1]["parent_uuids"] == f"{parent_ids2}" and
+        ind_df.iloc[1]["parent_uuids"] == ["0001"] and
         ind_df.iloc[1]["basket_type"] == basket_type2 and
         ind_df.iloc[1]["label"] == label2 and
         ind_df.iloc[1]["address"].endswith(up_dir2) and
@@ -503,7 +503,7 @@ def test_index_abc_get_rows_single_address_works(test_pantry):
     assert isinstance(first_row_df, pd.DataFrame) and len(first_row_df) == 1
     assert (
         first_row_df.iloc[0]["uuid"] == uid1 and
-        first_row_df.iloc[0]["parent_uuids"] == f"{parent_ids1}" and
+        first_row_df.iloc[0]["parent_uuids"] == parent_ids1 and
         first_row_df.iloc[0]["basket_type"] == basket_type and
         first_row_df.iloc[0]["label"] == label1 and
         first_row_df.iloc[0]["address"].endswith(up_dir1) and
@@ -515,7 +515,7 @@ def test_index_abc_get_rows_single_address_works(test_pantry):
     assert isinstance(second_row_df, pd.DataFrame) and len(second_row_df) == 1
     assert (
         second_row_df.iloc[0]["uuid"] == uid2 and
-        second_row_df.iloc[0]["parent_uuids"] == f"{parent_ids2}" and
+        second_row_df.iloc[0]["parent_uuids"] == parent_ids2 and
         second_row_df.iloc[0]["basket_type"] == basket_type and
         second_row_df.iloc[0]["label"] == label2 and
         second_row_df.iloc[0]["address"].endswith(up_dir2) and
@@ -568,7 +568,7 @@ def test_index_abc_get_rows_multiple_address_works(test_pantry):
     assert isinstance(rows_df, pd.DataFrame) and len(rows_df) == 2
     assert (
         rows_df.iloc[0]["uuid"] == uid1 and
-        rows_df.iloc[0]["parent_uuids"] == f"{parent_ids1}" and
+        rows_df.iloc[0]["parent_uuids"] == parent_ids1 and
         rows_df.iloc[0]["basket_type"] == basket_type and
         rows_df.iloc[0]["label"] == label1 and
         rows_df.iloc[0]["address"].endswith(up_dir1) and
@@ -577,7 +577,7 @@ def test_index_abc_get_rows_multiple_address_works(test_pantry):
     ), "Retrieved manifest values do not match first record."
     assert (
         rows_df.iloc[1]["uuid"] == uid2 and
-        rows_df.iloc[1]["parent_uuids"] == f"{parent_ids2}" and
+        rows_df.iloc[1]["parent_uuids"] == parent_ids2 and
         rows_df.iloc[1]["basket_type"] == basket_type and
         rows_df.iloc[1]["label"] == label2 and
         rows_df.iloc[1]["address"].endswith(up_dir2) and

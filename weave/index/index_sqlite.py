@@ -3,6 +3,7 @@ import json
 import os
 import warnings
 
+import ast
 import datetime
 import dateutil
 import sqlite3
@@ -158,6 +159,7 @@ class IndexSQLite(IndexABC):
             .fetchall(),
             columns=columns
         )
+        ind_df['parent_uuids'] = ind_df['parent_uuids'].apply(ast.literal_eval)
         return ind_df
 
     def track_basket(self, entry_df, **kwargs):
@@ -285,6 +287,7 @@ class IndexSQLite(IndexABC):
             results,
             columns=columns
         )
+        ind_df['parent_uuids'] = ind_df['parent_uuids'].apply(ast.literal_eval)
         return ind_df
 
 
