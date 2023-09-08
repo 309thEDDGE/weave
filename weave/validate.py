@@ -34,8 +34,8 @@ def validate_pantry(pantry):
             f"{pantry.pantry_path}"
         )
 
-    # Here we are catching the warnings that are shown from calling
-    # generate_index() because we don't want to show the same warning twice
+    # Catching the warnings that are shown from calling
+    # generate_index() to prevent showing the same warning twice
     with warnings.catch_warnings(record=True):
         try:
             pantry.index.generate_index()
@@ -44,8 +44,7 @@ def validate_pantry(pantry):
                 f"Pantry could not be loaded into index: {error}"
             ) from error
 
-    # Call check level, with a path, but since we're just starting,
-    # We just use the pantry_name as the path
+    # Call check level using the pantry_name as the path
     with warnings.catch_warnings(record=True) as warn:
         _check_level(pantry.pantry_path, pantry=pantry)
         # Iterate through warn and return the list of warning messages.
@@ -70,10 +69,9 @@ def _check_level(current_dir, **kwargs):
         the current directory that we want to search all files and
         directories of
 
-    kwargs:
-    pantry: weave.Pantry
+    **pantry: weave.Pantry
         Pantry object representing the pantry to validate.
-    in_basket: bool
+    **in_basket: bool
         optional parameter. This is a flag to signify that we are in a basket
         and we are looking for a nested basket now.
 
@@ -82,7 +80,7 @@ def _check_level(current_dir, **kwargs):
     bool that comes from:
         a validate_basket() if there is a basket found
         a check_level() if there is a directory found
-        a true if we found a manifest while inside another basket
+        a true if a manifest is found while inside another basket
         a default true if no basket is found
     """
     # Collect kwargs
@@ -98,43 +96,43 @@ def _check_level(current_dir, **kwargs):
 
     manifest_path = os.path.join(current_dir, 'basket_manifest.json')
 
-    # if a manifest exists, its a basket, validate it
+    # If a manifest exists, its a basket, validate it
     if file_system.exists(manifest_path):
-        # if we find another manifest inside a basket, we just need to say
-        # we found it, we don't need to validate the nested basket
+        # If there is another manifest inside a basket,
+        # the nested basket does not need to be validated
         if in_basket:
             return True
         return _validate_basket(current_dir, pantry)
 
-    # go through all the other files, if it's a directory, we need to check it
+    # Go through all the other files, if it's a directory, check it
     dirs_and_files = file_system.ls(path=current_dir, refresh=True)
 
     for file_or_dir in dirs_and_files:
         file_type = file_system.info(file_or_dir)['type']
 
         if file_type == 'directory':
-            # if we are in a basket, check evrything under it, for a manifest
-            # and return true, this will return true to the _validate_basket
+            # If directory is a basket, check everything under it,
+            # for a manifest and return true,
+            # this will return true to the _validate_basket
             # and throw an error or warning
             if in_basket:
                 return _check_level(file_or_dir,
                                     pantry=pantry,
                                     in_basket=in_basket)
-            # if we aren't in the basket, we want to check all files in our
+            # If directory is not a basket, check all files in the
             # current dir. If everything is valid, _check_level returns true
-            # if it isn't valid, we go in and return false
-            # we don't want to return _check_level because we want to keep
-            # looking at all the sub-directories
+            # If it isn't valid, return false
+            # and continue looking at all the sub-directories
             if not _check_level(file_or_dir,
                                 pantry=pantry,
                                 in_basket=in_basket):
                 return False
 
     # This is the default backup return.
-    # If we are in a basket, it will be valid if we return false,
-    # because we want to signify that we didn't find another basket
-    # If we are not in a basket, we want to return true, because
-    # we didn't find a basket and it was valid to have no baskets
+    # Return True if directory is not a basket because
+    # it is valid to have no baskets
+    # Return False if directory is a basket because
+    # check_level did not find another basket
     return not in_basket
 
 
@@ -157,7 +155,7 @@ def _validate_basket(basket_dir, pantry):
 
     Parameters
     ----------
-    basket_dir: string
+    basket_dir: str
         the path in the file system to the basket root directory
     pantry: weave.Pantry
         Pantry object representing the pantry to validate.
@@ -170,10 +168,10 @@ def _validate_basket(basket_dir, pantry):
     manifest_path = os.path.join(basket_dir, 'basket_manifest.json')
     supplement_path = os.path.join(basket_dir, 'basket_supplement.json')
 
-    # a valid basket has both manifest and supplement
-    # if for some reason the manifest is gone, we get a wrong directory,
+    # A valid basket has both manifest and supplement
+    # If for some reason the manifest is gone,
+    # either the directory is wrong,
     # or this function is incorrectly called,
-    # we can say that this isn't a basket.
     if not pantry.file_system.exists(manifest_path):
         raise FileNotFoundError(f"Invalid Path. "
                                 f"No Basket found at: {basket_dir}")
@@ -194,7 +192,7 @@ def _validate_basket(basket_dir, pantry):
             file_name, _handle_none_of_the_above
         )(file, pantry)
 
-    # default return true if we don't find any problems with this basket
+    # Default return true if there are no problems with this basket
     return True
 
 
@@ -238,9 +236,11 @@ def _handle_supplement(file, pantry):
         Pantry object representing the pantry to validate.
     """
     try:
-        # these two lines make sure it can be read and is valid schema
+        # These two lines make sure it can be read and is valid schema
         data = json.load(pantry.file_system.open(file))
         validate(instance=data, schema=supplement_schema)
+        basket_dir, _ = os.path.split(file)
+        _validate_supplement_files(basket_dir, data, pantry)
 
     except jsonschema.exceptions.ValidationError:
         warnings.warn(UserWarning(
@@ -299,13 +299,13 @@ def _handle_none_of_the_above(file, pantry):
 def _validate_parent_uuids(data, pantry):
     """Validate that all the parent_uuids from the manifest exist in the pantry
 
-    If there are parent uuids that don't actually exist in the pantry, we will
-    raise a warning for each of those, along with the basket's uuid where we
-    found the error.
+    If there are parent uuids that don't actually exist in the pantry,
+    a warning will be raised for each of those, along with the
+    basket's uuid where the error occurred.
 
     Parameters
     ----------
-    data: dictionary
+    data: dict
         the dictionary that contains the data of the manifest.json
     pantry: weave.Pantry
         Pantry object representing the pantry to validate.
@@ -320,3 +320,57 @@ def _validate_parent_uuids(data, pantry):
     if missing_uids:
         warnings.warn(f"The uuids: {missing_uids} were not found in the "
                       f"index, which was found inside basket: {data['uuid']}")
+
+
+def _validate_supplement_files(basket_dir, data, pantry):
+    """Validate the files listed in the supplement's integrity_data
+
+    Parameters
+    ----------
+    basket_dir: str
+        the path to the current working basket
+    data: dictionary
+        the dictionary that contains the data of the supplement.json
+    pantry: weave.Pantry
+        The pantry to validate.
+    """
+    file_system = pantry.file_system
+    pantry_path = pantry.pantry_path
+    sys_file_list = file_system.find(path=basket_dir, withdirs=False)
+
+    manifest_path = os.path.join(basket_dir, "basket_manifest.json")
+    supplement_path = os.path.join(basket_dir, "basket_supplement.json")
+    metadata_path = os.path.join(basket_dir, "basket_metadata.json")
+
+    # Grab all the files, but remove manifest, supplement, and metadata
+    system_file_list = [
+        file for file in sys_file_list if file not in [manifest_path,
+                                                       supplement_path,
+                                                       metadata_path]
+    ]
+
+    supp_file_list = [file["upload_path"] for file in data["integrity_data"]]
+
+    # Remove path up until the pantry directory in both lists
+    system_file_list = [
+        file[file.find(pantry_path):] for file in system_file_list
+    ]
+    supp_file_list = [file[file.find(pantry_path):] for file in supp_file_list]
+
+    system_file_set = set(system_file_list)
+    supp_file_set = set(supp_file_list)
+
+    files_not_in_system = supp_file_set - system_file_set
+    files_not_in_supp = system_file_set - supp_file_set
+
+    for file in files_not_in_system:
+        warnings.warn(
+            UserWarning("File listed in the basket_supplement.json does not "
+                        "exist in the file system: ", file)
+        )
+
+    for file in files_not_in_supp:
+        warnings.warn(
+            UserWarning("File found in the file system is not listed in "
+                        "the basket_supplement.json: ", file)
+        )
