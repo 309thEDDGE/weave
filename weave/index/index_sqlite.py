@@ -354,7 +354,11 @@ class IndexSQLite(IndexABC):
 
         if parent_df.empty:
             return parent_df
+        parent_df['parent_uuids'] = parent_df['parent_uuids'].apply(
+            ast.literal_eval
+        )
 
+        # TODO: May need to fix this like get_children
         last_row = parent_df.iloc[-1]
         if basket_uuid in last_row["parent_uuids"]:
             raise ValueError(f"Parent-Child loop found at uuid: {basket_uuid}")
