@@ -358,10 +358,12 @@ class IndexSQLite(IndexABC):
             ast.literal_eval
         )
 
-        # TODO: May need to fix this like get_children
-        last_row = parent_df.iloc[-1]
-        if basket_uuid in last_row["parent_uuids"]:
-            raise ValueError(f"Parent-Child loop found at uuid: {basket_uuid}")
+        for _, row in parent_df.iterrows():
+            for prev in row['path'].split('/'):
+                if prev in row['parent_uuids']:
+                    raise ValueError(
+                        f"Parent-Child loop found at uuid: {basket_uuid}"
+                    )
 
         parent_df.drop(columns="path", inplace=True)
         return parent_df
