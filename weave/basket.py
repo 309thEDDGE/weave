@@ -4,6 +4,7 @@
 import json
 import os
 from pathlib import Path
+import pandas as pd
 
 from .config import get_file_system, prohibited_filenames
 from .index.index_pandas import _Index
@@ -215,3 +216,14 @@ class Basket(BasketInitializer):
         # Note that file_system.ls can have unpredictable behavior if
         # not passing refresh=True
         return self.file_system.ls(ls_path, refresh=True)
+
+    def to_pandas_df(self):
+        """Return a dataframe of the basket member variables
+        """
+        data = [self.uuid, self.upload_time,
+                self.parent_uuids, self.basket_type,
+                self.label, self.address, self.storage_type]
+        columns = ["uuid", "upload_time", "parent_uuids",
+                   "basket_type", "label", "address", "storage_type"]
+
+        return pd.DataFrame(data=[data], columns=columns)

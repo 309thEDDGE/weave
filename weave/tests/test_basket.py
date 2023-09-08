@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 import s3fs
+import pandas as pd
 from fsspec.implementations.local import LocalFileSystem
 
 from weave.basket import Basket
@@ -562,3 +563,48 @@ def test_basket_check_member_variables(test_pantry):
     assert manifest_dict["label"] == my_basket.label
     assert my_basket.address.endswith(basket_path)
     assert test_pantry.file_system.__class__.__name__ == my_basket.storage_type
+
+
+def test_basket_to_pandas_df(test_pantry):
+    """Check that to_pandas_df returns the proper dataframe for the basket"""
+    # Upload a basket
+    tmp_basket_dir = test_pantry.set_up_basket("basket")
+    uuid = "0000"
+    basket_path = test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir,
+                                            uid=uuid)
+
+    my_basket = Basket(basket_address=uuid,
+                       pantry_name=test_pantry.pantry_name,
+                       file_system=test_pantry.file_system)
+
+    basket_df = my_basket.to_pandas_df()
+
+    # Open the manifest to get the file system data
+    manifest_path = os.path.join(basket_path, "basket_manifest.json")
+
+    with test_pantry.file_system.open(manifest_path, "rb",) as file:
+        manifest_dict = json.load(file)
+
+    # Collect the data and build a dataframe for testing
+    data = [manifest_dict["uuid"],
+            manifest_dict["upload_time"],
+            manifest_dict["parent_uuids"],
+            manifest_dict["basket_type"],
+            manifest_dict["label"],
+            basket_path,
+            test_pantry.file_system.__class__.__name__]
+
+    columns = ["uuid", "upload_time", "parent_uuids",
+               "basket_type", "label", "address", "storage_type"]
+
+    answer_df = pd.DataFrame(data=[data], columns=columns)
+
+    # Addresses can have different prefixes in the paths, check that it ends
+    # with the correct relative path
+    assert basket_df["address"][0].endswith(answer_df["address"][0])
+
+    # Drop the addresses that could be slightly different and compare the rest
+    # of the dataframe
+    basket_df.drop(columns="address", inplace=True)
+    answer_df.drop(columns="address", inplace=True)
+    assert basket_df.equals(answer_df)
