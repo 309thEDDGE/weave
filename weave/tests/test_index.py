@@ -142,7 +142,7 @@ def test_index_abc_get_metadata_returns_dict(test_index_only):
     """Test IndexABC get_metadata returns a python dictionary."""
     ind = test_index_only
 
-    metadata = ind.get_metadata()
+    metadata = ind.generate_metadata()
     assert isinstance(metadata, dict), "Index.get_metadata must return a dict."
 
 
