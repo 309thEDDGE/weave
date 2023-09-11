@@ -425,6 +425,11 @@ class PandasIndex(IndexABC):
 
         **kwargs unused for this class.
         """
+        if self.sync and not self.is_index_current():
+            self.sync_index()
+        elif self.index_df is None:
+            self.sync_index()
+
         self._upload_index(
             pd.concat([self.index_df, entry_df], ignore_index=True)
         )
@@ -447,8 +452,11 @@ class PandasIndex(IndexABC):
         rows: pd.DataFrame
             Manifest information for the requested basket.
         """
-        if self.index_df is None:
-            self.generate_index()
+        if self.sync and not self.is_index_current():
+            self.sync_index()
+        elif self.index_df is None:
+            self.sync_index()
+
         if not isinstance(basket_address, list):
             basket_address = [basket_address]
         rows = self.index_df[(self.index_df["uuid"].isin(basket_address))
@@ -472,6 +480,11 @@ class PandasIndex(IndexABC):
         ----------
         pandas.DataFrame containing the manifest data of baskets of the type.
         """
+        if self.sync and not self.is_index_current():
+            self.sync_index()
+        elif self.index_df is None:
+            self.sync_index()
+
         return self.index_df[
             self.index_df["basket_type"] == basket_type
         ].head(max_rows)
@@ -491,6 +504,11 @@ class PandasIndex(IndexABC):
         ----------
         pandas.DataFrame containing the manifest data of baskets with the label
         """
+        if self.sync and not self.is_index_current():
+            self.sync_index()
+        elif self.index_df is None:
+            self.sync_index()
+
         return self.index_df[
             self.index_df["label"] == basket_label
         ].head(max_rows)
@@ -517,8 +535,15 @@ class PandasIndex(IndexABC):
         pandas.DataFrame containing the manifest data of baskets uploaded
         between the start and end times.
         """
+        super().get_baskets_by_upload_time(start_time, end_time)
         if start_time is None and end_time is None:
             return self.to_pandas_df(max_rows, **kwargs)
+
+        if self.sync and not self.is_index_current():
+            self.sync_index()
+        elif self.index_df is None:
+            self.sync_index()
+
         if start_time is None:
             return self.index_df[
                 self.index_df["upload_time"] <= end_time

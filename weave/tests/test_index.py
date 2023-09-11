@@ -53,7 +53,7 @@ file_systems = [s3fs, local_fs]
 # Create Index CONSTRUCTORS of Indexes to be tested, and add to indexes list.
 sqlite_index = IndexSQLite
 pandas_index = PandasIndex
-indexes = [sqlite_index]
+indexes = [sqlite_index, pandas_index]
 
 # Create combinations of the above parameters to pass into the fixture..
 params = []
@@ -310,7 +310,7 @@ def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
     )
 
     first_slice_df = create_index_from_fs(up_dir1, test_pantry.file_system)
-    first_slice_df["parent_uuids"] = first_slice_df["parent_uuids"].astype(str)
+    first_slice_df["parent_uuids"] = first_slice_df["parent_uuids"]
 
     # Upload another basket
     uid2, basket_type2, label2 = "0002", "test_basket", "test_label"
@@ -326,7 +326,7 @@ def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
 
     second_slice_df = create_index_from_fs(up_dir2, test_pantry.file_system)
     second_slice_df["parent_uuids"] = (
-        second_slice_df["parent_uuids"].astype(str)
+        second_slice_df["parent_uuids"]
     )
 
     dual_slice_df = pd.concat([first_slice_df, second_slice_df])

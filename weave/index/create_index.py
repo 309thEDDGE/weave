@@ -60,8 +60,12 @@ def create_index_from_fs(root_dir, file_system):
             if basket_dict["basket_type"] != "index":
                 for field in basket_dict.keys():
                     index_dict[field].append(basket_dict[field])
-                index_dict["address"].append(os.path.dirname(basket_json_address))
-                index_dict["storage_type"].append(file_system.__class__.__name__)
+                index_dict["address"].append(
+                    os.path.relpath(os.path.dirname(basket_json_address))
+                )
+                index_dict["storage_type"].append(
+                    file_system.__class__.__name__
+                )
 
     if len(bad_baskets) != 0:
         warnings.warn('baskets found in the following locations '
