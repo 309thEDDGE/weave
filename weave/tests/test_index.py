@@ -136,8 +136,9 @@ def test_index_abc_generate_metadata_returns_dict(test_index_only):
     ind = test_index_only
 
     metadata = ind.generate_metadata()
-    assert isinstance(metadata, dict), "Index.generate_metadata must return a dict."
-
+    assert (
+        isinstance(metadata, dict)
+    ), "Index.generate_metadata must return a dict."
 
 
 def test_index_abc_generate_index_works(test_pantry):
@@ -1632,7 +1633,7 @@ def test_index_abc_get_baskets_by_upload_time_returns_empty_df(test_pantry):
     for key, value in zip(columns, manifest_values, strict=True):
         manifest_dict[key] = value
 
-    # Create and track a record, with the upload time 1 second before the start.
+    # Create and track a record, with the upload time 1 second before the start
     manifest_dict["uuid"] = ["0001"]
     manifest_dict["upload_time"] = [start - timedelta(seconds=1)]
     basket_df = pd.DataFrame.from_dict(manifest_dict)

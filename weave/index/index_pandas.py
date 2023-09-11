@@ -213,9 +213,10 @@ class IndexPandas(IndexABC):
         if self.index_df is None:
             self.sync_index()
 
-        remove_item = self.index_df[(self.index_df["uuid"].isin(basket_address))
-                               | (self.index_df["address"].isin(basket_address))
-                      ]
+        remove_item = self.index_df[
+            (self.index_df["uuid"].isin(basket_address))
+            | (self.index_df["address"].isin(basket_address))
+        ]
         if len(remove_item) != len(basket_address):
             warnings.warn(
                 UserWarning(
