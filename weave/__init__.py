@@ -29,6 +29,7 @@ __version__ = "0.11.0"
 __all__ = [
     "Basket",
     "IndexSQLite",
+    "IndexPandas",
     "Pantry",
     "load_mongo",
 ]

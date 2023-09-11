@@ -1,16 +1,13 @@
 """Wherein is contained the concrete SQLite implementation of the Index."""
 import json
 import os
+import sqlite3
 import warnings
 
 import ast
-import datetime
 import dateutil
-import sqlite3
 import pandas as pd
 
-from weave import Basket
-from ..config import index_schema
 from .index_abc import IndexABC
 from .list_baskets import _get_list_of_basket_jsons
 from .validate_basket import validate_basket_dict
@@ -37,9 +34,10 @@ class IndexSQLite(IndexABC):
         self.db_path = kwargs.get("db_path", "basket-data.db")
         self.con = sqlite3.connect(self.db_path)
         self.cur = self.con.cursor()
-        self.connect_db()
+        self._create_tables()
 
-    def connect_db(self):
+    def _create_tables(self):
+        """Create the required DB tables if they do not already exist."""
         self.cur.execute("""
             CREATE TABLE IF NOT EXISTS pantry_index(
                 uuid TEXT, upload_time TIMESTAMP, parent_uuids TEXT,
@@ -84,8 +82,6 @@ class IndexSQLite(IndexABC):
 
         basket_jsons = _get_list_of_basket_jsons(self.pantry_path,
                                                  self.file_system)
-        schema = index_schema()
-        index_dict = {}
 
         storage_type = self.file_system.__class__.__name__
 
@@ -174,7 +170,6 @@ class IndexSQLite(IndexABC):
         entry_df.to_sql("pantry_index", self.con,
                         if_exists="append", method="multi", index=False)
 
-
     def untrack_basket(self, basket_address, **kwargs):
         """Remove a basket from being tracked of given UUID or path.
 
@@ -208,47 +203,6 @@ class IndexSQLite(IndexABC):
             )
 
         self.con.commit()
-
-
-    def get_basket(self, basket_address, **kwargs):
-        """Returns a Basket of given UUID or path.
-
-        Parameters
-        ----------
-        basket_address: str
-            Argument can take one of two forms: either a path to the basket
-            directory, or the UUID of the basket.
-
-        Returns
-        ----------
-        Basket
-            Returns the Basket object.
-        """
-        # Create a Basket from the given address, and the index's file_system
-        # and bucket name. Basket will catch invalid inputs and raise
-        # appropriate errors.
-
-        # Get the path of the basket, before we pass it into Basket.
-        if not self.file_system.exists(os.fspath(basket_address)):
-            # Get the path from the assumed uuid.
-            query_result = self.cur.execute(
-                "SELECT address FROM pantry_index WHERE uuid = ?",
-                (basket_address,)
-            ).fetchone()
-
-            # If no result is returned, the uuid didn't exist: raise an error.
-            if query_result is None:
-                raise ValueError(f"Basket does not exist: {basket_address}")
-            basket_path = query_result[0]
-
-        # Otherwise the basket_address is a path that exists, use it as the path.
-        else:
-            basket_path = basket_address
-
-        return Basket(
-            basket_address=basket_path,
-            file_system=self.file_system
-        )
 
     def get_rows(self, basket_address, **kwargs):
         """Returns a pd.DataFrame row information of given UUID or path.
@@ -289,7 +243,6 @@ class IndexSQLite(IndexABC):
         )
         ind_df['parent_uuids'] = ind_df['parent_uuids'].apply(ast.literal_eval)
         return ind_df
-
 
     def get_parents(self, basket_address, **kwargs):
         """Returns a pandas dataframe of all parents of a basket.
@@ -552,23 +505,23 @@ class IndexSQLite(IndexABC):
         return ind_df
 
     def query(self, expr, **kwargs):
-        """Returns a pandas dataframe of the results of the query.
+        """Returns a pandas dataframe of the results of the expression.
 
         Parameters
         ----------
         expr: str
             An expression passed to the backend. An example could be a SQL or
             pandas query. Largely dependent on concrete implementations.
-        **query_args: tuple
-            Arguments to pass to the Sqlite query. Should be in the form:
+        **expr_args: tuple
+            Arguments to pass to the SQLite expression. Should be in the form:
             (arg1, arg2) or (arg1,) if only one argument.
 
         Returns
         ----------
         pandas.DataFrame of the resulting query.
         """
-        query_args = kwargs.get(query_args, ())
-        return pd.DataFrame(self.cur.execute(expr, query_args).fetchall())
+        expr_args = kwargs.get("expr_args", ())
+        return pd.DataFrame(self.cur.execute(expr, expr_args).fetchall())
 
     def __len__(self):
         """Returns the number of baskets in the index."""
