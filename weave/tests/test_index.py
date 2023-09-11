@@ -1493,6 +1493,8 @@ def test_index_abc_get_baskets_by_upload_time_end_works(test_pantry):
         "storage_type"
     ]
 
+    ind.to_pandas_df()
+
     # Save the current time, and set the 'end' time to 5 seconds ago.
     end = datetime.now() - timedelta(seconds=5)
 
@@ -1550,6 +1552,7 @@ def test_index_abc_get_baskets_by_upload_time_start_end_works(test_pantry):
         "address",
         "storage_type"
     ]
+    ind.to_pandas_df()
 
     # Save the current time, and set the 'start' time to now.
     start = datetime.now()

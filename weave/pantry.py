@@ -147,7 +147,7 @@ class Pantry():
             upload_items=upload_items,
             basket_type=basket_type,
             file_system=self.file_system,
-            pantry_name=self.pantry_path,
+            pantry_path=self.pantry_path,
             parent_ids=parent_ids,
             metadata=metadata,
             label=label,

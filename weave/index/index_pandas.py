@@ -429,10 +429,10 @@ class PandasIndex(IndexABC):
             self.sync_index()
         elif self.index_df is None:
             self.sync_index()
-
-        self._upload_index(
-            pd.concat([self.index_df, entry_df], ignore_index=True)
-        )
+        else:
+            self._upload_index(
+                pd.concat([self.index_df, entry_df], ignore_index=True)
+            )
 
 
     def get_rows(self, basket_address, **kwargs):
