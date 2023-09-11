@@ -1,12 +1,8 @@
 """Pytest tests for the index directory."""
 from datetime import datetime, timedelta
-import json
 import os
 import re
-import uuid
 import warnings
-from unittest.mock import patch
-import time
 import numpy as np
 import pandas as pd
 import pytest
@@ -14,7 +10,6 @@ import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
 import weave
-from weave import Basket
 from weave import IndexSQLite
 from weave.index.index_pandas import PandasIndex
 from weave.index.create_index import create_index_from_fs
@@ -51,9 +46,7 @@ local_fs = LocalFileSystem()
 file_systems = [s3fs, local_fs]
 
 # Create Index CONSTRUCTORS of Indexes to be tested, and add to indexes list.
-sqlite_index = IndexSQLite
-pandas_index = PandasIndex
-indexes = [sqlite_index, pandas_index]
+indexes = [IndexSQLite, PandasIndex]
 
 # Create combinations of the above parameters to pass into the fixture..
 params = []
@@ -702,7 +695,7 @@ def test_index_abc_get_parents_uuid_works(test_pantry):
     test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="1001")
 
     tmp_dir = test_pantry.set_up_basket("child_0")
-    child = test_pantry.upload_basket(
+    _ = test_pantry.upload_basket(
         tmp_basket_dir=tmp_dir, uid="0000", parent_ids=["1001", "1000"]
     )
 
@@ -1016,7 +1009,7 @@ def test_index_abc_get_children_uuid_works(test_pantry):
 
     # setup random strucutre of parents and children
     tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
-    great_grandparent = test_pantry.upload_basket(
+    _ = test_pantry.upload_basket(
         tmp_basket_dir=tmp_dir, uid="3000"
     )
 
@@ -1119,7 +1112,6 @@ def test_index_abc_get_children_child_is_parent_loop(test_pantry):
     parent_ids has the child's uid. This causes an infinite loop,
     check that it throw error.
     """
-    # TODO: Fix loop
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -1217,7 +1209,6 @@ def test_index_abc_get_children_complex_fail(test_pantry):
     """Test IndexABC get_children fails on an invalid complicated loop tree."""
     """Make a complicated tree with a loop to test new algorithm"""
     # Unpack the test_pantry into two variables for the pantry and index.
-    # TODO: Fix loop
     test_pantry, ind = test_pantry
 
 
@@ -1414,10 +1405,10 @@ def test_index_abc_get_baskets_by_upload_time_raises_value_error2(test_pantry):
     test_pantry, ind = test_pantry
 
     with pytest.raises(ValueError, match="start_time is not datetime object."):
-        baskets = ind.get_baskets_by_upload_time(start_time=1)
+        _ = ind.get_baskets_by_upload_time(start_time=1)
     with pytest.raises(ValueError, match="end_time is not datetime object."):
         time_str = "2022-02-03 11:12:13"
-        baskets = ind.get_baskets_by_upload_time(end_time=time_str)
+        _ = ind.get_baskets_by_upload_time(end_time=time_str)
 
 
 def test_index_abc_get_baskets_by_upload_time_start_works(test_pantry):

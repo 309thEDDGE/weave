@@ -1,12 +1,11 @@
 """Wherein is contained the concrete SQLite implementation of the Index."""
 import json
 import os
+import sqlite3
 import warnings
 
 import ast
-import datetime
 import dateutil
-import sqlite3
 import pandas as pd
 
 from weave import Basket
@@ -567,7 +566,7 @@ class IndexSQLite(IndexABC):
         ----------
         pandas.DataFrame of the resulting query.
         """
-        query_args = kwargs.get(query_args, ())
+        query_args = kwargs.get('query_args', ())
         return pd.DataFrame(self.cur.execute(expr, query_args).fetchall())
 
     def __len__(self):
