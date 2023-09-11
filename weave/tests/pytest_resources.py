@@ -101,7 +101,9 @@ class BucketForTest:
         """Delete the temporary test bucket, including any uploaded baskets."""
         self.file_system.rm(self.pantry_path, recursive=True)
 
-
+# This class is to facilitate creating and deleting indices for tests.
+# No other functionality required, but it is needed for pytest
+# pylint: disable-next=too-few-public-methods
 class IndexForTest:
     """Creates an index for testing."""
     def __init__(self, index_constructor, file_system, pantry_path=None):
