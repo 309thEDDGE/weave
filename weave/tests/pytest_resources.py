@@ -103,7 +103,7 @@ class BucketForTest:
 
 
 class IndexForTest:
-        """Creates an index for testing."""
+    """Creates an index for testing."""
     def __init__(self, index_constructor, file_system, pantry_path=None):
         self.file_system = file_system
         self.pantry_path = pantry_path
