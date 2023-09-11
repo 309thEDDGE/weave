@@ -479,7 +479,7 @@ class IndexSQLite(IndexABC):
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
         )
 
-        print("\n\n")
+        print("\n")
         print(f"Start: {start_time}")
         print(f"End: {end_time}")
         print("Now, Now UTC")
@@ -489,6 +489,7 @@ class IndexSQLite(IndexABC):
         print(self.cur.execute("SELECT * FROM pantry_index").fetchall())
         print("datetime(upload_time):")
         print(self.cur.execute("SELECT datetime(upload_time) FROM pantry_index").fetchall())
+        print("\n\n")
 
         if start_time and end_time:
             results = self.cur.execute(

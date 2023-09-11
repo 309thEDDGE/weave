@@ -1436,6 +1436,7 @@ def test_index_abc_get_baskets_by_upload_time_start_works(test_pantry):
 
     # Save the current time, and set the 'end' time to 5 seconds ago.
     start = datetime.now(timezone.utc) - timedelta(seconds=5)
+    print(f"\nTest Times")
 
     # Create a placeholder record that will have the time and uuid replaced.
     manifest_values = (
@@ -1452,21 +1453,27 @@ def test_index_abc_get_baskets_by_upload_time_start_works(test_pantry):
         manifest_dict[key] = value
 
     # Create and track a record, with the upload time 1 second before start.
+    print(f"\nStart - 1: {start - timedelta(seconds=1)}")
     manifest_dict["uuid"] = ["0001"]
     manifest_dict["upload_time"] = [start - timedelta(seconds=1)]
     basket_df = pd.DataFrame.from_dict(manifest_dict)
+    print(basket_df)
     ind.track_basket(basket_df)
 
     # Create and track a record, with the upload time at the start.
+    print(f"\nStart: {start}")
     manifest_dict["uuid"] = ["0002"]
     manifest_dict["upload_time"] = [start]
     basket_df = pd.DataFrame.from_dict(manifest_dict)
+    print(basket_df)
     ind.track_basket(basket_df)
 
     # Create and track a record, with the upload time 1 second after the start.
+    print(f"\nStart + 1: {start + timedelta(seconds=1)}")
     manifest_dict["uuid"] = ["0003"]
     manifest_dict["upload_time"] = [start + timedelta(seconds=1)]
     basket_df = pd.DataFrame.from_dict(manifest_dict)
+    print(basket_df)
     ind.track_basket(basket_df)
 
     baskets = ind.get_baskets_by_upload_time(start_time=start)
