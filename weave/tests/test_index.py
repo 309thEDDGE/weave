@@ -50,9 +50,9 @@ indexes = [IndexSQLite, PandasIndex]
 
 # Create combinations of the above parameters to pass into the fixture..
 params = []
-for file_system in file_systems:
-    for index in indexes:
-        params.append((file_system, index))
+for iter_file_system in file_systems:
+    for iter_index in indexes:
+        params.append((iter_file_system, iter_index))
 
 
 @pytest.fixture(params=params)
@@ -293,28 +293,29 @@ def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
     ind.generate_index()
 
     # Put basket in the temporary bucket
-    uid1, basket_type1, label1 = "0001", "test_basket", "test_label"
+    uids = ["0001", "0002"]
+    basket_type = "test_basket"
+    test_label = "test_label"
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     up_dir1 = test_pantry.upload_basket(
         tmp_basket_dir=tmp_basket_dir_one,
-        uid=uid1,
-        basket_type=basket_type1,
-        label=label1
+        uid=uids[0],
+        basket_type=basket_type,
+        label=test_label
     )
 
     first_slice_df = create_index_from_fs(up_dir1, test_pantry.file_system)
     first_slice_df["parent_uuids"] = first_slice_df["parent_uuids"]
 
     # Upload another basket
-    uid2, basket_type2, label2 = "0002", "test_basket", "test_label"
     parent_ids2 = ["0001"]
     tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
     up_dir2 = test_pantry.upload_basket(
         tmp_basket_dir=tmp_basket_dir_two,
-        uid=uid2,
-        basket_type=basket_type2,
+        uid=uids[1],
+        basket_type=basket_type,
         parent_ids=parent_ids2,
-        label=label2
+        label=test_label
     )
 
     second_slice_df = create_index_from_fs(up_dir2, test_pantry.file_system)
@@ -335,20 +336,20 @@ def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
 
     # Check values of basket are accurate
     assert (
-        ind_df.iloc[0]["uuid"] == uid1 and
+        ind_df.iloc[0]["uuid"] == uids[0] and
         ind_df.iloc[0]["parent_uuids"] == [] and
-        ind_df.iloc[0]["basket_type"] == basket_type1 and
-        ind_df.iloc[0]["label"] == label1 and
+        ind_df.iloc[0]["basket_type"] == basket_type and
+        ind_df.iloc[0]["label"] == test_label and
         ind_df.iloc[0]["address"].endswith(up_dir1) and
         ind_df.iloc[0]["storage_type"] == \
             test_pantry.file_system.__class__.__name__
     ), "Retrieved manifest values do not match first record."
 
     assert (
-        ind_df.iloc[1]["uuid"] == uid2 and
+        ind_df.iloc[1]["uuid"] == uids[1] and
         ind_df.iloc[1]["parent_uuids"] == ["0001"] and
-        ind_df.iloc[1]["basket_type"] == basket_type2 and
-        ind_df.iloc[1]["label"] == label2 and
+        ind_df.iloc[1]["basket_type"] == basket_type and
+        ind_df.iloc[1]["label"] == test_label and
         ind_df.iloc[1]["address"].endswith(up_dir2) and
         ind_df.iloc[1]["storage_type"] == \
             test_pantry.file_system.__class__.__name__
@@ -460,31 +461,31 @@ def test_index_abc_get_rows_single_address_works(test_pantry):
 
     basket_type = "test_basket_type"
 
-    uid1 = "0001"
-    label1 = "label_1"
-    parent_ids1 = []
+    uids = ["0001"]
+    labels = ["label_1"]
+    parent_ids = [[]]
 
     # Put basket in the temporary bucket.
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     up_dir1 = test_pantry.upload_basket(
         tmp_basket_dir=tmp_basket_dir_one,
         basket_type=basket_type,
-        uid=uid1,
-        label=label1,
-        parent_ids=parent_ids1,
+        uid=uids[-1],
+        label=labels[-1],
+        parent_ids=parent_ids[-1],
     )
 
-    uid2 = "0002"
-    label2 = "label_2"
-    parent_ids2 = [uid1]
+    uids.append("0002")
+    labels.append("label_2")
+    parent_ids.append([uids[0]])
 
     tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
     up_dir2 = test_pantry.upload_basket(
         tmp_basket_dir=tmp_basket_dir_two,
         basket_type=basket_type,
-        uid=uid2,
-        label=label2,
-        parent_ids=parent_ids2,
+        uid=uids[-1],
+        label=labels[-1],
+        parent_ids=parent_ids[-1],
     )
 
     tmp_basket_dir_three = test_pantry.set_up_basket("basket_three")
@@ -496,10 +497,10 @@ def test_index_abc_get_rows_single_address_works(test_pantry):
     first_row_df = ind.get_rows("0001")
     assert isinstance(first_row_df, pd.DataFrame) and len(first_row_df) == 1
     assert (
-        first_row_df.iloc[0]["uuid"] == uid1 and
-        first_row_df.iloc[0]["parent_uuids"] == parent_ids1 and
+        first_row_df.iloc[0]["uuid"] == uids[0] and
+        first_row_df.iloc[0]["parent_uuids"] == parent_ids[0] and
         first_row_df.iloc[0]["basket_type"] == basket_type and
-        first_row_df.iloc[0]["label"] == label1 and
+        first_row_df.iloc[0]["label"] == labels[0] and
         first_row_df.iloc[0]["address"].endswith(up_dir1) and
         first_row_df.iloc[0]["storage_type"] == \
             test_pantry.file_system.__class__.__name__
@@ -508,10 +509,10 @@ def test_index_abc_get_rows_single_address_works(test_pantry):
     second_row_df = ind.get_rows(up_dir2)
     assert isinstance(second_row_df, pd.DataFrame) and len(second_row_df) == 1
     assert (
-        second_row_df.iloc[0]["uuid"] == uid2 and
-        second_row_df.iloc[0]["parent_uuids"] == parent_ids2 and
+        second_row_df.iloc[0]["uuid"] == uids[1] and
+        second_row_df.iloc[0]["parent_uuids"] == parent_ids[1] and
         second_row_df.iloc[0]["basket_type"] == basket_type and
-        second_row_df.iloc[0]["label"] == label2 and
+        second_row_df.iloc[0]["label"] == labels[1] and
         second_row_df.iloc[0]["address"].endswith(up_dir2) and
         second_row_df.iloc[0]["storage_type"] == \
             test_pantry.file_system.__class__.__name__
@@ -1206,8 +1207,8 @@ def test_index_abc_get_children_15_deep(test_pantry):
 
 
 def test_index_abc_get_children_complex_fail(test_pantry):
-    """Test IndexABC get_children fails on an invalid complicated loop tree."""
-    """Make a complicated tree with a loop to test new algorithm"""
+    """Test IndexABC get_children fails on an invalid complicated loop tree.
+    Make a complicated tree with a loop to test new algorithm"""
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -1260,7 +1261,7 @@ def test_index_abc_get_children_complex_fail(test_pantry):
     with pytest.raises(
         ValueError, match=re.escape("Parent-Child loop found at uuid: 007")
     ):
-        df = ind.get_children(parent_path)
+        ind.get_children(parent_path)
 
 
 def test_index_abc_get_baskets_of_type_works(test_pantry):
