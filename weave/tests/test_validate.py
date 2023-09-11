@@ -376,17 +376,16 @@ def test_validate_manifest_schema_missing_field(test_validate):
 
     # Catch warnings and validate it throws 1 and is correct
     warn_info = validate.validate_pantry(pantry)
-    warning_1 = warn_info[0]
 
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == (
+    assert warn_info[0].args[0] == (
         "Invalid Basket. Manifest Schema does not match at: "
     )
     # Check the invalid basket path is what is expected
     # (ignoring File System prefix)
-    assert warning_1.args[1].endswith(os.path.join(basket_path,
+    assert warn_info[0].args[1].endswith(os.path.join(basket_path,
                                                    "bad_man_schema",
                                                    "basket_manifest.json"))
 
@@ -458,18 +457,17 @@ def test_validate_manifest_schema_additional_field(test_validate):
     )
 
     warn_info = validate.validate_pantry(pantry)
-    warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == (
+    assert warn_info[0].args[0] == (
         "Invalid Basket. Manifest Schema does not match at: "
     )
     # Check the invalid basket path is what is expected
     # (ignoring File System prefix)
-    assert warning_1.args[1].endswith(os.path.join(basket_path,
+    assert warn_info[0].args[1].endswith(os.path.join(basket_path,
                                                    "bad_man_schema",
                                                    "basket_manifest.json"))
 

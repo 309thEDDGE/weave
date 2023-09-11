@@ -334,9 +334,8 @@ def _validate_supplement_files(basket_dir, data, pantry):
     pantry: weave.Pantry
         The pantry to validate.
     """
-    file_system = pantry.file_system
     pantry_path = pantry.pantry_path
-    sys_file_list = file_system.find(path=basket_dir, withdirs=False)
+    sys_file_list = pantry.file_system.find(path=basket_dir, withdirs=False)
 
     manifest_path = os.path.join(basket_dir, "basket_manifest.json")
     supplement_path = os.path.join(basket_dir, "basket_supplement.json")
