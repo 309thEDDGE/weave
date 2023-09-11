@@ -479,6 +479,13 @@ class IndexSQLite(IndexABC):
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
         )
 
+        print("\n\n")
+        print(f"Start: {start_time}")
+        print(f"End: {end_time}")
+        print(self.cur.execute("SELECT datetime('now')").fetchone())
+        print(self.cur.execute("SELECT datetime('now', 'utc')").fetchone())
+        print(self.cur.execute("SELECT * FROM pantry_index").fetchall())
+
         if start_time and end_time:
             results = self.cur.execute(
                 """SELECT * FROM pantry_index
@@ -495,7 +502,6 @@ class IndexSQLite(IndexABC):
                 """SELECT * FROM pantry_index
                 WHERE datetime(upload_time) <= datetime(?) LIMIT ?
                 """, (end_time, max_rows)).fetchall()
-
 
         ind_df = pd.DataFrame(
             results,
