@@ -1,6 +1,6 @@
+"""Contains functions and classes concerning the upload functionality.
 """
-Contains functions and classes concerning the upload functionality.
-"""
+
 import hashlib
 import json
 import math
@@ -14,7 +14,8 @@ from .config import get_file_system, prohibited_filenames
 
 
 def validate_upload_item(upload_item):
-    """Validates an upload_item"""
+    """Validates an upload_item."""
+
     if not isinstance(upload_item, dict):
         raise TypeError(
             "'upload_item' must be a dictionary: "
@@ -41,8 +42,7 @@ def validate_upload_item(upload_item):
 
 
 def derive_integrity_data(file_path, byte_count=10**8):
-    """
-    Derives basic integrity data from a file.
+    """Derives basic integrity data from a file.
 
     This function takes in a file path and calculates
     the file checksum, file size, and access date (current time).
@@ -50,11 +50,12 @@ def derive_integrity_data(file_path, byte_count=10**8):
     Parameters
     ----------
     file_path : str
-        Path to file from which integrity data will be derived
-    byte_count: int
+        Path to file from which integrity data will be derived.
+    byte_count: int (default=10**8)
         If the file size is greater than 3 * byte_count, the checksum
         will be calculated from the beginning, middle, and end bytes
-        of the file. For example: If the file size is 10 bytes long
+        of the file.
+        For example: If the file size is 10 bytes long
         and the byte_count is 2, the checksum will be calculated from bytes
         1, 2 (beginning two bytes), 5, 6 (middle two bytes) and 9, 10
         (last two bytes). This option is provided to speed up checksum
@@ -70,8 +71,8 @@ def derive_integrity_data(file_path, byte_count=10**8):
       'source_path': path to the original source of data (string)
       'byte_count': byte count used for generated checksum (int)
      }
-
     """
+
     if not isinstance(file_path, str):
         raise TypeError(f"'file_path' must be a string: '{file_path}'")
 
@@ -135,7 +136,7 @@ class UploadBasket:
         upload_items : [dict]
             List of python dictionaries with the following schema:
             {
-                'path': path to the file or folder being uploaded (string),
+                'path': path to the file or folder being uploaded (str),
                 'stub': true/false (bool)
             }
             'path' can be a file or folder to be uploaded. Every filename and
@@ -144,7 +145,6 @@ class UploadBasket:
             Stubs are useful when original file source information is desired
             without uploading the data itself. This is especially useful when
             dealing with large files.
-
         **upload_directory: str
             Path where basket is to be uploaded (on the upload FS).
         **unique_id: str
@@ -159,7 +159,7 @@ class UploadBasket:
             and stored in the basket in the upload FS.
         **label: str (optional)
             Optional user friendly label associated with the basket.
-        **file_system: fsspec object
+        **file_system: fsspec object (optional)
             The file system to upload to (ie s3fs, local fs, etc).
             If None it will use the default fs from the weave.config.
 
@@ -168,6 +168,7 @@ class UploadBasket:
         basket_type as this will allow the library to choose a good unique_id,
         and keep the pantry organized.
         """
+
         self.upload_items = upload_items
         self.kwargs = kwargs
         # We cannot use with in this case, as we want the temp dir to persist
@@ -178,7 +179,8 @@ class UploadBasket:
         self.run_logic()
 
     def run_logic(self):
-        """Handles running the funcs that make up the class. Do the stuff."""
+        """Handles running the functions that make up the class."""
+
         self.sanitize_args()
         self.check_that_upload_dir_does_not_exist()
 
@@ -200,7 +202,8 @@ class UploadBasket:
             raise the_exception
 
     def sanitize_upload_basket_kwargs(self):
-        """Sanitizes kwargs for upload_basket"""
+        """Sanitizes kwargs for upload_basket."""
+
         kwargs_schema = {"test_clean_up": bool,
                          "file_system": object,
                          "upload_directory": str,
@@ -235,7 +238,8 @@ class UploadBasket:
         self.file_system = self.kwargs.get("file_system", get_file_system())
 
     def sanitize_upload_basket_non_kwargs(self):
-        """Sanitize upload_basket's non kwargs args"""
+        """Sanitize upload_basket's non kwargs args."""
+
         if not isinstance(self.upload_items, list):
             raise TypeError(
                 "'upload_items' must be a list of dictionaries: "
@@ -266,12 +270,14 @@ class UploadBasket:
             local_path_basenames.append(local_path_basename)
 
     def sanitize_args(self):
-        """Sanitize all args with one call, that's all"""
+        """Sanitize all args with one call."""
+
         self.sanitize_upload_basket_kwargs()
         self.sanitize_upload_basket_non_kwargs()
 
     def _get_path(self):
-        """Either make sure upload_path is in kwargs or make it"""
+        """Either make sure upload_path is in kwargs or create it."""
+
         if "unique_id" not in self.kwargs:
             self.kwargs["unique_id"] = uuid.uuid1().hex
         if "upload_directory" not in self.kwargs:
@@ -289,11 +295,12 @@ class UploadBasket:
             )
 
     def check_that_upload_dir_does_not_exist(self):
-        """Ensure that upload directory does not previously exist
+        """Ensure that upload directory does not previously exist.
 
         This averts some errors with uploading to a directory that already
-        exists
+        exists.
         """
+
         self._get_path()
         upload_directory = self.kwargs.get("upload_directory")
         if self.file_system.isdir(upload_directory):
@@ -302,11 +309,13 @@ class UploadBasket:
             )
 
     def setup_temp_dir_for_staging_prior_to_fs(self):
-        """Sets up a temporary directory to hold stuff before upload to FS"""
+        """Sets up a temporary directory to hold stuff before upload to FS."""
+
         self.file_system.mkdir(self.kwargs.get("upload_directory"))
 
     def upload_files_and_stubs_to_fs(self):
-        """Method to upload both files and stubs to fs"""
+        """Method to upload both files and stubs to FS."""
+
         supplement_data = {}
         supplement_data["upload_items"] = self.upload_items
         supplement_data["integrity_data"] = []
@@ -361,7 +370,8 @@ class UploadBasket:
         self.kwargs["supplement_data"] = supplement_data
 
     def create_and_upload_basket_json_to_fs(self):
-        """Creates and dumps a JSON containing basket metadata"""
+        """Creates and dumps a JSON containing basket metadata."""
+
         basket_json_path = os.path.join(
             self.temp_dir_path, "basket_manifest.json"
         )
@@ -381,7 +391,8 @@ class UploadBasket:
         )
 
     def upload_basket_metadata_to_fs(self):
-        """Dumps metadata to tempdir, and then uploads to FS"""
+        """Dumps metadata to tempdir, and then uploads to FS."""
+
         metadata_path = os.path.join(
             self.temp_dir_path, "basket_metadata.json"
         )
@@ -395,7 +406,8 @@ class UploadBasket:
             )
 
     def upload_basket_supplement_to_fs(self):
-        """Dumps metadata to tempdir, and then uploads to FS"""
+        """Dumps metadata to tempdir, and then uploads to FS."""
+
         supplement_json_path = os.path.join(
             self.temp_dir_path, "basket_supplement.json"
         )
@@ -408,16 +420,19 @@ class UploadBasket:
         )
 
     def fs_upload_path_exists(self):
-        """Returns True if fs upload_path has been created, else False"""
+        """Returns True if FS upload_path has been created, else False."""
+
         return self.file_system.exists(self.kwargs.get("upload_directory"))
 
     def clean_out_fs_upload_dir(self):
-        """Removes everything from upload_path inside fs"""
+        """Removes everything from upload_path inside of FS."""
+
         self.file_system.rm(self.kwargs.get("upload_directory"),
                             recursive=True)
 
     def get_upload_path(self):
         """Gets upload path from kwargs and returns it."""
+
         upload_path = self.kwargs.get("upload_directory")
         if upload_path is not None:
             return upload_path

@@ -1,4 +1,4 @@
-"""metadata_db.py contains scripts concerning mongodb functionality.
+"""Contains scripts concerning mongodb functionality.
 """
 
 import pandas as pd

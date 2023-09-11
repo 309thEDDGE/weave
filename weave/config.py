@@ -1,4 +1,4 @@
-"""config.py provides configuration settings used by weave.
+"""Provides configuration settings used by Weave.
 """
 
 import os

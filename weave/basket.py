@@ -1,4 +1,4 @@
-"""Wherein scripts concerning the Basket class reside.
+"""Contains scripts concerning the Basket class.
 """
 
 import json
