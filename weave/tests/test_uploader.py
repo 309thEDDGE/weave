@@ -1,4 +1,5 @@
 """Pytests for the uploader functionality"""
+import json
 import os
 import time
 import uuid
@@ -527,6 +528,37 @@ def test_basket(request, tmpdir):
     test_bucket = BucketForTest(tmpdir, file_system)
     yield test_bucket
     test_bucket.cleanup_bucket()
+
+
+def test_upload_basket_without_uuid_creates_uuid(test_basket):
+    """
+    Test that upload_basket creates a uuid when unique_id is not
+    initialized
+    """
+    # Create a temporary basket with a test file.
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_dir = test_basket.set_up_basket(tmp_basket_dir_name)
+
+    #Initialize all kwargs except unique_id
+    upload_items = [{"path": tmp_dir.strpath, "stub": False}]
+    basket_type = "test_basket"
+    upload_path = os.path.join(test_basket.pantry_name, basket_type)
+
+    uploading_basket = weave.upload.UploadBasket(
+        upload_items=upload_items,
+        upload_directory=upload_path,
+        basket_type=basket_type,
+        file_system=test_basket.file_system,
+    )
+
+    assert uploading_basket.kwargs.get("unique_id") is not None
+
+    tmp_files = test_basket.file_system.ls(upload_path)
+    with test_basket.file_system.open(tmp_files[0], "r", encoding="utf-8")\
+            as outfile:
+        manifest_data = json.load(outfile)
+
+    assert manifest_data['uuid'] != 'null'
 
 
 def test_upload_basket_upload_items_is_not_a_string(test_basket):
