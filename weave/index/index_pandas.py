@@ -195,7 +195,6 @@ class IndexPandas(IndexABC):
         self.index_df = index
         self.index_json_time = n_secs
 
-
     def untrack_basket(self, basket_address, **kwargs):
         """Remove a basket from being tracked of given UUID or path.
 
@@ -232,7 +231,6 @@ class IndexPandas(IndexABC):
         self.index_df.reset_index(drop=True, inplace=True)
         if upload_index:
             self._upload_index(self.index_df)
-
 
     def get_parents(self, basket_address, **kwargs):
         """Recursively gathers all parents of basket and returns index
@@ -433,7 +431,6 @@ class IndexPandas(IndexABC):
             self._upload_index(
                 pd.concat([self.index_df, entry_df], ignore_index=True)
             )
-
 
     def get_rows(self, basket_address, **kwargs):
         """Returns a pd.DataFrame row information of given UUID or path.
