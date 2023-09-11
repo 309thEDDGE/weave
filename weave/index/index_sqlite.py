@@ -479,6 +479,8 @@ class IndexSQLite(IndexABC):
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
         )
 
+        print(f"sqlite3.version: {sqlite3.version}")
+        print(f"sqlite3.sqlite_version: {sqlite3.sqlite_version}")
         print("\n")
         print(f"Start: {start_time}")
         print(f"End: {end_time}")
