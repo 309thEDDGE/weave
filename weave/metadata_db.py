@@ -18,18 +18,17 @@ def load_mongo(index_table, collection='metadata', **kwargs):
 
         Parameters
         ----------
-        index_table: [Pandas Dataframe]
+        index_table: dataframe
             Weave index dataframe fetched using the Index class.
             The dataframe must include the following columns.
                uuid
                basket_type
                address
-        collection: [string]
+        collection: string
             Metadata wil be added to the Mongo collection specified.
             default: 'metadata'
 
-        kwargs:
-        file_system: fsspec object
+        **file_system: fsspec object
             The file system to retrieve the baskets' metadata from.
         """
 

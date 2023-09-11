@@ -29,7 +29,7 @@ def create_index_from_fs(root_dir, file_system):
                and where each row corresponds to a single basket_manifest.json
                found recursively under specified root_dir
     """
-    # check parameter data types
+    # Check parameter data types
     if not isinstance(root_dir, str):
         raise TypeError(f"'root_dir' must be a string: '{root_dir}'")
 

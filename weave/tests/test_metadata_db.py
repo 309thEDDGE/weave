@@ -60,7 +60,7 @@ def set_up(request, tmpdir):
     database.cleanup()
 
 
-# We need to ignore pylint's warning "redefined-outer-name" as this is simply
+# Ignoring pylint's warning "redefined-outer-name" as this is simply
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
 

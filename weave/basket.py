@@ -16,8 +16,8 @@ class BasketInitializer:
 
         Parameters
         ----------
-        basket_address: string
-            Argument can take one of two forms: either a path to the Basket
+        basket_address: str
+            Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
         **file_system: fsspec object (optional)
             The fsspec filesystem to be used for retrieving and uploading. This
@@ -49,10 +49,10 @@ class BasketInitializer:
 
         Paramters
         ---------
-        basket_address: string
-            Argument can take one of two forms: either a path to the Basket
+        basket_address: str
+            Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket. In this case it is assumed to
-            be a path to the Basket directory.
+            be a path to the basket directory.
         """
         self.basket_address = os.fspath(basket_address)
         self.validate_basket_path()
@@ -63,8 +63,8 @@ class BasketInitializer:
         Note that if the basket cannot be set up from a uuid then an attempt to
         set up the basket from a filepath will be made.
 
-        basket_address: string
-            Argument can take one of two forms: either a path to the Basket
+        basket_address: str
+            Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket. In this case it is assumed to
             be the UUID of the basket.
         pantry: weave.Pantry
@@ -76,8 +76,8 @@ class BasketInitializer:
         except BaseException as error:
             self.basket_address = basket_address
             self.validate_basket_path()
-            # the above line should raise an exception
-            # the below line is more or less a fail safe and will raise the ex.
+            # The above line should raise an exception
+            # The below line is more or less a fail safe and will raise the ex.
             raise error
 
     def validate_basket_path(self):
@@ -161,8 +161,8 @@ class Basket(BasketInitializer):
         else:
             return None
 
-    # I am disabling pylint name warning for ls, as it is the standard name
-    # for functions of it's type in the computing world. I believe it makes
+    # Disabling pylint name warning for ls, as it is the standard name
+    # for functions of it's type in the computing world. It makes
     # sense to continue to name this function ls.
     # pylint: disable-next=invalid-name
     def ls(self, relative_path=None):
@@ -179,7 +179,7 @@ class Basket(BasketInitializer):
 
         Parameters
         ----------
-        relative_path: [string]
+        relative_path: str (default = None)
             relative path in the basket to pass to filesystem.ls.
 
         Returns
@@ -196,7 +196,7 @@ class Basket(BasketInitializer):
             )
 
         if ls_path == os.fspath(Path(self.basket_address)):
-            # remove any prohibited files from the list if they exist
+            # Remove any prohibited files from the list if they exist
             # in the root directory
             # Note that file_system.ls can have unpredictable behavior if
             # not passing refresh=True
