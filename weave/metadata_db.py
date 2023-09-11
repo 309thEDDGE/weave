@@ -1,4 +1,4 @@
-"""Wherein scripts concerning mongodb functionality reside.
+"""metadata_db.py contains scripts concerning mongodb functionality.
 """
 
 import pandas as pd
@@ -7,10 +7,10 @@ from .basket import Basket
 from .config import get_file_system, get_mongo_db
 
 
-def load_mongo(index_table, collection='metadata', **kwargs):
+def load_mongo(index_table, collection="metadata", **kwargs):
     """Load metadata from baskets into the mongo database.
 
-       A metadata.json is created in Baskets when the metadata
+       A metadata.json is created in baskets when the metadata
        field is provided upon upload. This metadata is added to the
        mongo database when invoking load_mongo. UUID, and basket_type
        from the index_table are also added to mongo for referrence
@@ -20,14 +20,12 @@ def load_mongo(index_table, collection='metadata', **kwargs):
         ----------
         index_table: dataframe
             Weave index dataframe fetched using the Index class.
-            The dataframe must include the following columns.
+            The dataframe must include the following columns:
                uuid
                basket_type
                address
-        collection: string
-            Metadata wil be added to the Mongo collection specified.
-            default: 'metadata'
-
+        collection: str (default="metadata")
+            Metadata will be added to the Mongo collection specified.
         **file_system: fsspec object
             The file system to retrieve the baskets' metadata from.
         """
@@ -62,8 +60,8 @@ def load_mongo(index_table, collection='metadata', **kwargs):
         mongo_metadata.update(metadata)
 
         # If the UUID already has metadata loaded in mongodb,
-        # the metadata should not be loaded to mongoDB again.
+        # the metadata should not be loaded to mongodb again.
         if 0 == database[
             collection
-        ].count_documents({'uuid': manifest['uuid']}):
+        ].count_documents({"uuid": manifest['uuid']}):
             database[collection].insert_one(mongo_metadata)
