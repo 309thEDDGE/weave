@@ -1,8 +1,9 @@
 """Pytest tests for the index directory."""
-from datetime import datetime, timedelta
 import os
 import re
 import warnings
+from datetime import datetime, timedelta, timezone
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -1430,7 +1431,7 @@ def test_index_abc_get_baskets_by_upload_time_start_works(test_pantry):
     ]
 
     # Save the current time, and set the 'end' time to 5 seconds ago.
-    start = datetime.now() - timedelta(seconds=5)
+    start = datetime.now(timezone.utc) - timedelta(seconds=5)
 
     # Create a placeholder record that will have the time and uuid replaced.
     manifest_values = (
@@ -1489,7 +1490,7 @@ def test_index_abc_get_baskets_by_upload_time_end_works(test_pantry):
     ind.to_pandas_df()
 
     # Save the current time, and set the 'end' time to 5 seconds ago.
-    end = datetime.now() - timedelta(seconds=5)
+    end = datetime.now(timezone.utc) - timedelta(seconds=5)
 
     # Create a placeholder record that will have the time and uuid replaced.
     manifest_values = (
@@ -1548,7 +1549,7 @@ def test_index_abc_get_baskets_by_upload_time_start_end_works(test_pantry):
     ind.to_pandas_df()
 
     # Save the current time, and set the 'start' time to now.
-    start = datetime.now()
+    start = datetime.now(timezone.utc)
 
     # Create a placeholder record that will have the time and uuid replaced.
     manifest_values = (
@@ -1616,7 +1617,7 @@ def test_index_abc_get_baskets_by_upload_time_returns_empty_df(test_pantry):
     ]
 
     # Save the current time, and set the 'start' time to now.
-    start = datetime.now()
+    start = datetime.now(timezone.utc)
     end = start + timedelta(seconds=2)
 
     # Create a placeholder record that will have the time and uuid replaced.
