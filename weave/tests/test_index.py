@@ -11,7 +11,7 @@ from fsspec.implementations.local import LocalFileSystem
 
 import weave
 from weave import IndexSQLite
-from weave.index.index_pandas import PandasIndex
+from weave.index.index_pandas import IndexPandas
 from weave.index.create_index import create_index_from_fs
 from weave.tests.pytest_resources import BucketForTest, IndexForTest
 
@@ -46,7 +46,7 @@ local_fs = LocalFileSystem()
 file_systems = [s3fs, local_fs]
 
 # Create Index CONSTRUCTORS of Indexes to be tested, and add to indexes list.
-indexes = [IndexSQLite, PandasIndex]
+indexes = [IndexSQLite, IndexPandas]
 
 # Create combinations of the above parameters to pass into the fixture..
 params = []

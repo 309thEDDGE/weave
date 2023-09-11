@@ -10,7 +10,7 @@ from fsspec.implementations.local import LocalFileSystem
 from weave.basket import Basket
 from weave.index.create_index import create_index_from_fs
 from weave.pantry import Pantry
-from weave.index.index_pandas import PandasIndex
+from weave.index.index_pandas import IndexPandas
 from weave.tests.pytest_resources import BucketForTest
 
 ###############################################################################
@@ -68,7 +68,7 @@ def test_basket_address_does_not_exist(test_pantry):
     invalid basket address.
     """
     basket_path = Path("i n v a l i d p a t h")
-    pantry = Pantry(PandasIndex,
+    pantry = Pantry(IndexPandas,
                     pantry_path=test_pantry.pantry_path,
                     file_system=test_pantry.file_system)
     pantry.index.generate_index()
@@ -462,7 +462,7 @@ def test_basket_init_from_uuid(test_pantry):
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     uuid = "0000"
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
-    pantry = Pantry(PandasIndex,
+    pantry = Pantry(IndexPandas,
                     pantry_path=test_pantry.pantry_path,
                     file_system=test_pantry.file_system)
     pantry.index.generate_index()
@@ -485,7 +485,7 @@ def test_basket_init_fails_if_uuid_does_not_exist(test_pantry):
     uuid = "0000"
     bad_uuid = "a bad uuid"
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
-    pantry = Pantry(PandasIndex,
+    pantry = Pantry(IndexPandas,
                     pantry_path=test_pantry.pantry_path,
                     file_system=test_pantry.file_system)
     pantry.index.generate_index()
@@ -509,7 +509,7 @@ def test_basket_pantry_name_does_not_exist(test_pantry):
     pantry_path = "the wrong bucket 007"
     error_msg = f'Invalid pantry Path. Pantry does not exist at: {pantry_path}'
     with pytest.raises(ValueError, match=error_msg):
-        pantry = Pantry(PandasIndex,
+        pantry = Pantry(IndexPandas,
                 pantry_path=pantry_path,
                 file_system=test_pantry.file_system)
         pantry.index.generate_index()
@@ -525,7 +525,7 @@ def test_basket_from_uuid_with_many_baskets(test_pantry):
         tmp_basket_dir = test_pantry.set_up_basket(f"temp_basket_{uuid}")
         test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir, uid=uuid)
 
-    pantry = Pantry(PandasIndex,
+    pantry = Pantry(IndexPandas,
                     pantry_path=test_pantry.pantry_path,
                     file_system=test_pantry.file_system)
     pantry.index.generate_index()

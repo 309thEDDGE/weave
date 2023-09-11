@@ -12,7 +12,7 @@ from fsspec.implementations.local import LocalFileSystem
 
 from weave import Basket
 from weave.index.create_index import create_index_from_fs
-from weave.index.index_pandas import PandasIndex
+from weave.index.index_pandas import IndexPandas
 from weave.pantry import Pantry
 from weave.tests.pytest_resources import BucketForTest
 
@@ -251,7 +251,7 @@ def test_pantry_fails_with_bad_path(test_pantry):
     error_msg = f"Invalid pantry Path. Pantry does not exist at: {bad_path}"
     with pytest.raises(ValueError, match=error_msg):
         pantry = Pantry(
-            PandasIndex,
+            IndexPandas,
             pantry_path=bad_path,
             file_system=test_pantry.file_system
         )
@@ -267,7 +267,7 @@ def test_delete_basket_deletes_basket(test_pantry):
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_pantry.pantry_path,
         file_system=test_pantry.file_system
     )
@@ -310,7 +310,7 @@ def test_pantry_delete_basket_with_parents(test_pantry):
     )
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_pantry.pantry_path,
         file_system=test_pantry.file_system
     )
@@ -335,7 +335,7 @@ def test_upload_basket_updates_the_pantry(test_pantry):
 
     # Create index
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_pantry.pantry_path,
         file_system=test_pantry.file_system
     )
@@ -377,7 +377,7 @@ def test_upload_basket_gracefully_fails(
     tmp_basket = test_pantry.set_up_basket("basket_one")
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_pantry.pantry_path,
         file_system=test_pantry.file_system
     )
@@ -419,7 +419,7 @@ def test_index_get_basket_works_correctly(test_pantry):
     )
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_pantry.pantry_path,
         file_system=test_pantry.file_system
     )
@@ -460,7 +460,7 @@ def test_index_get_basket_graceful_fail(test_pantry):
 
     bad_uid = "DOESNT EXIST LOL"
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_pantry.pantry_path,
         file_system=test_pantry.file_system
     )
@@ -472,7 +472,7 @@ def test_index_get_basket_graceful_fail(test_pantry):
 def test_pantry_get_metadata_no_data(test_pantry):
     """Test the pantry reads in empty metadata and the index metadata."""
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_pantry.pantry_path,
         file_system=test_pantry.file_system
     )
@@ -484,7 +484,7 @@ def test_pantry_get_metadata_no_data(test_pantry):
 def test_pantry_save_metadata(test_pantry):
     """Test Pantry can save metadata correctly."""
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_pantry.pantry_path,
         file_system=test_pantry.file_system
     )
@@ -501,7 +501,7 @@ def test_pantry_save_metadata(test_pantry):
 def test_pantry_get_metadata_existing_data(test_pantry):
     """Test the Pantry and Index can load in existing metadata."""
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_pantry.pantry_path,
         file_system=test_pantry.file_system
     )
@@ -510,7 +510,7 @@ def test_pantry_get_metadata_existing_data(test_pantry):
     pantry.save_metadata()
 
     pantry2 = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_pantry.pantry_path,
         file_system=test_pantry.file_system
     )
@@ -528,7 +528,7 @@ def test_upload_basket_works_on_empty_basket(test_pantry):
     # Put basket in the temporary bucket
     tmp_basket = test_pantry.set_up_basket("basket_one")
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_pantry.pantry_path,
         file_system=test_pantry.file_system
     )

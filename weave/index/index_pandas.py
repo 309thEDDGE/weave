@@ -11,7 +11,7 @@ from ..upload import UploadBasket
 from .create_index import create_index_from_fs
 from .index_abc import IndexABC
 
-class PandasIndex(IndexABC):
+class IndexPandas(IndexABC):
     '''Handles Pandas based functionality of the Index'''
 
     def __init__(self, file_system, pantry_path, **kwargs):
@@ -55,7 +55,7 @@ class PandasIndex(IndexABC):
 
     def __str__(self):
         """Returns the str instantiation type of this Index (ie 'SQLIndex')."""
-        return "PandasIndex"
+        return "IndexPandas"
 
     @property
     def file_system(self):

@@ -7,7 +7,7 @@ import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
 from weave.pantry import Pantry
-from weave.index.index_pandas import PandasIndex
+from weave.index.index_pandas import IndexPandas
 from weave.tests.pytest_resources import BucketForTest
 
 
@@ -48,7 +48,7 @@ def test_pantry(request, tmpdir):
 
 
 def test_sync_index_gets_latest_index(test_pantry):
-    """Tests PandasIndex.sync_index by generating two distinct objects and
+    """Tests IndexPandas.sync_index by generating two distinct objects and
     making sure that they are both syncing to the index pandas DF (represented
     by JSON) on the file_system"""
     # Put basket in the temporary bucket
@@ -57,7 +57,7 @@ def test_sync_index_gets_latest_index(test_pantry):
 
     # Create index
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_pantry.pantry_path,
         file_system=test_pantry.file_system,
         sync=True,
@@ -70,7 +70,7 @@ def test_sync_index_gets_latest_index(test_pantry):
 
     # Regenerate index outside of current index object
     pantry2 = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_pantry.pantry_path,
         file_system=test_pantry.file_system,
         sync=True,
@@ -95,7 +95,7 @@ def test_sync_index_calls_generate_index_if_no_index(test_pantry):
 
     # Create index
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_pantry.pantry_path,
         file_system=test_pantry.file_system,
         sync=True,
@@ -110,7 +110,7 @@ def test_get_index_time_from_path(test_pantry):
     # Obviously we need to test a protected access var here.
     # pylint: disable-next=protected-access
     time = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_pantry.pantry_path,
         file_system=test_pantry.file_system,
         sync=True,
@@ -119,7 +119,7 @@ def test_get_index_time_from_path(test_pantry):
 
 
 def test_clean_up_indices_n_not_int(test_pantry):
-    """Tests that PandasIndex.clean_up_indices errors on a str (should be int)
+    """Tests that IndexPandas.clean_up_indices errors on a str (should be int)
     """
     test_str = "the test"
     with pytest.raises(
@@ -127,7 +127,7 @@ def test_clean_up_indices_n_not_int(test_pantry):
         match=re.escape("invalid literal for int() with base 10: 'the test'"),
     ):
         pantry = Pantry(
-            PandasIndex,
+            IndexPandas,
             pantry_path=test_pantry.pantry_path,
             file_system=test_pantry.file_system,
             sync=True,
@@ -136,7 +136,7 @@ def test_clean_up_indices_n_not_int(test_pantry):
 
 
 def test_clean_up_indices_leaves_n_indices(test_pantry):
-    """Tests that PandasIndex.clean_up_indices leaves behind the correct number
+    """Tests that IndexPandas.clean_up_indices leaves behind the correct number
     of indices."""
     # Put basket in the temporary bucket
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
@@ -144,7 +144,7 @@ def test_clean_up_indices_leaves_n_indices(test_pantry):
 
     # Create index
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_pantry.pantry_path,
         file_system=test_pantry.file_system,
         sync=True,
@@ -163,7 +163,7 @@ def test_clean_up_indices_leaves_n_indices(test_pantry):
 
 
 def test_clean_up_indices_with_n_greater_than_num_of_indices(test_pantry):
-    """Tests that PandasIndex.clean_up_indices behaves well when given a number
+    """Tests that IndexPandas.clean_up_indices behaves well when given a number
     greater than the total number of indices."""
     # Put basket in the temporary bucket
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
@@ -171,7 +171,7 @@ def test_clean_up_indices_with_n_greater_than_num_of_indices(test_pantry):
 
     # Create index
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_pantry.pantry_path,
         file_system=test_pantry.file_system,
         sync=True,
@@ -191,15 +191,15 @@ def test_clean_up_indices_with_n_greater_than_num_of_indices(test_pantry):
 
 
 def test_is_index_current(test_pantry):
-    """Creates two PandasIndex objects and pits them against eachother in order
-    to ensure that PandasIndex.is_index_current is working as expected."""
+    """Creates two IndexPandas objects and pits them against eachother in order
+    to ensure that IndexPandas.is_index_current is working as expected."""
     # Put basket in the temporary bucket
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
     # Create index
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_pantry.pantry_path,
         file_system=test_pantry.file_system,
         sync=True,
@@ -212,7 +212,7 @@ def test_is_index_current(test_pantry):
 
     # Regenerate index outside of current index object
     pantry2 = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_pantry.pantry_path,
         file_system=test_pantry.file_system,
         sync=True,

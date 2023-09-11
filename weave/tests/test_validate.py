@@ -9,7 +9,7 @@ from fsspec.implementations.local import LocalFileSystem
 
 from weave import validate
 from weave.pantry import Pantry
-from weave.index.index_pandas import PandasIndex
+from weave.index.index_pandas import IndexPandas
 from weave.tests.pytest_resources import BucketForTest
 
 # This module is long and has many tests. Pylint is complaining that it is too
@@ -196,7 +196,7 @@ def test_validate_pantry_does_not_exist(test_validate):
         f"Pantry does not exist at: {bucket_path}"
     ):
         pantry = Pantry(
-            PandasIndex,
+            IndexPandas,
             pantry_path=bucket_path,
             file_system=test_validate.file_system
         )
@@ -217,7 +217,7 @@ def test_validate_no_supplement_file(test_validate):
     test_validate.file_system.rm(supplement_path)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -247,7 +247,7 @@ def test_validate_no_metadata_file(test_validate):
     test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -289,7 +289,7 @@ def test_validate_invalid_manifest_schema(test_validate):
     test_validate.file_system.rm(supplement_path)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -369,7 +369,7 @@ def test_validate_manifest_schema_missing_field(test_validate):
     test_validate.file_system.rm(supplement_path)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -451,7 +451,7 @@ def test_validate_manifest_schema_additional_field(test_validate):
     test_validate.file_system.rm(supplement_path)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -492,7 +492,7 @@ def test_validate_invalid_manifest_json(test_validate):
     test_validate.file_system.rm(supplement_path)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -550,7 +550,7 @@ def test_validate_invalid_supplement_schema(test_validate):
     test_validate.file_system.rm(supplement_path)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -602,7 +602,7 @@ def test_validate_supplement_schema_missing_field(test_validate):
     test_validate.file_system.rm(supplement_path)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -665,7 +665,7 @@ def test_validate_supplement_schema_missing_array_field(test_validate):
     test_validate.file_system.rm(supplement_path)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -729,7 +729,7 @@ def test_validate_supplement_schema_missing_array_field_2(test_validate):
     test_validate.file_system.rm(supplement_path)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -797,7 +797,7 @@ def test_validate_supplement_schema_added_array_field(test_validate):
     test_validate.file_system.rm(supplement_path)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -865,7 +865,7 @@ def test_validate_supplement_schema_added_array_field_2(test_validate):
     test_validate.file_system.rm(supplement_path)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -931,7 +931,7 @@ def test_validate_supplement_schema_additional_field(test_validate):
     test_validate.file_system.rm(supplement_path)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -992,7 +992,7 @@ def test_validate_supplement_schema_empty_upload_items(test_validate):
     test_validate.file_system.rm(supplement_path)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -1045,7 +1045,7 @@ def test_validate_supplement_schema_empty_integrity_data(test_validate):
     test_validate.file_system.rm(supplement_path)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -1087,7 +1087,7 @@ def test_validate_invalid_supplement_json(test_validate):
     test_validate.file_system.rm(supplement_path)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -1156,7 +1156,7 @@ def test_validate_invalid_metadata_json(test_validate):
     test_validate.file_system.rm(supplement_path)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -1194,7 +1194,7 @@ def test_validate_nested_basket(test_validate):
     basket_path = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -1250,7 +1250,7 @@ def test_validate_deeply_nested(test_validate):
     basket_path = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -1286,7 +1286,7 @@ def test_validate_no_files_or_dirs(test_validate):
     test_validate.file_system.rm(supplement_path)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -1320,7 +1320,7 @@ def test_validate_no_baskets(test_validate):
     test_validate.file_system.rm(supplement_path)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -1355,7 +1355,7 @@ def test_validate_twenty_baskets_invalid(test_validate):
         test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir, uid=uuid)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -1399,7 +1399,7 @@ def test_validate_twenty_baskets_valid(test_validate):
         test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir, uid=uuid)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -1427,7 +1427,7 @@ def test_validate_call_check_level(test_validate):
     )
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -1459,7 +1459,7 @@ def test_validate_call_validate_basket(test_validate):
     )
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -1534,7 +1534,7 @@ def test_validate_bad_manifest_and_supplement_schema(test_validate):
     test_validate.file_system.rm(supplement_path)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -1595,7 +1595,7 @@ def test_validate_bad_metadata_and_supplement_schema_with_nested_basket(
     test_validate.file_system.rm(supplement_path)
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -1654,7 +1654,7 @@ def test_validate_check_parent_uuids_missing_basket(test_validate):
                                 parent_ids=["003", "BAD!", "BAD2", "BAD323"])
 
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -1695,7 +1695,7 @@ def test_validate_file_not_in_supplement(test_validate):
 
     # Call validate_bucket, see that it returns a list of basket errors
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
@@ -1764,7 +1764,7 @@ def test_validate_file_not_in_file_system(test_validate):
 
     # Call validate_pantry, see that it returns warnings
     pantry = Pantry(
-        PandasIndex,
+        IndexPandas,
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
