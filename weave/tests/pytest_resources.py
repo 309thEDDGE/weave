@@ -1,6 +1,5 @@
-"""
-Resources for use in pytest.
-"""
+"""Resources for use in pytest."""
+
 import json
 import os
 
@@ -15,7 +14,7 @@ def file_path_in_list(search_path, search_list):
     search_path: str
         The file path being searched for.
     search_list: [str]
-        A list of strings (presumably file paths)
+        A list of strings (presumably file paths).
 
     Returns
     ----------
@@ -29,6 +28,7 @@ def file_path_in_list(search_path, search_list):
     and the function is searching for 'data/file.txt',
     the function will return True as the file exists.
     """
+
     search_path = str(search_path)
     for file_path in search_list:
         if str(file_path).endswith(search_path):
@@ -38,19 +38,20 @@ def file_path_in_list(search_path, search_list):
 
 
 class BucketForTest:
-    """Handles resources for much of weave testing."""
+    """Handles resources for much of Weave testing."""
 
     def __init__(self, tmpdir, file_system):
         self.tmpdir = tmpdir
         self.pantry_name = (
-            "pytest-temp-bucket" f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
+            "pytest-temp-bucket" f"{os.environ.get("WEAVE_PYTEST_SUFFIX", "")}"
         )
         self.basket_list = []
         self.file_system = file_system
         self._set_up_bucket()
 
     def _set_up_bucket(self):
-        """Create a temporary Bucket for testing purposes."""
+        """Create a temporary bucket for testing purposes."""
+
         try:
             self.file_system.mkdir(self.pantry_name)
         except FileExistsError:
@@ -61,6 +62,7 @@ class BucketForTest:
         self, tmp_dir_name, file_name="test.txt", file_content="This is a test"
     ):
         """Create a temporary (local) basket, with a single text file."""
+
         tmp_basket_dir = self.tmpdir.mkdir(tmp_dir_name)
         tmp_basket_txt_file = tmp_basket_dir.join(file_name)
 
@@ -74,6 +76,7 @@ class BucketForTest:
 
     def add_lower_dir_to_temp_basket(self, tmp_basket_dir):
         """Add a nested directory inside the temporary basket."""
+
         nested_dir = tmp_basket_dir.mkdir("nested_dir")
         nested_dir.join("another_test.txt").write("more test text")
         return tmp_basket_dir
@@ -82,6 +85,7 @@ class BucketForTest:
         self, tmp_basket_dir, uid="0000", basket_type="test_basket", **kwargs
     ):
         """Upload a temporary (local) basket to the S3 test bucket."""
+
         up_dir = os.path.join(self.pantry_name, basket_type, uid)
 
         upload_items = [
@@ -100,4 +104,5 @@ class BucketForTest:
 
     def cleanup_bucket(self):
         """Delete the temporary test bucket, including any uploaded baskets."""
+
         self.file_system.rm(self.pantry_name, recursive=True)
