@@ -90,6 +90,9 @@ class BucketForTest:
             {"path": str(tmp_basket_dir.realpath()), "stub": False}
         ]
 
+        # Ignore pylint duplicate code. Code here is required to ensure proper
+        # upload, and is similar to the pantry upload call--obviously.
+        # pylint: disable-next=duplicate-code
         up_dir = UploadBasket(
             upload_items=upload_items,
             basket_type=basket_type,
