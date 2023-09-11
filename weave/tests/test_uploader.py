@@ -72,7 +72,10 @@ local_fs = LocalFileSystem()
 
 
 # Test with two different fsspec file systems (above).
-@pytest.fixture(params=[s3fs, local_fs])
+@pytest.fixture(
+    params=[s3fs, local_fs],
+    ids=["S3FileSystem", "LocalFileSystem"],
+)
 def set_up_tu(request, tmpdir):
     """Sets up the test uploader"""
     file_system = request.param

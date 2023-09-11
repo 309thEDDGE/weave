@@ -48,15 +48,19 @@ file_systems = [s3fs, local_fs]
 
 # Create Index CONSTRUCTORS of Indexes to be tested, and add to indexes list.
 indexes = [IndexSQLite, IndexPandas]
+indexes_ids = ["SQLite", "Pandas"]
 
 # Create combinations of the above parameters to pass into the fixture..
 params = []
+params_ids = []
 for iter_file_system in file_systems:
-    for iter_index in indexes:
+    for iter_index, iter_index_id in zip(indexes, indexes_ids):
         params.append((iter_file_system, iter_index))
+        params_ids.append(f"{iter_file_system.__class__.__name__}-"
+                          f"-{iter_index_id}")
 
 
-@pytest.fixture(params=params)
+@pytest.fixture(params=params, ids=params_ids)
 def test_pantry(request, tmpdir):
     """Sets up test bucket for the tests"""
     file_system = request.param[0]
@@ -79,7 +83,7 @@ def test_pantry(request, tmpdir):
     test_index.cleanup_index()
 
 
-@pytest.fixture(params=indexes)
+@pytest.fixture(params=indexes, ids=indexes_ids)
 def test_index_only(request):
     """Sets up only the index for a test (USES DEFAULT FILE_SYSTEM ARGS).
 
