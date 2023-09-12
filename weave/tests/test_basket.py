@@ -579,6 +579,7 @@ def test_basket_check_member_variables(test_pantry):
     assert manifest_dict["parent_uuids"] == my_basket.parent_uuids
     assert manifest_dict["basket_type"] == my_basket.basket_type
     assert manifest_dict["label"] == my_basket.label
+    assert manifest_dict["weave_version"] == weave_version
     assert my_basket.address.endswith(basket_path)
     assert test_pantry.file_system.__class__.__name__ == my_basket.storage_type
 
@@ -609,11 +610,13 @@ def test_basket_to_pandas_df(test_pantry):
             manifest_dict["parent_uuids"],
             manifest_dict["basket_type"],
             manifest_dict["label"],
+            manifest_dict["weave_version"],
             basket_path,
             test_pantry.file_system.__class__.__name__]
 
     columns = ["uuid", "upload_time", "parent_uuids",
-               "basket_type", "label", "address", "storage_type"]
+               "basket_type", "label", "weave_version",
+               "address", "storage_type"]
 
     answer_df = pd.DataFrame(data=[data], columns=columns)
 
@@ -626,4 +629,3 @@ def test_basket_to_pandas_df(test_pantry):
     basket_df.drop(columns="address", inplace=True)
     answer_df.drop(columns="address", inplace=True)
     assert basket_df.equals(answer_df)
->>>>>>> main
