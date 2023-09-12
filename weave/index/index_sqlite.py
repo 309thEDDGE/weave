@@ -3,6 +3,7 @@ import json
 import os
 import sqlite3
 import warnings
+from datetime import datetime
 
 import ast
 import dateutil
@@ -40,7 +41,7 @@ class IndexSQLite(IndexABC):
         """Create the required DB tables if they do not already exist."""
         self.cur.execute("""
             CREATE TABLE IF NOT EXISTS pantry_index(
-                uuid TEXT, upload_time TIMESTAMP, parent_uuids TEXT,
+                uuid TEXT, upload_time INT, parent_uuids TEXT,
                 basket_type TEXT, label TEXT, address TEXT, storage_type TEXT,
                 PRIMARY KEY(uuid), UNIQUE(uuid));
         """)
@@ -105,8 +106,10 @@ class IndexSQLite(IndexABC):
                 basket_dict["address"] = relative_path
                 basket_dict["storage_type"] = storage_type
 
-                basket_dict["upload_time"] = dateutil.parser.parse(
-                    basket_dict["upload_time"]
+                basket_dict["upload_time"] = int(
+                    datetime.timestamp(
+                        dateutil.parser.parse(basket_dict["upload_time"])
+                    )
                 )
 
                 parent_uuids = basket_dict["parent_uuids"]
@@ -155,7 +158,12 @@ class IndexSQLite(IndexABC):
             .fetchall(),
             columns=columns
         )
-        ind_df['parent_uuids'] = ind_df['parent_uuids'].apply(ast.literal_eval)
+        ind_df["parent_uuids"] = ind_df["parent_uuids"].apply(ast.literal_eval)
+        ind_df["upload_time"] = pd.to_datetime(
+            ind_df["upload_time"],
+            unit="s",
+            origin="unix",
+        )
         return ind_df
 
     def track_basket(self, entry_df, **kwargs):
@@ -167,7 +175,9 @@ class IndexSQLite(IndexABC):
             Uploaded baskets' manifest data to append to the index.
         """
         entry_df["parent_uuids"] = entry_df["parent_uuids"].astype(str)
-        entry_df["upload_time"] = entry_df["upload_time"].astype(str)
+        entry_df["upload_time"] = (
+            entry_df["upload_time"].astype(int) // 1e9
+        ).astype(int)
         entry_df.to_sql("pantry_index", self.con,
                         if_exists="append", method="multi", index=False)
 
@@ -242,7 +252,12 @@ class IndexSQLite(IndexABC):
             results,
             columns=columns
         )
-        ind_df['parent_uuids'] = ind_df['parent_uuids'].apply(ast.literal_eval)
+        ind_df["parent_uuids"] = ind_df["parent_uuids"].apply(ast.literal_eval)
+        ind_df["upload_time"] = pd.to_datetime(
+            ind_df["upload_time"],
+            unit="s",
+            origin="unix",
+        )
         return ind_df
 
     def get_parents(self, basket_address, **kwargs):
@@ -308,13 +323,18 @@ class IndexSQLite(IndexABC):
 
         if parent_df.empty:
             return parent_df
-        parent_df['parent_uuids'] = parent_df['parent_uuids'].apply(
+        parent_df["parent_uuids"] = parent_df["parent_uuids"].apply(
             ast.literal_eval
+        )
+        parent_df["upload_time"] = pd.to_datetime(
+            parent_df["upload_time"],
+            unit="s",
+            origin="unix",
         )
 
         for _, row in parent_df.iterrows():
             for prev in row['path'].split('/'):
-                if prev in row['parent_uuids']:
+                if prev in row["parent_uuids"]:
                     raise ValueError(
                         f"Parent-Child loop found at uuid: {basket_uuid}"
                     )
@@ -380,13 +400,18 @@ class IndexSQLite(IndexABC):
             columns=columns,
         )
         child_df = child_df.drop_duplicates()
-        child_df['parent_uuids'] = child_df['parent_uuids'].apply(
+        child_df["parent_uuids"] = child_df["parent_uuids"].apply(
             ast.literal_eval
+        )
+        child_df["upload_time"] = pd.to_datetime(
+            child_df["upload_time"],
+            unit="s",
+            origin="unix",
         )
 
         parents = {}
         for _, row in child_df.iterrows():
-            parents[row['uuid']] = row['parent_uuids']
+            parents[row['uuid']] = row["parent_uuids"]
             for prev in row['path'].split('/'):
                 if row['uuid'] in parents[prev]:
                     raise ValueError(
@@ -422,6 +447,12 @@ class IndexSQLite(IndexABC):
             ).fetchall(),
             columns=columns,
         )
+        ind_df["parent_uuids"] = ind_df["parent_uuids"].apply(ast.literal_eval)
+        ind_df["upload_time"] = pd.to_datetime(
+            ind_df["upload_time"],
+            unit="s",
+            origin="unix",
+        )
         return ind_df
 
     def get_baskets_of_label(self, basket_label, max_rows=1000, **kwargs):
@@ -448,6 +479,12 @@ class IndexSQLite(IndexABC):
                 WHERE label = ? LIMIT ?""", (basket_label, max_rows)
             ).fetchall(),
             columns=columns,
+        )
+        ind_df["parent_uuids"] = ind_df["parent_uuids"].apply(ast.literal_eval)
+        ind_df["upload_time"] = pd.to_datetime(
+            ind_df["upload_time"],
+            unit="s",
+            origin="unix",
         )
         return ind_df
 
@@ -480,42 +517,36 @@ class IndexSQLite(IndexABC):
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
         )
 
-        print(f"sqlite3.version: {sqlite3.version}")
-        print(f"sqlite3.sqlite_version: {sqlite3.sqlite_version}")
-        print("\n")
-        print(f"Start: {start_time}")
-        print(f"End: {end_time}")
-        print("Now, Now UTC")
-        print(self.cur.execute("SELECT datetime('now')").fetchone())
-        print(self.cur.execute("SELECT datetime('now', 'utc')").fetchone())
-        print("Index:")
-        print(self.cur.execute("SELECT * FROM pantry_index").fetchall())
-        print("datetime(upload_time):")
-        print(self.cur.execute("SELECT datetime(upload_time) FROM pantry_index").fetchall())
-        print("datetime(start_time):")
-        print(self.cur.execute("SELECT datetime(?)", (start_time,)).fetchone())
-        print("\n\n")
-
         if start_time and end_time:
+            start_time = int(datetime.timestamp(start_time))
+            end_time = int(datetime.timestamp(end_time))
             results = self.cur.execute(
                 """SELECT * FROM pantry_index
-                WHERE datetime(upload_time) BETWEEN datetime(?) AND datetime(?)
+                WHERE upload_time >= ? AND upload_time <= ?
                 LIMIT ?
                 """, (start_time, end_time, max_rows)).fetchall()
         elif start_time:
+            start_time = int(datetime.timestamp(start_time))
             results = self.cur.execute(
                 """SELECT * FROM pantry_index
-                WHERE datetime(upload_time) >= datetime(?) LIMIT ?
+                WHERE upload_time >= ? LIMIT ?
                 """, (start_time, max_rows)).fetchall()
         elif end_time:
+            end_time = int(datetime.timestamp(end_time))
             results = self.cur.execute(
                 """SELECT * FROM pantry_index
-                WHERE datetime(upload_time) <= datetime(?) LIMIT ?
+                WHERE upload_time <= ? LIMIT ?
                 """, (end_time, max_rows)).fetchall()
 
         ind_df = pd.DataFrame(
             results,
             columns=columns
+        )
+        ind_df["parent_uuids"] = ind_df["parent_uuids"].apply(ast.literal_eval)
+        ind_df["upload_time"] = pd.to_datetime(
+            ind_df["upload_time"],
+            unit="s",
+            origin="unix",
         )
 
         return ind_df

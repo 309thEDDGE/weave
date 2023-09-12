@@ -204,7 +204,8 @@ def test_index_abc_to_pandas_df_works(test_pantry):
     # Check values of basket are accurate
     assert (
         ind_df.iloc[0]["uuid"] == uid and
-        # ind_df.iloc[0]["parent_uuids"] == [] and
+        isinstance(ind_df.iloc[0]["upload_time"], datetime) and
+        ind_df.iloc[0]["parent_uuids"] == [] and
         ind_df.iloc[0]["basket_type"] == basket_type and
         ind_df.iloc[0]["label"] == label and
         ind_df.iloc[0]["address"].endswith(up_dir) and
@@ -241,6 +242,7 @@ def test_index_abc_to_pandas_df_works(test_pantry):
     # Check values of basket are accurate
     assert (
         ind_df.iloc[1]["uuid"] == uid and
+        isinstance(ind_df.iloc[1]["upload_time"], datetime) and
         ind_df.iloc[1]["parent_uuids"] == parent_ids and
         ind_df.iloc[1]["basket_type"] == basket_type and
         ind_df.iloc[1]["label"] == label and
@@ -281,6 +283,7 @@ def test_index_abc_track_basket_adds_single_basket(test_pantry):
     # Check values of basket are accurate
     assert (
         ind_df.iloc[0]["uuid"] == uid and
+        isinstance(ind_df.iloc[0]["upload_time"], datetime) and
         ind_df.iloc[0]["parent_uuids"] == [] and
         ind_df.iloc[0]["basket_type"] == basket_type and
         ind_df.iloc[0]["label"] == label and
@@ -309,9 +312,7 @@ def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
         basket_type=basket_type,
         label=test_label
     )
-
     first_slice_df = create_index_from_fs(up_dir1, test_pantry.file_system)
-    first_slice_df["parent_uuids"] = first_slice_df["parent_uuids"]
 
     # Upload another basket
     parent_ids2 = ["0001"]
@@ -323,11 +324,7 @@ def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
         parent_ids=parent_ids2,
         label=test_label
     )
-
     second_slice_df = create_index_from_fs(up_dir2, test_pantry.file_system)
-    second_slice_df["parent_uuids"] = (
-        second_slice_df["parent_uuids"]
-    )
 
     dual_slice_df = pd.concat([first_slice_df, second_slice_df])
     assert len(dual_slice_df) == 2, "Invalid dual_indice_index values."
@@ -343,6 +340,7 @@ def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
     # Check values of basket are accurate
     assert (
         ind_df.iloc[0]["uuid"] == uids[0] and
+        isinstance(ind_df.iloc[0]["upload_time"], datetime) and
         ind_df.iloc[0]["parent_uuids"] == [] and
         ind_df.iloc[0]["basket_type"] == basket_type and
         ind_df.iloc[0]["label"] == test_label and
@@ -353,6 +351,7 @@ def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
 
     assert (
         ind_df.iloc[1]["uuid"] == uids[1] and
+        isinstance(ind_df.iloc[1]["upload_time"], datetime) and
         ind_df.iloc[1]["parent_uuids"] == ["0001"] and
         ind_df.iloc[1]["basket_type"] == basket_type and
         ind_df.iloc[1]["label"] == test_label and
@@ -504,6 +503,7 @@ def test_index_abc_get_rows_single_address_works(test_pantry):
     assert isinstance(first_row_df, pd.DataFrame) and len(first_row_df) == 1
     assert (
         first_row_df.iloc[0]["uuid"] == uids[0] and
+        isinstance(first_row_df.iloc[0]["upload_time"], datetime) and
         first_row_df.iloc[0]["parent_uuids"] == parent_ids[0] and
         first_row_df.iloc[0]["basket_type"] == basket_type and
         first_row_df.iloc[0]["label"] == labels[0] and
@@ -516,6 +516,7 @@ def test_index_abc_get_rows_single_address_works(test_pantry):
     assert isinstance(second_row_df, pd.DataFrame) and len(second_row_df) == 1
     assert (
         second_row_df.iloc[0]["uuid"] == uids[1] and
+        isinstance(second_row_df.iloc[0]["upload_time"], datetime) and
         second_row_df.iloc[0]["parent_uuids"] == parent_ids[1] and
         second_row_df.iloc[0]["basket_type"] == basket_type and
         second_row_df.iloc[0]["label"] == labels[1] and
@@ -569,6 +570,7 @@ def test_index_abc_get_rows_multiple_address_works(test_pantry):
     assert isinstance(rows_df, pd.DataFrame) and len(rows_df) == 2
     assert (
         rows_df.iloc[0]["uuid"] == uid1 and
+        isinstance(rows_df.iloc[0]["upload_time"], datetime) and
         rows_df.iloc[0]["parent_uuids"] == parent_ids1 and
         rows_df.iloc[0]["basket_type"] == basket_type and
         rows_df.iloc[0]["label"] == label1 and
@@ -578,6 +580,7 @@ def test_index_abc_get_rows_multiple_address_works(test_pantry):
     ), "Retrieved manifest values do not match first record."
     assert (
         rows_df.iloc[1]["uuid"] == uid2 and
+        isinstance(rows_df.iloc[1]["upload_time"], datetime) and
         rows_df.iloc[1]["parent_uuids"] == parent_ids2 and
         rows_df.iloc[1]["basket_type"] == basket_type and
         rows_df.iloc[1]["label"] == label2 and
@@ -1122,7 +1125,6 @@ def test_index_abc_get_children_child_is_parent_loop(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-
     # create a basket structure with child, parent, and grandparent, but
     # the grandparent's parent, is the child, making an loop for the
     # parent-child relationship
@@ -1161,8 +1163,6 @@ def test_index_abc_get_children_15_deep(test_pantry):
     """
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
-
-
     parent_id = "x"
 
     for i in range(15):
@@ -1217,7 +1217,6 @@ def test_index_abc_get_children_complex_fail(test_pantry):
     Make a complicated tree with a loop to test new algorithm"""
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
-
 
     tmp_dir = test_pantry.set_up_basket("parent_8")
     test_pantry.upload_basket(
@@ -1436,7 +1435,6 @@ def test_index_abc_get_baskets_by_upload_time_start_works(test_pantry):
 
     # Save the current time, and set the 'end' time to 5 seconds ago.
     start = datetime.now(timezone.utc) - timedelta(seconds=5)
-    print("\nTest Times")
 
     # Create a placeholder record that will have the time and uuid replaced.
     manifest_values = (
@@ -1453,27 +1451,21 @@ def test_index_abc_get_baskets_by_upload_time_start_works(test_pantry):
         manifest_dict[key] = value
 
     # Create and track a record, with the upload time 1 second before start.
-    print(f"\nStart - 1: {start - timedelta(seconds=1)}")
     manifest_dict["uuid"] = ["0001"]
     manifest_dict["upload_time"] = [start - timedelta(seconds=1)]
     basket_df = pd.DataFrame.from_dict(manifest_dict)
-    print(basket_df)
     ind.track_basket(basket_df)
 
     # Create and track a record, with the upload time at the start.
-    print(f"\nStart: {start}")
     manifest_dict["uuid"] = ["0002"]
     manifest_dict["upload_time"] = [start]
     basket_df = pd.DataFrame.from_dict(manifest_dict)
-    print(basket_df)
     ind.track_basket(basket_df)
 
     # Create and track a record, with the upload time 1 second after the start.
-    print(f"\nStart + 1: {start + timedelta(seconds=1)}")
     manifest_dict["uuid"] = ["0003"]
     manifest_dict["upload_time"] = [start + timedelta(seconds=1)]
     basket_df = pd.DataFrame.from_dict(manifest_dict)
-    print(basket_df)
     ind.track_basket(basket_df)
 
     baskets = ind.get_baskets_by_upload_time(start_time=start)
