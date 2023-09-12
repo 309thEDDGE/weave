@@ -65,6 +65,7 @@ def test_basket_address_does_not_exist(test_pantry):
     """Test that an error is raised when trying to instantiate a basket with an
     invalid basket address.
     """
+
     basket_path = Path("i n v a l i d p a t h")
     with pytest.raises(
         ValueError, match=f"Basket does not exist: {basket_path}"
@@ -80,6 +81,7 @@ def test_basket_no_manifest_file(test_pantry):
     """Test that an error is raised when attempting to instantiate a basket
     with a missing basket manifest file.
     """
+
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)

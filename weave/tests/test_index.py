@@ -1,4 +1,5 @@
 """Pytest tests for the index directory."""
+
 import json
 import os
 import re
@@ -49,7 +50,8 @@ local_fs = LocalFileSystem()
 # Test with two different fsspec file systems (above).
 @pytest.fixture(params=[s3fs, local_fs])
 def test_pantry(request, tmpdir):
-    """Sets up test bucket for the tests"""
+    """Sets up test bucket for the tests."""
+
     file_system = request.param
     test_bucket = BucketForTest(tmpdir, file_system)
     yield test_bucket
@@ -60,11 +62,11 @@ def test_pantry(request, tmpdir):
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
 
-
 def test_root_dir_does_not_exist(test_pantry):
     """Try to create an index in a bucket that doesn't exist,
-    check that it throws an error
+    check that it throws an error.
     """
+
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     with pytest.raises(FileNotFoundError, match="'root_dir' does not exist"):
         create_index_from_fs(
@@ -74,14 +76,17 @@ def test_root_dir_does_not_exist(test_pantry):
 
 
 def test_root_dir_is_string(test_pantry):
-    """Tests create_index_from_fs to make sure it errors when root dir is
-    not a string"""
+    """Tests create_index_from_fs to make sure it throws an error when
+    root dir is not a string.
+    """
+
     with pytest.raises(TypeError, match="'root_dir' must be a string"):
         create_index_from_fs(765, test_pantry.file_system)
 
 
 def test_correct_index(test_pantry):
-    """Tests create_index_from_fs to make sure it returns as expected"""
+    """Tests create_index_from_fs to make sure it returns as expected."""
+
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     addr_one = test_pantry.upload_basket(
         tmp_basket_dir=tmp_basket_dir_one, uid="0001"
@@ -120,7 +125,7 @@ def test_correct_index(test_pantry):
     # Check the addresses are the same, ignoring any FS dependent prefixes.
     assert all(
         (
-            actual_index["address"].iloc[i].endswith(addr)
+            actual_index['address'].iloc[i].endswith(addr)
             for i, addr in enumerate(addresses)
         )
     )
@@ -129,9 +134,9 @@ def test_correct_index(test_pantry):
 # Test with two different fsspec file systems (top of file).
 @pytest.fixture(params=[s3fs, local_fs])
 def set_up_malformed_baskets(request, tmpdir):
+    """Upload a basket with a basket_details.json with incorrect keys.
     """
-    upload a basket with a basket_details.json with incorrect keys.
-    """
+
     file_system = request.param
     test_pantry = BucketForTest(tmpdir, file_system)
 
@@ -173,7 +178,9 @@ def set_up_malformed_baskets(request, tmpdir):
 
 def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
     """Check that the index is made correctly when a malformed basket
-    exists."""
+    exists.
+    """
+
     test_pantry, good_addresses, _ = set_up_malformed_baskets
 
     truth_index_dict = {
@@ -208,7 +215,7 @@ def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
     # Check the addresses are the same, ignoring any FS dependent prefixes.
     assert all(
         (
-            actual_index["address"].iloc[i].endswith(addr)
+            actual_index['address'].iloc[i].endswith(addr)
             for i, addr in enumerate(good_addresses)
         )
     )
@@ -216,6 +223,7 @@ def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
 
 def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
     """Check that a warning is thrown during index creation."""
+
     test_pantry, _, bad_addresses = set_up_malformed_baskets
 
     with warnings.catch_warnings(record=True) as warn:
@@ -225,7 +233,7 @@ def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
             "do not follow specified weave schema:"
         )
         # {bad_addresses} would be included in the message, but
-        # due to File System dependent prefixes
+        # due to File System dependent prefixes,
         # direct string comparison is not possible
 
         warn_msg = str(warn[0].message)
@@ -250,7 +258,9 @@ def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
 def test_sync_index_gets_latest_index(test_pantry):
     """Tests Index.sync_index by generating two distinct Index objects and
     making sure that they are both syncing to the index pandas DF (represented
-    by JSON) on the file_system"""
+    by JSON) on the file_system.
+    """
+
     # Put basket in the temporary bucket
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
@@ -280,13 +290,15 @@ def test_sync_index_gets_latest_index(test_pantry):
 
     # Assert all baskets in index are not index baskets
     for i in range(len(ind.to_pandas_df())):
-        basket_type = ind.to_pandas_df()["basket_type"][i]
+        basket_type = ind.to_pandas_df()['basket_type'][i]
         assert basket_type != "index"
 
 
 def test_sync_index_calls_generate_index_if_no_index(test_pantry):
     """Test to make sure that if there isn't a index available then
-    generate_index will still be called."""
+    generate_index will still be called.
+    """
+
     # Put basket in the temporary bucket
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
@@ -302,7 +314,9 @@ def test_sync_index_calls_generate_index_if_no_index(test_pantry):
 
 def test_get_index_time_from_path(test_pantry):
     """Tests Index._get_index_time_from_path to ensure it returns the correct
-    string."""
+    string.
+    """
+
     path = "C:/asdf/gsdjls/1234567890-index.json"
     # Testing a protected access var here.
     # pylint: disable-next=protected-access
@@ -314,7 +328,9 @@ def test_get_index_time_from_path(test_pantry):
 
 def test_to_pandas_df(test_pantry):
     """Test that Index.to_pandas_df returns a pandas df of the appropriate
-    length"""
+    length.
+    """
+
     # Put basket in the temporary bucket
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
@@ -330,7 +346,8 @@ def test_to_pandas_df(test_pantry):
 
 
 def test_clean_up_indices_n_not_int(test_pantry):
-    """Tests that Index.clean_up_indices errors on a str (should be int)"""
+    """Tests that Index.clean_up_indices errors on a str (should be int)."""
+
     test_str = "the test"
     with pytest.raises(
         ValueError,
@@ -342,7 +359,9 @@ def test_clean_up_indices_n_not_int(test_pantry):
 
 def test_clean_up_indices_leaves_n_indices(test_pantry):
     """Tests that Index.clean_up_indices leaves behind the correct number of
-    indices."""
+    indices.
+    """
+
     # Put basket in the temporary bucket
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
@@ -368,7 +387,9 @@ def test_clean_up_indices_leaves_n_indices(test_pantry):
 
 def test_clean_up_indices_with_n_greater_than_num_of_indices(test_pantry):
     """Tests that Index.clean_up_indices behaves well when given a number
-    greater than the total number of indices."""
+    greater than the total number of indices.
+    """
+
     # Put basket in the temporary bucket
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
@@ -395,7 +416,9 @@ def test_clean_up_indices_with_n_greater_than_num_of_indices(test_pantry):
 
 def test_is_index_current(test_pantry):
     """Creates two Index objects and pits them against eachother in order to
-    ensure that Index.is_index_current is working as expected."""
+    ensure that Index.is_index_current is working as expected.
+    """
+
     # Put basket in the temporary bucket
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
@@ -424,8 +447,10 @@ def test_is_index_current(test_pantry):
 
 def test_generate_index(test_pantry):
     """Tests the generation of the Index.pandas_df member variable after a
-    basket is uploaded without the Index object knowing."""
-    # Put basket in the temporary bucket
+    basket is uploaded without the Index object knowing.
+    """
+
+    # Put basket in the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
@@ -447,13 +472,15 @@ def test_generate_index(test_pantry):
 
     # Assert all baskets in index are not index baskets
     for i in range(len(ind.to_pandas_df())):
-        basket_type = ind.to_pandas_df()["basket_type"][i]
+        basket_type = ind.to_pandas_df()['basket_type'][i]
         assert basket_type != "index"
 
 
 def test_delete_basket_deletes_basket(test_pantry):
     """Tests Index.delete_basket to make sure it does, in fact, delete the
-    basket."""
+    basket.
+    """
+
     # Put basket in the temporary bucket
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
@@ -478,19 +505,21 @@ def test_delete_basket_deletes_basket(test_pantry):
         f"{test_pantry.pantry_name}/test_basket"
     )
     # index_baskets: Baskets in the index object
-    index_baskets = ind.index_df[ind.index_df["basket_type"] == "test_basket"]
+    index_baskets = ind.index_df[ind.index_df['basket_type'] == "test_basket"]
 
     # Verify basket removed from the index object
     assert len(index_baskets) == 1
     # Verify index object still tracks the file system
     assert len(fs_baskets) == len(index_baskets)
     # Verify the correct basket was deleted
-    assert "0002" not in ind.index_df["uuid"].to_list()
+    assert "0002" not in ind.index_df['uuid'].to_list()
 
 
 def test_delete_basket_fails_if_basket_is_parent(test_pantry):
     """Ensures that Index.delete_basket fails if the basket is found to be a
-    parent."""
+    parent.
+    """
+
     # Put basket in the temporary bucket
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
@@ -508,14 +537,14 @@ def test_delete_basket_fails_if_basket_is_parent(test_pantry):
         match=(
             "The provided value for basket_uuid 0001 is listed as a parent "
             + "UUID for another basket. Please delete that basket before "
-            + "deleting it's parent basket."
+            + "deleting its parent basket."
         ),
     ):
         ind.delete_basket(basket_uuid="0001")
 
 
 def test_get_parents_valid(test_pantry):
-    """Setup a valid basket structure, validate the returned index"""
+    """Setup a valid basket structure, validate the returned index."""
 
     # Setup random strucutre of parents and children
     tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
@@ -574,14 +603,14 @@ def test_get_parents_valid(test_pantry):
     ]
     parent_gens = [1, 1, 2, 2, 2, 3, 3, 3]
     index = ind.index_df
-    parent_answer = index.loc[index["uuid"].isin(parent_ids)]
+    parent_answer = index.loc[index['uuid'].isin(parent_ids)]
 
     # Pandas wants to make a copy before adding a column
     # used to remove warning in pytest
     parent_answer = parent_answer.copy()
     # Add the generation levels
     for i, j in zip(parent_ids, parent_gens):
-        parent_answer.loc[parent_answer["uuid"] == i, gen_lvl] = j
+        parent_answer.loc[parent_answer['uuid'] == i, gen_lvl] = j
 
     # Get the results
     results = ind.get_parents(child)
@@ -597,7 +626,7 @@ def test_get_parents_valid(test_pantry):
 
 
 def test_get_parents_invalid_basket_address(test_pantry):
-    """Try and find the parents of an invalid basket path/address"""
+    """Try and find the parents of an invalid basket path/address."""
 
     basket_path = "INVALIDpath"
 
@@ -617,7 +646,7 @@ def test_get_parents_invalid_basket_address(test_pantry):
 def test_get_parents_no_parents(test_pantry):
     """Try and get all parents of basket with no parent uuids.
 
-    Check that it returns an empty dataframe/index
+    Check that it returns an empty dataframe/index.
     """
 
     no_parents = test_pantry.set_up_basket("no_parents")
@@ -638,11 +667,11 @@ def test_get_parents_no_parents(test_pantry):
 
 
 def test_get_parents_parent_is_child(test_pantry):
-    """Set up basket structure with parent-child loop, check that it fails
+    """Set up basket structure with parent-child loop, check that it fails.
 
     Set up 3 baskets, child, parent, grandparent, but the grandparent's
     parent_ids has the child's uid. this causes an infinite loop,
-    check that it throw error
+    check that it throws an error.
     """
 
     # Create a basket structure with child, parent, and grandparent, but
@@ -679,7 +708,7 @@ def test_get_parents_parent_is_child(test_pantry):
 
 
 def test_get_children_valid(test_pantry):
-    """Setup a valid basket structure, validate the returned dataframe"""
+    """Setup a valid basket structure, validate the returned dataframe."""
 
     # Setup random strucutre of parents and children
     tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
@@ -754,7 +783,7 @@ def test_get_children_valid(test_pantry):
 
 
 def test_get_children_invalid_basket_address(test_pantry):
-    """Try and find he children of an invalid basket path/address"""
+    """Try and find the children of an invalid basket path/address."""
 
     basket_path = "INVALIDpath"
 
@@ -772,9 +801,9 @@ def test_get_children_invalid_basket_address(test_pantry):
 
 
 def test_get_children_no_children(test_pantry):
-    """Try and get all children of basket that has no children
+    """Try and get all children of basket that has no children.
 
-    Check that it returns an empty dataframe/index
+    Check that it returns an empty dataframe/index.
     """
 
     no_children = test_pantry.set_up_basket("no_children")
@@ -795,11 +824,11 @@ def test_get_children_no_children(test_pantry):
 
 
 def test_get_children_child_is_parent(test_pantry):
-    """Set up a basket structure with a parent-child loop, check that it fails
+    """Set up a basket structure with a parent-child loop, check that it fails.
 
     Set up 3 baskets, child, parent, grandparent, but the grandparents's
     parent_ids has the child's uid. this causes an infinite loop,
-    check that it throw error
+    check that it throws an error.
     """
 
     # Create a basket structure with child, parent, and grandparent, but
@@ -836,11 +865,10 @@ def test_get_children_child_is_parent(test_pantry):
 
 
 def test_get_parents_15_deep(test_pantry):
-    """Make a parent-child relationship of baskets 15 deep, get all the parents
-
-    of a child with a great*15 grandparent, and return all the grandparents
-    for the child
-    Manually make the data and compare with the result
+    """Make a parent-child relationship of baskets 15 deep, get all the
+    parents of a child with a great*15 grandparent, and return all the
+    grandparents for the child.
+    Manually make the data and compare with the result.
     """
 
     parent_id = "x"
@@ -861,7 +889,7 @@ def test_get_parents_15_deep(test_pantry):
     ind.generate_index()
     index = ind.index_df
 
-    child_path = index.loc[index["uuid"] == "x"]["address"].values[0]
+    child_path = index.loc[index['uuid'] == "x"]['address'].values[0]
 
     results = ind.get_parents(child_path)
 
@@ -883,7 +911,7 @@ def test_get_parents_15_deep(test_pantry):
         "13",
     ]
     par_gens = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
-    answer = index.loc[index["uuid"].isin(par_ids)]
+    answer = index.loc[index['uuid'].isin(par_ids)]
 
     gen_lvl = "generation_level"
 
@@ -891,7 +919,7 @@ def test_get_parents_15_deep(test_pantry):
     # used to remove warning in pytest
     answer = answer.copy()
     for i, j in zip(par_ids, par_gens):
-        answer.loc[answer["uuid"] == i, gen_lvl] = j
+        answer.loc[answer['uuid'] == i, gen_lvl] = j
 
     # Format and sort so .equals can be properly used
     answer = answer.sort_values(by="uuid")
@@ -906,7 +934,7 @@ def test_get_children_15_deep(test_pantry):
 
     For a parent with great*15 grandchildren, return all the grandchildren
     for the highest grandparent.
-    Manually make the data and compare with the result
+    Manually make the data and compare with the result.
     """
 
     parent_id = "x"
@@ -927,7 +955,7 @@ def test_get_children_15_deep(test_pantry):
     ind.generate_index()
     index = ind.index_df
 
-    parent_path = index.loc[index["uuid"] == "13"]["address"].values[0]
+    parent_path = index.loc[index['uuid'] == "13"]['address'].values[0]
 
     results = ind.get_children(parent_path)
 
@@ -949,7 +977,7 @@ def test_get_children_15_deep(test_pantry):
         "12",
     ]
     child_gens = [-14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1]
-    answer = index.loc[index["uuid"].isin(child_ids)]
+    answer = index.loc[index['uuid'].isin(child_ids)]
 
     gen_lvl = "generation_level"
 
@@ -957,7 +985,7 @@ def test_get_children_15_deep(test_pantry):
     # used to remove warning in pytest
     answer = answer.copy()
     for i, j in zip(child_ids, child_gens):
-        answer.loc[answer["uuid"] == i, gen_lvl] = j
+        answer.loc[answer['uuid'] == i, gen_lvl] = j
 
     # Format and sort so .equals can be properly used
     answer = answer.sort_values(by="uuid")
@@ -968,7 +996,7 @@ def test_get_children_15_deep(test_pantry):
 
 
 def test_get_parents_complex_fail(test_pantry):
-    """Make a complicated tree with a loop to test new algorithm"""
+    """Make a complicated tree with a loop to test new algorithm."""
 
     tmp_dir = test_pantry.set_up_basket("parent_8")
     test_pantry.upload_basket(
@@ -1027,7 +1055,7 @@ def test_get_parents_complex_fail(test_pantry):
 
 
 def test_get_children_complex_fail(test_pantry):
-    """Make a complicated tree with a loop to test new algorithm"""
+    """Make a complicated tree with a loop to test new algorithm."""
 
     tmp_dir = test_pantry.set_up_basket("parent_8")
     test_pantry.upload_basket(
@@ -1086,7 +1114,8 @@ def test_get_children_complex_fail(test_pantry):
 
 
 def test_get_parents_from_uuid(test_pantry):
-    """Setup a valid basket structure, validate the returned index from uuid"""
+    """Setup a valid basket structure, validate the returned index from uuid.
+    """
 
     # Setup random strucutre of parents and children
     tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
@@ -1145,14 +1174,14 @@ def test_get_parents_from_uuid(test_pantry):
     ]
     parent_gens = [1, 1, 2, 2, 2, 3, 3, 3]
     index = ind.index_df
-    parent_answer = index.loc[index["uuid"].isin(parent_ids)]
+    parent_answer = index.loc[index['uuid'].isin(parent_ids)]
 
     # Pandas wants to make a copy before adding a column
     # used to remove warning in pytest
     parent_answer = parent_answer.copy()
     # Add the generation levels
     for i, j in zip(parent_ids, parent_gens):
-        parent_answer.loc[parent_answer["uuid"] == i, gen_lvl] = j
+        parent_answer.loc[parent_answer['uuid'] == i, gen_lvl] = j
 
     # Get the results
     results = ind.get_parents("0000")
@@ -1168,7 +1197,8 @@ def test_get_parents_from_uuid(test_pantry):
 
 
 def test_get_children_from_uuid(test_pantry):
-    """Setup a valid basket structure, validate the returned index from uuid"""
+    """Setup a valid basket structure, validate the returned index from uuid.
+    """
 
     # Setup random strucutre of parents and children
     tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
@@ -1218,14 +1248,14 @@ def test_get_children_from_uuid(test_pantry):
     child_ids = ["2000", "1000", "0000"]
     child_gens = [-1, -2, -3]
     index = ind.index_df
-    child_answer = index.loc[index["uuid"].isin(child_ids)]
+    child_answer = index.loc[index['uuid'].isin(child_ids)]
 
     # Pandas wants to make a copy before adding a column
     # used to remove warning in pytest
     child_answer = child_answer.copy()
     # Add the generation levels
     for i, j in zip(child_ids, child_gens):
-        child_answer.loc[child_answer["uuid"] == i, gen_lvl] = j
+        child_answer.loc[child_answer['uuid'] == i, gen_lvl] = j
 
     # Get the results with uid of the great grandparent
     results = ind.get_children("3000")
@@ -1241,11 +1271,11 @@ def test_get_children_from_uuid(test_pantry):
 
 
 def test_upload_basket_updates_the_index(test_pantry):
-    """
-    In this test the index already exists with one basket inside of it.
+    """In this test the index already exists with one basket inside of it.
     This test will add another basket using Index.upload_basket, and then check
     to ensure that the index_df has been updated.
     """
+
     # Put basket in the temporary bucket
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
@@ -1277,11 +1307,11 @@ def test_upload_basket_updates_the_index(test_pantry):
 
 
 def test_upload_basket_works_on_empty_basket(test_pantry):
-    """
-    In this test the Index object will upload a basket to a pantry that does
+    """In this test the Index object will upload a basket to a pantry that does
     not have any baskets yet. This test will make sure that this functionality
     is present, and that the index_df has been updated.
     """
+
     # Put basket in the temporary bucket
     tmp_basket = test_pantry.set_up_basket("basket_one")
     ind = Index(
@@ -1300,12 +1330,12 @@ def test_upload_basket_works_on_empty_basket(test_pantry):
 def test_upload_basket_gracefully_fails(
     mocked_obj_1, mocked_obj_2, test_pantry
 ):
-    """
-    In this test an engineered failure to upload the basket occurs.
+    """In this test an engineered failure to upload the basket occurs.
     Index.upload_basket() should not add anything to the index_df.
     Additionally, the basket in question should be deleted from storage
     (The process fails after only after a partial upload).
     """
+
     tmp_basket = test_pantry.set_up_basket("basket_one")
 
     ind = Index(
@@ -1334,7 +1364,7 @@ def test_upload_basket_gracefully_fails(
 
 def test_index_get_basket_works_correctly(test_pantry):
     """Test that Index.get_basket() returns a Basket object with correct
-    values
+    values.
     """
 
     uid = "0001"

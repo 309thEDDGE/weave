@@ -43,7 +43,7 @@ class BucketForTest:
     def __init__(self, tmpdir, file_system):
         self.tmpdir = tmpdir
         self.pantry_name = (
-            "pytest-temp-bucket" f"{os.environ.get("WEAVE_PYTEST_SUFFIX", "")}"
+            "pytest-temp-bucket" f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
         )
         self.basket_list = []
         self.file_system = file_system

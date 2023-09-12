@@ -1,4 +1,5 @@
-"""Pytests for the metadata_db functionality"""
+"""Pytests for the metadata_db functionality."""
+
 import os
 
 import pandas as pd
@@ -12,7 +13,8 @@ from weave.tests.pytest_resources import BucketForTest
 
 class MongoForTest(BucketForTest):
     """Extend the BucketForTest class to support mongodb and custom data
-    loader"""
+    loader.
+    """
 
     def __init__(self, tmpdir, file_system):
         super().__init__(tmpdir, file_system)
@@ -21,7 +23,8 @@ class MongoForTest(BucketForTest):
         self.load_data()
 
     def load_data(self):
-        """Loads data into the file_system"""
+        """Loads data into the file_system."""
+
         # Create a temporary basket with a test file.
         tmp_basket_dir_name = "test_basket_tmp_dir"
         tmp_basket_dir = self.set_up_basket(tmp_basket_dir_name)
@@ -39,7 +42,8 @@ class MongoForTest(BucketForTest):
         self.upload_basket(tmp_basket_dir, uid="nometadata")
 
     def cleanup(self):
-        """Cleans up the bucket and mongodb"""
+        """Cleans up the bucket and mongodb."""
+
         self.cleanup_bucket()
         self.mongodb[self.test_collection].drop()
 
@@ -54,6 +58,7 @@ local_fs = LocalFileSystem()
 @pytest.fixture(params=[s3fs, local_fs])
 def set_up(request, tmpdir):
     """Sets up the fixture for testing usage."""
+
     file_system = request.param
     database = MongoForTest(tmpdir, file_system)
     yield database
@@ -64,11 +69,10 @@ def set_up(request, tmpdir):
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
 
-
 def test_load_mongo(set_up):
+    """Test that load_mongo successfully loads valid metadata to the set_up.
     """
-    Test that load_mongo successfully loads valid metadata to the set_up.
-    """
+
     index_table = weave.index.create_index.create_index_from_fs(
         set_up.pantry_name, set_up.file_system
     )
@@ -92,9 +96,9 @@ def test_load_mongo(set_up):
 
 
 def test_load_mongo_check_for_dataframe(set_up):
+    """Test that load_mongo prevents loading data with an invalid index_table.
     """
-    Test that load_mongo prevents loading data with an invalid index_table.
-    """
+
     with pytest.raises(
         TypeError,
         match="Invalid datatype for index_table: " "must be Pandas DataFrame",
@@ -107,10 +111,10 @@ def test_load_mongo_check_for_dataframe(set_up):
 
 
 def test_load_mongo_check_collection_for_string(set_up):
-    """
-    Test that load_mongo prevents loading data with an invalid set_up
+    """Test that load_mongo prevents loading data with an invalid set_up
     collection.
     """
+
     with pytest.raises(
         TypeError, match="Invalid datatype for collection: " "must be a string"
     ):
@@ -120,9 +124,9 @@ def test_load_mongo_check_collection_for_string(set_up):
 
 
 def test_load_mongo_check_dataframe_for_uuid(set_up):
+    """Test that load_mongo prevents loading data with missing uuid.
     """
-    Test that load_mongo prevents loading data with missing uuid.
-    """
+
     with pytest.raises(
         ValueError, match="Invalid index_table: " "missing uuid column"
     ):
@@ -134,9 +138,8 @@ def test_load_mongo_check_dataframe_for_uuid(set_up):
 
 
 def test_load_mongo_check_dataframe_for_address(set_up):
-    """
-    Test that load_mongo prevents loading data with missing address.
-    """
+    """Test that load_mongo prevents loading data with missing address."""
+
     with pytest.raises(
         ValueError, match="Invalid index_table: " "missing address column"
     ):
@@ -148,9 +151,8 @@ def test_load_mongo_check_dataframe_for_address(set_up):
 
 
 def test_load_mongo_check_dataframe_for_basket_type(set_up):
-    """
-    Test that load_mongo prevents loading data with missing basket type.
-    """
+    """Test that load_mongo prevents loading data with missing basket type."""
+
     with pytest.raises(
         ValueError, match="Invalid index_table: " "missing basket_type column"
     ):
@@ -162,12 +164,12 @@ def test_load_mongo_check_dataframe_for_basket_type(set_up):
 
 
 def test_load_mongo_check_for_duplicate_uuid(set_up):
+    """Test duplicate metadata won't be uploaded to mongoDB, based on the UUID.
     """
-    Test duplicate metadata won't be uploaded to mongoDB, based on the UUID.
-    """
+
     test_uuid = "1234"
 
-    # Load metadata twice, and ensure there's only one instance
+    # Load metadata twice and ensure there's only one instance
     index_table = weave.index.create_index.create_index_from_fs(
         set_up.pantry_name, set_up.file_system
     )
