@@ -552,7 +552,7 @@ def test_basket_check_member_variables(test_pantry):
     # Open the manifest to get the file system data
     manifest_path = os.path.join(basket_path, "basket_manifest.json")
 
-    with test_pantry.file_system.open(manifest_path, "rb",) as file:
+    with test_pantry.file_system.open(manifest_path, "rb") as file:
         manifest_dict = json.load(file)
 
     # Validate the basket object's member variables match the file system data
@@ -582,7 +582,7 @@ def test_basket_to_pandas_df(test_pantry):
     # Open the manifest to get the file system data
     manifest_path = os.path.join(basket_path, "basket_manifest.json")
 
-    with test_pantry.file_system.open(manifest_path, "rb",) as file:
+    with test_pantry.file_system.open(manifest_path, "rb") as file:
         manifest_dict = json.load(file)
 
     # Collect the data and build a dataframe for testing
