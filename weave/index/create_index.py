@@ -56,7 +56,7 @@ def create_index_from_fs(root_dir, file_system):
                 continue
             basket_dict['upload_time'] = pd.Timestamp(
                                                 basket_dict['upload_time']
-                                         )
+                                         ).tz_convert('UTC').isoformat()
             if basket_dict["basket_type"] != "index":
                 for field in basket_dict.keys():
                     index_dict[field].append(basket_dict[field])

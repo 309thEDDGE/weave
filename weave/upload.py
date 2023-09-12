@@ -7,7 +7,7 @@ import math
 import os
 import tempfile
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone as tz
 from pathlib import Path
 
 from .config import get_file_system, prohibited_filenames
@@ -114,7 +114,7 @@ def derive_integrity_data(file_path, byte_count=10**8):
     return {
         "file_size": file_size,
         "hash": sha256_hash,
-        "access_date": datetime.now().isoformat(),
+        "access_date": datetime.now(tz.utc).isoformat(),
         "source_path": file_path,
         "byte_count": byte_count,
     }
@@ -367,7 +367,7 @@ class UploadBasket:
         )
         basket_json = {}
         basket_json["uuid"] = self.kwargs.get("unique_id")
-        basket_json["upload_time"] = datetime.now().isoformat()
+        basket_json["upload_time"] = datetime.now(tz.utc).isoformat()
         basket_json["parent_uuids"] = self.kwargs.get("parent_ids", [])
         basket_json["basket_type"] = self.kwargs.get("basket_type")
         basket_json["label"] = self.kwargs.get("label","")
