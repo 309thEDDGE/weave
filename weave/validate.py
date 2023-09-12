@@ -407,7 +407,7 @@ def _validate_supplement_files(pantry_name, basket_dir, data, file_system):
                                                        metadata_path]
     ]
 
-    supp_file_list = [file['upload_path'] for file in data['integrity_data]]
+    supp_file_list = [file['upload_path'] for file in data['integrity_data']]
 
     # Remove path up until the pantry directory in both lists
     system_file_list = [

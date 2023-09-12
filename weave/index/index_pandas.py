@@ -175,7 +175,7 @@ class _Index():
             raise ValueError(
                 f"The provided value for basket_uuid {basket_uuid} " +
                 "is listed as a parent UUID for another basket. Please " +
-                "delete that basket before deleting it's parent basket."
+                "delete that basket before deleting its parent basket."
             )
 
         remove_item = self.index_df[self.index_df["uuid"] == basket_uuid]
