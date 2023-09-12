@@ -2,6 +2,7 @@
 Contains functions and classes concerning the upload functionality.
 """
 import hashlib
+from importlib import metadata
 import json
 import math
 import os
@@ -10,8 +11,6 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 
-import weave
-# from weave.__init__ import __version__ as weave_version
 from .config import get_file_system, prohibited_filenames
 
 
@@ -374,10 +373,7 @@ class UploadBasket:
         basket_json["parent_uuids"] = self.kwargs.get("parent_ids", [])
         basket_json["basket_type"] = self.kwargs.get("basket_type")
         basket_json["label"] = self.kwargs.get("label","")
-        # basket_json["weave_version"] = weave_version
-        # from weave.__init__ import __version__ as weave_ver
-        # basket_json["weave_version"] = weave_ver
-        basket_json["weave_version"] = weave.__version__
+        basket_json["weave_version"] = metadata.version("weave")
 
         with open(basket_json_path, "w", encoding="utf-8") as outfile:
             json.dump(basket_json, outfile)

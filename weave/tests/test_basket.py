@@ -538,3 +538,18 @@ def test_basket_from_uuid_with_many_baskets(test_pantry):
         f"{test_pantry.pantry_name}/test_basket/{uuid}"
         f"/temp_basket_{uuid}/test.txt"
     )
+
+
+def test_basket_correct_weave_version_member_variable(test_pantry):
+    """Test that basket has the correct weave version as a member variable
+    """
+    tmp_basket_dir = test_pantry.set_up_basket("basket_one")
+    basket_path = test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir)
+
+    basket = Basket(
+        Path(basket_path),
+        pantry_name=test_pantry.pantry_name,
+        file_system=test_pantry.file_system
+    )
+
+    assert basket.weave_version == weave_version

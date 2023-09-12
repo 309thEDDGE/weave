@@ -118,6 +118,8 @@ class Basket(BasketInitializer):
         self.manifest = None
         self.supplement = None
         self.metadata = None
+        self.get_manifest()
+        self.weave_version = self.manifest["weave_version"]
 
     def get_manifest(self):
         """Return basket_manifest.json as a python dictionary"""
