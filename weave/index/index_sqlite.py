@@ -40,7 +40,7 @@ class IndexSQLite(IndexABC):
         """Create the required DB tables if they do not already exist."""
         self.cur.execute("""
             CREATE TABLE IF NOT EXISTS pantry_index(
-                uuid TEXT, upload_time TEXT, parent_uuids TEXT,
+                uuid TEXT, upload_time TIMESTAMP, parent_uuids TEXT,
                 basket_type TEXT, label TEXT, address TEXT, storage_type TEXT,
                 PRIMARY KEY(uuid), UNIQUE(uuid));
         """)
@@ -167,6 +167,7 @@ class IndexSQLite(IndexABC):
             Uploaded baskets' manifest data to append to the index.
         """
         entry_df["parent_uuids"] = entry_df["parent_uuids"].astype(str)
+        entry_df["upload_time"] = entry_df["upload_time"].astype(str)
         entry_df.to_sql("pantry_index", self.con,
                         if_exists="append", method="multi", index=False)
 

@@ -1436,7 +1436,7 @@ def test_index_abc_get_baskets_by_upload_time_start_works(test_pantry):
 
     # Save the current time, and set the 'end' time to 5 seconds ago.
     start = datetime.now(timezone.utc) - timedelta(seconds=5)
-    print(f"\nTest Times")
+    print("\nTest Times")
 
     # Create a placeholder record that will have the time and uuid replaced.
     manifest_values = (
