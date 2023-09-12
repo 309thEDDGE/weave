@@ -238,8 +238,8 @@ class IndexPandas(IndexABC):
 
         Parameters
         ----------
-        basket_address: string
-            string that holds the path of the basket
+        basket_address: str
+            String that holds the path of the basket
             can also be the basket uuid
 
         **gen_level: int
@@ -281,24 +281,26 @@ class IndexPandas(IndexABC):
             )
 
         if self.file_system.exists(basket_address):
-            current_uid = self.index_df["uuid"].loc[
+            current_uuid = self.index_df["uuid"].loc[
                 self.index_df["address"].str.endswith(basket_address)
             ].values[0]
         elif basket_address in self.index_df.uuid.values:
-            current_uid = basket_address
+            current_uuid = basket_address
 
         # Get all the parent uuids for the basket uuid
         parent_uuids = self.index_df["parent_uuids"].loc[
-            self.index_df["uuid"] == current_uid
+            self.index_df["uuid"] == current_uuid
         ].to_numpy()[0]
 
         # Check if the list is empty return the data how it is
         if len(parent_uuids) == 0:
             return data
 
-        if current_uid in descendants:
-            raise ValueError(f"Parent-Child loop found at uuid: {current_uid}")
-        descendants.append(current_uid)
+        if current_uuid in descendants:
+            raise ValueError(
+                f"Parent-Child loop found at uuid: {current_uuid}"
+            )
+        descendants.append(current_uuid)
 
         parents_index = self.index_df.loc[
             self.index_df["uuid"].isin(parent_uuids), :
@@ -328,8 +330,8 @@ class IndexPandas(IndexABC):
 
         Parameters
         ----------
-        basket_address: string
-            string that holds the path of the basket
+        basket_address: str
+            String that holds the path of the basket
             can also be the basket uuid
 
         **gen_level: int
@@ -371,16 +373,16 @@ class IndexPandas(IndexABC):
             )
 
         if self.file_system.exists(basket_address):
-            current_uid = self.index_df["uuid"].loc[
+            current_uuid = self.index_df["uuid"].loc[
                 self.index_df["address"].str.endswith(basket_address)
             ].values[0]
         elif basket_address in self.index_df.uuid.values:
-            current_uid = basket_address
+            current_uuid = basket_address
 
         # This looks at all the baskets and returns a list of baskets who have
         # the the parent id inside their "parent_uuids" list
         child_index = self.index_df.loc[
-            self.index_df.parent_uuids.apply(lambda a: current_uid in a)
+            self.index_df.parent_uuids.apply(lambda a: current_uuid in a)
         ]
 
         child_uuids = child_index["uuid"].values
@@ -390,11 +392,11 @@ class IndexPandas(IndexABC):
 
         # All the ancestors are stored in a list, if the same
         # ancestor is on the list twice, throw error
-        if current_uid in ancestors:
+        if current_uuid in ancestors:
             raise ValueError(
-                f"Parent-Child loop found at uuid: {current_uid}"
+                f"Parent-Child loop found at uuid: {current_uuid}"
             )
-        ancestors.append(current_uid)
+        ancestors.append(current_uuid)
 
         # Pandas requires a copy to be made
         child_index = child_index.copy()
