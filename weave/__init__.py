@@ -25,7 +25,7 @@ from .index.index_sqlite import IndexSQLite
 from .pantry import Pantry
 from .metadata_db import load_mongo
 
-__version__ = "0.12.0"
+__version__ = "0.13.0"
 
 __all__ = [
     "Basket",
