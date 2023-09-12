@@ -7,6 +7,8 @@ import pytest
 import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
+
+from weave.__init__ import __version__ as weave_version
 from weave.basket import Basket
 from weave.index.create_index import create_index_from_fs
 from weave.tests.pytest_resources import BucketForTest
@@ -156,6 +158,7 @@ def test_basket_get_manifest(test_pantry):
         "basket_type": "test_basket",
         "label": "",
         "upload_time": manifest["upload_time"],
+        "weave_version": weave_version,
     }
 
 
@@ -191,6 +194,7 @@ def test_basket_get_manifest_cached(test_pantry):
         "basket_type": "test_basket",
         "label": "",
         "upload_time": manifest["upload_time"],
+        "weave_version": weave_version,
     }
 
 

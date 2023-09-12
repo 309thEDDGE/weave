@@ -12,6 +12,7 @@ import pytest
 import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
+from weave.__init__ import __version__ as weave_version
 from weave import Basket
 from weave.index.create_index import create_index_from_fs
 from weave.index.index import Index
@@ -99,6 +100,7 @@ def test_correct_index(test_pantry):
         "parent_uuids": [[], ["0001"]],
         "basket_type": "test_basket",
         "label": "",
+        "weave_version": weave_version,
         "address": addresses,
         "storage_type": test_pantry.file_system.__class__.__name__,
     }
@@ -182,6 +184,7 @@ def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
         "parent_uuids": [[], [], [], [], [], []],
         "basket_type": "test_basket",
         "label": "",
+        "weave_version": weave_version,
         "address": good_addresses,
         "storage_type": test_pantry.file_system.__class__.__name__,
     }

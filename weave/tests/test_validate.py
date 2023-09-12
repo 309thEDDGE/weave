@@ -88,7 +88,8 @@ class ValidateForTest(BucketForTest):
                     "upload_time": "1970-01-01 01:01:12",
                     "parent_uuids": [],
                     "basket_type": "basket type string",
-                    "label": "label string"
+                    "label": "label string",
+                    "weave_version": "0.1.1"
                 }"""
 
             tmp_manifest.write(man_data)
@@ -150,7 +151,8 @@ class ValidateForTest(BucketForTest):
                 "upload_time": "1970-01-01 01:01:12",
                 "parent_uuids": [],
                 "basket_type": "basket type string",
-                "label": "label string"
+                "label": "label string",
+                "weave_version": "0.1.1"
             }"""
             )
 
@@ -255,7 +257,8 @@ def test_validate_invalid_manifest_schema(test_validate):
         "upload_time": "1970-01-01 01:01:12",
         "parent_uuids": [ "str1", "str2", "str3" ],
         "basket_type": "str",
-        "label": "str"
+        "label": "str",
+        "weave_version": "0.1.1"
     }"""
 
     tmp_basket_dir = test_validate.set_up_basket(
@@ -301,7 +304,8 @@ def test_validate_manifest_schema_missing_field(test_validate):
         "upload_time": "1970-01-01 01:01:12",
         "parent_uuids": [  ],
         "basket_type": "str",
-        "label": "str"
+        "label": "str",
+        "weave_version": "0.1.1"
     }"""
 
     tmp_basket_dir = test_validate.set_up_basket(
@@ -379,6 +383,7 @@ def test_validate_manifest_schema_additional_field(test_validate):
         "parent_uuids": [],
         "basket_type": "basket type string",
         "label": "label string",
+        "weave_version": "0.1.1",
 
         "error": "this is an additional field"
     }"""
@@ -1366,7 +1371,8 @@ def test_validate_bad_manifest_and_supplement_schema(test_validate):
         "upload_time": "1970-01-01 01:01:12",
         "parent_uuids": [ "str1", "str2", "str3" ],
         "basket_type": "str",
-        "label": "str"
+        "label": "str",
+        "weave_version": "0.1.1"
     }"""
 
     # The supplement has an additional my_extra_field field

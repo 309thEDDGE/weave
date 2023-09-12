@@ -554,6 +554,8 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
     assert uploading_basket.kwargs.get("unique_id") is not None
 
     tmp_files = test_basket.file_system.ls(upload_path)
+    tmp_files.sort()
+
     with test_basket.file_system.open(tmp_files[0], "r", encoding="utf-8")\
             as outfile:
         manifest_data = json.load(outfile)
@@ -1373,26 +1375,38 @@ def test_upload_correct_version_number(test_basket):
         manifest_dict = json.load(file)
 
     assert manifest_dict["weave_version"] == weave.__version__
-    
-    
-    
-    
-    
+
+
 def test_upload_version_number_persists(test_basket):
     """Test that the version number in a basket's manifest persists even
     after weave has a version change"""
-    
-    print('\n\nweave version before: ', weave.__version__)
+    # Save the old version of weave for comparison and to reset it back after
+    old_weave_version = weave.__version__
+
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_basket.set_up_basket(tmp_basket_dir_name)
-    upload_path = test_basket.upload_basket(tmp_basket_dir)
-    weave.__version__ = "1.10.11"
+    upload_path = test_basket.upload_basket(tmp_basket_dir, uid="0000")
+
+    weave.__version__ = "22.22.22"
 
     tmp_basket_dir_name = "test_basket_tmp_dir_2"
     tmp_basket_dir = test_basket.set_up_basket(tmp_basket_dir_name)
     upload_path_2 = test_basket.upload_basket(tmp_basket_dir, uid="0001")
 
-    breakpoint()
-    print('\nweave version after: ', weave.__version__)
-    
-    print()
+    basket1_manifest_path = os.path.join(upload_path, "basket_manifest.json")
+    basket2_manifest_path = os.path.join(upload_path_2, "basket_manifest.json")
+
+    # Get the uploaded basket dictionaries
+    with test_basket.file_system.open(basket1_manifest_path, "r") as file:
+        old_manifest_dict = json.load(file)
+
+    with test_basket.file_system.open(basket2_manifest_path, "r") as file:
+        new_manifest_dict = json.load(file)
+
+    # Validate the old basket has the old version number
+    # and the new basket has the current version number
+    assert old_manifest_dict["weave_version"] == old_weave_version
+    assert new_manifest_dict["weave_version"] == weave.__version__
+
+    weave.__version__ = old_weave_version
+
