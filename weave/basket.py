@@ -5,6 +5,8 @@ import json
 import os
 from pathlib import Path
 
+import pandas as pd
+
 from .config import get_file_system, prohibited_filenames
 
 
@@ -30,21 +32,22 @@ class BasketInitializer:
         else:
             self.file_system = kwargs.get("file_system", get_file_system())
         try:
-            self.set_up_basket_from_path(basket_address)
+            self._set_up_basket_from_path(basket_address)
         except ValueError as error:
-            if str(error) != f"Basket does not exist: {self.basket_address}":
+            if str(error) != f"Basket does not exist: {self.basket_path}":
                 raise error
 
             if 'pantry' not in kwargs:
                 raise KeyError("pantry, required to set up basket from UUID,"
                                "is not in kwargs.") from error
             self.set_up_basket_from_uuid(basket_address, kwargs['pantry'])
-        self.manifest_path = f"{self.basket_address}/basket_manifest.json"
-        self.supplement_path = f"{self.basket_address}/basket_supplement.json"
-        self.metadata_path = f"{self.basket_address}/basket_metadata.json"
+
+        self.manifest_path = f"{self.basket_path}/basket_manifest.json"
+        self.supplement_path = f"{self.basket_path}/basket_supplement.json"
+        self.metadata_path = f"{self.basket_path}/basket_metadata.json"
         self.validate()
 
-    def set_up_basket_from_path(self, basket_address):
+    def _set_up_basket_from_path(self, basket_address):
         """Attempts to set up a basket from a filepath.
 
         Paramters
@@ -54,7 +57,7 @@ class BasketInitializer:
             directory, or the UUID of the basket. In this case it is assumed to
             be a path to the basket directory.
         """
-        self.basket_address = os.fspath(basket_address)
+        self.basket_path = os.fspath(basket_address)
         self.validate_basket_path()
 
     def set_up_basket_from_uuid(self, basket_address, pantry):
@@ -72,9 +75,9 @@ class BasketInitializer:
         """
         try:
             row = pantry.index.get_rows(basket_address)
-            self.set_up_basket_from_path(basket_address=row.iloc[0].address)
+            self._set_up_basket_from_path(basket_address=row.iloc[0].address)
         except BaseException as error:
-            self.basket_address = basket_address
+            self.basket_path = basket_address
             self.validate_basket_path()
             # The above line should raise an exception
             # The below line is more or less a fail safe and will raise the ex.
@@ -82,8 +85,8 @@ class BasketInitializer:
 
     def validate_basket_path(self):
         """Validates basket exists"""
-        if not self.file_system.exists(self.basket_address):
-            raise ValueError(f"Basket does not exist: {self.basket_address}")
+        if not self.file_system.exists(self.basket_path):
+            raise ValueError(f"Basket does not exist: {self.basket_path}")
 
     def validate(self):
         """Validates basket health"""
@@ -99,7 +102,9 @@ class BasketInitializer:
                 f"does not exist: {self.supplement_path}"
             )
 
-
+# Ignoring because there is a necessary and
+# reasonable amount of variables in this case
+# pylint: disable=too-many-instance-attributes
 class Basket(BasketInitializer):
     """This class provides convenience functions for accessing basket contents.
     """
@@ -127,6 +132,18 @@ class Basket(BasketInitializer):
         self.manifest = None
         self.supplement = None
         self.metadata = None
+        self.get_manifest()
+        self.populate_members()
+
+    def populate_members(self):
+        """Populate the Basket_Class member variables"""
+        self.uuid = self.manifest["uuid"]
+        self.upload_time = self.manifest["upload_time"]
+        self.parent_uuids = self.manifest["parent_uuids"]
+        self.basket_type = self.manifest["basket_type"]
+        self.label = self.manifest["label"]
+        self.address = self.basket_path
+        self.storage_type = self.file_system.__class__.__name__
 
     def get_manifest(self):
         """Return basket_manifest.json as a python dictionary"""
@@ -187,15 +204,15 @@ class Basket(BasketInitializer):
         filesystem.ls results of the basket.
         """
 
-        ls_path = os.fspath(Path(self.basket_address))
+        ls_path = os.fspath(Path(self.basket_path))
 
         if relative_path is not None:
             relative_path = os.fspath(relative_path)
             ls_path = os.fspath(
-              Path(os.path.join(self.basket_address, relative_path))
+              Path(os.path.join(self.basket_path, relative_path))
             )
 
-        if ls_path == os.fspath(Path(self.basket_address)):
+        if ls_path == os.fspath(Path(self.basket_path)):
             # Remove any prohibited files from the list if they exist
             # in the root directory
             # Note that file_system.ls can have unpredictable behavior if
@@ -209,3 +226,14 @@ class Basket(BasketInitializer):
         # Note that file_system.ls can have unpredictable behavior if
         # not passing refresh=True
         return self.file_system.ls(ls_path, refresh=True)
+
+    def to_pandas_df(self):
+        """Return a dataframe of the basket member variables
+        """
+        data = [self.uuid, self.upload_time,
+                self.parent_uuids, self.basket_type,
+                self.label, self.address, self.storage_type]
+        columns = ["uuid", "upload_time", "parent_uuids",
+                   "basket_type", "label", "address", "storage_type"]
+
+        return pd.DataFrame(data=[data], columns=columns)
