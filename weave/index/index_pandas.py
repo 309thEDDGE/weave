@@ -20,7 +20,7 @@ class IndexPandas(IndexABC):
         Parameters
         ----------
         pantry_path: str
-            Name of the bucket which the desired index is associated with.
+            Path of the pantry which the desired index is associated with.
         file_system: fsspec object
             The fsspec object which hosts the bucket we desire to index.
             If file_system is None, then the default fs is retrieved from the
