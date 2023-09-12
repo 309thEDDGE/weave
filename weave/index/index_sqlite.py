@@ -493,7 +493,7 @@ class IndexSQLite(IndexABC):
         print("datetime(upload_time):")
         print(self.cur.execute("SELECT datetime(upload_time) FROM pantry_index").fetchall())
         print("datetime(start_time):")
-        print(self.cur.execute("SELECT datetime(?)", (start_time,)))
+        print(self.cur.execute("SELECT datetime(?)", (start_time,)).fetchone())
         print("\n\n")
 
         if start_time and end_time:
