@@ -7,7 +7,6 @@ import pytest
 import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
-
 from weave.__init__ import __version__ as weave_version
 from weave.basket import Basket
 from weave.index.create_index import create_index_from_fs
