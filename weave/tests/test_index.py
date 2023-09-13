@@ -28,16 +28,16 @@ from weave.tests.pytest_resources import BucketForTest, IndexForTest
 ###############################################################################
 
 # This module is long and has many tests. Pylint is complaining that it is too
-# long. I don't necessarily think that is bad in this case, as the alternative
-# would be to write the tests continuing in a different script, which I think
-# is unnecesarily complex. Therefor, I am disabling this warning for this
-# script.
+# long. This isn't necessarily a bad thing, as the alternative would be to
+# write the tests continuuing in a different script, which is unnecesarily
+# complex. Disabling this warning for this script.
 # pylint: disable=too-many-lines
 
-# Pylint doesn't like that we are redefining the test fixture here from
-# test_basket, but I think this is the right way to do this in case at some
-# point in the future we need to differentiate the two.
+# Pylint doesn't like redefining the test fixture here from
+# test_basket, but this is the right way to do this in case at some
+# point in the future there is a need to differentiate the two.
 # pylint: disable=duplicate-code
+
 
 # Create fsspec objects to be tested, and add to file_systems list.
 s3fs = s3fs.S3FileSystem(
@@ -107,7 +107,7 @@ def test_index_only(request):
     test_index.cleanup_index()
 
 
-# We need to ignore pylint's warning "redefined-outer-name" as this is simply
+# Ignore pylint's warning "redefined-outer-name" as this is simply
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
 def test_index_abc_builtin_len_works(test_pantry):
@@ -191,7 +191,7 @@ def test_index_abc_to_pandas_df_works(test_pantry):
     ind.generate_index()
     ind_df = ind.to_pandas_df()
 
-    # Check we get a pandas dataframe of the correct length.
+    # Check a pandas dataframe returns of the correct length.
     assert len(ind_df) == 1 and isinstance(ind_df, pd.DataFrame)
 
     # Check df columns are named correctly.
@@ -229,7 +229,7 @@ def test_index_abc_to_pandas_df_works(test_pantry):
     ind.generate_index()
     ind_df = ind.to_pandas_df()
 
-    # Check we get a pandas dataframe of the correct length.
+    # Check a pandas dataframe returns of the correct length.
     assert len(ind_df) == 2 and isinstance(ind_df, pd.DataFrame)
 
     # Check df columns are named correctly.
@@ -332,7 +332,7 @@ def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
     ind.track_basket(dual_slice_df)
     ind_df = ind.to_pandas_df()
 
-    # Check we get a pandas dataframe of the correct length.
+    # Check a pandas dataframe returns of the correct length.
     assert (
         len(ind_df) == 2 and isinstance(ind_df, pd.DataFrame)
     ), "track_basket failed to add multiple items."
@@ -849,7 +849,7 @@ def test_index_abc_get_parents_15_deep(test_pantry):
 
     results = ind.get_parents(child_path)
 
-    # Get the anwser to compare to the results we got
+    # Get the anwser to compare to the results
     par_ids = [
         "0",
         "1",
@@ -1177,7 +1177,7 @@ def test_index_abc_get_children_15_deep(test_pantry):
     index = ind.to_pandas_df()
     results = ind.get_children("0013")
 
-    # Get the anwser to compare to the results we got
+    # Get the anwser to compare to the results
     child_ids = [
         "x",
         "000",
