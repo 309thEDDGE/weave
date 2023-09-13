@@ -427,7 +427,7 @@ def test_index_get_basket_works_correctly(test_pantry):
     )
 
     pantry.index.generate_index()
-    retrieved_basket = pantry.get_basket(uid)
+    retrieved_basket = pantry.get_basket(uuid)
 
     expected_basket = Basket(
         uuid,
