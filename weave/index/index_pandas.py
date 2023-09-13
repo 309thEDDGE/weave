@@ -1,5 +1,6 @@
 """ This module is for handling the pandas based backend of the Index object.
 """
+
 import os
 import tempfile
 import warnings
@@ -13,10 +14,10 @@ from .create_index import create_index_from_fs
 
 
 class _Index():
-    '''Handles Pandas based functionality of the Index'''
+    """Handles Pandas based functionality of the Index."""
 
     def __init__(self, pantry_name="basket-data", sync=True, **kwargs):
-        '''Initializes the Index class.
+        """Initializes the Index class.
 
         Parameters
         ----------
@@ -29,16 +30,16 @@ class _Index():
             object has the same information as the index on the disk. If False,
             then the Index object may be stale, but operations will perform
             at a higher speed.
-
         **file_system: fsspec object
             The fsspec object which hosts the bucket being indexed.
             If file_system is None, then the default fs is retrieved from the
             config.
-        '''
+        """
+
         self.file_system = kwargs.get("file_system", get_file_system())
 
         self.pantry_name = str(pantry_name)
-        self.index_basket_dir_name = 'index' # AKA basket type
+        self.index_basket_dir_name = "index" # AKA basket type
         self.index_basket_dir_path = os.path.join(
             self.pantry_name, self.index_basket_dir_name
         )
@@ -47,7 +48,8 @@ class _Index():
         self.index_df = None
 
     def sync_index(self):
-        '''Gets index from latest index basket'''
+        """Gets index from latest index basket."""
+
         index_paths = self.file_system.glob(f"{self.index_basket_dir_path}"
                                             "/**/*-index.json")
         if len(index_paths) == 0:
@@ -63,16 +65,18 @@ class _Index():
                 self.index_json_time = path_time
                 latest_index_path = path
         self.index_df = pd.read_json(
-            self.file_system.open(latest_index_path), dtype = {'uuid': str}
+            self.file_system.open(latest_index_path), dtype = {"uuid": str}
         )
 
     def _get_index_time_from_path(self, path):
-        '''Returns time as int from index_json path.'''
+        """Returns time as int from index_json path."""
+
         path = str(path)
         return int(os.path.basename(path).replace("-index.json",""))
 
     def to_pandas_df(self):
-        '''Returns the Pandas DataFrame representation of the index.'''
+        """Returns the Pandas DataFrame representation of the index."""
+
         if self.sync:
             if not self.is_index_current():
                 self.sync_index()
@@ -81,13 +85,14 @@ class _Index():
         return self.index_df
 
     def clean_up_indices(self, n_keep=20):
-        '''Deletes any index basket except the latest n index baskets.
+        """Deletes any index basket except the latest n index baskets.
 
         Parameters
         ----------
         n_keep: int
             n is the number of latest index baskets to keep.
-        '''
+        """
+
         n_keep = int(n_keep)
         index_paths = self.file_system.glob(f"{self.index_basket_dir_path}"
                                             "/**/*-index.json")
@@ -110,10 +115,11 @@ class _Index():
                     warnings.warn(error)
 
     def is_index_current(self):
-        '''Checks to see if the index in memory is up to date with disk index.
+        """Checks to see if the index in memory is up to date with disk index.
 
         Returns True if index in memory is up to date, else False.
-        '''
+        """
+
         index_paths = self.file_system.glob(f"{self.index_basket_dir_path}"
                                             "/**/*-index.json")
         if len(index_paths) == 0:
@@ -123,18 +129,20 @@ class _Index():
         return all((self.index_json_time >= i for i in index_times))
 
     def generate_index(self):
-        '''Generates index and stores it in a basket'''
+        """Generates index and stores it in a basket."""
+
         index = create_index_from_fs(self.pantry_name, self.file_system)
         self._upload_index(index=index)
 
     def _upload_index(self, index):
-        """Upload a new index"""
+        """Upload a new index."""
+
         with tempfile.TemporaryDirectory() as out:
             n_secs = time_ns()
             temp_json_path = os.path.join(out, f"{n_secs}-index.json")
-            index.to_json(temp_json_path, date_format='iso', date_unit='ns')
+            index.to_json(temp_json_path, date_format="iso", date_unit="ns")
             UploadBasket(
-                upload_items=[{'path':temp_json_path, 'stub':False}],
+                upload_items=[{"path":temp_json_path, "stub":False}],
                 basket_type=self.index_basket_dir_name,
                 file_system=self.file_system,
                 pantry_name=self.pantry_name
@@ -143,7 +151,7 @@ class _Index():
         self.index_json_time = n_secs
 
     def delete_basket(self, basket_uuid, **kwargs):
-        '''Deletes basket of given UUID.
+        """Deletes basket of given UUID.
 
         Note that the given basket will not be deleted if the basket is listed
         as the parent uuid for any of the baskets in the index.
@@ -152,15 +160,15 @@ class _Index():
         -----------
         basket_uuid: int
             The uuid of the basket to delete.
-
         **upload_index: bool
-            Flag to upload the new index to the file system
-        '''
+            Flag to upload the new index to the file system.
+        """
+
         upload_index = kwargs.get("upload_index", True)
         basket_uuid = str(basket_uuid)
         if self.index_df is None:
             self.sync_index()
-        if basket_uuid not in self.index_df["uuid"].to_list():
+        if basket_uuid not in self.index_df['uuid'].to_list():
             raise ValueError(
                 f"The provided value for basket_uuid {basket_uuid} " +
                 "does not exist."
@@ -168,7 +176,7 @@ class _Index():
         # Flatten nested lists into a single list
         parent_uuids = [
             j
-            for i in self.index_df["parent_uuids"].to_list()
+            for i in self.index_df['parent_uuids'].to_list()
             for j in i
         ]
         if basket_uuid in parent_uuids:
@@ -178,7 +186,7 @@ class _Index():
                 "delete that basket before deleting its parent basket."
             )
 
-        remove_item = self.index_df[self.index_df["uuid"] == basket_uuid]
+        remove_item = self.index_df[self.index_df['uuid'] == basket_uuid]
         self.file_system.rm(remove_item['address'].values[0], recursive=True)
         self.index_df.drop(remove_item.index, inplace=True)
         self.index_df.reset_index(drop=True, inplace=True)
@@ -187,22 +195,21 @@ class _Index():
 
 
     def get_parents(self, basket, **kwargs):
-        """Recursively gathers all parents of basket and returns index
+        """Recursively gathers all parents of basket and returns index.
 
         Parameters
         ----------
         basket: str
             string that holds the path of the basket
-            can also be the basket uuid
-
+            can also be the basket uuid.
         **gen_level: int
             This indicates what generation is being looked at,
-            1 for parent, 2 for grandparent and so forth
+            1 for parent, 2 for grandparent and so forth.
         **data: pd.dataframe (optional)
             This is the index or dataframe collected so far
             when it is initially called, it is empty, for every
             iteration/recursive call all the immediate parents for
-            the given basket are added
+            the given basket are added.
         **descendants: [str]
             This is a list that holds the uids of all the descendents the
             function has visited. this is used to prevent/detect any
@@ -214,6 +221,7 @@ class _Index():
         basket given, along with all the previous parents
         of the previous calls.
         """
+
         # Collect info from kwargs
         gen_level = kwargs.get("gen_level", 1)
         data = kwargs.get("data", pd.DataFrame())
@@ -234,15 +242,15 @@ class _Index():
             )
 
         if self.file_system.exists(basket):
-            basket_uuid = self.index_df["uuid"].loc[
-                self.index_df["address"].str.endswith(basket)
+            basket_uuid = self.index_df['uuid'].loc[
+                self.index_df['address'].str.endswith(basket)
             ].values[0]
         elif basket in self.index_df.uuid.values:
             basket_uuid = basket
 
         # Get all the parent uuids for the basket uuid
-        parent_uuids = self.index_df["parent_uuids"].loc[
-            self.index_df["uuid"] == basket_uuid
+        parent_uuids = self.index_df['parent_uuids'].loc[
+            self.index_df['uuid'] == basket_uuid
         ].to_numpy()[0]
 
         # Check if the list is empty return the data how it is
@@ -254,19 +262,19 @@ class _Index():
         descendants.append(basket_uuid)
 
         parents_index = self.index_df.loc[
-            self.index_df["uuid"].isin(parent_uuids), :
+            self.index_df['uuid'].isin(parent_uuids), :
         ].copy()
 
         if len(parents_index) == 0:
             return data
 
-        parents_index.loc[:, "generation_level"] = gen_level
+        parents_index.loc[:, 'generation_level'] = gen_level
 
         # Add the parents for this generation to the data
         data = pd.concat([data, parents_index])
 
         # For every parent, go get their parents
-        for basket_addr in parents_index["address"]:
+        for basket_addr in parents_index['address']:
             data = self.get_parents(basket=basket_addr,
                                     gen_level=gen_level+1,
                                     data=data,
@@ -274,26 +282,25 @@ class _Index():
         return data
 
     def get_children(self, basket, **kwargs):
-        """Recursively gathers all the children of basket and returns an index
+        """Recursively gathers all the children of basket and returns an index.
 
         Parameters
         ----------
         basket: str
             String that holds the path of the basket
-            can also be the basket uuid
-
+            can also be the basket uuid.
         **gen_level: int
             This indicates what generation is being looked at,
-            -1 for child, -2 for grandchild and so forth
+            -1 for child, -2 for grandchild and so forth.
         **data: dataframe (optional)
             This is the index or dataframe that has been collected so far
             when it is initially called, it is empty, for every
             iteration/recursive call all of the immediate children for
-            the given basket are added
+            the given basket are added.
         **ancestors: [str]
             This is a list of basket uuids of all the ancestors that have been
             visited. This is being used to detect if there is a parent-child
-            loop inside the basket structure
+            loop inside the basket structure.
 
         Returns
         ----------
@@ -321,8 +328,8 @@ class _Index():
             )
 
         if self.file_system.exists(basket):
-            basket_uuid = self.index_df["uuid"].loc[
-                self.index_df["address"].str.endswith(basket)
+            basket_uuid = self.index_df['uuid'].loc[
+                self.index_df['address'].str.endswith(basket)
             ].values[0]
         elif basket in self.index_df.uuid.values:
             basket_uuid = basket
@@ -333,7 +340,7 @@ class _Index():
             self.index_df.parent_uuids.apply(lambda a: basket_uuid in a)
         ]
 
-        child_uuids = child_index["uuid"].values
+        child_uuids = child_index['uuid'].values
 
         if len(child_uuids) == 0:
             return data
@@ -346,13 +353,13 @@ class _Index():
 
         # Pandas requires a copy to be made
         child_index = child_index.copy()
-        child_index.loc[:, "generation_level"] = gen_level
+        child_index.loc[:, 'generation_level'] = gen_level
 
         # Add the children from this generation to the data
         data = pd.concat([data, child_index])
 
         # Go through all the children and get their children too
-        for basket_addr in child_index["address"]:
+        for basket_addr in child_index['address']:
             data =  self.get_children(basket=basket_addr,
                                       gen_level=gen_level-1,
                                       data=data,
@@ -360,7 +367,7 @@ class _Index():
         return data
 
     def upload_basket(self, upload_items, basket_type, **kwargs):
-        """Upload a basket to the same pantry referenced by the Index
+        """Upload a basket to the same pantry referenced by the Index.
 
         Parameters
         ----------
@@ -378,7 +385,6 @@ class _Index():
             dealing with large files.
         basket_type: str
             Type of basket being uploaded.
-
         **parent_ids: [str] (optional)
             List of unique ids associated with the parent baskets
             used to derive the new basket being uploaded.
@@ -388,6 +394,7 @@ class _Index():
         **label: str (optional)
             Optional user friendly label associated with the basket.
         """
+
         parent_ids = kwargs.get("parent_ids", [])
         metadata = kwargs.get("metadata", {})
         label = kwargs.get("label", "")

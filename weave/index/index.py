@@ -1,21 +1,22 @@
-"""
-This class builds the user-facing Index class. It pulls from the _Index class
-which uses Pandas as it's backend to build and interface with the on disk
+"""This class builds the user-facing Index class. It pulls from the _Index
+class which uses Pandas as it's backend to build and interface with the on disk
 Index baskets.
 """
+
 from ..basket import Basket
 from .index_pandas import _Index
 
 
 class Index(_Index):
     """Facilitate user interaction with the index of a Weave data warehouse."""
+
     def get_basket(self, basket_address):
         """Retrieves a basket of given UUID or path.
 
         Parameters
         ----------
         basket_address: str
-            Argument can take one of two forms: either a path to the Basket
+            Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
 
         Returns

@@ -61,6 +61,8 @@ class BasketInitializer:
         Note that if the basket cannot be set up from a uuid then an attempt to
         set up the basket from a filepath will be made.
 
+        Parameters
+        ----------
         basket_address: str
             Argument can take one of two forms: either a path to the basket
             directory or the UUID of the basket. In this case it is assumed to
