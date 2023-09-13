@@ -178,11 +178,11 @@ def test_index_abc_to_pandas_df_works(test_pantry):
     test_pantry, ind = test_pantry
 
     # Put basket in the temporary bucket
-    uid, basket_type, label = "0001", "test_basket", "test_label"
+    uuid, basket_type, label = "0001", "test_basket", "test_label"
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     up_dir = test_pantry.upload_basket(
         tmp_basket_dir=tmp_basket_dir_one,
-        uid=uid,
+        uid=uuid,
         basket_type=basket_type,
         label=label
     )
@@ -203,7 +203,7 @@ def test_index_abc_to_pandas_df_works(test_pantry):
 
     # Check values of basket are accurate
     assert (
-        ind_df.iloc[0]["uuid"] == uid and
+        ind_df.iloc[0]["uuid"] == uuid and
         isinstance(ind_df.iloc[0]["upload_time"], datetime) and
         ind_df.iloc[0]["parent_uuids"] == [] and
         ind_df.iloc[0]["basket_type"] == basket_type and
@@ -214,12 +214,12 @@ def test_index_abc_to_pandas_df_works(test_pantry):
     ), "Retrieved manifest values do not match."
 
     # Upload another basket
-    uid, basket_type, label = "0002", "test_basket", "test_label"
+    uuid, basket_type, label = "0002", "test_basket", "test_label"
     parent_ids = ["0001"]
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_two")
     up_dir = test_pantry.upload_basket(
         tmp_basket_dir=tmp_basket_dir_one,
-        uid=uid,
+        uid=uuid,
         basket_type=basket_type,
         parent_ids=parent_ids,
         label=label
@@ -241,7 +241,7 @@ def test_index_abc_to_pandas_df_works(test_pantry):
 
     # Check values of basket are accurate
     assert (
-        ind_df.iloc[1]["uuid"] == uid and
+        ind_df.iloc[1]["uuid"] == uuid and
         isinstance(ind_df.iloc[1]["upload_time"], datetime) and
         ind_df.iloc[1]["parent_uuids"] == parent_ids and
         ind_df.iloc[1]["basket_type"] == basket_type and
@@ -262,11 +262,11 @@ def test_index_abc_track_basket_adds_single_basket(test_pantry):
     assert len(ind) == 0, "Incorrect number of elements in the index."
 
     # Put basket in the temporary bucket
-    uid, basket_type, label = "0001", "test_basket", "test_label"
+    uuid, basket_type, label = "0001", "test_basket", "test_label"
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     up_dir = test_pantry.upload_basket(
         tmp_basket_dir=tmp_basket_dir_one,
-        uid=uid,
+        uid=uuid,
         basket_type=basket_type,
         label=label
     )
@@ -282,7 +282,7 @@ def test_index_abc_track_basket_adds_single_basket(test_pantry):
 
     # Check values of basket are accurate
     assert (
-        ind_df.iloc[0]["uuid"] == uid and
+        ind_df.iloc[0]["uuid"] == uuid and
         isinstance(ind_df.iloc[0]["upload_time"], datetime) and
         ind_df.iloc[0]["parent_uuids"] == [] and
         ind_df.iloc[0]["basket_type"] == basket_type and
@@ -302,13 +302,13 @@ def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
     ind.generate_index()
 
     # Put basket in the temporary bucket
-    uids = ["0001", "0002"]
+    uuids = ["0001", "0002"]
     basket_type = "test_basket"
     test_label = "test_label"
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     up_dir1 = test_pantry.upload_basket(
         tmp_basket_dir=tmp_basket_dir_one,
-        uid=uids[0],
+        uid=uuids[0],
         basket_type=basket_type,
         label=test_label
     )
@@ -319,7 +319,7 @@ def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
     tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
     up_dir2 = test_pantry.upload_basket(
         tmp_basket_dir=tmp_basket_dir_two,
-        uid=uids[1],
+        uid=uuids[1],
         basket_type=basket_type,
         parent_ids=parent_ids2,
         label=test_label
@@ -339,7 +339,7 @@ def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
 
     # Check values of basket are accurate
     assert (
-        ind_df.iloc[0]["uuid"] == uids[0] and
+        ind_df.iloc[0]["uuid"] == uuids[0] and
         isinstance(ind_df.iloc[0]["upload_time"], datetime) and
         ind_df.iloc[0]["parent_uuids"] == [] and
         ind_df.iloc[0]["basket_type"] == basket_type and
@@ -350,7 +350,7 @@ def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
     ), "Retrieved manifest values do not match first record."
 
     assert (
-        ind_df.iloc[1]["uuid"] == uids[1] and
+        ind_df.iloc[1]["uuid"] == uuids[1] and
         isinstance(ind_df.iloc[1]["upload_time"], datetime) and
         ind_df.iloc[1]["parent_uuids"] == ["0001"] and
         ind_df.iloc[1]["basket_type"] == basket_type and
@@ -466,7 +466,7 @@ def test_index_abc_get_rows_single_address_works(test_pantry):
 
     basket_type = "test_basket_type"
 
-    uids = ["0001"]
+    uuids = ["0001"]
     labels = ["label_1"]
     parent_ids = [[]]
 
@@ -475,20 +475,20 @@ def test_index_abc_get_rows_single_address_works(test_pantry):
     up_dir1 = test_pantry.upload_basket(
         tmp_basket_dir=tmp_basket_dir_one,
         basket_type=basket_type,
-        uid=uids[-1],
+        uid=uuids[-1],
         label=labels[-1],
         parent_ids=parent_ids[-1],
     )
 
-    uids.append("0002")
+    uuids.append("0002")
     labels.append("label_2")
-    parent_ids.append([uids[0]])
+    parent_ids.append([uuids[0]])
 
     tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
     up_dir2 = test_pantry.upload_basket(
         tmp_basket_dir=tmp_basket_dir_two,
         basket_type=basket_type,
-        uid=uids[-1],
+        uid=uuids[-1],
         label=labels[-1],
         parent_ids=parent_ids[-1],
     )
@@ -502,7 +502,7 @@ def test_index_abc_get_rows_single_address_works(test_pantry):
     first_row_df = ind.get_rows("0001")
     assert isinstance(first_row_df, pd.DataFrame) and len(first_row_df) == 1
     assert (
-        first_row_df.iloc[0]["uuid"] == uids[0] and
+        first_row_df.iloc[0]["uuid"] == uuids[0] and
         isinstance(first_row_df.iloc[0]["upload_time"], datetime) and
         first_row_df.iloc[0]["parent_uuids"] == parent_ids[0] and
         first_row_df.iloc[0]["basket_type"] == basket_type and
@@ -515,7 +515,7 @@ def test_index_abc_get_rows_single_address_works(test_pantry):
     second_row_df = ind.get_rows(up_dir2)
     assert isinstance(second_row_df, pd.DataFrame) and len(second_row_df) == 1
     assert (
-        second_row_df.iloc[0]["uuid"] == uids[1] and
+        second_row_df.iloc[0]["uuid"] == uuids[1] and
         isinstance(second_row_df.iloc[0]["upload_time"], datetime) and
         second_row_df.iloc[0]["parent_uuids"] == parent_ids[1] and
         second_row_df.iloc[0]["basket_type"] == basket_type and
@@ -533,7 +533,7 @@ def test_index_abc_get_rows_multiple_address_works(test_pantry):
 
     basket_type = "test_basket_type"
 
-    uid1 = "0001"
+    uuid1 = "0001"
     label1 = "label_1"
     parent_ids1 = []
 
@@ -542,20 +542,20 @@ def test_index_abc_get_rows_multiple_address_works(test_pantry):
     up_dir1 = test_pantry.upload_basket(
         tmp_basket_dir=tmp_basket_dir_one,
         basket_type=basket_type,
-        uid=uid1,
+        uid=uuid1,
         label=label1,
         parent_ids=parent_ids1,
     )
 
-    uid2 = "0002"
+    uuid2 = "0002"
     label2 = "label_2"
-    parent_ids2 = [uid1]
+    parent_ids2 = [uuid1]
 
     tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
     up_dir2 = test_pantry.upload_basket(
         tmp_basket_dir=tmp_basket_dir_two,
         basket_type=basket_type,
-        uid=uid2,
+        uid=uuid2,
         label=label2,
         parent_ids=parent_ids2,
     )
@@ -569,7 +569,7 @@ def test_index_abc_get_rows_multiple_address_works(test_pantry):
     rows_df = ind.get_rows(["0001", "0002"])
     assert isinstance(rows_df, pd.DataFrame) and len(rows_df) == 2
     assert (
-        rows_df.iloc[0]["uuid"] == uid1 and
+        rows_df.iloc[0]["uuid"] == uuid1 and
         isinstance(rows_df.iloc[0]["upload_time"], datetime) and
         rows_df.iloc[0]["parent_uuids"] == parent_ids1 and
         rows_df.iloc[0]["basket_type"] == basket_type and
@@ -579,7 +579,7 @@ def test_index_abc_get_rows_multiple_address_works(test_pantry):
             test_pantry.file_system.__class__.__name__
     ), "Retrieved manifest values do not match first record."
     assert (
-        rows_df.iloc[1]["uuid"] == uid2 and
+        rows_df.iloc[1]["uuid"] == uuid2 and
         isinstance(rows_df.iloc[1]["upload_time"], datetime) and
         rows_df.iloc[1]["parent_uuids"] == parent_ids2 and
         rows_df.iloc[1]["basket_type"] == basket_type and
