@@ -555,6 +555,7 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
 
     tmp_files = test_basket.file_system.ls(upload_path)
     tmp_files.sort()
+
     with test_basket.file_system.open(tmp_files[0], "r", encoding="utf-8")\
             as outfile:
         manifest_data = json.load(outfile)
