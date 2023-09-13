@@ -595,7 +595,7 @@ def test_index_abc_get_parents_path_works(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    # setup random strucutre of parents and children
+    # Setup random strucutre of parents and children
     tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
     test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
 
@@ -629,12 +629,12 @@ def test_index_abc_get_parents_path_works(test_pantry):
         tmp_basket_dir=tmp_dir, uid="0000", parent_ids=["1001", "1000"]
     )
 
-    # string to shorten things for ruff
+    # String to shorten things for ruff
     gen_lvl = "generation_level"
 
     ind.generate_index()
 
-    # setup df of the right answer
+    # Setup df of the right answer
     parent_ids = [
         "1000",
         "1001",
@@ -649,21 +649,21 @@ def test_index_abc_get_parents_path_works(test_pantry):
     index = ind.to_pandas_df()
     parent_answer = index.loc[index["uuid"].isin(parent_ids)]
 
-    # pandas wants to make a copy before adding a column
-    # used to remove warning in pytest
+    # Pandas wants to make a copy before adding a column
+    # Used to remove warning in pytest
     parent_answer = parent_answer.copy()
-    # add the generation levels
+    # Add the generation levels
     for i, j in zip(parent_ids, parent_gens):
         parent_answer.loc[parent_answer["uuid"] == i, gen_lvl] = j
 
-    # get the results
+    # Get the results
     results = ind.get_parents(child)
 
-    # sort so that they can be properly compared to
+    # Sort so that they can be properly compared to
     parent_answer = parent_answer.sort_values(by="uuid").reset_index(drop=True)
     results = results.sort_values(by="uuid").reset_index(drop=True)
 
-    # cast to int64 so datatypes match
+    # Cast to int64 so datatypes match
     parent_answer[gen_lvl] = parent_answer[gen_lvl].astype(np.int64)
 
     assert parent_answer.equals(results)
@@ -675,7 +675,7 @@ def test_index_abc_get_parents_uuid_works(test_pantry):
     test_pantry, ind = test_pantry
 
 
-    # setup random strucutre of parents and children
+    # Setup random strucutre of parents and children
     tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
     test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
 
@@ -709,12 +709,12 @@ def test_index_abc_get_parents_uuid_works(test_pantry):
         tmp_basket_dir=tmp_dir, uid="0000", parent_ids=["1001", "1000"]
     )
 
-    # string to shorten things for ruff
+    # String to shorten things for ruff
     gen_lvl = "generation_level"
 
     ind.generate_index()
 
-    # setup df of the right answer
+    # Setup df of the right answer
     parent_ids = [
         "1000",
         "1001",
@@ -729,21 +729,21 @@ def test_index_abc_get_parents_uuid_works(test_pantry):
     index = ind.to_pandas_df()
     parent_answer = index.loc[index["uuid"].isin(parent_ids)]
 
-    # pandas wants to make a copy before adding a column
-    # used to remove warning in pytest
+    # Pandas wants to make a copy before adding a column
+    # Used to remove warning in pytest
     parent_answer = parent_answer.copy()
-    # add the generation levels
+    # Add the generation levels
     for i, j in zip(parent_ids, parent_gens):
         parent_answer.loc[parent_answer["uuid"] == i, gen_lvl] = j
 
-    # get the results
+    # Get the results
     results = ind.get_parents("0000")
 
-    # sort so that they can be properly compared to
+    # Sort so that they can be properly compared to
     parent_answer = parent_answer.sort_values(by="uuid").reset_index(drop=True)
     results = results.sort_values(by="uuid").reset_index(drop=True)
 
-    # cast to int64 so datatypes match
+    # Cast to int64 so datatypes match
     parent_answer[gen_lvl] = parent_answer[gen_lvl].astype(np.int64)
 
     assert parent_answer.equals(results)
@@ -792,7 +792,7 @@ def test_index_abc_get_parents_parent_is_child_loop(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    # create a basket structure with child, parent, and grandparent, but
+    # Create a basket structure with child, parent, and grandparent, but
     # the grandparent's parent, is the child, making an loop for the
     # parent-child relationship
     tmp_dir = test_pantry.set_up_basket("grandparent")
@@ -871,13 +871,13 @@ def test_index_abc_get_parents_15_deep(test_pantry):
 
     gen_lvl = "generation_level"
 
-    # pandas wants to make a copy before adding a column
-    # used to remove warning in pytest
+    # Pandas wants to make a copy before adding a column
+    # Used to remove warning in pytest
     answer = answer.copy()
     for i, j in zip(par_ids, par_gens):
         answer.loc[answer["uuid"] == i, gen_lvl] = j
 
-    # format and sort so .equals can be properly used
+    # Format and sort so .equals can be properly used
     answer = answer.sort_values(by="uuid").reset_index(drop=True)
     results = results.sort_values(by="uuid").reset_index(drop=True)
     answer[gen_lvl] = answer[gen_lvl].astype(np.int64)
@@ -946,7 +946,7 @@ def test_index_abc_get_children_path_works(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    # setup random strucutre of parents and children
+    # Setup random strucutre of parents and children
     tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
     great_grandparent = test_pantry.upload_basket(
         tmp_basket_dir=tmp_dir, uid="3000"
@@ -982,32 +982,32 @@ def test_index_abc_get_children_path_works(test_pantry):
         tmp_basket_dir=tmp_dir, uid="0000", parent_ids=["1001", "1000"]
     )
 
-    # string to shorten things for ruff
+    # String to shorten things for ruff
     gen_lvl = "generation_level"
 
     ind.generate_index()
 
-    # setup df of the right answer
+    # Setup df of the right answer
     child_ids = ["2000", "1000", "0000"]
     child_gens = [-1, -2, -3]
     index = ind.to_pandas_df()
     child_answer = index.loc[index["uuid"].isin(child_ids)]
 
-    # pandas wants to make a copy before adding a column
-    # used to remove warning in pytest
+    # Pandas wants to make a copy before adding a column
+    # Used to remove warning in pytest
     child_answer = child_answer.copy()
-    # add the generation levels
+    # Add the generation levels
     for i, j in zip(child_ids, child_gens):
         child_answer.loc[child_answer["uuid"] == i, gen_lvl] = j
 
-    # get the results
+    # Get the results
     results = ind.get_children(great_grandparent)
 
-    # sort so that they can be properly compared to
+    # Sort so that they can be properly compared to
     child_answer = child_answer.sort_values(by="uuid").reset_index(drop=True)
     results = results.sort_values(by="uuid").reset_index(drop=True)
 
-    # cast to int64 so datatypes match
+    # Cast to int64 so datatypes match
     child_answer[gen_lvl] = child_answer[gen_lvl].astype(np.int64)
     assert child_answer.equals(results)
 
@@ -1017,7 +1017,7 @@ def test_index_abc_get_children_uuid_works(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    # setup random strucutre of parents and children
+    # Setup random strucutre of parents and children
     tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
     _ = test_pantry.upload_basket(
         tmp_basket_dir=tmp_dir, uid="3000"
@@ -1053,32 +1053,32 @@ def test_index_abc_get_children_uuid_works(test_pantry):
         tmp_basket_dir=tmp_dir, uid="0000", parent_ids=["1001", "1000"]
     )
 
-    # string to shorten things for ruff
+    # String to shorten things for ruff
     gen_lvl = "generation_level"
 
     ind.generate_index()
 
-    # setup df of the right answer
+    # Setup df of the right answer
     child_ids = ["2000", "1000", "0000"]
     child_gens = [-1, -2, -3]
     index = ind.to_pandas_df()
     child_answer = index.loc[index["uuid"].isin(child_ids)]
 
-    # pandas wants to make a copy before adding a column
-    # used to remove warning in pytest
+    # Pandas wants to make a copy before adding a column
+    # Used to remove warning in pytest
     child_answer = child_answer.copy()
-    # add the generation levels
+    # Add the generation levels
     for i, j in zip(child_ids, child_gens):
         child_answer.loc[child_answer["uuid"] == i, gen_lvl] = int(j)
 
-    # get the results
+    # Get the results
     results = ind.get_children("3000")
 
-    # sort so that they can be properly compared to
+    # Sort so that they can be properly compared to
     child_answer = child_answer.sort_values(by="uuid").reset_index(drop=True)
     results = results.sort_values(by="uuid").reset_index(drop=True)
 
-    # cast to int64 so datatypes match
+    # Cast to int64 so datatypes match
     child_answer[gen_lvl] = child_answer[gen_lvl].astype(np.int64)
 
     assert child_answer.equals(results)
@@ -1125,7 +1125,7 @@ def test_index_abc_get_children_child_is_parent_loop(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    # create a basket structure with child, parent, and grandparent, but
+    # Create a basket structure with child, parent, and grandparent, but
     # the grandparent's parent, is the child, making an loop for the
     # parent-child relationship
     tmp_dir = test_pantry.set_up_basket("grandparent")
@@ -1199,13 +1199,13 @@ def test_index_abc_get_children_15_deep(test_pantry):
 
     gen_lvl = "generation_level"
 
-    # pandas wants to make a copy before adding a column
-    # used to remove warning in pytest
+    # Pandas wants to make a copy before adding a column
+    # Used to remove warning in pytest
     answer = answer.copy()
     for i, j in zip(child_ids, child_gens):
         answer.loc[answer["uuid"] == i, gen_lvl] = j
 
-    # format and sort so .equals can be properly used
+    # Format and sort so .equals can be properly used
     answer = answer.sort_values(by="uuid").reset_index(drop=True)
     results = results.sort_values(by="uuid").reset_index(drop=True)
     answer[gen_lvl] = answer[gen_lvl].astype(np.int64)
