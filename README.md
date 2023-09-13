@@ -152,7 +152,7 @@ can be uploaded directly:
 ```python
 from weave.upload import UploadBasket
 upload_items = [{'path':'Path_to_file_or_dir', 'stub': False}]
-upload_path = UploadBasket(upload_items, 
+upload_path = UploadBasket(upload_items,
                            basket_type = 'item',
                            upload_directory = 'basket-data',
                           )
@@ -166,7 +166,7 @@ information on each of these upload parameters.
 The basket information can readily be accessed by creating a Basket object:
 
 ```python
-basket = Basket(basket_address, pantry_name=Optional)
+basket = Basket(basket_address, pantry=Optional)
 basket.get_manifest()
 basket.get_supplement()
 basket.get_metadata()
@@ -227,10 +227,10 @@ pantry_metadata = pantry.metadata
 # Upload a basket using the Index.
 upload_items = [{'path':'Path_to_file_or_dir', 'stub': False}]
 uploaded_info = pantry.upload_basket(upload_items,
-                                  basket_type='item',
-                                  parent_ids=Optional,
-                                  metadata=Optional,
-                                  label=Optional)
+                                     basket_type='item',
+                                     parent_ids=Optional,
+                                     metadata=Optional,
+                                     label=Optional)
 
 # Access the uploaded_basket (likely called well after uploading the basket).
 basket = pantry.get_basket(uploaded_info.uuid[0])
