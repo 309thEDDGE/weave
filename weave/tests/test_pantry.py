@@ -28,15 +28,14 @@ from weave.tests.pytest_resources import BucketForTest
 ###############################################################################
 
 # This module is long and has many tests. Pylint is complaining that it is too
-# long. I don't necessarily think that is bad in this case, as the alternative
-# would be to write the tests continuuing in a different script, which I think
-# is unnecesarily complex. Therefor, I am disabling this warning for this
-# script.
+# long. This isn't necessarily a bad thing, as the alternative would be to
+# write the tests continuuing in a different script, which is unnecesarily
+# complex. Disabling this warning for this script.
 # pylint: disable=too-many-lines
 
-# Pylint doesn't like that we are redefining the test fixture here from
-# test_basket, but I think this is the right way to do this in case at some
-# point in the future we need to differentiate the two.
+# Pylint doesn't like redefining the test fixture here from
+# test_basket, but this is the right way to do this in case at some
+# point in the future there is a need to differentiate the two.
 # pylint: disable=duplicate-code
 
 s3fs = s3fs.S3FileSystem(
@@ -58,7 +57,7 @@ def test_pantry(request, tmpdir):
     test_bucket.cleanup_bucket()
 
 
-# We need to ignore pylint's warning "redefined-outer-name" as this is simply
+# Ignore pylint's warning "redefined-outer-name" as this is simply
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
 
@@ -144,7 +143,7 @@ def set_up_malformed_baskets(request, tmpdir):
             tmp_basket_dir=tmp_basket_dir, uid=f"000{i}"
         )
 
-        # change a key in the bad basket_manifests
+        # Change a key in the bad basket_manifests
         if (i % 3) == 0:
             bad_addresses.append(address)
 
@@ -188,8 +187,8 @@ def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
     }
     expected_index = pd.DataFrame(truth_index_dict)
 
-    # We catch the warnings here, as it will warn for bad baskets, but we don't
-    # want the warning to drop through to the pytest log in this test.
+    # Catch the warnings here, as it will warn for bad baskets so they don't
+    # drop through to the pytest log in this test.
     # (Checking the warnings are correct is tested in the next unit test.)
     with warnings.catch_warnings(record=True) as warn:
         actual_index = create_index_from_fs(
@@ -225,7 +224,7 @@ def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
             "baskets found in the following locations "
             "do not follow specified weave schema:"
         )
-        # {bad_addresses} would be included in the message, but we can't do a
+        # {bad_addresses} would be included in the message, but it can't do a
         # direct string comparison due to FS dependent prefixes.
 
         warn_msg = str(warn[0].message)
@@ -234,7 +233,7 @@ def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
         warn_header_str = warn_msg[: warn_msg.find("\n")]
         assert warn_header_str == message
 
-        # Check the addresses returned in the warning are the ones we expect.
+        # Check the addresses returned in the warning are the ones expected.
         warning_addrs_str = warn_msg[warn_msg.find("\n") + 1 :]
         warning_addrs_list = (
             warning_addrs_str.strip("[]").replace("'", "").split(", ")
@@ -344,7 +343,7 @@ def test_upload_basket_updates_the_pantry(test_pantry):
     )
     pantry.index.generate_index()
 
-    # add some baskets
+    # Add some baskets.
     tmp_basket_dir_two = test_pantry.set_up_basket("basket_two")
     for _ in range(3):
         new_basket = pantry.upload_basket(
@@ -409,7 +408,7 @@ def test_index_get_basket_works_correctly(test_pantry):
     values
     """
 
-    uid = "0001"
+    uuid = "0001"
     tmp_basket_name = "basket_one"
     tmp_basket_type = "test_basket"
     txt_file_name = "test.txt"
@@ -418,7 +417,7 @@ def test_index_get_basket_works_correctly(test_pantry):
         tmp_basket_name, file_name=txt_file_name
     )
     test_pantry.upload_basket(
-        tmp_basket_dir=tmp_basket_dir, uid=uid, basket_type=tmp_basket_type
+        tmp_basket_dir=tmp_basket_dir, uid=uuid, basket_type=tmp_basket_type
     )
 
     pantry = Pantry(
@@ -431,14 +430,14 @@ def test_index_get_basket_works_correctly(test_pantry):
     retrieved_basket = pantry.get_basket(uid)
 
     expected_basket = Basket(
-        uid,
+        uuid,
         pantry=pantry,
     )
 
     expected_file_path = os.path.join(
         test_pantry.pantry_path,
         tmp_basket_type,
-        uid,
+        uuid,
         tmp_basket_name,
         txt_file_name,
     )
