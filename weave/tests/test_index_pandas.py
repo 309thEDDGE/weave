@@ -21,9 +21,9 @@ from weave.tests.pytest_resources import BucketForTest
 #  https://docs.pytest.org/en/7.3.x/how-to/fixtures.html#fixture-parametrize  #
 ###############################################################################
 
-# Pylint doesn't like that we are redefining the test fixture here from
-# test_basket, but I think this is the right way to do this in case at some
-# point in the future we need to differentiate the two.
+# Pylint doesn't like redefining the test fixture here from
+# test_basket, but this is the right way to do it if at some
+# point in the future the two need to be differentiated.
 # pylint: disable=duplicate-code
 
 s3fs = s3fs.S3FileSystem(
@@ -45,7 +45,7 @@ def test_pantry(request, tmpdir):
     test_bucket.cleanup_bucket()
 
 
-# We need to ignore pylint's warning "redefined-outer-name" as this is simply
+# Ignore pylint's warning "redefined-outer-name" as this is simply
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
 
@@ -110,7 +110,7 @@ def test_get_index_time_from_path(test_pantry):
     """Tests Index._get_index_time_from_path to ensure it returns the correct
     string."""
     path = "C:/asdf/gsdjls/1234567890-index.json"
-    # Obviously we need to test a protected access var here.
+    # Testing a protected access var here.
     # pylint: disable-next=protected-access
     time = Pantry(
         IndexPandas,
