@@ -28,8 +28,8 @@ from weave.tests.pytest_resources import BucketForTest, IndexForTest
 ###############################################################################
 
 # This module is long and has many tests. Pylint is complaining that it is too
-# long. This isn't necessarily a bad thing, as the alternative would be to
-# write the tests continuuing in a different script, which is unnecesarily
+# long. This isn't neccesarily a bad thing, as the alternative would be to
+# write the tests continuing in a different script, which is unnecessarily
 # complex. Disabling this warning for this script.
 # pylint: disable=too-many-lines
 
