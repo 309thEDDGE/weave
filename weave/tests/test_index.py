@@ -1398,3 +1398,32 @@ def test_index_get_basket_graceful_fail(test_pantry):
 
     with pytest.raises(ValueError, match=f"Basket does not exist: {bad_uid}"):
         ind.get_basket(bad_uid)
+
+
+def test_index_basket_with_no_version_number(test_pantry):
+    """Test that a basket that was created before the version number was
+    implemented still is able to be validated and an index created.
+    """
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
+    upload_path = test_pantry.upload_basket(tmp_basket_dir)
+
+    manifest_path = os.path.join(upload_path, "basket_manifest.json")
+    with test_pantry.file_system.open(manifest_path, "r") as file:
+        manifest_dict = json.load(file)
+
+    manifest_dict.pop("weave_version")
+
+    with open("basket_manifest.json", "w", encoding="utf-8") as file:
+        json.dump(manifest_dict, file)
+
+    test_pantry.file_system.upload("basket_manifest.json", manifest_path)
+
+    os.remove("basket_manifest.json")
+
+    ind = Index(pantry_name=test_pantry.pantry_name,
+                file_system=test_pantry.file_system)
+
+    ind.generate_index()
+
+    assert ind.index_df["weave_version"][0] == "<0.13.0"

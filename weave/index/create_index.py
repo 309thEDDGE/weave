@@ -2,7 +2,6 @@
 Home of the functionality concerning creating an index from a given file
 system.
 """
-from importlib import metadata
 import json
 import os
 import warnings
@@ -60,24 +59,20 @@ def create_index_from_fs(root_dir, file_system):
                                          )
             if basket_dict["basket_type"] != "index":
                 for field in basket_dict.keys():
-                    if field == "weave_version":
-                        print('field: ', field)
-                        print('weave version: ', metadata.version("weave"))
-                        index_dict[field].append(metadata.version("weave"))
-                    else:
-                        index_dict[field].append(basket_dict[field])
+                    index_dict[field].append(basket_dict[field])
                 index_dict["address"].append(os.path.dirname(basket_json_address))
                 index_dict["storage_type"].append(file_system.__class__.__name__)
+                if "weave_version" not in basket_dict.keys():
+                    # Every basket uploaded before 0.13.0, should not have a
+                    # version number, therefore every basket with no version
+                    # number will be shown as <0.13.0
+                    index_dict["weave_version"].append("<0.13.0")
 
     if len(bad_baskets) != 0:
         warnings.warn('baskets found in the following locations '
                       'do not follow specified weave schema:\n'
                       f'{bad_baskets}')
-        
-        
-    print('\nindex_dict: \n', index_dict)
-    
-    
+
     index = pd.DataFrame(index_dict)
     index["uuid"] = index["uuid"].astype(str)
     return index
