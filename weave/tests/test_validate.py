@@ -422,7 +422,7 @@ def test_validate_manifest_schema_additional_field(test_validate):
             nested_supp_path = integrity_data['upload_path']
         if integrity_data['upload_path'].endswith(".txt"):
             test_txt_path = integrity_data['upload_path']
-            
+
     with test_validate.file_system.open(nested_supp_path, "rb",) as supp_file:
         nested_supp_dict = json.load(supp_file)
 

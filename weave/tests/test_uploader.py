@@ -589,7 +589,7 @@ def test_upload_basket_upload_items_is_not_a_string(test_basket):
     assert manifest_data['uuid'] != "null"
 
 
-def test_upload_basket_upload_items_is_not_a_string(test_basket):
+def test_upload_basket_upload_items_is_not_a_list_of_strings(test_basket):
     """Test that upload_basket raises a TypeError when upload_items is not a
     list of dictionaries.
     """
