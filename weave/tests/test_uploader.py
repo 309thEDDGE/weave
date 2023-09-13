@@ -563,39 +563,6 @@ def test_upload_basket_upload_items_is_not_a_string(test_basket):
 
     # Create a temporary basket with a test file.
     tmp_basket_dir_name = "test_basket_tmp_dir"
-    tmp_dir = test_basket.set_up_basket(tmp_basket_dir_name)
-
-    #Initialize all kwargs except unique_id
-    upload_items = [{"path": tmp_dir.strpath, "stub": False}]
-    basket_type = "test_basket"
-    upload_path = os.path.join(test_basket.pantry_name, basket_type)
-
-    uploading_basket = weave.upload.UploadBasket(
-        upload_items=upload_items,
-        upload_directory=upload_path,
-        basket_type=basket_type,
-        file_system=test_basket.file_system,
-    )
-
-    assert uploading_basket.kwargs.get("unique_id") is not None
-
-    tmp_files = test_basket.file_system.ls(upload_path)
-    tmp_files.sort()
-
-    with test_basket.file_system.open(tmp_files[0], "r", encoding="utf-8")\
-            as outfile:
-        manifest_data = json.load(outfile)
-
-    assert manifest_data['uuid'] != "null"
-
-
-def test_upload_basket_upload_items_is_not_a_list_of_strings(test_basket):
-    """Test that upload_basket raises a TypeError when upload_items is not a
-    list of dictionaries.
-    """
-
-    # Create a temporary basket with a test file.
-    tmp_basket_dir_name = "test_basket_tmp_dir"
     test_basket.set_up_basket(tmp_basket_dir_name)
 
     upload_items = "n o t a r e a l p a t h"
