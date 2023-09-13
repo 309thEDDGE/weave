@@ -47,10 +47,7 @@ class IndexPandas(IndexABC):
 
     def __len__(self):
         """Returns the number of baskets in the index."""
-        if self.sync and not self.is_index_current():
-            self.sync_index()
-        elif self.index_df is None:
-            self.sync_index()
+        self._sync_if_needed()
         return len(self.index_df)
 
     def __str__(self):
@@ -66,6 +63,22 @@ class IndexPandas(IndexABC):
     def pantry_path(self):
         """The pantry path referenced by this Index."""
         return self._pantry_path
+
+    def _sync_if_needed(self):
+        """Check if the index_df is up to date, and sync if necessary
+
+        Returns
+        ----------
+        bool
+            Returns a boolean indicating if the index was updated.
+        """
+        if self.sync and not self.is_index_current():
+            self.sync_index()
+        elif self.index_df is None:
+            self.sync_index()
+        else:
+            return False
+        return True
 
     def generate_metadata(self, **kwargs):
         """Populates the metadata for the index.
@@ -118,11 +131,7 @@ class IndexPandas(IndexABC):
             Returns a dataframe of the manifest data of the baskets in the
             pantry.
         """
-        if self.sync:
-            if not self.is_index_current():
-                self.sync_index()
-        elif self.index_df is None:
-            self.sync_index()
+        self._sync_if_needed()
         return self.index_df.head(max_rows)
 
     def clean_up_indices(self, n_keep=20):
@@ -210,8 +219,8 @@ class IndexPandas(IndexABC):
         upload_index = kwargs.get("upload_index", True)
         if not isinstance(basket_address, list):
             basket_address = [basket_address]
-        if self.index_df is None:
-            self.sync_index()
+
+        self._sync_if_needed()
 
         remove_item = self.index_df[
             (self.index_df["uuid"].isin(basket_address))
@@ -266,11 +275,7 @@ class IndexPandas(IndexABC):
         data = kwargs.get("data", pd.DataFrame())
         descendants = kwargs.get("descendants", [])
 
-        if self.sync:
-            if not self.is_index_current():
-                self.sync_index()
-        elif self.index_df is None:
-            self.sync_index()
+        self._sync_if_needed()
 
         # Validate the bucket exists. if it does,
         # make sure either the address or the uuid is used
@@ -358,11 +363,7 @@ class IndexPandas(IndexABC):
         data = kwargs.get("data", pd.DataFrame())
         ancestors = kwargs.get("ancestors", [])
 
-        if self.sync:
-            if not self.is_index_current():
-                self.sync_index()
-        elif self.index_df is None:
-            self.sync_index()
+        self._sync_if_needed()
 
         # Validate the bucket exists. if it does,
         # make sure either the address or the uuid is used
@@ -426,11 +427,7 @@ class IndexPandas(IndexABC):
 
         **kwargs unused for this class.
         """
-        if self.sync and not self.is_index_current():
-            self.sync_index()
-        elif self.index_df is None:
-            self.sync_index()
-        else:
+        if not self._sync_if_needed():
             self._upload_index(
                 pd.concat([self.index_df, entry_df], ignore_index=True)
             )
@@ -452,10 +449,7 @@ class IndexPandas(IndexABC):
         rows: pd.DataFrame
             Manifest information for the requested basket.
         """
-        if self.sync and not self.is_index_current():
-            self.sync_index()
-        elif self.index_df is None:
-            self.sync_index()
+        self._sync_if_needed()
 
         if not isinstance(basket_address, list):
             basket_address = [basket_address]
@@ -480,10 +474,7 @@ class IndexPandas(IndexABC):
         ----------
         pandas.DataFrame containing the manifest data of baskets of the type.
         """
-        if self.sync and not self.is_index_current():
-            self.sync_index()
-        elif self.index_df is None:
-            self.sync_index()
+        self._sync_if_needed()
 
         return self.index_df[
             self.index_df["basket_type"] == basket_type
@@ -504,10 +495,7 @@ class IndexPandas(IndexABC):
         ----------
         pandas.DataFrame containing the manifest data of baskets with the label
         """
-        if self.sync and not self.is_index_current():
-            self.sync_index()
-        elif self.index_df is None:
-            self.sync_index()
+        self._sync_if_needed()
 
         return self.index_df[
             self.index_df["label"] == basket_label
@@ -539,10 +527,7 @@ class IndexPandas(IndexABC):
         if start_time is None and end_time is None:
             return self.to_pandas_df(max_rows, **kwargs)
 
-        if self.sync and not self.is_index_current():
-            self.sync_index()
-        elif self.index_df is None:
-            self.sync_index()
+        self._sync_if_needed()
 
         if start_time is None:
             return self.index_df[
@@ -570,4 +555,5 @@ class IndexPandas(IndexABC):
         ----------
         pandas.DataFrame of the resulting query.
         """
+        self._sync_if_needed()
         return self.index_df.query(expr)
