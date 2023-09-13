@@ -705,7 +705,7 @@ def test_index_abc_get_parents_uuid_works(test_pantry):
     test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="1001")
 
     tmp_dir = test_pantry.set_up_basket("child_0")
-    _ = test_pantry.upload_basket(
+    test_pantry.upload_basket(
         tmp_basket_dir=tmp_dir, uid="0000", parent_ids=["1001", "1000"]
     )
 
@@ -1019,7 +1019,7 @@ def test_index_abc_get_children_uuid_works(test_pantry):
 
     # Setup random strucutre of parents and children
     tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
-    _ = test_pantry.upload_basket(
+    test_pantry.upload_basket(
         tmp_basket_dir=tmp_dir, uid="3000"
     )
 
@@ -1411,10 +1411,10 @@ def test_index_abc_get_baskets_by_upload_time_raises_value_error2(test_pantry):
     test_pantry, ind = test_pantry
 
     with pytest.raises(ValueError, match="start_time is not datetime object."):
-        _ = ind.get_baskets_by_upload_time(start_time=1)
+        ind.get_baskets_by_upload_time(start_time=1)
     with pytest.raises(ValueError, match="end_time is not datetime object."):
         time_str = "2022-02-03 11:12:13"
-        _ = ind.get_baskets_by_upload_time(end_time=time_str)
+        ind.get_baskets_by_upload_time(end_time=time_str)
 
 
 def test_index_abc_get_baskets_by_upload_time_start_works(test_pantry):
