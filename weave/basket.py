@@ -105,7 +105,9 @@ class BasketInitializer:
                 f"does not exist: {self.supplement_path}"
             )
 
-
+# Ignoring because there is a necessary and
+# reasonable amount of variables in this case
+# pylint: disable=too-many-instance-attributes
 class Basket(BasketInitializer):
     """This class provides convenience functions for accessing basket contents.
     """
@@ -125,6 +127,7 @@ class Basket(BasketInitializer):
         """
 
         super().__init__(basket_address, pantry_name, **kwargs)
+
         self.manifest = None
         self.supplement = None
         self.metadata = None
@@ -230,8 +233,7 @@ class Basket(BasketInitializer):
         return self.file_system.ls(ls_path, refresh=True)
 
     def to_pandas_df(self):
-        """Return a dataframe of the basket member variables.
-        """
+        """Return a dataframe of the basket member variables."""
 
         data = [self.uuid, self.upload_time,
                 self.parent_uuids, self.basket_type,

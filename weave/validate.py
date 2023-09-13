@@ -140,7 +140,6 @@ def _check_level(pantry_name, current_dir, **kwargs):
                                     in_basket=in_basket)
             # If directory is not a basket, check all files in the
             # current dir. If everything is valid, _check_level returns True
-
             # If it isn't valid, return False
             # and continue looking at all the sub-directories
             if not _check_level(pantry_name,
@@ -334,6 +333,7 @@ def _handle_none_of_the_above(pantry_name, file, file_system, index_df):
     """
 
     basket_dir, _ = os.path.split(file)
+
     if file_system.info(file)['type'] == "directory":
         if _check_level(pantry_name,
                         file,

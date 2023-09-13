@@ -309,7 +309,6 @@ def test_validate_manifest_schema_missing_field(test_validate):
     """Make basket with invalid manifest schema, check that it collects one
        warning.
     """
-
     # The manifest is missing the uuid field
     # This is invalid against the schema.
     bad_manifest_data = """{
@@ -423,7 +422,7 @@ def test_validate_manifest_schema_additional_field(test_validate):
             nested_supp_path = integrity_data['upload_path']
         if integrity_data['upload_path'].endswith(".txt"):
             test_txt_path = integrity_data['upload_path']
-
+            
     with test_validate.file_system.open(nested_supp_path, "rb",) as supp_file:
         nested_supp_dict = json.load(supp_file)
 
@@ -1044,7 +1043,6 @@ def test_validate_invalid_metadata_json(test_validate):
     """Make a basket with invalid metadata json, check that it collects
        one warning.
     """
-
     tmp_basket_dir = test_validate.set_up_basket(
         "bad_meta",
         is_man=True,
@@ -1560,6 +1558,7 @@ def test_validate_file_not_in_supplement(test_validate):
 
     # Make a file and upload it to the file system
     upload_file_path = os.path.join(temp, "MY_UNFOUND_FILE.txt")
+
     with open("MY_UNFOUND_FILE.txt", "w", encoding="utf-8") as file:
         json.dump("TEST FAKE FILE", file)
 
