@@ -25,7 +25,7 @@ class IndexPandas(IndexABC):
             The fsspec object which hosts the bucket to index.
             If file_system is None, then the default fs is retrieved from the
             config.
-        **sync: bool
+        **sync: bool (optional)
             Whether or not to check the index on disk to ensure this Index
             object stays current. If True, then some operations may take
             slightly longer, as they will check to see if the current Index
