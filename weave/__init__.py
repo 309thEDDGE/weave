@@ -23,7 +23,7 @@ from .basket import Basket
 from .index.index import Index
 from .metadata_db import load_mongo
 
-__version__ = "0.12.0"
+__version__ = "0.13.0"
 
 __all__ = [
     "Basket",

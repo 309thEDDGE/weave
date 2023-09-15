@@ -62,6 +62,11 @@ def create_index_from_fs(root_dir, file_system):
                     index_dict[field].append(basket_dict[field])
                 index_dict["address"].append(os.path.dirname(basket_json_address))
                 index_dict["storage_type"].append(file_system.__class__.__name__)
+                if "weave_version" not in basket_dict.keys():
+                    # Every basket uploaded before 0.13.0, should not have a
+                    # version number, therefore every basket with no version
+                    # number will be shown as <0.13.0
+                    index_dict["weave_version"].append("<0.13.0")
 
     if len(bad_baskets) != 0:
         warnings.warn('baskets found in the following locations '

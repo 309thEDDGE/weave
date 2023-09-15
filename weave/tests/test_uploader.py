@@ -1360,3 +1360,18 @@ def test_upload_basket_file_contents_identical(test_basket):
 
     with test_basket.file_system.open(upload_file_path, "r") as r_file:
         assert r_file.read() == local_file_data
+
+
+def test_upload_correct_version_number(test_basket):
+    """Test that when a basket is uploaded, the manifest contains the
+       correct version of weave
+    """
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = test_basket.set_up_basket(tmp_basket_dir_name)
+    upload_path = test_basket.upload_basket(tmp_basket_dir)
+
+    manifest_path = os.path.join(upload_path, "basket_manifest.json")
+    with test_basket.file_system.open(manifest_path, "r") as file:
+        manifest_dict = json.load(file)
+
+    assert manifest_dict["weave_version"] == weave.__version__
