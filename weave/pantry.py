@@ -33,7 +33,7 @@ class Pantry():
         pantry_path: str (default="basket-data")
             Name of the pantry this object is associated with.
         **file_system: fsspec object (optional)
-            The fsspec object which hosts the bucket we desire to index.
+            The fsspec object which hosts the pantry we desire to index.
             If file_system is None, then the default fs is retrieved from the
             config.
         """
@@ -171,7 +171,7 @@ class Pantry():
         The Basket object associated with the given UUID or path.
         """
         # Create a Basket from the given address, and the index's file_system
-        # and bucket name. Basket will catch invalid inputs and raise
+        # and pantry name. Basket will catch invalid inputs and raise
         # appropriate errors.
         row = self.index.get_rows(basket_address)
         if len(row) == 0:

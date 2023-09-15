@@ -14,7 +14,7 @@ import weave
 from weave import IndexSQLite
 from weave.index.index_pandas import IndexPandas
 from weave.index.create_index import create_index_from_fs
-from weave.tests.pytest_resources import BucketForTest, IndexForTest
+from weave.tests.pytest_resources import PantryForTest, IndexForTest
 
 
 ###############################################################################
@@ -62,13 +62,13 @@ for iter_file_system in file_systems:
 
 @pytest.fixture(params=params, ids=params_ids)
 def test_pantry(request, tmpdir):
-    """Sets up test bucket for the tests"""
+    """Sets up test pantry for the tests"""
     file_system = request.param[0]
     pantry_path = (
-        "pytest-temp-bucket" f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
+        "pytest-temp-pantry" f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
     )
 
-    test_bucket = BucketForTest(tmpdir, file_system, pantry_path=pantry_path)
+    test_pantry = PantryForTest(tmpdir, file_system, pantry_path=pantry_path)
 
     index_constructor = request.param[1]
     test_index = IndexForTest(
@@ -78,8 +78,8 @@ def test_pantry(request, tmpdir):
     )
     index = test_index.index
 
-    yield test_bucket, index
-    test_bucket.cleanup_bucket()
+    yield test_pantry, index
+    test_pantry.cleanup_pantry()
     test_index.cleanup_index()
 
 
@@ -93,7 +93,7 @@ def test_index_only(request):
     index_constructor = request.param
     file_system = weave.config.get_file_system()
     pantry_path = (
-        "pytest-temp-bucket" f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
+        "pytest-temp-pantry" f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
     )
 
     test_index = IndexForTest(
@@ -115,7 +115,7 @@ def test_index_abc_builtin_len_works(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    # Put basket in the temporary bucket.
+    # Put basket in the temporary pantry.
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_two")
@@ -155,7 +155,7 @@ def test_index_abc_generate_index_works(test_pantry):
     ind.generate_index()
     assert len(ind) == 0, "Incorrect number of elements in the index."
 
-    # Put basket in the temporary bucket
+    # Put basket in the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
@@ -177,7 +177,7 @@ def test_index_abc_to_pandas_df_works(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    # Put basket in the temporary bucket
+    # Put basket in the temporary pantry
     uuid, basket_type, label = "0001", "test_basket", "test_label"
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     up_dir = test_pantry.upload_basket(
@@ -261,7 +261,7 @@ def test_index_abc_track_basket_adds_single_basket(test_pantry):
     ind.generate_index()
     assert len(ind) == 0, "Incorrect number of elements in the index."
 
-    # Put basket in the temporary bucket
+    # Put basket in the temporary pantry
     uuid, basket_type, label = "0001", "test_basket", "test_label"
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     up_dir = test_pantry.upload_basket(
@@ -301,7 +301,7 @@ def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
     # Generate the index.
     ind.generate_index()
 
-    # Put basket in the temporary bucket
+    # Put basket in the temporary pantry
     uuids = ["0001", "0002"]
     basket_type = "test_basket"
     test_label = "test_label"
@@ -373,7 +373,7 @@ def test_index_abc_untrack_basket_removes_single_basket(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    # Put basket in the temporary bucket.
+    # Put basket in the temporary pantry.
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_two")
@@ -401,7 +401,7 @@ def test_index_abc_untrack_basket_raises_warning(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    # Put basket in the temporary bucket.
+    # Put basket in the temporary pantry.
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
@@ -439,7 +439,7 @@ def test_index_abc_untrack_basket_removes_multiple_baskets(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    # Put basket in the temporary bucket.
+    # Put basket in the temporary pantry.
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
@@ -470,7 +470,7 @@ def test_index_abc_get_rows_single_address_works(test_pantry):
     labels = ["label_1"]
     parent_ids = [[]]
 
-    # Put basket in the temporary bucket.
+    # Put basket in the temporary pantry.
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     up_dir1 = test_pantry.upload_basket(
         tmp_basket_dir=tmp_basket_dir_one,
@@ -537,7 +537,7 @@ def test_index_abc_get_rows_multiple_address_works(test_pantry):
     label1 = "label_1"
     parent_ids1 = []
 
-    # Put basket in the temporary bucket.
+    # Put basket in the temporary pantry.
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     up_dir1 = test_pantry.upload_basket(
         tmp_basket_dir=tmp_basket_dir_one,
@@ -1274,7 +1274,7 @@ def test_index_abc_get_baskets_of_type_works(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    # Put basket in the temporary bucket.
+    # Put basket in the temporary pantry.
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(
         tmp_basket_dir=tmp_basket_dir_one,
@@ -1300,7 +1300,7 @@ def test_index_abc_get_baskets_of_type_max_rows_works(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    # Put basket in the temporary bucket.
+    # Put basket in the temporary pantry.
     for basket_iter in range(3):
         tmp_basket_dir_one = test_pantry.set_up_basket(f"basket_{basket_iter}")
         test_pantry.upload_basket(
@@ -1321,7 +1321,7 @@ def test_index_abc_get_baskets_of_type_returns_empty_df(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    # Put basket in the temporary bucket.
+    # Put basket in the temporary pantry.
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(
         tmp_basket_dir=tmp_basket_dir_one,
@@ -1340,7 +1340,7 @@ def test_index_abc_get_baskets_of_label_works(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    # Put basket in the temporary bucket.
+    # Put basket in the temporary pantry.
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(
         tmp_basket_dir=tmp_basket_dir_one,
@@ -1367,7 +1367,7 @@ def test_index_abc_get_baskets_of_label_max_rows_works(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    # Put basket in the temporary bucket.
+    # Put basket in the temporary pantry.
     for basket_iter in range(3):
         tmp_basket_dir_one = test_pantry.set_up_basket(f"basket_{basket_iter}")
         test_pantry.upload_basket(
@@ -1389,7 +1389,7 @@ def test_index_abc_get_baskets_of_label_returns_empty_df(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    # Put basket in the temporary bucket.
+    # Put basket in the temporary pantry.
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(
         tmp_basket_dir=tmp_basket_dir_one,
@@ -1422,7 +1422,7 @@ def test_index_abc_get_baskets_by_upload_time_start_works(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    # Put basket in the temporary bucket.
+    # Put basket in the temporary pantry.
     columns = [
         "uuid",
         "upload_time",
@@ -1479,7 +1479,7 @@ def test_index_abc_get_baskets_by_upload_time_end_works(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    # Put basket in the temporary bucket.
+    # Put basket in the temporary pantry.
     columns = [
         "uuid",
         "upload_time",
@@ -1539,7 +1539,7 @@ def test_index_abc_get_baskets_by_upload_time_start_end_works(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    # Put basket in the temporary bucket.
+    # Put basket in the temporary pantry.
     columns = [
         "uuid",
         "upload_time",
@@ -1608,7 +1608,7 @@ def test_index_abc_get_baskets_by_upload_time_returns_empty_df(test_pantry):
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    # Put basket in the temporary bucket.
+    # Put basket in the temporary pantry.
     columns = [
         "uuid",
         "upload_time",

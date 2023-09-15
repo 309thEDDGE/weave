@@ -12,7 +12,7 @@ from weave.basket import Basket
 from weave.index.create_index import create_index_from_fs
 from weave.pantry import Pantry
 from weave.index.index_pandas import IndexPandas
-from weave.tests.pytest_resources import BucketForTest
+from weave.tests.pytest_resources import PantryForTest
 
 ###############################################################################
 #                      Pytest Fixtures Documentation:                         #
@@ -43,9 +43,9 @@ local_fs = LocalFileSystem()
 def test_pantry(request, tmpdir):
     """Fixture to set up and tear down test_basket"""
     file_system = request.param
-    test_bucket = BucketForTest(tmpdir, file_system)
-    yield test_bucket
-    test_bucket.cleanup_bucket()
+    test_pantry = PantryForTest(tmpdir, file_system)
+    yield test_pantry
+    test_pantry.cleanup_pantry()
 
 
 def test_basket_basket_path_is_pathlike():
@@ -424,7 +424,7 @@ def test_basket_ls_after_find(test_pantry):
     tmp_basket_dir = test_pantry.add_lower_dir_to_temp_basket(tmp_basket_dir)
     basket_path = test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
-    # Create index on bucket
+    # Create index on pantry
     create_index_from_fs(test_pantry.pantry_path, test_pantry.file_system)
 
     # Run find in case index creation changes
@@ -462,7 +462,7 @@ def test_basket_init_from_uuid(test_pantry):
     """
     Test that a basket can be successfully initialized from a UUID.
     """
-    # Put basket in the temporary bucket
+    # Put basket in the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     uuid = "0000"
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
@@ -484,7 +484,7 @@ def test_basket_init_fails_if_uuid_does_not_exist(test_pantry):
     Test that an error is raised when trying to initialize a basket using a
     UUID that does not have an associated basket.
     """
-    # Put basket in the temporary bucket
+    # Put basket in the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     uuid = "0000"
     bad_uuid = "a bad uuid"
@@ -503,14 +503,14 @@ def test_basket_init_fails_if_uuid_does_not_exist(test_pantry):
 def test_basket_pantry_name_does_not_exist(test_pantry):
     """
     Test than an error is raised when trying to initialize a basket using a
-    UUID, but using a bucket name that does not exist.
+    UUID, but using a pantry name that does not exist.
     """
-    # Put basket in the temporary bucket
+    # Put basket in the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     uuid = "0000"
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
 
-    pantry_path = "the wrong bucket 007"
+    pantry_path = "the wrong pantry 007"
     error_msg = f'Invalid pantry Path. Pantry does not exist at: {pantry_path}'
     with pytest.raises(ValueError, match=error_msg):
         pantry = Pantry(IndexPandas,

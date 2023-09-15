@@ -22,7 +22,7 @@ class IndexPandas(IndexABC):
         pantry_path: str
             Path of the pantry which the desired index is associated with.
         file_system: fsspec object
-            The fsspec object which hosts the bucket to index.
+            The fsspec object which hosts the pantry to index.
             If file_system is None, then the default fs is retrieved from the
             config.
         **sync: bool (optional)
@@ -277,7 +277,7 @@ class IndexPandas(IndexABC):
 
         self._sync_if_needed()
 
-        # Validate the bucket exists. if it does,
+        # Validate the pantry exists. if it does,
         # make sure either the address or the uuid is used
         if (not self.file_system.exists(basket_address) and
             basket_address not in self.index_df.uuid.values):
@@ -365,7 +365,7 @@ class IndexPandas(IndexABC):
 
         self._sync_if_needed()
 
-        # Validate the bucket exists. if it does,
+        # Validate the pantry exists. if it does,
         # make sure either the address or the uuid is used
         if (not self.file_system.exists(basket_address) and
             basket_address not in self.index_df.uuid.values):

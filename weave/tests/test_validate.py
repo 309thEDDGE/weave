@@ -10,7 +10,7 @@ from fsspec.implementations.local import LocalFileSystem
 from weave import validate
 from weave.pantry import Pantry
 from weave.index.index_pandas import IndexPandas
-from weave.tests.pytest_resources import BucketForTest
+from weave.tests.pytest_resources import PantryForTest
 
 # This module is long and has many tests. Pylint is complaining that it is too
 # long. This isn't necessarily bad in this case, as the alternative
@@ -20,14 +20,14 @@ from weave.tests.pytest_resources import BucketForTest
 # pylint: disable=too-many-lines
 
 
-class ValidateForTest(BucketForTest):
+class ValidateForTest(PantryForTest):
     """A class to test functions in validate.py"""
 
     # The arguments for the below function should be changed,
-    # as it is over-riding BucketForTest.set_up_basket. Pylint hates it.
+    # as it is over-riding PantryForTest.set_up_basket. Pylint hates it.
     # pylint: disable-next=arguments-differ
     def set_up_basket(self, tmp_dir_name, **kwargs):
-        """Overrides BucketForTest's set_up_basket to better test_validate.py
+        """Overrides PantryForTest's set_up_basket to better test_validate.py
 
         Sets up the basket with a nested basket depending on the values of
         the boolean params when this is called. if the is_man is true, a
@@ -178,7 +178,7 @@ def test_validate(request, tmpdir):
     file_system = request.param
     test_validate_obj = ValidateForTest(tmpdir, file_system)
     yield test_validate_obj
-    test_validate_obj.cleanup_bucket()
+    test_validate_obj.cleanup_pantry()
 
 
 # Ignoring pylint's warning "redefined-outer-name" as this is simply
@@ -186,21 +186,21 @@ def test_validate(request, tmpdir):
 # pylint: disable=redefined-outer-name
 
 def test_validate_pantry_does_not_exist(test_validate):
-    """Give a bucket path that does not exist and check that it throws
+    """Give a pantry path that does not exist and check that it throws
        an error.
     """
 
-    bucket_path = Path("THISisNOTaPROPERbucketNAMEorPATH")
+    pantry_path = Path("THISisNOTaPROPERpantryNAMEorPATH")
 
     # Check that the correct error is raised
     with pytest.raises(
         ValueError,
         match=f"Invalid pantry Path. "
-        f"Pantry does not exist at: {bucket_path}"
+        f"Pantry does not exist at: {pantry_path}"
     ):
         pantry = Pantry(
             IndexPandas,
-            pantry_path=bucket_path,
+            pantry_path=pantry_path,
             file_system=test_validate.file_system
         )
         validate.validate_pantry(pantry)
@@ -1275,7 +1275,7 @@ def test_validate_deeply_nested(test_validate):
 
 
 def test_validate_no_files_or_dirs(test_validate):
-    """Create an empty bucket with no files, make sure it returns
+    """Create an empty pantry with no files, make sure it returns
        an empty list (valid).
     """
 
@@ -1301,7 +1301,7 @@ def test_validate_no_files_or_dirs(test_validate):
 
 
 def test_validate_no_baskets(test_validate):
-    """Create a bucket with no baskets, but with files, test that it
+    """Create a pantry with no baskets, but with files, test that it
        returns an empty list (valid).
     """
 
@@ -1334,7 +1334,7 @@ def test_validate_no_baskets(test_validate):
 
 
 def test_validate_twenty_baskets_invalid(test_validate):
-    """Create bucket with 20 baskets, and 1 nested, check that it collects
+    """Create pantry with 20 baskets, and 1 nested, check that it collects
        one warning.
     """
 
@@ -1378,7 +1378,7 @@ def test_validate_twenty_baskets_invalid(test_validate):
 
 
 def test_validate_twenty_baskets_valid(test_validate):
-    """Create bucket with 20 baskets, and 0 nested, check that it
+    """Create pantry with 20 baskets, and 0 nested, check that it
        returns an empty list (valid).
     """
 
@@ -1419,7 +1419,7 @@ def test_validate_call_check_level(test_validate):
     Create a basket, call _check_level() which is a private function,
     check that it returns true. It returns true, because the _check_level
     function checks all files an directories of the given dir, so it just
-    acts like it is at a random dir instead of the root of the bucket.
+    acts like it is at a random dir instead of the root of the pantry.
     """
 
     tmp_basket_dir = test_validate.set_up_basket("my_basket")
@@ -1450,8 +1450,8 @@ def test_validate_call_validate_basket(test_validate):
 
     Create a basket, call _validate_basket(), which is a private function.
     check that an error is thrown. it throws an error because
-    _validate_basket assumes it is given a basket dir, not a bucket dir.
-    so there is no manifest found inside the bucket dir.
+    _validate_basket assumes it is given a basket dir, not a pantry dir.
+    so there is no manifest found inside the pantry dir.
     """
 
     tmp_basket_dir = test_validate.set_up_basket("my_basket")
@@ -1696,7 +1696,7 @@ def test_validate_file_not_in_supplement(test_validate):
     # Remove the local file that we created
     os.remove("MY_UNFOUND_FILE.txt")
 
-    # Call validate_bucket, see that it returns a list of basket errors
+    # Call validate_pantry, see that it returns a list of basket errors
     pantry = Pantry(
         IndexPandas,
         pantry_path=test_validate.pantry_path,

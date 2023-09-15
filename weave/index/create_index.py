@@ -14,13 +14,13 @@ from .validate_basket import validate_basket_dict
 
 
 def create_index_from_fs(root_dir, file_system):
-    """Recursively parse an bucket and create an index
+    """Recursively parse an pantry and create an index
 
     Parameters:
         root_dir: str
-            path to bucket
+            path to pantry
         file_system: fsspec object
-            the fsspec file system hosting the bucket to be indexed.
+            the fsspec file system hosting the pantry to be indexed.
 
     Returns:
         index: a pandas DataFrame with columns

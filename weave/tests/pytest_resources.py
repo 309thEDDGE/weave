@@ -37,7 +37,7 @@ def file_path_in_list(search_path, search_list):
     return False
 
 
-class BucketForTest:
+class PantryForTest:
     """Handles resources for much of weave testing."""
 
     def __init__(self, tmpdir, file_system, pantry_path=None):
@@ -47,19 +47,19 @@ class BucketForTest:
 
         if self.pantry_path is None:
             self.pantry_path = (
-                "pytest-temp-bucket"
+                "pytest-temp-pantry"
                 f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
             )
         self.basket_list = []
-        self._set_up_bucket()
+        self._set_up_pantry()
 
-    def _set_up_bucket(self):
-        """Create a temporary Bucket for testing purposes."""
+    def _set_up_pantry(self):
+        """Create a temporary pantry for testing purposes."""
         try:
             self.file_system.mkdir(self.pantry_path)
         except FileExistsError:
-            self.cleanup_bucket()
-            self._set_up_bucket()
+            self.cleanup_pantry()
+            self._set_up_pantry()
 
     def set_up_basket(
         self, tmp_dir_name, file_name="test.txt", file_content="This is a test"
@@ -85,7 +85,7 @@ class BucketForTest:
     def upload_basket(
         self, tmp_basket_dir, uid="0000", basket_type="test_basket", **kwargs
     ):
-        """Upload a temporary (local) basket to the S3 test bucket."""
+        """Upload a temporary (local) basket to the S3 test pantry."""
         upload_items = [
             {"path": str(tmp_basket_dir.realpath()), "stub": False}
         ]
@@ -103,8 +103,8 @@ class BucketForTest:
         ).get_upload_path()
         return up_dir
 
-    def cleanup_bucket(self):
-        """Delete the temporary test bucket, including any uploaded baskets."""
+    def cleanup_pantry(self):
+        """Delete the temporary test pantry, including any uploaded baskets."""
         self.file_system.rm(self.pantry_path, recursive=True)
 
 # This class is to facilitate creating and deleting indices for tests.
@@ -118,7 +118,7 @@ class IndexForTest:
 
         if self.pantry_path is None:
             self.pantry_path = (
-                "pytest-temp-bucket"
+                "pytest-temp-pantry"
                 f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
             )
 

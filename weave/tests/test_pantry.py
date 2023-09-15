@@ -14,7 +14,7 @@ from weave import Basket
 from weave.index.create_index import create_index_from_fs
 from weave.index.index_pandas import IndexPandas
 from weave.pantry import Pantry
-from weave.tests.pytest_resources import BucketForTest
+from weave.tests.pytest_resources import PantryForTest
 
 
 ###############################################################################
@@ -50,11 +50,11 @@ local_fs = LocalFileSystem()
     ids=["S3FileSystem", "LocalFileSystem"],
 )
 def test_pantry(request, tmpdir):
-    """Sets up test bucket for the tests"""
+    """Sets up test pantry for the tests"""
     file_system = request.param
-    test_bucket = BucketForTest(tmpdir, file_system)
-    yield test_bucket
-    test_bucket.cleanup_bucket()
+    test_pantry = PantryForTest(tmpdir, file_system)
+    yield test_pantry
+    test_pantry.cleanup_pantry()
 
 
 # Ignore pylint's warning "redefined-outer-name" as this is simply
@@ -62,7 +62,7 @@ def test_pantry(request, tmpdir):
 # pylint: disable=redefined-outer-name
 
 def test_root_dir_does_not_exist(test_pantry):
-    """try to create an index in a bucket that doesn't exist,
+    """try to create an index in a pantry that doesn't exist,
     check that it throws an error
     """
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
@@ -133,7 +133,7 @@ def set_up_malformed_baskets(request, tmpdir):
     upload a basket with a basket_details.json with incorrect keys.
     """
     file_system = request.param
-    test_pantry = BucketForTest(tmpdir, file_system)
+    test_pantry = PantryForTest(tmpdir, file_system)
 
     good_addresses = []
     bad_addresses = []
@@ -168,7 +168,7 @@ def set_up_malformed_baskets(request, tmpdir):
             good_addresses.append(address)
 
     yield test_pantry, good_addresses, bad_addresses
-    test_pantry.cleanup_bucket()
+    test_pantry.cleanup_pantry()
 
 
 def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
@@ -264,7 +264,7 @@ def test_pantry_fails_with_bad_path(test_pantry):
 def test_delete_basket_deletes_basket(test_pantry):
     """Tests Index.delete_basket to make sure it does, in fact, delete the
     basket."""
-    # Put basket in the temporary bucket
+    # Put basket in the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
@@ -302,7 +302,7 @@ def test_delete_basket_deletes_basket(test_pantry):
 def test_pantry_delete_basket_with_parents(test_pantry):
     """Tests Index.delete_basket to make sure it does, in fact, delete the
     basket."""
-    # Put basket in the temporary bucket
+    # Put basket in the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
     # Add another basket
@@ -331,7 +331,7 @@ def test_upload_basket_updates_the_pantry(test_pantry):
     This test will add another basket using Index.upload_basket, and then check
     to ensure that the index_df has been updated.
     """
-    # Put basket in the temporary bucket
+    # Put basket in the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
@@ -527,7 +527,7 @@ def test_upload_basket_works_on_empty_basket(test_pantry):
     not have any baskets yet. This test will make sure that this functionality
     is present, and that the index_df has been updated.
     """
-    # Put basket in the temporary bucket
+    # Put basket in the temporary pantry
     tmp_basket = test_pantry.set_up_basket("basket_one")
     pantry = Pantry(
         IndexPandas,

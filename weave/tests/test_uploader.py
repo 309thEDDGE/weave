@@ -11,7 +11,7 @@ import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
 import weave
-from weave.tests.pytest_resources import BucketForTest, file_path_in_list
+from weave.tests.pytest_resources import PantryForTest, file_path_in_list
 from weave.upload import (
     UploadBasket,
     derive_integrity_data,
@@ -26,9 +26,9 @@ from weave.upload import (
 # pylint: disable=too-many-lines
 
 
-class UploadForTest(BucketForTest):
+class UploadForTest(PantryForTest):
     """
-    Test class extended from BucketForTest to include custom call for upload.
+    Test class extended from PantryForTest to include custom call for upload.
     """
 
     def __init__(self, tmpdir, file_system):
@@ -81,7 +81,7 @@ def set_up_tu(request, tmpdir):
     file_system = request.param
     test_upload = UploadForTest(tmpdir, file_system)
     yield test_upload
-    test_upload.cleanup_bucket()
+    test_upload.cleanup_pantry()
 
 
 # Ignoring pylint's warning "redefined-outer-name" as this is simply
@@ -167,7 +167,7 @@ def test_upload_nothing_else_in_uploaded_files(set_up_tu):
 
 def test_upload_pantry_path_is_string():
     """
-    Test that an error is raised when the bucket name is not a string.
+    Test that an error is raised when the pantry name is not a string.
     """
     pantry_path = 7
     upload_items = [
@@ -528,9 +528,9 @@ def test_derive_integrity_data_max_byte_count_exact(tmp_path):
 def test_basket(request, tmpdir):
     """Sets up pytest fixture"""
     file_system = request.param
-    test_bucket = BucketForTest(tmpdir, file_system)
-    yield test_bucket
-    test_bucket.cleanup_bucket()
+    test_pantry = PantryForTest(tmpdir, file_system)
+    yield test_pantry
+    test_pantry.cleanup_pantry()
 
 
 def test_upload_basket_without_uuid_creates_uuid(test_basket):
@@ -1083,7 +1083,7 @@ def test_upload_basket_label_is_string(test_basket):
 
 def test_upload_basket_no_metadata(test_basket):
     """
-    Test that no metadata is created if no metadata is passed to upload_bucket.
+    Test that no metadata is created if no metadata is passed to upload_pantry.
     """
 
     # Create a temporary basket with a test file.

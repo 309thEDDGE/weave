@@ -7,11 +7,11 @@ import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
 import weave
-from weave.tests.pytest_resources import BucketForTest
+from weave.tests.pytest_resources import PantryForTest
 
 
-class MongoForTest(BucketForTest):
-    """Extend the BucketForTest class to support mongodb and custom data
+class MongoForTest(PantryForTest):
+    """Extend the PantryForTest class to support mongodb and custom data
     loader"""
 
     def __init__(self, tmpdir, file_system):
@@ -39,8 +39,8 @@ class MongoForTest(BucketForTest):
         self.upload_basket(tmp_basket_dir, uid="nometadata")
 
     def cleanup(self):
-        """Cleans up the bucket and mongodb"""
-        self.cleanup_bucket()
+        """Cleans up the pantry and mongodb"""
+        self.cleanup_pantry()
         self.mongodb[self.test_collection].drop()
 
 

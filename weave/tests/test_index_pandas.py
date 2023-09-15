@@ -8,7 +8,7 @@ from fsspec.implementations.local import LocalFileSystem
 
 from weave.pantry import Pantry
 from weave.index.index_pandas import IndexPandas
-from weave.tests.pytest_resources import BucketForTest
+from weave.tests.pytest_resources import PantryForTest
 
 
 ###############################################################################
@@ -38,11 +38,11 @@ local_fs = LocalFileSystem()
     ids=["S3FileSystem", "LocalFileSystem"],
 )
 def test_pantry(request, tmpdir):
-    """Sets up test bucket for the tests"""
+    """Sets up test pantry for the tests"""
     file_system = request.param
-    test_bucket = BucketForTest(tmpdir, file_system)
-    yield test_bucket
-    test_bucket.cleanup_bucket()
+    test_pantry = PantryForTest(tmpdir, file_system)
+    yield test_pantry
+    test_pantry.cleanup_pantry()
 
 
 # Ignore pylint's warning "redefined-outer-name" as this is simply
@@ -54,7 +54,7 @@ def test_sync_index_gets_latest_index(test_pantry):
     """Tests IndexPandas.sync_index by generating two distinct objects and
     making sure that they are both syncing to the index pandas DF (represented
     by JSON) on the file_system"""
-    # Put basket in the temporary bucket
+    # Put basket in the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
@@ -92,7 +92,7 @@ def test_sync_index_gets_latest_index(test_pantry):
 def test_sync_index_calls_generate_index_if_no_index(test_pantry):
     """Test to make sure that if there isn't a index available then
     generate_index will still be called."""
-    # Put basket in the temporary bucket
+    # Put basket in the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
@@ -141,7 +141,7 @@ def test_clean_up_indices_n_not_int(test_pantry):
 def test_clean_up_indices_leaves_n_indices(test_pantry):
     """Tests that IndexPandas.clean_up_indices leaves behind the correct number
     of indices."""
-    # Put basket in the temporary bucket
+    # Put basket in the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
@@ -168,7 +168,7 @@ def test_clean_up_indices_leaves_n_indices(test_pantry):
 def test_clean_up_indices_with_n_greater_than_num_of_indices(test_pantry):
     """Tests that IndexPandas.clean_up_indices behaves well when given a number
     greater than the total number of indices."""
-    # Put basket in the temporary bucket
+    # Put basket in the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
@@ -196,7 +196,7 @@ def test_clean_up_indices_with_n_greater_than_num_of_indices(test_pantry):
 def test_is_index_current(test_pantry):
     """Creates two IndexPandas objects and pits them against eachother in order
     to ensure that IndexPandas.is_index_current is working as expected."""
-    # Put basket in the temporary bucket
+    # Put basket in the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
 
