@@ -247,8 +247,7 @@ def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
 
 
 def test_pantry_fails_with_bad_path(test_pantry):
-    """Tests Index.delete_basket to make sure it does, in fact, delete the
-    basket."""
+    """Tests the pantry will fail if a bad path is given."""
     bad_path = 'BadPath'
     error_msg = f"Invalid pantry Path. Pantry does not exist at: {bad_path}"
     with pytest.raises(ValueError, match=error_msg):
@@ -262,7 +261,7 @@ def test_pantry_fails_with_bad_path(test_pantry):
 
 
 def test_delete_basket_deletes_basket(test_pantry):
-    """Tests Index.delete_basket to make sure it does, in fact, delete the
+    """Tests Pantry.delete_basket to make sure it does, in fact, delete the
     basket."""
     # Put basket in the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
@@ -293,15 +292,14 @@ def test_delete_basket_deletes_basket(test_pantry):
     # Verify the correct basket was deleted from filesystem
     check_path = os.path.join(test_pantry.pantry_path,"test_basket","0002")
     assert check_path not in fs_baskets
-    # Verify the correct basket was deleted from the Index
+    # Verify the correct basket was deleted from the Pantry
     error_msg = "Basket does not exist: 0002"
     with pytest.raises(ValueError, match=error_msg):
         pantry.get_basket("0002")
 
 
 def test_pantry_delete_basket_with_parents(test_pantry):
-    """Tests Index.delete_basket to make sure it does, in fact, delete the
-    basket."""
+    """Tests Pantry.delete_basket does not delete if uuid is a parent."""
     # Put basket in the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
@@ -327,8 +325,8 @@ def test_pantry_delete_basket_with_parents(test_pantry):
 
 def test_upload_basket_updates_the_pantry(test_pantry):
     """
-    In this test the index already exists with one basket inside of it.
-    This test will add another basket using Index.upload_basket, and then check
+    In this test the pantry already exists with one basket inside of it.
+    This test will add another basket using Pantry.upload_basket, and then check
     to ensure that the index_df has been updated.
     """
     # Put basket in the temporary pantry
@@ -372,7 +370,7 @@ def test_upload_basket_gracefully_fails(
 ):
     """
     In this test an engineered failure to upload the basket occurs.
-    Index.upload_basket() should not add anything to the index_df.
+    Pantry.upload_basket() should not add anything to the index_df.
     Additionally, the basket in question should be deleted from storage (I will
     make the process fail only after a partial upload).
     """
@@ -404,7 +402,7 @@ def test_upload_basket_gracefully_fails(
 
 
 def test_index_get_basket_works_correctly(test_pantry):
-    """Test that Index.get_basket() returns a Basket object with correct
+    """Test that Pantry.get_basket() returns a Basket object with correct
     values
     """
 
@@ -456,7 +454,7 @@ def test_index_get_basket_works_correctly(test_pantry):
 
 
 def test_index_get_basket_graceful_fail(test_pantry):
-    """Test Index.get_basket() throws proper ValueErrors with invalid
+    """Test Pantry.get_basket() throws proper ValueErrors with invalid
     inputs.
     """
 
@@ -523,7 +521,7 @@ def test_pantry_get_metadata_existing_data(test_pantry):
 
 def test_upload_basket_works_on_empty_basket(test_pantry):
     """
-    In this test the Index object will upload a basket to a pantry that does
+    In this test the Pantry object will upload a basket to a pantry that does
     not have any baskets yet. This test will make sure that this functionality
     is present, and that the index_df has been updated.
     """
