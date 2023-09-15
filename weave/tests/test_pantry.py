@@ -1,7 +1,7 @@
 """Pytest tests for the index directory."""
 import json
 import os
-import uuid
+import uuid as uuid_lib
 import warnings
 from unittest.mock import patch
 
@@ -46,20 +46,17 @@ local_fs = LocalFileSystem()
 
 # Test with two different fsspec file systems (above).
 @pytest.fixture(
+    name="test_pantry",
     params=[s3fs, local_fs],
     ids=["S3FileSystem", "LocalFileSystem"],
 )
-def test_pantry(request, tmpdir):
+def fixture_test_pantry(request, tmpdir):
     """Sets up test pantry for the tests"""
     file_system = request.param
     test_pantry = PantryForTest(tmpdir, file_system)
     yield test_pantry
     test_pantry.cleanup_pantry()
 
-
-# Ignore pylint's warning "redefined-outer-name" as this is simply
-# how pytest works when it comes to pytest fixtures.
-# pylint: disable=redefined-outer-name
 
 def test_root_dir_does_not_exist(test_pantry):
     """try to create an index in a pantry that doesn't exist,
@@ -127,8 +124,11 @@ def test_correct_index(test_pantry):
 
 
 # Test with two different fsspec file systems (top of file).
-@pytest.fixture(params=[s3fs, local_fs])
-def set_up_malformed_baskets(request, tmpdir):
+@pytest.fixture(
+    name="set_up_malformed_baskets",
+    params=[s3fs, local_fs],
+)
+def fixture_set_up_malformed_baskets(request, tmpdir):
     """
     upload a basket with a basket_details.json with incorrect keys.
     """
@@ -326,8 +326,8 @@ def test_pantry_delete_basket_with_parents(test_pantry):
 def test_upload_basket_updates_the_pantry(test_pantry):
     """
     In this test the pantry already exists with one basket inside of it.
-    This test will add another basket using Pantry.upload_basket, and then check
-    to ensure that the index_df has been updated.
+    This test will add another basket using Pantry.upload_basket, and then
+    check to ensure that the index_df has been updated.
     """
     # Put basket in the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
@@ -363,7 +363,7 @@ def test_upload_basket_updates_the_pantry(test_pantry):
     assert len(fs_baskets) == 4
 
 
-@patch.object(uuid, "uuid1")
+@patch.object(uuid_lib, "uuid1")
 @patch("weave.upload.UploadBasket.upload_basket_supplement_to_fs")
 def test_upload_basket_gracefully_fails(
     mocked_obj_1, mocked_obj_2, test_pantry

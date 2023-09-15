@@ -60,8 +60,8 @@ for iter_file_system in file_systems:
                           f"-{iter_index_id}")
 
 
-@pytest.fixture(params=params, ids=params_ids)
-def test_pantry(request, tmpdir):
+@pytest.fixture(name="test_pantry", params=params, ids=params_ids)
+def fixture_test_pantry(request, tmpdir):
     """Sets up test pantry for the tests"""
     file_system = request.param[0]
     pantry_path = (
@@ -83,8 +83,8 @@ def test_pantry(request, tmpdir):
     test_index.cleanup_index()
 
 
-@pytest.fixture(params=indexes, ids=indexes_ids)
-def test_index_only(request):
+@pytest.fixture(name="test_index_only", params=indexes, ids=indexes_ids)
+def fixture_test_index_only(request):
     """Sets up only the index for a test (USES DEFAULT FILE_SYSTEM ARGS).
 
     Use this fixture for tests that DO NOT manipulate the pantry (ie
@@ -107,9 +107,6 @@ def test_index_only(request):
     test_index.cleanup_index()
 
 
-# Ignore pylint's warning "redefined-outer-name" as this is simply
-# how pytest works when it comes to pytest fixtures.
-# pylint: disable=redefined-outer-name
 def test_index_abc_builtin_len_works(test_pantry):
     """Test IndexABC builtin __len__ returns number of baskets being tracked"""
     # Unpack the test_pantry into two variables for the pantry and index.

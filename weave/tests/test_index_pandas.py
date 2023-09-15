@@ -34,20 +34,16 @@ local_fs = LocalFileSystem()
 
 # Test with two different fsspec file systems (above).
 @pytest.fixture(
+    name="test_pantry",
     params=[s3fs, local_fs],
     ids=["S3FileSystem", "LocalFileSystem"],
 )
-def test_pantry(request, tmpdir):
+def fixture_test_pantry(request, tmpdir):
     """Sets up test pantry for the tests"""
     file_system = request.param
     test_pantry = PantryForTest(tmpdir, file_system)
     yield test_pantry
     test_pantry.cleanup_pantry()
-
-
-# Ignore pylint's warning "redefined-outer-name" as this is simply
-# how pytest works when it comes to pytest fixtures.
-# pylint: disable=redefined-outer-name
 
 
 def test_sync_index_gets_latest_index(test_pantry):
