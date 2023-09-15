@@ -30,9 +30,9 @@ class Pantry():
         index: IndexABC
             The concrete implementation of an IndexABC. This is used to track
             the contents within the pantry.
-        pantry_path: str
+        pantry_path: str (default="basket-data")
             Name of the pantry this object is associated with.
-        **file_system: fsspec object
+        **file_system: fsspec object (optional)
             The fsspec object which hosts the bucket we desire to index.
             If file_system is None, then the default fs is retrieved from the
             config.
@@ -86,7 +86,7 @@ class Pantry():
         return validate_pantry(self)
 
     def delete_basket(self, basket_address, **kwargs):
-        '''Deletes basket of given UUID or path.
+        """Deletes basket of given UUID or path.
 
         Note that the given basket will not be deleted if the basket is listed
         as the parent uuid for any of the baskets in the index.
@@ -98,7 +98,7 @@ class Pantry():
             directory, or the UUID of the basket.
         **kwargs:
             Additional parameters to pass to the index
-        '''
+        """
         basket_address = str(basket_address)
         remove_item = self.index.get_rows(basket_address)
 
