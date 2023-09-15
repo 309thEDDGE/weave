@@ -142,6 +142,7 @@ class Basket(BasketInitializer):
         self.parent_uuids = self.manifest["parent_uuids"]
         self.basket_type = self.manifest["basket_type"]
         self.label = self.manifest["label"]
+        self.weave_version = self.manifest["weave_version"]
         self.address = self.basket_path
         self.storage_type = self.file_system.__class__.__name__
 
@@ -232,8 +233,10 @@ class Basket(BasketInitializer):
         """
         data = [self.uuid, self.upload_time,
                 self.parent_uuids, self.basket_type,
-                self.label, self.address, self.storage_type]
+                self.label, self.weave_version, self.address,
+                self.storage_type]
         columns = ["uuid", "upload_time", "parent_uuids",
-                   "basket_type", "label", "address", "storage_type"]
+                   "basket_type", "label", "weave_version",
+                   "address", "storage_type"]
 
         return pd.DataFrame(data=[data], columns=columns)

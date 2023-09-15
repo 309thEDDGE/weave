@@ -8,6 +8,7 @@ import s3fs
 import pandas as pd
 from fsspec.implementations.local import LocalFileSystem
 
+from weave.__init__ import __version__ as weave_version
 from weave.basket import Basket
 from weave.index.create_index import create_index_from_fs
 from weave.pantry import Pantry
@@ -163,6 +164,7 @@ def test_basket_get_manifest(test_pantry):
         "basket_type": "test_basket",
         "label": "",
         "upload_time": manifest["upload_time"],
+        "weave_version": weave_version,
     }
 
 
@@ -197,6 +199,7 @@ def test_basket_get_manifest_cached(test_pantry):
         "basket_type": "test_basket",
         "label": "",
         "upload_time": manifest["upload_time"],
+        "weave_version": weave_version,
     }
 
 
@@ -543,6 +546,21 @@ def test_basket_from_uuid_with_many_baskets(test_pantry):
     )
 
 
+def test_basket_correct_weave_version_member_variable(test_pantry):
+    """Test that basket has the correct weave version as a member variable
+    """
+    tmp_basket_dir = test_pantry.set_up_basket("basket_one")
+    basket_path = test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir)
+
+    basket = Basket(
+        Path(basket_path),
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system
+    )
+
+    assert basket.weave_version == weave_version
+
+
 def test_basket_check_member_variables(test_pantry):
     """Check that you can access member variables in the basket"""
     # Upload a basket
@@ -572,6 +590,7 @@ def test_basket_check_member_variables(test_pantry):
     assert manifest_dict["parent_uuids"] == my_basket.parent_uuids
     assert manifest_dict["basket_type"] == my_basket.basket_type
     assert manifest_dict["label"] == my_basket.label
+    assert manifest_dict["weave_version"] == weave_version
     assert my_basket.address.endswith(basket_path)
     assert test_pantry.file_system.__class__.__name__ == my_basket.storage_type
 
@@ -607,11 +626,13 @@ def test_basket_to_pandas_df(test_pantry):
             manifest_dict["parent_uuids"],
             manifest_dict["basket_type"],
             manifest_dict["label"],
+            manifest_dict["weave_version"],
             basket_path,
             test_pantry.file_system.__class__.__name__]
 
     columns = ["uuid", "upload_time", "parent_uuids",
-               "basket_type", "label", "address", "storage_type"]
+               "basket_type", "label", "weave_version",
+               "address", "storage_type"]
 
     answer_df = pd.DataFrame(data=[data], columns=columns)
 

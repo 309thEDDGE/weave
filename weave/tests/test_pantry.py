@@ -15,6 +15,7 @@ from weave.index.create_index import create_index_from_fs
 from weave.index.index_pandas import IndexPandas
 from weave.pantry import Pantry
 from weave.tests.pytest_resources import PantryForTest
+from weave.__init__ import __version__ as weave_version
 
 
 ###############################################################################
@@ -96,6 +97,7 @@ def test_correct_index(test_pantry):
         "parent_uuids": [[], ["0001"]],
         "basket_type": "test_basket",
         "label": "",
+        "weave_version": weave_version,
         "address": addresses,
         "storage_type": test_pantry.file_system.__class__.__name__,
     }
@@ -182,6 +184,7 @@ def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
         "parent_uuids": [[], [], [], [], [], []],
         "basket_type": "test_basket",
         "label": "",
+        "weave_version": weave_version,
         "address": good_addresses,
         "storage_type": test_pantry.file_system.__class__.__name__,
     }
@@ -545,3 +548,35 @@ def test_upload_basket_works_on_empty_basket(test_pantry):
 
     assert len(file_system_baskets) == 1
     assert len(pantry.index.get_baskets_of_type('test')) == 1
+
+
+def test_index_basket_with_no_version_number(test_pantry):
+    """Test that a basket that was created before the version number was
+    implemented still is able to be validated and an index created.
+    """
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
+    upload_path = test_pantry.upload_basket(tmp_basket_dir)
+
+    manifest_path = os.path.join(upload_path, "basket_manifest.json")
+    with test_pantry.file_system.open(manifest_path, "r") as file:
+        manifest_dict = json.load(file)
+
+    manifest_dict.pop("weave_version")
+
+    with open("basket_manifest.json", "w", encoding="utf-8") as file:
+        json.dump(manifest_dict, file)
+
+    test_pantry.file_system.upload("basket_manifest.json", manifest_path)
+
+    os.remove("basket_manifest.json")
+
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system
+    )
+
+    index_df = pantry.index.to_pandas_df()
+
+    assert index_df["weave_version"][0] == "<0.13.0"

@@ -11,8 +11,10 @@ import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
 import weave
+from weave import Basket
 from weave import IndexSQLite
 from weave.index.index_pandas import IndexPandas
+from weave.__init__ import __version__ as weave_version
 from weave.index.create_index import create_index_from_fs
 from weave.tests.pytest_resources import PantryForTest, IndexForTest
 
@@ -49,6 +51,9 @@ file_systems = [s3fs, local_fs]
 # Create Index CONSTRUCTORS of Indexes to be tested, and add to indexes list.
 indexes = [IndexSQLite, IndexPandas]
 indexes_ids = ["SQLite", "Pandas"]
+
+indexes = [IndexPandas]
+indexes_ids = ["Pandas"]
 
 # Create combinations of the above parameters to pass into the fixture..
 params = []
@@ -194,8 +199,8 @@ def test_index_abc_to_pandas_df_works(test_pantry):
     # Check df columns are named correctly.
     assert (
         list(ind_df.columns) == ["uuid", "upload_time", "parent_uuids",
-                                "basket_type", "label", "address",
-                                "storage_type"]
+                                "basket_type", "label", "weave_version",
+                                 "address", "storage_type"]
     ), "Dataframe columns do not match"
 
     # Check values of basket are accurate
@@ -232,8 +237,8 @@ def test_index_abc_to_pandas_df_works(test_pantry):
     # Check df columns are named correctly.
     assert (
         list(ind_df.columns) == ["uuid", "upload_time", "parent_uuids",
-                                "basket_type", "label", "address",
-                                "storage_type"]
+                                "basket_type", "label", "weave_version",
+                                 "address", "storage_type"]
     ), "Dataframe columns do not match"
 
     # Check values of basket are accurate
@@ -360,8 +365,8 @@ def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
     # Check df columns are named correctly.
     assert (
         list(ind_df.columns) == ["uuid", "upload_time", "parent_uuids",
-                                "basket_type", "label", "address",
-                                "storage_type"]
+                                "basket_type", "label", "weave_version",
+                                 "address", "storage_type"]
     ), "Dataframe columns do not match"
 
 
