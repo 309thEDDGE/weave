@@ -213,7 +213,7 @@ class IndexPandas(IndexABC):
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
 
-        **upload_index: bool
+        **upload_index: bool (optional)
             Flag to upload the new index to the file system
         """
         upload_index = kwargs.get("upload_index", True)
@@ -251,7 +251,7 @@ class IndexPandas(IndexABC):
             String that holds the path of the basket
             can also be the basket uuid
 
-        **gen_level: int
+        **gen_level: int (optional)
             This indicates what generation is being looked at,
             1 for parent, 2 for grandparent and so forth
         **data: pd.dataframe (optional)
@@ -259,7 +259,7 @@ class IndexPandas(IndexABC):
             when it is initially called, it is empty, for every
             iteration/recursive call all the immediate parents for
             the given basket are added
-        **descendants: [str]
+        **descendants: [str] (optional)
             This is a list that holds the uids of all the descendents the
             function has visited. this is used to prevent/detect any
             parent-child loops found in the basket structure.
@@ -549,6 +549,7 @@ class IndexPandas(IndexABC):
         ----------
         expr: str
            Pass SQL Query to the pandas dataframe
+
        **kwargs unused for this class.
 
         Returns
