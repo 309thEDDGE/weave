@@ -183,7 +183,6 @@ def test_clean_up_indices_with_n_greater_than_num_of_indices(test_pantry):
     pantry.index.generate_index()
 
     # Now there should be two index baskets. clean up all but three of them:
-    # (this should fail, obvs)
     pantry.index.clean_up_indices(n_keep=3)
     index_path = os.path.join(test_pantry.pantry_path, "index")
     assert len(test_pantry.file_system.ls(index_path)) == 2
