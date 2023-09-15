@@ -25,9 +25,9 @@ class IndexSQLite(IndexABC):
             The fsspec object which hosts the pantry we desire to index.
         pantry_path: str
             Path to the pantry root which we want to index.
-        **db_path: str
+        **db_path: str (optional)
             Path to the sqlite db file to be used. If none is set, defaults to
-            'basket-data.db'
+            './basket-data.db'
         """
         self._file_system = file_system
         self._pantry_path = pantry_path
@@ -64,7 +64,12 @@ class IndexSQLite(IndexABC):
         return self._pantry_path
 
     def generate_metadata(self, **kwargs):
-        """Populates the metadata for the index."""
+        """Populates the metadata for the index.
+
+        Parameters
+        ----------
+        **kwargs unused for this function.
+        """
         return {"db_path": self.db_path}
 
     def generate_index(self, **kwargs):
@@ -72,6 +77,10 @@ class IndexSQLite(IndexABC):
 
         Generate the index by scraping the pantry and adding the manifest data
         of found baskets to the index.
+
+        Parameters
+        ----------
+        **kwargs unused for this function.
         """
         if not isinstance(self.pantry_path, str):
             raise TypeError("'pantry_path' must be a string: "
@@ -140,8 +149,9 @@ class IndexSQLite(IndexABC):
 
         Parameters
         ----------
-        max_rows: int
+        max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+        **kwargs unused for this function.
 
         Returns
         ----------
@@ -171,8 +181,9 @@ class IndexSQLite(IndexABC):
 
         Parameters
         ----------
-        entry_df : pd.DataFrame
+        entry_df: pd.DataFrame
             Uploaded baskets' manifest data to append to the index.
+        **kwargs unused for this function.
         """
         entry_df["parent_uuids"] = entry_df["parent_uuids"].astype(str)
         entry_df["upload_time"] = (
@@ -190,6 +201,7 @@ class IndexSQLite(IndexABC):
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket. These may also be passed in
             as a list.
+        **kwargs unused for this function.
         """
         if not isinstance(basket_address, list):
             basket_address = [basket_address]
@@ -224,6 +236,7 @@ class IndexSQLite(IndexABC):
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket. These may also be passed in
             as a list.
+        **kwargs unused for this function.
 
         Returns
         ----------
@@ -268,6 +281,7 @@ class IndexSQLite(IndexABC):
         basket_address: str
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
+        **kwargs unused for this function.
 
         Returns
         ----------
@@ -350,6 +364,7 @@ class IndexSQLite(IndexABC):
         basket_address: str
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
+        **kwargs unused for this function.
 
         Returns
         ----------
@@ -429,8 +444,9 @@ class IndexSQLite(IndexABC):
         ----------
         basket_type: str
             The basket type to filter for.
-        max_rows: int
+        max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+        **kwargs unused for this function.
 
         Returns
         ----------
@@ -462,8 +478,9 @@ class IndexSQLite(IndexABC):
         ----------
         basket_label: str
             The label to filter for.
-        max_rows: int
+        max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+        **kwargs unused for this function.
 
         Returns
         ----------
@@ -494,14 +511,15 @@ class IndexSQLite(IndexABC):
 
         Parameters
         ----------
-        start_time: datetime.datetime
+        start_time: datetime.datetime (optional)
             The start datetime object to filter between. If None, will filter
             from the beginning of time.
-        end_time: datetime.datetime
+        end_time: datetime.datetime (optional)
             The end datetime object to filter between. If None, will filter
             to the current datetime.
-        max_rows: int
+        max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+        **kwargs unused for this function.
 
         Returns
         ----------
@@ -559,7 +577,7 @@ class IndexSQLite(IndexABC):
         expr: str
             An expression passed to the backend. An example could be a SQL or
             pandas query. Largely dependent on concrete implementations.
-        **expr_args: tuple
+        **expr_args: tuple (optional)
             Arguments to pass to the SQLite expression. Should be in the form:
             (arg1, arg2) or (arg1,) if only one argument.
 

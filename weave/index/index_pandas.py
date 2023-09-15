@@ -139,7 +139,7 @@ class IndexPandas(IndexABC):
 
         Parameters
         ----------
-        n_keep: int
+        n_keep: int (default=20)
             n is the number of latest index baskets to keep.
         '''
         n_keep = int(n_keep)
