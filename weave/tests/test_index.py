@@ -11,10 +11,8 @@ import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
 import weave
-from weave import Basket
 from weave import IndexSQLite
 from weave.index.index_pandas import IndexPandas
-from weave.__init__ import __version__ as weave_version
 from weave.index.create_index import create_index_from_fs
 from weave.tests.pytest_resources import PantryForTest, IndexForTest
 

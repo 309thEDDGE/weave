@@ -38,10 +38,11 @@ local_fs = LocalFileSystem()
 
 # Test with two different fsspec file systems (above).
 @pytest.fixture(
+    name="test_pantry",
     params=[s3fs, local_fs],
     ids=["S3FileSystem", "LocalFileSystem"],
 )
-def test_pantry(request, tmpdir):
+def fixture_test_pantry(request, tmpdir):
     """Fixture to set up and tear down test_basket"""
     file_system = request.param
     test_pantry = PantryForTest(tmpdir, file_system)
