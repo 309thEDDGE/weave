@@ -14,13 +14,13 @@ from .validate_basket import validate_basket_dict
 
 
 def create_index_from_fs(root_dir, file_system):
-    """Recursively parse an bucket and create an index
+    """Recursively parse an pantry and create an index
 
     Parameters:
         root_dir: str
-            path to bucket
+            path to pantry
         file_system: fsspec object
-            the fsspec file system hosting the bucket to be indexed.
+            the fsspec file system hosting the pantry to be indexed.
 
     Returns:
         index: a pandas DataFrame with columns
@@ -60,8 +60,14 @@ def create_index_from_fs(root_dir, file_system):
             if basket_dict["basket_type"] != "index":
                 for field in basket_dict.keys():
                     index_dict[field].append(basket_dict[field])
-                index_dict["address"].append(os.path.dirname(basket_json_address))
-                index_dict["storage_type"].append(file_system.__class__.__name__)
+
+                index_dict["address"].append(
+                    os.path.relpath(os.path.dirname(basket_json_address))
+                )
+                index_dict["storage_type"].append(
+                    file_system.__class__.__name__
+                )
+
                 if "weave_version" not in basket_dict.keys():
                     # Every basket uploaded before 0.13.0, should not have a
                     # version number, therefore every basket with no version

@@ -3,13 +3,14 @@ import json
 import os
 from pathlib import Path
 
-import pandas as pd
 import pytest
 import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
 from weave import validate
-from weave.tests.pytest_resources import BucketForTest
+from weave.pantry import Pantry
+from weave.index.index_pandas import IndexPandas
+from weave.tests.pytest_resources import PantryForTest
 
 # This module is long and has many tests. Pylint is complaining that it is too
 # long. This isn't necessarily bad in this case, as the alternative
@@ -19,14 +20,14 @@ from weave.tests.pytest_resources import BucketForTest
 # pylint: disable=too-many-lines
 
 
-class ValidateForTest(BucketForTest):
+class ValidateForTest(PantryForTest):
     """A class to test functions in validate.py"""
 
     # The arguments for the below function should be changed,
-    # as it is over-riding BucketForTest.set_up_basket. Pylint hates it.
+    # as it is over-riding PantryForTest.set_up_basket. Pylint hates it.
     # pylint: disable-next=arguments-differ
     def set_up_basket(self, tmp_dir_name, **kwargs):
-        """Overrides BucketForTest's set_up_basket to better test_validate.py
+        """Overrides PantryForTest's set_up_basket to better test_validate.py
 
         Sets up the basket with a nested basket depending on the values of
         the boolean params when this is called. if the is_man is true, a
@@ -170,34 +171,41 @@ local_fs = LocalFileSystem()
 
 
 # Test with two different fsspec file systems (above).
-@pytest.fixture(params=[s3fs, local_fs])
+@pytest.fixture(
+    params=[s3fs, local_fs],
+    ids=["S3FileSystem", "LocalFileSystem"],
+)
 def test_validate(request, tmpdir):
     """Pytest fixture for testing validate"""
     file_system = request.param
     test_validate_obj = ValidateForTest(tmpdir, file_system)
     yield test_validate_obj
-    test_validate_obj.cleanup_bucket()
+    test_validate_obj.cleanup_pantry()
 
 
 # Ignoring pylint's warning "redefined-outer-name" as this is simply
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
 
-
 def test_validate_pantry_does_not_exist(test_validate):
-    """Give a bucket path that does not exist and check that it throws
+    """Give a pantry path that does not exist and check that it throws
        an error.
     """
 
-    bucket_path = Path("THISisNOTaPROPERbucketNAMEorPATH")
+    pantry_path = Path("THISisNOTaPROPERpantryNAMEorPATH")
 
     # Check that the correct error is raised
     with pytest.raises(
         ValueError,
         match=f"Invalid pantry Path. "
-        f"Pantry does not exist at: {bucket_path}"
+        f"Pantry does not exist at: {pantry_path}"
     ):
-        validate.validate_pantry(bucket_path, test_validate.file_system)
+        pantry = Pantry(
+            IndexPandas,
+            pantry_path=pantry_path,
+            file_system=test_validate.file_system
+        )
+        validate.validate_pantry(pantry)
 
 
 def test_validate_no_supplement_file(test_validate):
@@ -213,8 +221,13 @@ def test_validate_no_supplement_file(test_validate):
     supplement_path = os.path.join(basket_path, "basket_supplement.json")
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -238,8 +251,13 @@ def test_validate_no_metadata_file(test_validate):
     test_validate.add_lower_dir_to_temp_basket(tmp_basket_dir=tmp_basket_dir)
     test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
 
     # Check that no warnings are collected
     assert len(warn_info) == 0
@@ -276,8 +294,13 @@ def test_validate_invalid_manifest_schema(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -352,20 +375,24 @@ def test_validate_manifest_schema_missing_field(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
     # Catch warnings and validate it throws 1 and is correct
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
-    warning_1 = warn_info[0]
+    warn_info = validate.validate_pantry(pantry)
 
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == (
+    assert warn_info[0].args[0] == (
         "Invalid Basket. Manifest Schema does not match at: "
     )
     # Check the invalid basket path is what is expected
     # (ignoring File System prefix)
-    assert warning_1.args[1].endswith(os.path.join(basket_path,
+    assert warn_info[0].args[1].endswith(os.path.join(basket_path,
                                                    "bad_man_schema",
                                                    "basket_manifest.json"))
 
@@ -431,20 +458,24 @@ def test_validate_manifest_schema_additional_field(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
-    warning_1 = warn_info[0]
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
 
     # Check that there is only one warning raised
     assert len(warn_info) == 1
 
     # Check that the correct warning is raised
-    assert warning_1.args[0] == (
+    assert warn_info[0].args[0] == (
         "Invalid Basket. Manifest Schema does not match at: "
     )
     # Check the invalid basket path is what is expected
     # (ignoring File System prefix)
-    assert warning_1.args[1].endswith(os.path.join(basket_path,
+    assert warn_info[0].args[1].endswith(os.path.join(basket_path,
                                                    "bad_man_schema",
                                                    "basket_manifest.json"))
 
@@ -468,11 +499,16 @@ def test_validate_invalid_manifest_json(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
     with pytest.raises(
         ValueError
     ) as err:
-        validate.validate_pantry(test_validate.pantry_name,
-                                 test_validate.file_system)
+        validate.validate_pantry(pantry)
 
     assert str(err.value) == ("Pantry could not be loaded into index: "
                               "Expecting property name enclosed in double "
@@ -521,8 +557,13 @@ def test_validate_invalid_supplement_schema(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -568,8 +609,13 @@ def test_validate_supplement_schema_missing_field(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -626,8 +672,13 @@ def test_validate_supplement_schema_missing_array_field(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -685,8 +736,13 @@ def test_validate_supplement_schema_missing_array_field_2(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -748,8 +804,13 @@ def test_validate_supplement_schema_added_array_field(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -811,8 +872,13 @@ def test_validate_supplement_schema_added_array_field_2(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -872,8 +938,13 @@ def test_validate_supplement_schema_additional_field(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -928,8 +999,13 @@ def test_validate_supplement_schema_empty_upload_items(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -976,8 +1052,13 @@ def test_validate_supplement_schema_empty_integrity_data(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -1013,8 +1094,13 @@ def test_validate_invalid_supplement_json(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -1077,12 +1163,16 @@ def test_validate_invalid_metadata_json(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
 
     # Sort the warnings so they are in proper order
     warn_info = sorted(warn_info, key=lambda x: x.args[1])
-
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -1111,8 +1201,13 @@ def test_validate_nested_basket(test_validate):
 
     basket_path = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -1162,8 +1257,13 @@ def test_validate_deeply_nested(test_validate):
 
     basket_path = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
 
     warn_info = sorted(warn_info, key=lambda x: x.args[1])
     warning_1 = warn_info[0]
@@ -1180,7 +1280,7 @@ def test_validate_deeply_nested(test_validate):
 
 
 def test_validate_no_files_or_dirs(test_validate):
-    """Create an empty bucket with no files, make sure it returns
+    """Create an empty pantry with no files, make sure it returns
        an empty list (valid).
     """
 
@@ -1193,15 +1293,20 @@ def test_validate_no_files_or_dirs(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
 
     # Check that no warnings are collected
     assert len(warn_info) == 0
 
 
 def test_validate_no_baskets(test_validate):
-    """Create a bucket with no baskets, but with files, test that it
+    """Create a pantry with no baskets, but with files, test that it
        returns an empty list (valid).
     """
 
@@ -1222,15 +1327,19 @@ def test_validate_no_baskets(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+    warn_info = validate.validate_pantry(pantry)
 
     # Check that no warnings are collected
     assert len(warn_info) == 0
 
 
 def test_validate_twenty_baskets_invalid(test_validate):
-    """Create bucket with 20 baskets, and 1 nested, check that it collects
+    """Create pantry with 20 baskets, and 1 nested, check that it collects
        one warning.
     """
 
@@ -1253,8 +1362,13 @@ def test_validate_twenty_baskets_invalid(test_validate):
         uuid = '00' + str(i)
         test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir, uid=uuid)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
     warning_1 = warn_info[0]
 
     # Check that there is only one warning raised
@@ -1269,7 +1383,7 @@ def test_validate_twenty_baskets_invalid(test_validate):
 
 
 def test_validate_twenty_baskets_valid(test_validate):
-    """Create bucket with 20 baskets, and 0 nested, check that it
+    """Create pantry with 20 baskets, and 0 nested, check that it
        returns an empty list (valid).
     """
 
@@ -1292,8 +1406,13 @@ def test_validate_twenty_baskets_valid(test_validate):
         uuid = '00' + str(i)
         test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir, uid=uuid)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
 
     # Check that no warnings are collected
     assert len(warn_info) == 0
@@ -1305,7 +1424,7 @@ def test_validate_call_check_level(test_validate):
     Create a basket, call _check_level() which is a private function,
     check that it returns true. It returns true, because the _check_level
     function checks all files an directories of the given dir, so it just
-    acts like it is at a random dir instead of the root of the bucket.
+    acts like it is at a random dir instead of the root of the pantry.
     """
 
     tmp_basket_dir = test_validate.set_up_basket("my_basket")
@@ -1315,15 +1434,19 @@ def test_validate_call_check_level(test_validate):
         tmp_basket_dir=tmp_basket_dir, metadata={"Test":1, "test_bool":True}
     )
 
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
     # pantry_name is input twice because _check_level wants the pantry name
     # and the current working directory
     # Testing a protected access class
     # pylint: disable-next=protected-access
     assert validate._check_level(
-        test_validate.pantry_name,
-        test_validate.pantry_name,
-        file_system=test_validate.file_system,
-        index_df=pd.DataFrame()
+        test_validate.pantry_path,
+        pantry=pantry,
     )
 
 
@@ -1332,8 +1455,8 @@ def test_validate_call_validate_basket(test_validate):
 
     Create a basket, call _validate_basket(), which is a private function.
     check that an error is thrown. it throws an error because
-    _validate_basket assumes it is given a basket dir, not a bucket dir.
-    so there is no manifest found inside the bucket dir.
+    _validate_basket assumes it is given a basket dir, not a pantry dir.
+    so there is no manifest found inside the pantry dir.
     """
 
     tmp_basket_dir = test_validate.set_up_basket("my_basket")
@@ -1343,20 +1466,24 @@ def test_validate_call_validate_basket(test_validate):
         tmp_basket_dir=tmp_basket_dir, metadata={"Test":1, "test_bool":True}
     )
 
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
     with pytest.raises(
         FileNotFoundError,
         match=f"Invalid Path. "
-        f"No Basket found at: {test_validate.pantry_name}"
+        f"No Basket found at: {test_validate.pantry_path}"
     ):
         # pantry_name is input twice because _check_level wants the pantry name
         # and the current working directory
         # Testing a protected access class
         # pylint: disable-next=protected-access
         validate._validate_basket(
-            test_validate.pantry_name,
-            test_validate.pantry_name,
-            file_system=test_validate.file_system,
-            index_df=pd.DataFrame()
+            test_validate.pantry_path,
+            pantry=pantry,
         )
 
 
@@ -1415,8 +1542,13 @@ def test_validate_bad_manifest_and_supplement_schema(test_validate):
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
     warning_1 = warn_info[0]
     warning_2 = warn_info[1]
 
@@ -1471,8 +1603,13 @@ def test_validate_bad_metadata_and_supplement_schema_with_nested_basket(
     test_validate.file_system.rm(manifest_path)
     test_validate.file_system.rm(supplement_path)
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
 
     # Sort the errors because they return differently for different fs
     warn_info = sorted(warn_info, key=lambda x: x.args[1])
@@ -1525,8 +1662,13 @@ def test_validate_check_parent_uuids_missing_basket(test_validate):
                                 uid="002",
                                 parent_ids=["003", "BAD!", "BAD2", "BAD323"])
 
-    warn_info = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_info = validate.validate_pantry(pantry)
 
     assert len(warn_info) == 2
 
@@ -1560,9 +1702,14 @@ def test_validate_file_not_in_supplement(test_validate):
     # Remove the local file that we created
     os.remove("MY_UNFOUND_FILE.txt")
 
-    # Call validate_bucket, see that it returns a list of basket errors
-    warn_list = validate.validate_pantry(test_validate.pantry_name,
-                                         test_validate.file_system)
+    # Call validate_pantry, see that it returns a list of basket errors
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warn_list = validate.validate_pantry(pantry)
 
     warning_msg = warn_list[0].args[0]
     warning_path = warn_list[0].args[1]
@@ -1625,8 +1772,13 @@ def test_validate_file_not_in_file_system(test_validate):
     os.remove("basket_supplement.json")
 
     # Call validate_pantry, see that it returns warnings
-    warning_list = validate.validate_pantry(test_validate.pantry_name,
-                                            test_validate.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system
+    )
+
+    warning_list = validate.validate_pantry(pantry)
 
     # Sort the warnings
     warning_list = sorted(warning_list, key=lambda x: x.args[1])

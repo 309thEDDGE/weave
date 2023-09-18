@@ -211,7 +211,7 @@ class UploadBasket:
                          "metadata": dict,
                          "label": str,
                          "weave_version": str,
-                         "pantry_name": str,
+                         "pantry_path": str,
                          "test_prefix": str}
         for key, value in self.kwargs.items():
             if key not in kwargs_schema:
@@ -277,15 +277,15 @@ class UploadBasket:
         if "unique_id" not in self.kwargs:
             self.kwargs["unique_id"] = uuid.uuid1().hex
         if "upload_directory" not in self.kwargs:
-            if not ("pantry_name" and "basket_type" in self.kwargs):
+            if not ("pantry_path" and "basket_type" in self.kwargs):
                 raise ValueError(
                     "Please provide either the 'upload_directory' or a "
-                    "combination of 'pantry_name' and 'basket_type' as kwargs "
+                    "combination of 'pantry_path' and 'basket_type' as kwargs "
                     "for UploadBasket"
                 )
             self.kwargs["upload_directory"] = os.path.join(
                 self.kwargs.get("test_prefix", ""),
-                self.kwargs.get("pantry_name"),
+                self.kwargs.get("pantry_path"),
                 self.kwargs.get("basket_type"),
                 self.kwargs.get("unique_id"),
             )

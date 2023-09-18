@@ -7,11 +7,11 @@ import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
 import weave
-from weave.tests.pytest_resources import BucketForTest
+from weave.tests.pytest_resources import PantryForTest
 
 
-class MongoForTest(BucketForTest):
-    """Extend the BucketForTest class to support mongodb and custom data
+class MongoForTest(PantryForTest):
+    """Extend the PantryForTest class to support mongodb and custom data
     loader"""
 
     def __init__(self, tmpdir, file_system):
@@ -39,8 +39,8 @@ class MongoForTest(BucketForTest):
         self.upload_basket(tmp_basket_dir, uid="nometadata")
 
     def cleanup(self):
-        """Cleans up the bucket and mongodb"""
-        self.cleanup_bucket()
+        """Cleans up the pantry and mongodb"""
+        self.cleanup_pantry()
         self.mongodb[self.test_collection].drop()
 
 
@@ -51,7 +51,10 @@ local_fs = LocalFileSystem()
 
 
 # Test with two different fsspec file systems (above).
-@pytest.fixture(params=[s3fs, local_fs])
+@pytest.fixture(
+    params=[s3fs, local_fs],
+    ids=["S3FileSystem", "LocalFileSystem"],
+)
 def set_up(request, tmpdir):
     """Sets up the fixture for testing usage."""
     file_system = request.param
@@ -70,7 +73,7 @@ def test_load_mongo(set_up):
     Test that load_mongo successfully loads valid metadata to the set_up.
     """
     index_table = weave.index.create_index.create_index_from_fs(
-        set_up.pantry_name, set_up.file_system
+        set_up.pantry_path, set_up.file_system
     )
     weave.load_mongo(
         index_table,
@@ -169,7 +172,7 @@ def test_load_mongo_check_for_duplicate_uuid(set_up):
 
     # Load metadata twice, and ensure there's only one instance
     index_table = weave.index.create_index.create_index_from_fs(
-        set_up.pantry_name, set_up.file_system
+        set_up.pantry_path, set_up.file_system
     )
     weave.load_mongo(
         index_table,

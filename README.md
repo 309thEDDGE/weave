@@ -152,7 +152,7 @@ can be uploaded directly:
 ```python
 from weave.upload import UploadBasket
 upload_items = [{'path':'Path_to_file_or_dir', 'stub': False}]
-upload_path = UploadBasket(upload_items, 
+upload_path = UploadBasket(upload_items,
                            basket_type = 'item',
                            upload_directory = 'basket-data',
                           )
@@ -166,7 +166,7 @@ information on each of these upload parameters.
 The basket information can readily be accessed by creating a Basket object:
 
 ```python
-basket = Basket(basket_address, pantry_name=Optional)
+basket = Basket(basket_address, pantry=Optional)
 basket.get_manifest()
 basket.get_supplement()
 basket.get_metadata()
@@ -187,18 +187,26 @@ basket_contents = [pantry_name/basket_type/uuid/data.csv]
 df = pd.read_csv(s3.open(basket_contents[0], mode='rb'))
 ```
 
-### Using an Index
+### Using a Pantry
 
-Weave can scrape a datastore of baskets and create an index of all the baskets
-in that datastore. This index provides information about each basket, including
-its uuid, upload time, parent uuids, basket type, label, address and storage
-type. Example code to create this index:
+The Pantry class facilitates interaction with the file system including upload,
+access, and delete baskets. The pantry can also track pantry-level metadata.
+To enhance these functions, the pantry has an abstract base class of an index
+that tracks whenever baskets are added and removed from the file system. This
+index provides information about each basket, including its uuid, upload time,
+parent uuids, basket type, label, address and storage type. An index is created
+by passing an Index object as the first argument to the Pantry constructor.
+ Weave supports a Pandas and SQLlite implementation for the index backend.
+ Example code to create this index:
 ```python
-from weave.index.index import Index
-ind = Index(pantry_name='basket-data')
-if no ind.is_index_current():
-    ind.sync_index() # Explicitly update the index
-ind_df = ind.to_pandas_df()
+from weave.pantry import Pantry
+from weave.index.index_pandas import PandasIndex
+pantry = Pantry(
+    PandasIndex,
+    pantry_path,
+    file_system=file_system,
+)
+index_df = pantry.index.to_pandas_df()
 ```
 `Index.to_pandas_df()` returns a pandas dataframe with each row corresponding
 to a basket in the datastore. The columns in the dataframe follow the manifest
@@ -209,31 +217,31 @@ schema for the basket. An example basket entry is shown below:
 | fe42575a41c711eeb2210242ac1a000a | 2023-08-23T15:16:11.546136 | [] | item |  | example_address/item/fe4257... | S3FileSystem |
 
 
-The Index class also provides convenient functions for uploading, accessing,
+The Pantry class also provides convenient functions for uploading, accessing,
 and deleting baskets.
 
 ```python
+# Get pantry metadata
+pantry_metadata = pantry.metadata
+
 # Upload a basket using the Index.
 upload_items = [{'path':'Path_to_file_or_dir', 'stub': False}]
-uploaded_info = ind.upload_basket(upload_items,
-                                  basket_type='item',
-                                  parent_ids=Optional,
-                                  metadata=Optional,
-                                  label=Optional)
+uploaded_info = pantry.upload_basket(upload_items,
+                                     basket_type='item',
+                                     parent_ids=Optional,
+                                     metadata=Optional,
+                                     label=Optional)
 
 # Access the uploaded_basket (likely called well after uploading the basket).
-basket = ind.get_basket(uploaded_info.uuid[0])
+basket = pantry.get_basket(uploaded_info.uuid[0])
 basket_path = uploaded_info.upload_path[0]
 
-
-
 # Access the parents and children
-basket_parents = ind.get_parents(uploaded_info.uuid[0])
-basket_children = ind.get_children(uploaded_info.uuid[0])
-
+basket_parents = pantry.index.get_parents(uploaded_info.uuid[0])
+basket_children = pantry.index.get_children(uploaded_info.uuid[0])
 
 # Delete the basket
-ind.delete_basket(uploaded_info.uuid[0])
+pantry.delete_basket(uploaded_info.uuid[0])
 ```
 
 ### Validating a Pantry
@@ -243,7 +251,9 @@ schema:
 
 ```python
 from weave import validate
-warnings = validate.validate_pantry(pantry_name, file_system)
+warnings = validate.validate_pantry(pantry)
+# Or validate using the pantry object.
+pantry.validate()
 ```
 
 ## Contribution
