@@ -180,7 +180,7 @@ like any file path. The following example loads a csv using Basket:
 
 ```python
 s3 = s3fs.S3FileSystem(
-    client_kwargs={"endpoint_url": os.environ['S3_ENDPOINT']}
+    client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
 )
 basket_contents = [pantry_name/basket_type/uuid/data.csv]
 df = pd.read_csv(s3.open(basket_contents[0], mode="rb"))
@@ -237,8 +237,8 @@ ind.delete_basket(uploaded_info.uuid[0])
 
 ### Validating a Pantry
 
-Weave can validate that an existing directory is a valid pantry by following 
-the Weave schema:
+Weave can validate an existing directory is a valid pantry following the Weave
+schema:
 
 ```python
 from weave import validate

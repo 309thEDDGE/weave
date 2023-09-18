@@ -47,8 +47,8 @@ def create_index_from_fs(root_dir, file_system):
 
     for key in schema:
         index_dict[key] = []
-    index_dict['address'] = []
-    index_dict['storage_type'] = []
+    index_dict["address"] = []
+    index_dict["storage_type"] = []
 
     bad_baskets = []
     for basket_json_address in basket_jsons:
@@ -57,14 +57,14 @@ def create_index_from_fs(root_dir, file_system):
             if not validate_basket_dict(basket_dict):
                 bad_baskets.append(os.path.dirname(basket_json_address))
                 continue
-            basket_dict['upload_time'] = pd.Timestamp(
-                                                basket_dict['upload_time']
+            basket_dict["upload_time"] = pd.Timestamp(
+                                                basket_dict["upload_time"]
                                          )
-            if basket_dict['basket_type'] != "index":
+            if basket_dict["basket_type"] != "index":
                 for field in basket_dict.keys():
                     index_dict[field].append(basket_dict[field])
-                index_dict['address'].append(os.path.dirname(basket_json_address))
-                index_dict['storage_type'].append(file_system.__class__.__name__)
+                index_dict["address"].append(os.path.dirname(basket_json_address))
+                index_dict["storage_type"].append(file_system.__class__.__name__)
 
     if len(bad_baskets) != 0:
         warnings.warn("baskets found in the following locations "
@@ -72,5 +72,5 @@ def create_index_from_fs(root_dir, file_system):
                       f"{bad_baskets}")
 
     index = pd.DataFrame(index_dict)
-    index['uuid'] = index['uuid'].astype(str)
+    index["uuid"] = index["uuid"].astype(str)
     return index

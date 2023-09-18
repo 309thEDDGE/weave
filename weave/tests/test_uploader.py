@@ -303,7 +303,7 @@ def test_validate_upload_item_validate_dictionary():
 
 
 def test_derive_integrity_data_file_doesnt_exist():
-    """Test that derive_integrity_data raises a FileExistsError when using 
+    """Test that derive_integrity_data raises a FileExistsError when using
     a file path that does not exist.
     """
 
@@ -395,7 +395,7 @@ def test_derive_integrity_data_large_byte_count(tmp_path):
     # Expected sha256 hash of the string "0123456789". The whole file is used
     # as the file size is > 3*byte_count.
     e_hash = "84d89877f0d4041efb6bf91a16f0248f2fd573e6af05c19f96bedb9f882f7882"
-    assert e_hash == derive_integrity_data(str(test_file), 10**6)['hash']
+    assert e_hash == derive_integrity_data(str(test_file), 10**6)["hash"]
 
 
 def test_derive_integrity_data_small_byte_count(tmp_path):
@@ -413,7 +413,7 @@ def test_derive_integrity_data_small_byte_count(tmp_path):
     # file size is <= 3*byte_count. So checksum is generated using bytes from
     # beginning, middle, and end (instead of whole file content).
     e_hash = "a2a7cb1d7fc8f79e33b716b328e19bb381c3ec96a2dca02a3d1183e7231413bb"
-    assert e_hash == derive_integrity_data(str(test_file), 2)['hash']
+    assert e_hash == derive_integrity_data(str(test_file), 2)["hash"]
 
 
 def test_derive_integrity_data_file_size(tmp_path):
@@ -426,7 +426,7 @@ def test_derive_integrity_data_file_size(tmp_path):
     test_file.write_text(text_file_content)
 
     # Check the size of the file is accurate to the length of it's contents.
-    assert derive_integrity_data(str(test_file), 2)['file_size'] == len(
+    assert derive_integrity_data(str(test_file), 2)["file_size"] == len(
         text_file_content
     )
 
@@ -440,7 +440,7 @@ def test_derive_integrity_data_date(tmp_path):
     test_file = tmp_path / text_file_name
     test_file.write_text(text_file_content)
 
-    access_date = derive_integrity_data(str(test_file), 2)['access_date']
+    access_date = derive_integrity_data(str(test_file), 2)["access_date"]
     access_date = datetime.fromisoformat(access_date)
     access_date_seconds = access_date.timestamp()
     now_seconds = time.time_ns() // 10**9
@@ -458,7 +458,7 @@ def test_derive_integrity_data_source_path(tmp_path):
     test_file = tmp_path / text_file_name
     test_file.write_text(text_file_content)
 
-    assert derive_integrity_data(str(test_file), 2)['source_path'] == str(
+    assert derive_integrity_data(str(test_file), 2)["source_path"] == str(
         test_file
     )
 
@@ -472,7 +472,7 @@ def test_derive_integrity_byte_count(tmp_path):
     test_file = tmp_path / text_file_name
     test_file.write_text(text_file_content)
 
-    assert derive_integrity_data(str(test_file), 2)['byte_count'] == 2
+    assert derive_integrity_data(str(test_file), 2)["byte_count"] == 2
 
 
 def test_derive_integrity_data_max_byte_count_off_by_one(tmp_path):
@@ -553,7 +553,7 @@ def test_upload_basket_without_uuid_creates_uuid(test_basket):
             as outfile:
         manifest_data = json.load(outfile)
 
-    assert manifest_data['uuid'] != "null"
+    assert manifest_data["uuid"] != "null"
 
 
 def test_upload_basket_upload_items_is_not_a_string(test_basket):

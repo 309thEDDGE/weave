@@ -157,7 +157,7 @@ def test_basket_get_manifest(test_pantry):
         "parent_uuids": [],
         "basket_type": "test_basket",
         "label": "",
-        "upload_time": manifest['upload_time'],
+        "upload_time": manifest["upload_time"],
     }
 
 
@@ -191,7 +191,7 @@ def test_basket_get_manifest_cached(test_pantry):
         "parent_uuids": [],
         "basket_type": "test_basket",
         "label": "",
-        "upload_time": manifest['upload_time'],
+        "upload_time": manifest["upload_time"],
     }
 
 
@@ -248,8 +248,8 @@ def test_basket_get_supplement_cached(test_pantry):
     # Supplement should already be cached and the new copy shouldn't be read.
     supplement = basket.get_supplement()
     assert supplement == {
-        "upload_items": original_supplement['upload_items'],
-        "integrity_data": original_supplement['integrity_data'],
+        "upload_items": original_supplement["upload_items"],
+        "integrity_data": original_supplement["integrity_data"],
     }
 
 
@@ -440,7 +440,7 @@ def test_basket_ls_after_find(test_pantry):
 
     expected_base_dir_paths = [
         os.path.join(basket_path, tmp_basket_dir_name, i)
-        for i in ['nested_dir', 'test.txt']
+        for i in ["nested_dir", "test.txt"]
     ]
     expected_base_dir_paths.sort()  # Sort to zip in same order
 
@@ -582,11 +582,11 @@ def test_basket_to_pandas_df(test_pantry):
         manifest_dict = json.load(file)
 
     # Collect the data and build a dataframe for testing
-    data = [manifest_dict['uuid'],
-            manifest_dict['upload_time'],
-            manifest_dict['parent_uuids'],
-            manifest_dict['basket_type'],
-            manifest_dict['label'],
+    data = [manifest_dict["uuid"],
+            manifest_dict["upload_time"],
+            manifest_dict["parent_uuids"],
+            manifest_dict["basket_type"],
+            manifest_dict["label"],
             basket_path,
             test_pantry.file_system.__class__.__name__]
 
@@ -597,7 +597,7 @@ def test_basket_to_pandas_df(test_pantry):
 
     # Addresses can have different prefixes in the paths, check that it ends
     # with the correct relative path
-    assert basket_df['address'][0].endswith(answer_df['address'][0])
+    assert basket_df["address"][0].endswith(answer_df["address"][0])
 
     # Drop the addresses that could be slightly different and compare the rest
     # of the dataframe

@@ -161,7 +161,7 @@ class UploadBasket:
             Optional user friendly label associated with the basket.
         **file_system: fsspec object (optional)
             The file system to upload to (ie s3fs, local fs, etc).
-            If None it will use the default fs from the weave.config.
+            If None, it will use the default fs from the weave.config.
 
         Please note that either the upload_directory OR the basket_type must
         be provided. IT IS RECOMMENDED that the user simply provide the

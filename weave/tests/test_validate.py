@@ -309,6 +309,7 @@ def test_validate_manifest_schema_missing_field(test_validate):
     """Make basket with invalid manifest schema, check that it collects one
        warning.
     """
+
     # The manifest is missing the uuid field
     # This is invalid against the schema.
     bad_manifest_data = """{
@@ -339,16 +340,16 @@ def test_validate_manifest_schema_missing_field(test_validate):
     with test_validate.file_system.open(supplement_path, "rb",) as file:
         supplement_dict = json.load(file)
 
-    for integrity_data in supplement_dict['integrity_data']:
-        if integrity_data['upload_path'].endswith("basket_supplement.json"):
-            nested_supp_path = integrity_data['upload_path']
-        if integrity_data['upload_path'].endswith(".txt"):
-            test_txt_path = integrity_data['upload_path']
+    for integrity_data in supplement_dict["integrity_data"]:
+        if integrity_data["upload_path"].endswith("basket_supplement.json"):
+            nested_supp_path = integrity_data["upload_path"]
+        if integrity_data["upload_path"].endswith(".txt"):
+            test_txt_path = integrity_data["upload_path"]
 
     with test_validate.file_system.open(nested_supp_path, "rb",) as supp_file:
         nested_supp_dict = json.load(supp_file)
 
-    nested_supp_dict['integrity_data'][0]['upload_path'] = test_txt_path
+    nested_supp_dict["integrity_data"][0]["upload_path"] = test_txt_path
 
     with open("basket_supplement.json", "w", encoding="utf-8") as file:
         json.dump(nested_supp_dict, file)
@@ -417,16 +418,16 @@ def test_validate_manifest_schema_additional_field(test_validate):
     with test_validate.file_system.open(supplement_path, "rb",) as file:
         supplement_dict = json.load(file)
 
-    for integrity_data in supplement_dict['integrity_data']:
-        if integrity_data['upload_path'].endswith("basket_supplement.json"):
-            nested_supp_path = integrity_data['upload_path']
-        if integrity_data['upload_path'].endswith(".txt"):
-            test_txt_path = integrity_data['upload_path']
+    for integrity_data in supplement_dict["integrity_data"]:
+        if integrity_data["upload_path"].endswith("basket_supplement.json"):
+            nested_supp_path = integrity_data["upload_path"]
+        if integrity_data["upload_path"].endswith(".txt"):
+            test_txt_path = integrity_data["upload_path"]
 
     with test_validate.file_system.open(nested_supp_path, "rb",) as supp_file:
         nested_supp_dict = json.load(supp_file)
 
-    nested_supp_dict['integrity_data'][0]['upload_path'] = test_txt_path
+    nested_supp_dict["integrity_data"][0]["upload_path"] = test_txt_path
 
     with open("basket_supplement.json", "w", encoding="utf-8") as file:
         json.dump(nested_supp_dict, file)
@@ -1043,6 +1044,7 @@ def test_validate_invalid_metadata_json(test_validate):
     """Make a basket with invalid metadata json, check that it collects
        one warning.
     """
+
     tmp_basket_dir = test_validate.set_up_basket(
         "bad_meta",
         is_man=True,
@@ -1063,16 +1065,16 @@ def test_validate_invalid_metadata_json(test_validate):
     with test_validate.file_system.open(supplement_path, "rb",) as file:
         supplement_dict = json.load(file)
 
-    for integrity_data in supplement_dict['integrity_data']:
-        if integrity_data['upload_path'].endswith("basket_supplement.json"):
-            nested_supp_path = integrity_data['upload_path']
-        if integrity_data['upload_path'].endswith(".txt"):
-            test_txt_path = integrity_data['upload_path']
+    for integrity_data in supplement_dict["integrity_data"]:
+        if integrity_data["upload_path"].endswith("basket_supplement.json"):
+            nested_supp_path = integrity_data["upload_path"]
+        if integrity_data["upload_path"].endswith(".txt"):
+            test_txt_path = integrity_data["upload_path"]
 
     with test_validate.file_system.open(nested_supp_path, "rb",) as supp_file:
         nested_supp_dict = json.load(supp_file)
 
-    nested_supp_dict['integrity_data'][0]['upload_path'] = test_txt_path
+    nested_supp_dict["integrity_data"][0]["upload_path"] = test_txt_path
 
     with open("basket_supplement.json", "w", encoding="utf-8") as file:
         json.dump(nested_supp_dict, file)

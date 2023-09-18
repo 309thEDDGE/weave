@@ -77,16 +77,15 @@ def _check_level(pantry_name, current_dir, **kwargs):
     pantry_name: str
         Current working pantry.
     current_dir: str
-        The current directory that we want to search all files and
-        directories of.
+        The current directory to search all files and directories of.
     **file_system: fsspec object
-        The file system (s3fs, local fs, etc.) that we want to search all files
+        The file system (s3fs, local fs, etc.) to search all files
         and directories of.
     **index_df: dataframe
         A dataframe representing the index.
     **in_basket: bool (optional)
-        This is a flag to signify that we are in a basket and we are
-        looking for a nested basket now.
+        This is a flag to signify that the directory is in a basket and now a
+        nested basket is being searched for now.
 
     Returns
     ----------
@@ -125,7 +124,7 @@ def _check_level(pantry_name, current_dir, **kwargs):
     dirs_and_files = file_system.ls(path=current_dir, refresh=True)
 
     for file_or_dir in dirs_and_files:
-        file_type = file_system.info(file_or_dir)['type']
+        file_type = file_system.info(file_or_dir)["type"]
 
         if file_type == "directory":
             # If directory is a basket, check everything under it
@@ -307,6 +306,7 @@ def _handle_metadata(_pantry_name, file, file_system, _index_df):
     _index_df: dataframe
         a dataframe representing the index (currently unused)
     """
+
     try:
         json.load(file_system.open(file))
 
@@ -334,7 +334,7 @@ def _handle_none_of_the_above(pantry_name, file, file_system, index_df):
 
     basket_dir, _ = os.path.split(file)
 
-    if file_system.info(file)['type'] == "directory":
+    if file_system.info(file)["type"] == "directory":
         if _check_level(pantry_name,
                         file,
                         file_system=file_system,
@@ -365,12 +365,12 @@ def _validate_parent_uuids(data, _file_system, index_df):
     """
 
     # If there are no parent uuids in the manifest, no need to check anything
-    if len(data['parent_uuids']) == 0:
+    if len(data["parent_uuids"]) == 0:
         return
 
-    man_parent_uids = data['parent_uuids']
+    man_parent_uids = data["parent_uuids"]
 
-    index_uuids = index_df['uuid'].to_numpy()
+    index_uuids = index_df["uuid"].to_numpy()
 
     missing_uids = [uid for uid in man_parent_uids if uid not in index_uuids]
 
@@ -407,7 +407,7 @@ def _validate_supplement_files(pantry_name, basket_dir, data, file_system):
                                                        metadata_path]
     ]
 
-    supp_file_list = [file['upload_path'] for file in data['integrity_data']]
+    supp_file_list = [file["upload_path"] for file in data["integrity_data"]]
 
     # Remove path up until the pantry directory in both lists
     system_file_list = [

@@ -168,7 +168,7 @@ class _Index():
         basket_uuid = str(basket_uuid)
         if self.index_df is None:
             self.sync_index()
-        if basket_uuid not in self.index_df['uuid'].to_list():
+        if basket_uuid not in self.index_df["uuid"].to_list():
             raise ValueError(
                 f"The provided value for basket_uuid {basket_uuid} " +
                 "does not exist."
@@ -176,7 +176,7 @@ class _Index():
         # Flatten nested lists into a single list
         parent_uuids = [
             j
-            for i in self.index_df['parent_uuids'].to_list()
+            for i in self.index_df["parent_uuids"].to_list()
             for j in i
         ]
         if basket_uuid in parent_uuids:
@@ -186,8 +186,8 @@ class _Index():
                 "delete that basket before deleting its parent basket."
             )
 
-        remove_item = self.index_df[self.index_df['uuid'] == basket_uuid]
-        self.file_system.rm(remove_item['address'].values[0], recursive=True)
+        remove_item = self.index_df[self.index_df["uuid"] == basket_uuid]
+        self.file_system.rm(remove_item["address"].values[0], recursive=True)
         self.index_df.drop(remove_item.index, inplace=True)
         self.index_df.reset_index(drop=True, inplace=True)
         if upload_index:
@@ -242,15 +242,15 @@ class _Index():
             )
 
         if self.file_system.exists(basket):
-            basket_uuid = self.index_df['uuid'].loc[
-                self.index_df['address'].str.endswith(basket)
+            basket_uuid = self.index_df["uuid"].loc[
+                self.index_df["address"].str.endswith(basket)
             ].values[0]
         elif basket in self.index_df.uuid.values:
             basket_uuid = basket
 
         # Get all the parent uuids for the basket uuid
-        parent_uuids = self.index_df['parent_uuids'].loc[
-            self.index_df['uuid'] == basket_uuid
+        parent_uuids = self.index_df["parent_uuids"].loc[
+            self.index_df["uuid"] == basket_uuid
         ].to_numpy()[0]
 
         # Check if the list is empty return the data how it is
@@ -262,19 +262,19 @@ class _Index():
         descendants.append(basket_uuid)
 
         parents_index = self.index_df.loc[
-            self.index_df['uuid'].isin(parent_uuids), :
+            self.index_df["uuid"].isin(parent_uuids), :
         ].copy()
 
         if len(parents_index) == 0:
             return data
 
-        parents_index.loc[:, 'generation_level'] = gen_level
+        parents_index.loc[:, "generation_level"] = gen_level
 
         # Add the parents for this generation to the data
         data = pd.concat([data, parents_index])
 
         # For every parent, go get their parents
-        for basket_addr in parents_index['address']:
+        for basket_addr in parents_index["address"]:
             data = self.get_parents(basket=basket_addr,
                                     gen_level=gen_level+1,
                                     data=data,
@@ -292,15 +292,15 @@ class _Index():
         **gen_level: int
             This indicates what generation is being looked at,
             -1 for child, -2 for grandchild and so forth.
+        **ancestors: [str]
+            This is a list of basket uuids of all the ancestors that have been
+            visited. This is being used to detect if there is a parent-child
+            loop inside the basket structure.
         **data: dataframe (optional)
             This is the index or dataframe that has been collected so far
             when it is initially called, it is empty, for every
             iteration/recursive call all of the immediate children for
             the given basket are added.
-        **ancestors: [str]
-            This is a list of basket uuids of all the ancestors that have been
-            visited. This is being used to detect if there is a parent-child
-            loop inside the basket structure.
 
         Returns
         ----------
@@ -308,10 +308,11 @@ class _Index():
         basket, along with all the previous children
         of the previous calls.
         """
+
         # Collect info from kwargs
         gen_level = kwargs.get("gen_level", -1)
-        data = kwargs.get("data", pd.DataFrame())
         ancestors = kwargs.get("ancestors", [])
+        data = kwargs.get("data", pd.DataFrame())
 
         if self.sync:
             if not self.is_index_current():
@@ -328,8 +329,8 @@ class _Index():
             )
 
         if self.file_system.exists(basket):
-            basket_uuid = self.index_df['uuid'].loc[
-                self.index_df['address'].str.endswith(basket)
+            basket_uuid = self.index_df["uuid"].loc[
+                self.index_df["address"].str.endswith(basket)
             ].values[0]
         elif basket in self.index_df.uuid.values:
             basket_uuid = basket
@@ -340,7 +341,7 @@ class _Index():
             self.index_df.parent_uuids.apply(lambda a: basket_uuid in a)
         ]
 
-        child_uuids = child_index['uuid'].values
+        child_uuids = child_index["uuid"].values
 
         if len(child_uuids) == 0:
             return data
@@ -353,13 +354,13 @@ class _Index():
 
         # Pandas requires a copy to be made
         child_index = child_index.copy()
-        child_index.loc[:, 'generation_level'] = gen_level
+        child_index.loc[:, "generation_level"] = gen_level
 
         # Add the children from this generation to the data
         data = pd.concat([data, child_index])
 
         # Go through all the children and get their children too
-        for basket_addr in child_index['address']:
+        for basket_addr in child_index["address"]:
             data =  self.get_children(basket=basket_addr,
                                       gen_level=gen_level-1,
                                       data=data,

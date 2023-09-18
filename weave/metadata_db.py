@@ -38,7 +38,7 @@ def load_mongo(index_table, collection="metadata", **kwargs):
         raise TypeError("Invalid datatype for collection: "
                         "must be a string")
 
-    required_columns = ['uuid', 'basket_type', 'address']
+    required_columns = ["uuid", "basket_type", "address"]
 
     for required_column in required_columns:
         if required_column not in index_table.columns.values.tolist():
@@ -49,19 +49,19 @@ def load_mongo(index_table, collection="metadata", **kwargs):
     database = get_mongo_db().mongo_metadata
 
     for _, row in index_table.iterrows():
-        basket = Basket(row['address'], file_system=file_system)
+        basket = Basket(row["address"], file_system=file_system)
         metadata = basket.get_metadata()
         if metadata is None:
             continue
         manifest = basket.get_manifest()
         mongo_metadata = {}
-        mongo_metadata['uuid'] = manifest['uuid']
-        mongo_metadata['basket_type'] = manifest['basket_type']
+        mongo_metadata["uuid"] = manifest["uuid"]
+        mongo_metadata["basket_type"] = manifest["basket_type"]
         mongo_metadata.update(metadata)
 
         # If the UUID already has metadata loaded in mongodb,
         # the metadata should not be loaded to mongodb again.
         if 0 == database[
             collection
-        ].count_documents({"uuid": manifest['uuid']}):
+        ].count_documents({"uuid": manifest["uuid"]}):
             database[collection].insert_one(mongo_metadata)

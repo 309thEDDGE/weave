@@ -125,7 +125,7 @@ def test_correct_index(test_pantry):
     # Check the addresses are the same, ignoring any FS dependent prefixes.
     assert all(
         (
-            actual_index['address'].iloc[i].endswith(addr)
+            actual_index["address"].iloc[i].endswith(addr)
             for i, addr in enumerate(addresses)
         )
     )
@@ -215,7 +215,7 @@ def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
     # Check the addresses are the same, ignoring any FS dependent prefixes.
     assert all(
         (
-            actual_index['address'].iloc[i].endswith(addr)
+            actual_index["address"].iloc[i].endswith(addr)
             for i, addr in enumerate(good_addresses)
         )
     )
@@ -290,7 +290,7 @@ def test_sync_index_gets_latest_index(test_pantry):
 
     # Assert all baskets in index are not index baskets
     for i in range(len(ind.to_pandas_df())):
-        basket_type = ind.to_pandas_df()['basket_type'][i]
+        basket_type = ind.to_pandas_df()["basket_type"][i]
         assert basket_type != "index"
 
 
@@ -472,7 +472,7 @@ def test_generate_index(test_pantry):
 
     # Assert all baskets in index are not index baskets
     for i in range(len(ind.to_pandas_df())):
-        basket_type = ind.to_pandas_df()['basket_type'][i]
+        basket_type = ind.to_pandas_df()["basket_type"][i]
         assert basket_type != "index"
 
 
@@ -505,14 +505,14 @@ def test_delete_basket_deletes_basket(test_pantry):
         f"{test_pantry.pantry_name}/test_basket"
     )
     # index_baskets: Baskets in the index object
-    index_baskets = ind.index_df[ind.index_df['basket_type'] == "test_basket"]
+    index_baskets = ind.index_df[ind.index_df["basket_type"] == "test_basket"]
 
     # Verify basket removed from the index object
     assert len(index_baskets) == 1
     # Verify index object still tracks the file system
     assert len(fs_baskets) == len(index_baskets)
     # Verify the correct basket was deleted
-    assert "0002" not in ind.index_df['uuid'].to_list()
+    assert "0002" not in ind.index_df["uuid"].to_list()
 
 
 def test_delete_basket_fails_if_basket_is_parent(test_pantry):
@@ -603,14 +603,14 @@ def test_get_parents_valid(test_pantry):
     ]
     parent_gens = [1, 1, 2, 2, 2, 3, 3, 3]
     index = ind.index_df
-    parent_answer = index.loc[index['uuid'].isin(parent_ids)]
+    parent_answer = index.loc[index["uuid"].isin(parent_ids)]
 
     # Pandas wants to make a copy before adding a column
     # used to remove warning in pytest
     parent_answer = parent_answer.copy()
     # Add the generation levels
     for i, j in zip(parent_ids, parent_gens):
-        parent_answer.loc[parent_answer['uuid'] == i, gen_lvl] = j
+        parent_answer.loc[parent_answer["uuid"] == i, gen_lvl] = j
 
     # Get the results
     results = ind.get_parents(child)
@@ -889,7 +889,7 @@ def test_get_parents_15_deep(test_pantry):
     ind.generate_index()
     index = ind.index_df
 
-    child_path = index.loc[index['uuid'] == "x"]['address'].values[0]
+    child_path = index.loc[index["uuid"] == "x"]["address"].values[0]
 
     results = ind.get_parents(child_path)
 
@@ -911,7 +911,7 @@ def test_get_parents_15_deep(test_pantry):
         "13",
     ]
     par_gens = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
-    answer = index.loc[index['uuid'].isin(par_ids)]
+    answer = index.loc[index["uuid"].isin(par_ids)]
 
     gen_lvl = "generation_level"
 
@@ -919,7 +919,7 @@ def test_get_parents_15_deep(test_pantry):
     # used to remove warning in pytest
     answer = answer.copy()
     for i, j in zip(par_ids, par_gens):
-        answer.loc[answer['uuid'] == i, gen_lvl] = j
+        answer.loc[answer["uuid"] == i, gen_lvl] = j
 
     # Format and sort so .equals can be properly used
     answer = answer.sort_values(by="uuid")
@@ -955,7 +955,7 @@ def test_get_children_15_deep(test_pantry):
     ind.generate_index()
     index = ind.index_df
 
-    parent_path = index.loc[index['uuid'] == "13"]['address'].values[0]
+    parent_path = index.loc[index["uuid"] == "13"]["address"].values[0]
 
     results = ind.get_children(parent_path)
 
@@ -977,7 +977,7 @@ def test_get_children_15_deep(test_pantry):
         "12",
     ]
     child_gens = [-14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1]
-    answer = index.loc[index['uuid'].isin(child_ids)]
+    answer = index.loc[index["uuid"].isin(child_ids)]
 
     gen_lvl = "generation_level"
 
@@ -985,7 +985,7 @@ def test_get_children_15_deep(test_pantry):
     # used to remove warning in pytest
     answer = answer.copy()
     for i, j in zip(child_ids, child_gens):
-        answer.loc[answer['uuid'] == i, gen_lvl] = j
+        answer.loc[answer["uuid"] == i, gen_lvl] = j
 
     # Format and sort so .equals can be properly used
     answer = answer.sort_values(by="uuid")
@@ -1174,14 +1174,14 @@ def test_get_parents_from_uuid(test_pantry):
     ]
     parent_gens = [1, 1, 2, 2, 2, 3, 3, 3]
     index = ind.index_df
-    parent_answer = index.loc[index['uuid'].isin(parent_ids)]
+    parent_answer = index.loc[index["uuid"].isin(parent_ids)]
 
     # Pandas wants to make a copy before adding a column
     # used to remove warning in pytest
     parent_answer = parent_answer.copy()
     # Add the generation levels
     for i, j in zip(parent_ids, parent_gens):
-        parent_answer.loc[parent_answer['uuid'] == i, gen_lvl] = j
+        parent_answer.loc[parent_answer["uuid"] == i, gen_lvl] = j
 
     # Get the results
     results = ind.get_parents("0000")
@@ -1248,14 +1248,14 @@ def test_get_children_from_uuid(test_pantry):
     child_ids = ["2000", "1000", "0000"]
     child_gens = [-1, -2, -3]
     index = ind.index_df
-    child_answer = index.loc[index['uuid'].isin(child_ids)]
+    child_answer = index.loc[index["uuid"].isin(child_ids)]
 
     # Pandas wants to make a copy before adding a column
     # used to remove warning in pytest
     child_answer = child_answer.copy()
     # Add the generation levels
     for i, j in zip(child_ids, child_gens):
-        child_answer.loc[child_answer['uuid'] == i, gen_lvl] = j
+        child_answer.loc[child_answer["uuid"] == i, gen_lvl] = j
 
     # Get the results with uid of the great grandparent
     results = ind.get_children("3000")

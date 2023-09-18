@@ -74,7 +74,7 @@ class BasketInitializer:
         try:
             ind = _Index(pantry_name=pantry_name, file_system=self.file_system)
             ind_df = ind.to_pandas_df()
-            path = ind_df['address'][ind_df['uuid'] == basket_address].iloc[0]
+            path = ind_df["address"][ind_df["uuid"] == basket_address].iloc[0]
             self._set_up_basket_from_path(basket_address=path)
         except BaseException as error:
             self.basket_path = basket_address
