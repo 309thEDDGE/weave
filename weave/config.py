@@ -3,8 +3,15 @@ config.py provides configuration settings used by weave.
 """
 import os
 
-import pymongo
 import s3fs
+# Try-Except required to make pymongo an optional dependency.
+try:
+    import pymongo
+except ImportError:
+    _HAS_PYMONGO = False
+else:
+    _HAS_PYMONGO = True
+
 
 # Filenames not allowed to be added to the basket.
 # These files are taken for specific weave purposes.
@@ -101,6 +108,10 @@ def get_file_system():
 
 def get_mongo_db():
     """Get the mongodb client to be used for metadata search"""
+
+    if not _HAS_PYMONGO:
+        raise ImportError("Missing Dependency. The package 'pymongo' "
+                          "is required to use this function")
 
     # If MONGODB_HOST, USERNAME and PASSWORD are provided as environment
     # variables, initialize the mongo client with the provided
