@@ -37,7 +37,7 @@ def file_path_in_list(search_path, search_list):
     return False
 
 
-class BucketForTest:
+class PantryForTest:
     """Handles resources for much of Weave testing."""
 
     def __init__(self, tmpdir, file_system, pantry_path=None):

@@ -13,7 +13,7 @@ from .create_index import create_index_from_fs
 from .index_abc import IndexABC
 
 
-class _Index():
+class IndexPandas():
     """Handles Pandas based functionality of the Index."""
 
     def __init__(self, file_system, pantry_path, **kwargs):
@@ -35,7 +35,7 @@ class _Index():
             then the Index object may be stale, but operations will perform
             at a higher speed.
         """
-        
+
         super().__init__(file_system=file_system,
                          pantry_path=pantry_path,
                          **kwargs
@@ -194,6 +194,7 @@ class _Index():
         ----------
         **kwargs unused for this class.
         """
+
         index = create_index_from_fs(self.pantry_path, self.file_system)
         self._upload_index(index=index)
 
@@ -223,7 +224,7 @@ class _Index():
             directory, or the UUID of the basket.
 
         **upload_index: bool (optional)
-            Flag to upload the new index to the file system
+            Flag to upload the new index to the file system.
         """
 
         upload_index = kwargs.get("upload_index", True)
@@ -428,7 +429,7 @@ class _Index():
         return data
 
     def track_basket(self, entry_df, **kwargs):
-        """Track a basket to from the pantry referenced by the Index
+        """Track a basket to from the pantry referenced by the Index.
 
         Parameters
         ----------

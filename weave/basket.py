@@ -30,7 +30,7 @@ class BasketInitializer:
         """
 
         if "pantry" in kwargs:
-            self.file_system = kwargs["pantry'].file_system
+            self.file_system = kwargs["pantry"].file_system
         else:
             self.file_system = kwargs.get("file_system", get_file_system())
         try:
