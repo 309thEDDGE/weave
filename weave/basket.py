@@ -8,13 +8,12 @@ from pathlib import Path
 import pandas as pd
 
 from .config import get_file_system, prohibited_filenames
-from .index.index_pandas import _Index
 
 
 class BasketInitializer:
     """Initializes basket class. Validates input args.
     """
-    def __init__(self, basket_address, pantry_name, **kwargs):
+    def __init__(self, basket_address, **kwargs):
         """Handles set up of basket. Calls validation.
 
         Parameters
@@ -22,19 +21,27 @@ class BasketInitializer:
         basket_address: str
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
-        pantry_name: str
-            Name of the pantry which the desired index is associated with.
-
-        **file_system: fsspec object
-            The fsspec filesystem to be used for retrieving and uploading.
+        **file_system: fsspec object (optional)
+            The fsspec filesystem to be used for retrieving and uploading. This
+            is only used when basket_address is a path.
+        **pantry: weave.Pantry (optional)
+            The pantry which the basket uuid is associated with. Only for UUID
         """
-        self.file_system = kwargs.get("file_system", get_file_system())
+        if 'pantry' in kwargs:
+            self.file_system = kwargs['pantry'].file_system
+        else:
+            self.file_system = kwargs.get("file_system", get_file_system())
         try:
             self._set_up_basket_from_path(basket_address)
         except ValueError as error:
             if str(error) != f"Basket does not exist: {self.basket_path}":
                 raise error
-            self._set_up_basket_from_uuid(basket_address, pantry_name)
+
+            if 'pantry' not in kwargs:
+                raise KeyError("pantry, required to set up basket from UUID,"
+                               "is not in kwargs.") from error
+            self.set_up_basket_from_uuid(basket_address, kwargs['pantry'])
+
         self.manifest_path = f"{self.basket_path}/basket_manifest.json"
         self.supplement_path = f"{self.basket_path}/basket_supplement.json"
         self.metadata_path = f"{self.basket_path}/basket_metadata.json"
@@ -53,7 +60,7 @@ class BasketInitializer:
         self.basket_path = os.fspath(basket_address)
         self.validate_basket_path()
 
-    def _set_up_basket_from_uuid(self, basket_address, pantry_name):
+    def set_up_basket_from_uuid(self, basket_address, pantry):
         """Attempts to set up a basket from a uuid.
 
         Note that if the basket cannot be set up from a uuid then an attempt to
@@ -63,14 +70,12 @@ class BasketInitializer:
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket. In this case it is assumed to
             be the UUID of the basket.
-        pantry_name: str
-            Name of the pantry which the desired index is associated with.
+        pantry: weave.Pantry
+            The pantry which the basket uuid is associated with.
         """
         try:
-            ind = _Index(pantry_name=pantry_name, file_system=self.file_system)
-            ind_df = ind.to_pandas_df()
-            path = ind_df["address"][ind_df["uuid"] == basket_address].iloc[0]
-            self._set_up_basket_from_path(basket_address=path)
+            row = pantry.index.get_rows(basket_address)
+            self._set_up_basket_from_path(basket_address=row.iloc[0].address)
         except BaseException as error:
             self.basket_path = basket_address
             self.validate_basket_path()
@@ -104,22 +109,26 @@ class Basket(BasketInitializer):
     """This class provides convenience functions for accessing basket contents.
     """
 
-    def __init__(self, basket_address, pantry_name="basket-data", **kwargs):
+    def __init__(self, basket_address, **kwargs):
         """Initializes the Basket_Class.
+
+        If basket_address is a path, the basket will be loaded directly using
+        the file_system or pantry. If basket_address is a UUID, the basket will
+        be loaded using the provided pantry's index.
 
         Parameters
         ----------
         basket_address: str
-            Argument can take one of two forms: either a path to the basket
+            Argument can take one of two forms: either a path to the Basket
             directory, or the UUID of the basket.
-        pantry_name: str
-            Name of the pantry which the desired index is associated with.
-
-        **file_system: fsspec object
-            The fsspec filesystem to be used for retrieving and uploading.
+        **file_system: fsspec object (optional)
+            The fsspec filesystem to be used for retrieving and uploading. May
+            be used if basket_address is a path.
+        **pantry: weave.Pantry (optional)
+            The pantry which the basket uuid is associated with. Required if
+            basket_address is a UUID.
         """
-        super().__init__(basket_address, pantry_name, **kwargs)
-
+        super().__init__(basket_address, **kwargs)
         self.manifest = None
         self.supplement = None
         self.metadata = None
@@ -133,6 +142,7 @@ class Basket(BasketInitializer):
         self.parent_uuids = self.manifest["parent_uuids"]
         self.basket_type = self.manifest["basket_type"]
         self.label = self.manifest["label"]
+        self.weave_version = self.manifest["weave_version"]
         self.address = self.basket_path
         self.storage_type = self.file_system.__class__.__name__
 
@@ -223,8 +233,10 @@ class Basket(BasketInitializer):
         """
         data = [self.uuid, self.upload_time,
                 self.parent_uuids, self.basket_type,
-                self.label, self.address, self.storage_type]
+                self.label, self.weave_version, self.address,
+                self.storage_type]
         columns = ["uuid", "upload_time", "parent_uuids",
-                   "basket_type", "label", "address", "storage_type"]
+                   "basket_type", "label", "weave_version",
+                   "address", "storage_type"]
 
         return pd.DataFrame(data=[data], columns=columns)

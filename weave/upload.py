@@ -2,6 +2,7 @@
 Contains functions and classes concerning the upload functionality.
 """
 import hashlib
+from importlib import metadata
 import json
 import math
 import os
@@ -209,7 +210,8 @@ class UploadBasket:
                          "parent_ids": list,
                          "metadata": dict,
                          "label": str,
-                         "pantry_name": str,
+                         "weave_version": str,
+                         "pantry_path": str,
                          "test_prefix": str}
         for key, value in self.kwargs.items():
             if key not in kwargs_schema:
@@ -275,15 +277,15 @@ class UploadBasket:
         if "unique_id" not in self.kwargs:
             self.kwargs["unique_id"] = uuid.uuid1().hex
         if "upload_directory" not in self.kwargs:
-            if not ("pantry_name" and "basket_type" in self.kwargs):
+            if not ("pantry_path" and "basket_type" in self.kwargs):
                 raise ValueError(
                     "Please provide either the 'upload_directory' or a "
-                    "combination of 'pantry_name' and 'basket_type' as kwargs "
+                    "combination of 'pantry_path' and 'basket_type' as kwargs "
                     "for UploadBasket"
                 )
             self.kwargs["upload_directory"] = os.path.join(
                 self.kwargs.get("test_prefix", ""),
-                self.kwargs.get("pantry_name"),
+                self.kwargs.get("pantry_path"),
                 self.kwargs.get("basket_type"),
                 self.kwargs.get("unique_id"),
             )
@@ -371,6 +373,7 @@ class UploadBasket:
         basket_json["parent_uuids"] = self.kwargs.get("parent_ids", [])
         basket_json["basket_type"] = self.kwargs.get("basket_type")
         basket_json["label"] = self.kwargs.get("label","")
+        basket_json["weave_version"] = metadata.version("weave")
 
         with open(basket_json_path, "w", encoding="utf-8") as outfile:
             json.dump(basket_json, outfile)

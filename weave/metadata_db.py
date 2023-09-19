@@ -39,7 +39,6 @@ def load_mongo(index_table, collection='metadata', **kwargs):
     if not isinstance(collection, str):
         raise TypeError("Invalid datatype for collection: "
                         "must be a string")
-
     required_columns = ['uuid', 'basket_type', 'address']
 
     for required_column in required_columns:
