@@ -114,7 +114,8 @@ def fixture_test_index_only(request):
 
 
 def test_index_abc_builtin_len_works(test_pantry):
-    """Test IndexABC builtin __len__ returns number of baskets being tracked."""
+    """Test IndexABC builtin __len__ returns number of baskets being tracked.
+    """
 
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
@@ -1342,7 +1343,8 @@ def test_index_abc_get_baskets_of_type_max_rows_works(test_pantry):
 
 
 def test_index_abc_get_baskets_of_type_returns_empty_df(test_pantry):
-    """Test IndexABC get_baskets_of_type returns empty df if no baskets of type.
+    """Test IndexABC get_baskets_of_type returns empty df if no baskets of
+    type.
     """
 
     # Unpack the test_pantry into two variables for the pantry and index.
@@ -1451,7 +1453,8 @@ def test_index_abc_get_baskets_by_upload_time_raises_value_error2(test_pantry):
 
 
 def test_index_abc_get_baskets_by_upload_time_start_works(test_pantry):
-    """Test IndexABC get_baskets_by_upload_time works with only a start time."""
+    """Test IndexABC get_baskets_by_upload_time works with only a start time.
+    """
 
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry

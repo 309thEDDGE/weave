@@ -28,7 +28,8 @@ from weave.upload import (
 
 
 class UploadForTest(PantryForTest):
-    """Test class extended from PantryForTest to include custom call for upload.
+    """Test class extended from PantryForTest to include custom call for 
+    upload.
     """
 
     def __init__(self, tmpdir, file_system):

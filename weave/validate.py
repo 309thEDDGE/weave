@@ -304,7 +304,8 @@ def _handle_none_of_the_above(file, pantry):
 
 
 def _validate_parent_uuids(data, pantry):
-    """Validate that all the parent_uuids from the manifest exist in the pantry.
+    """Validate that all the parent_uuids from the manifest exist in the
+    pantry.
 
     If there are parent uuids that don't actually exist in the pantry,
     a warning will be raised for each of those, along with the
