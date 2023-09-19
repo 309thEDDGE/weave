@@ -165,7 +165,7 @@ def test_upload_nothing_else_in_uploaded_files(set_up_tu):
 def test_upload_pantry_path_is_string():
     """Test that an error is raised when the pantry name is not a string.
     """
-    
+
     pantry_path = 7
     upload_items = [
         {"path": "this/doesnt/actually/matter/here", "stub": False}

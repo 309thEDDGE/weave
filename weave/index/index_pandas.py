@@ -575,4 +575,3 @@ class IndexPandas(IndexABC):
 
         self._sync_if_needed()
         return self.index_df.query(expr)
-
