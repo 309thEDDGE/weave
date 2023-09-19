@@ -13,7 +13,7 @@ from .create_index import create_index_from_fs
 from .index_abc import IndexABC
 
 
-class IndexPandas():
+class IndexPandas(IndexABC):
     """Handles Pandas based functionality of the Index."""
 
     def __init__(self, file_system, pantry_path, **kwargs):

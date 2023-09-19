@@ -38,11 +38,8 @@ class BasketInitializer:
         except ValueError as error:
             if str(error) != f"Basket does not exist: {self.basket_path}":
                 raise error
+
             if "pantry" not in kwargs:
-                raise KeyError("pantry, required to set up basket from UUID,"
-                               "is not in kwargs.") from error
-            self.set_up_basket_from_uuid(basket_address, kwargs["pantry"])
-            if 'pantry' not in kwargs:
                 raise KeyError("pantry, required to set up basket from UUID,"
                                "is not in kwargs.") from error
             self.set_up_basket_from_uuid(basket_address, kwargs["pantry"])
