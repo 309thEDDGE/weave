@@ -1653,3 +1653,32 @@ def test_index_abc_get_baskets_by_upload_time_returns_empty_df(test_pantry):
     baskets = ind.get_baskets_by_upload_time(start_time=start, end_time=end)
 
     assert isinstance(baskets, pd.DataFrame) and len(baskets) == 0
+
+
+def test_index_abc_columns_in_df_are_same_as_config_index_schema(test_pantry):
+    """Test IndexABC tracks the same columns found in config.index_schema."""
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+    # Put basket in the temporary pantry.
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_basket_dir_one,
+        uid="0001",
+        label='good_label',
+    )
+
+    ind.generate_index()
+    ind_df = ind.to_pandas_df()
+    ind_df_columns = list(ind_df.columns)
+
+    # Get the columns in the schema, and add derived columns.
+    index_schema_columns = weave.config.index_schema()
+    index_schema_columns.append("storage_type")
+    index_schema_columns.append("address")
+
+    # Sort both for comparisons.
+    ind_df_columns.sort()
+    index_schema_columns.sort()
+
+    assert ind_df_columns == index_schema_columns

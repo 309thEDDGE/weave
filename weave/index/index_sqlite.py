@@ -9,6 +9,7 @@ import ast
 import dateutil
 import pandas as pd
 
+from ..config import index_schema
 from .index_abc import IndexABC
 from .list_baskets import _get_list_of_basket_jsons
 from .validate_basket import validate_basket_dict
@@ -39,6 +40,10 @@ class IndexSQLite(IndexABC):
 
     def _create_tables(self):
         """Create the required DB tables if they do not already exist."""
+
+        # THIS NEEDS TO BE UPDATED MANUALLY IF NEW COLUMNS ARE ADDED TO INDEX.
+        # THE INSERT IN OTHER FUNCTIONS USE config.index_schema(), BUT THAT
+        # CAN'T BE USED HERE AS TYPE NEEDS TO BE SPECIFIED.
         self.cur.execute("""
             CREATE TABLE IF NOT EXISTS pantry_index(
                 uuid TEXT, upload_time INT, parent_uuids TEXT,
@@ -95,6 +100,9 @@ class IndexSQLite(IndexABC):
 
         storage_type = self.file_system.__class__.__name__
 
+        index_columns = index_schema().append("storage_type")
+        index_columns = ", ".join(index_columns)
+
         bad_baskets = []
         for basket_json_address in basket_jsons:
             with self.file_system.open(basket_json_address, "rb") as file:
@@ -124,9 +132,8 @@ class IndexSQLite(IndexABC):
                 parent_uuids = basket_dict["parent_uuids"]
                 basket_dict["parent_uuids"] = str(basket_dict["parent_uuids"])
 
-                sql = """INSERT OR IGNORE INTO pantry_index(
-                uuid, upload_time, parent_uuids, basket_type,
-                label, address, storage_type) VALUES(?,?,?,?,?,?,?) """
+                sql = f"""INSERT OR IGNORE INTO pantry_index({index_columns})
+                VALUES(?,?,?,?,?,?,?) """
 
                 val = tuple(basket_dict.values())
 
