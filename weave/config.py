@@ -22,6 +22,7 @@ manifest_schema = {
         "parent_uuids": {"type": "array", "items": {"type": "string"}},
         "basket_type": {"type": "string"},
         "label": {"type": "string"},
+        "weave_version": {"type": "string"}
     },
     "required": [
         "uuid",
@@ -84,9 +85,11 @@ supplement_schema = {
 
 
 def index_schema():
-    """Return the keys expected from the manifest.json file."""
-
-    return ["uuid", "upload_time", "parent_uuids", "basket_type", "label"]
+    """Return the keys expected from the manifest.json file.
+    """
+    
+    return ["uuid", "upload_time", "parent_uuids",
+            "basket_type", "label", "weave_version"]
 
 
 def get_file_system():

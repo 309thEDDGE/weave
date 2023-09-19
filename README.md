@@ -195,6 +195,7 @@ that tracks whenever baskets are added and removed from the file system. This
 index provides information about each basket, including its uuid, upload time,
 parent uuids, basket type, label, address and storage type. An index is created
 by passing an Index object as the first argument to the Pantry constructor.
+
 Weave supports a Pandas and SQLlite implementation for the index backend.
 Example code to create this index:
 ```python
@@ -220,6 +221,9 @@ The Pantry class also provides convenient functions for uploading, accessing,
 and deleting baskets.
 
 ```python
+# Get pantry metadata
+pantry_metadata = pantry.metadata
+
 # Upload a basket using the Index.
 upload_items = [{"path":"Path_to_file_or_dir", "stub": False}]
 uploaded_info = pantry.upload_basket(upload_items,

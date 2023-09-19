@@ -55,6 +55,7 @@ class IndexABC(abc.ABC):
     @abc.abstractmethod
     def generate_index(self, **kwargs):
         """Populates the index from the file system.
+
         Generate the index by scraping the pantry and adding the manifest data
         of found baskets to the index.
 

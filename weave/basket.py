@@ -38,8 +38,11 @@ class BasketInitializer:
         except ValueError as error:
             if str(error) != f"Basket does not exist: {self.basket_path}":
                 raise error
-
             if "pantry" not in kwargs:
+                raise KeyError("pantry, required to set up basket from UUID,"
+                               "is not in kwargs.") from error
+            self.set_up_basket_from_uuid(basket_address, kwargs["pantry"])
+            if 'pantry' not in kwargs:
                 raise KeyError("pantry, required to set up basket from UUID,"
                                "is not in kwargs.") from error
             self.set_up_basket_from_uuid(basket_address, kwargs["pantry"])
@@ -121,6 +124,10 @@ class Basket(BasketInitializer):
     def __init__(self, basket_address, **kwargs):
         """Initializes the Basket_Class.
 
+        If basket_address is a path, the basket will be loaded directly using
+        the file_system or pantry. If basket_address is a UUID, the basket will
+        be loaded using the provided pantry's index.
+
         Parameters
         ----------
         basket_address: str
@@ -150,6 +157,7 @@ class Basket(BasketInitializer):
         self.parent_uuids = self.manifest["parent_uuids"]
         self.basket_type = self.manifest["basket_type"]
         self.label = self.manifest["label"]
+        self.weave_version = self.manifest["weave_version"]
         self.address = self.basket_path
         self.storage_type = self.file_system.__class__.__name__
 
@@ -245,8 +253,10 @@ class Basket(BasketInitializer):
 
         data = [self.uuid, self.upload_time,
                 self.parent_uuids, self.basket_type,
-                self.label, self.address, self.storage_type]
+                self.label, self.weave_version, self.address,
+                self.storage_type]
         columns = ["uuid", "upload_time", "parent_uuids",
-                   "basket_type", "label", "address", "storage_type"]
+                   "basket_type", "label", "weave_version",
+                   "address", "storage_type"]
 
         return pd.DataFrame(data=[data], columns=columns)
