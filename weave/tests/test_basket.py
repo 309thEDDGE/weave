@@ -2,6 +2,7 @@
 import json
 import os
 from pathlib import Path
+from datetime import datetime, timezone
 
 import pytest
 import s3fs
@@ -646,3 +647,19 @@ def test_basket_to_pandas_df(test_pantry):
     basket_df.drop(columns="address", inplace=True)
     answer_df.drop(columns="address", inplace=True)
     assert basket_df.equals(answer_df)
+
+def test_basket_time_is_utc(test_pantry):
+    """Make sure time data is in UTC format"""
+    # Upload a basket
+    time = datetime.now(timezone.utc).isoformat()
+    tmp_basket_dir = test_pantry.set_up_basket("basket")
+    uuid = "0000"
+    basket_path = test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir,
+                                            uid=uuid)
+
+    manifest_path = os.path.join(basket_path, "basket_manifest.json")
+
+    with test_pantry.file_system.open(manifest_path, "rb") as file:
+        manifest_dict = json.load(file)
+
+    assert manifest_dict['upload_time'][0:20] == time[0:20]
