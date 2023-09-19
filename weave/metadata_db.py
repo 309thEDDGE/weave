@@ -10,10 +10,11 @@ import pandas as pd
 # pylint: disable-next=duplicate-code
 try:
     # For the sake of explicitly showing that pymongo is optional, import
-    # pymongo here, even though it is not currently used here. Pylint ignore
-    # the next unused-import pylint warning, until the day it is used.
+    # pymongo here, even though it is not currently used in this file.
+    # Pylint ignore the next unused-import pylint warning.
+    # Also inline ruff ignore unused import (F401)
     # pylint: disable-next=unused-import
-    import pymongo
+    import pymongo # noqa: F401
 except ImportError:
     _HAS_PYMONGO = False
 else:
