@@ -75,9 +75,14 @@ class BasketInitializer:
         """
         try:
             row = pantry.index.get_rows(basket_address)
+            pantry.validate_path_in_pantry(row.iloc[0].address)
             self._set_up_basket_from_path(basket_address=row.iloc[0].address)
         except BaseException as error:
             self.basket_path = basket_address
+
+            pantry_error_msg = 'Attempting to access basket outside of pantry:'
+            if str(error).startswith(pantry_error_msg):
+                raise error
             self.validate_basket_path()
             # The above line should raise an exception
             # The below line is more or less a fail safe and will raise the ex.

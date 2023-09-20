@@ -64,11 +64,6 @@ def test_basket_basket_path_is_pathlike():
         Basket(basket_path)
 
 
-# Ignoring pylint's warning "redefined-outer-name" as this is simply
-# how pytest works when it comes to pytest fixtures.
-# pylint: disable=redefined-outer-name
-
-
 def test_basket_address_does_not_exist(test_pantry):
     """
     Test that an error is raised when trying to instantiate a basket with an
@@ -87,6 +82,37 @@ def test_basket_address_does_not_exist(test_pantry):
             file_system=test_pantry.file_system,
             pantry=pantry
         )
+
+
+def test_make_basket_with_uuid_stays_in_pantry(test_pantry):
+    """Tests the pantry does not access baskets outside of itself."""
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system
+    )
+
+    # Save and delete the basket.
+    pantry.index.generate_index()
+    df = pantry.index.to_pandas_df()
+    pantry.index.untrack_basket(df.iloc[0].uuid)
+
+    # Modify the basket address to a new (fake) pantry.
+    address = df.iloc[0].address
+    address = address.split(os.path.sep)
+    address[0] += '-2'
+    new_address = (os.path.sep).join(address)
+    df.at[0,'address'] = new_address
+
+    # Track the new basket
+    pantry.index.track_basket(df)
+
+    error_msg = f"Attempting to access basket outside of pantry: {new_address}"
+    with pytest.raises(ValueError, match=error_msg):
+        Basket(df.iloc[0].uuid, pantry=pantry)
 
 
 def test_basket_no_manifest_file(test_pantry):

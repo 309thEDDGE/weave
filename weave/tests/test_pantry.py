@@ -262,6 +262,37 @@ def test_pantry_fails_with_bad_path(test_pantry):
         pantry.index.generate_index()
 
 
+def test_delete_basket_stays_in_pantry(test_pantry):
+    """Tests the pantry does not delete baskets outside of itself."""
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system
+    )
+
+    # Save and delete the basket.
+    pantry.index.generate_index()
+    df = pantry.index.to_pandas_df()
+    pantry.index.untrack_basket(df.iloc[0].uuid)
+
+    # Modify the basket address to a new (fake) pantry.
+    address = df.iloc[0].address
+    address = address.split(os.path.sep)
+    address[0] += '-2'
+    new_address = (os.path.sep).join(address)
+    df.at[0,'address'] = new_address
+
+    # Track the new basket
+    pantry.index.track_basket(df)
+
+    error_msg = f"Attempting to access basket outside of pantry: {new_address}"
+    with pytest.raises(ValueError, match=error_msg):
+        pantry.delete_basket(df.iloc[0].uuid)
+    with pytest.raises(ValueError, match=error_msg):
+        pantry.delete_basket(df.iloc[0].address)
 
 def test_delete_basket_deletes_basket(test_pantry):
     """Tests Pantry.delete_basket to make sure it does, in fact, delete the
@@ -472,6 +503,39 @@ def test_index_get_basket_graceful_fail(test_pantry):
         pantry.get_basket(bad_uid)
 
 
+def test_get_basket_stays_in_pantry(test_pantry):
+    """Tests the pantry does not access baskets outside of itself."""
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
+
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system
+    )
+
+    # Save and delete the basket.
+    pantry.index.generate_index()
+    df = pantry.index.to_pandas_df()
+    pantry.index.untrack_basket(df.iloc[0].uuid)
+
+    # Modify the basket address to a new (fake) pantry.
+    address = df.iloc[0].address
+    address = address.split(os.path.sep)
+    address[0] += '-2'
+    new_address = (os.path.sep).join(address)
+    df.at[0,'address'] = new_address
+
+    # Track the new basket
+    pantry.index.track_basket(df)
+
+    error_msg = f"Attempting to access basket outside of pantry: {new_address}"
+    with pytest.raises(ValueError, match=error_msg):
+        pantry.get_basket(df.iloc[0].uuid)
+    with pytest.raises(ValueError, match=error_msg):
+        pantry.get_basket(df.iloc[0].address)
+
+
 def test_pantry_get_metadata_no_data(test_pantry):
     """Test the pantry reads in empty metadata and the index metadata."""
     pantry = Pantry(
@@ -580,3 +644,46 @@ def test_index_basket_with_no_version_number(test_pantry):
     index_df = pantry.index.to_pandas_df()
 
     assert index_df["weave_version"][0] == "<0.13.0"
+
+
+def test_validate_path_does_not_start_with_pantry_path(test_pantry):
+    """Tests the pantry does not delete baskets outside of itself."""
+
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system
+    )
+
+    path = os.path.join(test_pantry.pantry_path,"test","0001")
+    address = path.split(os.path.sep)
+    address[0] += '-2'
+    new_address = (os.path.sep).join(address)
+
+    error_msg = f"Attempting to access basket outside of pantry: {new_address}"
+    with pytest.raises(ValueError, match=error_msg):
+        pantry.validate_path_in_pantry(new_address)
+
+
+def test_validate_path_does_not_backtrack_from_pantry_path(test_pantry):
+    """Tests the pantry does not delete baskets outside of itself."""
+
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system
+    )
+
+    path = os.path.join(
+        test_pantry.pantry_path,
+        "..",
+        "other-pantry",
+        "test",
+        "0001"
+    )
+    address = path.split(os.path.sep)
+    new_address = (os.path.sep).join(address)
+
+    error_msg = f"Attempting to access basket outside of pantry: {new_address}"
+    with pytest.raises(ValueError, match=error_msg):
+        pantry.validate_path_in_pantry(new_address)
