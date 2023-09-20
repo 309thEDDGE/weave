@@ -143,9 +143,7 @@ class IndexSQLite(IndexABC):
                     f"VALUES({','.join(['?']*num_index_columns)}) "
                 )
 
-                val = tuple(basket_dict.values())
-
-                self.cur.execute(sql, val)
+                self.cur.execute(sql, tuple(basket_dict.values()))
 
                 sql = """INSERT OR IGNORE INTO parent_uuids(
                 uuid, parent_uuid) VALUES(?,?)"""
