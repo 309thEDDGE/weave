@@ -47,8 +47,8 @@ class IndexSQLite(IndexABC):
         self.cur.execute("""
             CREATE TABLE IF NOT EXISTS pantry_index(
                 uuid TEXT, upload_time INT, parent_uuids TEXT,
-                basket_type TEXT, label TEXT, address TEXT, storage_type TEXT,
-                PRIMARY KEY(uuid), UNIQUE(uuid));
+                basket_type TEXT, label TEXT, address TEXT, weave_version TEXT,
+                storage_type TEXT, PRIMARY KEY(uuid), UNIQUE(uuid));
         """)
 
         self.cur.execute("""
@@ -100,7 +100,10 @@ class IndexSQLite(IndexABC):
 
         storage_type = self.file_system.__class__.__name__
 
-        index_columns = index_schema().append("storage_type")
+        index_columns = index_schema()
+        index_columns.append("address")
+        index_columns.append("storage_type")
+        num_index_columns = len(index_columns)
         index_columns = ", ".join(index_columns)
 
         bad_baskets = []
@@ -132,8 +135,13 @@ class IndexSQLite(IndexABC):
                 parent_uuids = basket_dict["parent_uuids"]
                 basket_dict["parent_uuids"] = str(basket_dict["parent_uuids"])
 
-                sql = f"""INSERT OR IGNORE INTO pantry_index({index_columns})
-                VALUES(?,?,?,?,?,?,?) """
+                if 'weave_version' not in basket_dict.keys():
+                    basket_dict['weave_version'] = "<0.13.0"
+
+                sql = (
+                    f"INSERT OR IGNORE INTO pantry_index({index_columns}) "
+                    f"VALUES({','.join(['?']*num_index_columns)}) "
+                )
 
                 val = tuple(basket_dict.values())
 

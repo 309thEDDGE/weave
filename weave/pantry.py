@@ -108,8 +108,8 @@ class Pantry():
                 "is listed as a parent UUID for another basket. Please " +
                 "delete that basket before deleting its parent basket."
             )
-        self.file_system.rm(remove_item.iloc[0].address, recursive=True)
         self.index.untrack_basket(remove_item.iloc[0].address, **kwargs)
+        self.file_system.rm(remove_item.iloc[0].address, recursive=True)
 
     def upload_basket(self, upload_items, basket_type, **kwargs):
         """Upload a basket to the same pantry referenced by the Index
