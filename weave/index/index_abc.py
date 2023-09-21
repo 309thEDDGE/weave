@@ -18,7 +18,8 @@ class IndexABC(abc.ABC):
             The fsspec object which hosts the pantry we desire to index.
         pantry_path: str
             Path to the pantry root which we want to index.
-        **metadata: Existing metadata for the Index.
+        **metadata: dict
+            Existing metadata for the Index.
         Optional kwargs controlled by concrete implementations.
         """
 

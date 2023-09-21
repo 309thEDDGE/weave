@@ -140,6 +140,7 @@ def test_index_abc_builtin_str_works(test_index_only):
         f"Buildin str returns incorrect value: {str(ind)}"
     )
 
+
 def test_index_abc_generate_metadata_returns_dict(test_index_only):
     """Test IndexABC generate_metadata returns a python dictionary."""
 

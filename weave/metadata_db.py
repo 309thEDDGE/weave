@@ -1,4 +1,4 @@
-"""Contains scripts concerning mongodb functionality.
+"""Contains scripts concerning MongoDB functionality.
 """
 
 import pandas as pd
@@ -12,8 +12,8 @@ def load_mongo(index_table, collection="metadata", **kwargs):
 
        A metadata.json is created in baskets when the metadata
        field is provided upon upload. This metadata is added to the
-       mongo database when invoking load_mongo. UUID, and basket_type
-       from the index_table are also added to mongo for referrence
+       Mongo database when invoking load_mongo. UUID, and basket_type
+       from the index_table are also added to Mongo for referrence
        back to the datasource.
 
         Parameters
@@ -59,8 +59,8 @@ def load_mongo(index_table, collection="metadata", **kwargs):
         mongo_metadata["basket_type"] = manifest["basket_type"]
         mongo_metadata.update(metadata)
 
-        # If the UUID already has metadata loaded in mongodb,
-        # the metadata should not be loaded to mongodb again.
+        # If the UUID already has metadata loaded in MongoDB,
+        # the metadata should not be loaded to MongoDB again.
         if 0 == database[
             collection
         ].count_documents({"uuid": manifest["uuid"]}):

@@ -38,7 +38,7 @@ def file_path_in_list(search_path, search_list):
 
 
 class PantryForTest:
-    """Handles resources for much of Weave testing."""
+    """Handles resources for much of weave testing."""
 
     def __init__(self, tmpdir, file_system, pantry_path=None):
         self.tmpdir = tmpdir

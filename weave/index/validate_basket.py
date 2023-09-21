@@ -16,7 +16,7 @@ def validate_basket_dict(basket_dict):
     ----------
     basket_dict: dict
         Dictionary of the basket contents
-        read in from basket_manifest.json in Minio.
+        read in from basket_manifest.json in the file system.
 
     Returns
     ----------

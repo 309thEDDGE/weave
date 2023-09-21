@@ -276,7 +276,7 @@ class IndexPandas(IndexABC):
 
         Returns
         ----------
-        Index or dataframe of all the parents of the immediate
+        Pandas dataframe of all the parents of the immediate
         basket given, along with all the previous parents
         of the previous calls.
         """
@@ -357,14 +357,14 @@ class IndexPandas(IndexABC):
             visited. This is being used to detect if there is a parent-child
             loop inside the basket structure.
         **data: dataframe (optional)
-            This is the index or dataframe that has been collected so far
+            This is the pandas dataframe that has been collected so far
             when it is initially called, it is empty, for every
             iteration/recursive call all of the immediate children for
             the given basket are added.
 
         Returns
         ----------
-        index or dataframe of all the children of the immediate
+        Pandas dataframe of all the children of the immediate
         basket, along with all the previous children
         of the previous calls.
         """
