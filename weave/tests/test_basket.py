@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 from pathlib import Path
 from datetime import datetime, timezone
 
@@ -639,9 +640,9 @@ def test_basket_to_pandas_df(test_pantry):
 def test_basket_time_is_utc(test_pantry):
     """Make sure time data is in UTC format"""
     # Upload a basket
-    time = datetime.now(timezone.utc).isoformat()
     tmp_basket_dir = test_pantry.set_up_basket("basket")
     uuid = "0000"
+    time = datetime.now(timezone.utc).isoformat()
     basket_path = test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir,
                                             uid=uuid)
 
@@ -650,4 +651,13 @@ def test_basket_time_is_utc(test_pantry):
     with test_pantry.file_system.open(manifest_path, "rb") as file:
         manifest_dict = json.load(file)
 
-    assert manifest_dict['upload_time'][0:20] == time[0:20]
+    # Regex to match ISO 8601 (UTC)
+    regex = (
+        r"^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-"
+        "(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):"
+        "([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?"
+        "(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$"
+    )
+
+    match_iso8601 = re.compile(regex).match
+    assert match_iso8601(str(manifest_dict['upload_time'])) is not None
