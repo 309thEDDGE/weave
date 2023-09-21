@@ -259,7 +259,6 @@ def test_pantry_fails_with_bad_path(test_pantry):
             pantry_path=bad_path,
             file_system=test_pantry.file_system
         )
-        pantry.index.generate_index()
 
 
 def test_delete_basket_stays_in_pantry(test_pantry):

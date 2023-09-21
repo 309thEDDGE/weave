@@ -50,9 +50,6 @@ file_systems = [s3fs, local_fs]
 indexes = [IndexSQLite, IndexPandas]
 indexes_ids = ["SQLite", "Pandas"]
 
-indexes = [IndexPandas]
-indexes_ids = ["Pandas"]
-
 # Create combinations of the above parameters to pass into the fixture..
 params = []
 params_ids = []
