@@ -347,10 +347,10 @@ class IndexPandas(IndexABC):
         basket_address: str
             String that holds the path of the basket
             can also be the basket uuid.
-        **gen_level: int (required)
+        **gen_level: int (internally used)
             This indicates what generation is being looked at,
             -1 for child, -2 for grandchild and so forth.
-        **ancestors: [str] (required)
+        **ancestors: [str] (internally used)
             This is a list of basket uuids of all the ancestors that have been
             visited. This is being used to detect if there is a parent-child
             loop inside the basket structure.
