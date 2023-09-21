@@ -1,4 +1,5 @@
-"""PyTest Tests for basket.py related functionality"""
+"""Pytest tests for basket.py related functionality."""
+
 import json
 import os
 from pathlib import Path
@@ -44,7 +45,7 @@ local_fs = LocalFileSystem()
     ids=["S3FileSystem", "LocalFileSystem"],
 )
 def fixture_test_pantry(request, tmpdir):
-    """Fixture to set up and tear down test_basket"""
+    """Fixture to set up and tear down test_basket."""
     file_system = request.param
     test_pantry = PantryForTest(tmpdir, file_system)
     yield test_pantry
@@ -52,10 +53,10 @@ def fixture_test_pantry(request, tmpdir):
 
 
 def test_basket_basket_path_is_pathlike():
-    """
-    Test that an error is returned when trying to instantiate a basket with
+    """Test that an error is returned when trying to instantiate a basket with
     invalid basket address type.
     """
+
     basket_path = 1
     with pytest.raises(
         TypeError,
@@ -68,12 +69,11 @@ def test_basket_basket_path_is_pathlike():
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
 
-
 def test_basket_address_does_not_exist(test_pantry):
-    """
-    Test that an error is raised when trying to instantiate a basket with an
+    """Test that an error is raised when trying to instantiate a basket with an
     invalid basket address.
     """
+
     basket_path = Path("i n v a l i d p a t h")
     pantry = Pantry(IndexPandas,
                     pantry_path=test_pantry.pantry_path,
@@ -90,10 +90,10 @@ def test_basket_address_does_not_exist(test_pantry):
 
 
 def test_basket_no_manifest_file(test_pantry):
+    """Test that an error is raised when attempting to instantiate a basket
+    with a missing basket manifest file.
     """
-    Test that an error is raised when attempting to instantiate a basket with a
-    missing basket manifest file.
-    """
+
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
@@ -117,11 +117,11 @@ def test_basket_no_manifest_file(test_pantry):
         )
 
 
-def test_basket_no_suppl_file(test_pantry):
+def test_basket_no_supplement_file(test_pantry):
+    """Test that an error is raised when attempting to instantiate a basket
+    with a missing basket supplement file.
     """
-    Test that an error is raised when attempting to instantiate a basket with a
-    missing basket supplement file.
-    """
+
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
@@ -146,10 +146,10 @@ def test_basket_no_suppl_file(test_pantry):
 
 
 def test_basket_get_manifest(test_pantry):
+    """Test that the manifest of an uploaded basket is correctly retrieved
+    using the get_manifest function.
     """
-    Test that the manifest of an uploaded basket is correctly retrieved using
-    the get_manifest function.
-    """
+
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
@@ -171,9 +171,7 @@ def test_basket_get_manifest(test_pantry):
 
 
 def test_basket_get_manifest_cached(test_pantry):
-    """
-    Test that the get_manifest function retreives the cached copy.
-    """
+    """Test that the get_manifest function retreives the cached copy."""
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
@@ -206,9 +204,7 @@ def test_basket_get_manifest_cached(test_pantry):
 
 
 def test_basket_get_supplement(test_pantry):
-    """
-    Test that the get_supplement function returns the expected values.
-    """
+    """Test that the get_supplement function returns the expected values."""
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
@@ -231,10 +227,10 @@ def test_basket_get_supplement(test_pantry):
 
 
 def test_basket_get_supplement_cached(test_pantry):
+    """Test that the get_supplement function retrieves cached copies of a
+    basket's supplement.
     """
-    Test that the get_supplement function retrieves cached copies of a basket's
-    supplement.
-    """
+
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
@@ -263,9 +259,7 @@ def test_basket_get_supplement_cached(test_pantry):
 
 
 def test_basket_get_metadata(test_pantry):
-    """
-    Test that the get_metadata function returns the expected values.
-    """
+    """Test that the get_metadata function returns the expected values."""
     metadata_in = {"test": 1}
 
     # Create a temporary basket with a test file, and upload it.
@@ -286,10 +280,10 @@ def test_basket_get_metadata(test_pantry):
 
 
 def test_basket_get_metadata_cached(test_pantry):
+    """Test that the get_metadata function retrieves cached copies of a
+    basket's metadata.
     """
-    Test that the get_metadata function retrieves cached copies of a basket's
-    metadata.
-    """
+
     metadata_in = {"test": 1}
 
     # Create a temporary basket with a test file, and upload it.
@@ -319,9 +313,7 @@ def test_basket_get_metadata_cached(test_pantry):
 
 
 def test_basket_get_metadata_none(test_pantry):
-    """
-    Test that get_metadata returns None when no metadata was uploaded.
-    """
+    """Test that get_metadata returns None when no metadata was uploaded."""
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
@@ -338,9 +330,7 @@ def test_basket_get_metadata_none(test_pantry):
 
 
 def test_basket_ls(test_pantry):
-    """
-    Test that the basket ls function returns the expected values.
-    """
+    """Test that the basket ls function returns the expected values."""
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
@@ -356,9 +346,7 @@ def test_basket_ls(test_pantry):
 
 
 def test_basket_ls_relpath(test_pantry):
-    """
-    Test that the basket ls function works when using relative paths.
-    """
+    """Test that the basket ls function works when using relative paths."""
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
@@ -374,9 +362,9 @@ def test_basket_ls_relpath(test_pantry):
 
 
 def test_basket_ls_relpath_period(test_pantry):
+    """Test that the basket ls function works when using the relative path '.'
     """
-    Test that the basket ls function works when using the relative path '.'
-    """
+
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
@@ -392,9 +380,10 @@ def test_basket_ls_relpath_period(test_pantry):
 
 
 def test_basket_ls_is_pathlike(test_pantry):
+    """Test that the basket ls function only works with the expected
+    value types.
     """
-    Test that the basket ls function only works with the expected value types.
-    """
+
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
@@ -412,10 +401,10 @@ def test_basket_ls_is_pathlike(test_pantry):
 
 
 def test_basket_ls_after_find(test_pantry):
-    """The s3fs.S3FileSystem.ls() func is broken after running {}.find()
+    """The s3fs.S3FileSystem.ls() func is broken after running {}.find().
 
     This function is primarily to test s3fs file systems, but local
-    file systems should yeild the same results.
+    file systems should yield the same results.
 
     s3fs.S3FileSystem.find() function is called during index creation. The
     solution to this problem is to ensure Basket.ls() uses the argument
@@ -424,6 +413,7 @@ def test_basket_ls_after_find(test_pantry):
     include directories) do not affect the s3fs.ls() function used to enable
     the Basket.ls() function.
     """
+
     tmp_basket_dir_name = "test_basket_temp_dir"
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
     tmp_basket_dir = test_pantry.add_lower_dir_to_temp_basket(tmp_basket_dir)
@@ -464,9 +454,9 @@ def test_basket_ls_after_find(test_pantry):
 
 
 def test_basket_init_from_uuid(test_pantry):
+    """Test that a basket can be successfully initialized from a UUID.
     """
-    Test that a basket can be successfully initialized from a UUID.
-    """
+
     # Put basket in the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     uuid = "0000"
@@ -485,10 +475,10 @@ def test_basket_init_from_uuid(test_pantry):
 
 
 def test_basket_init_fails_if_uuid_does_not_exist(test_pantry):
-    """
-    Test that an error is raised when trying to initialize a basket using a
+    """Test that an error is raised when trying to initialize a basket using a
     UUID that does not have an associated basket.
     """
+
     # Put basket in the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     uuid = "0000"
@@ -506,11 +496,11 @@ def test_basket_init_fails_if_uuid_does_not_exist(test_pantry):
 
 
 def test_basket_pantry_name_does_not_exist(test_pantry):
+    """Test than an error is raised when trying to initialize a basket using a
+    UUID, but using a bucket name that does not exist.
     """
-    Test than an error is raised when trying to initialize a basket using a
-    UUID, but using a pantry name that does not exist.
-    """
-    # Put basket in the temporary pantry
+
+    # Put basket in the temporary bucket
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     uuid = "0000"
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
@@ -525,9 +515,7 @@ def test_basket_pantry_name_does_not_exist(test_pantry):
 
 
 def test_basket_from_uuid_with_many_baskets(test_pantry):
-    """
-    Test that many baskets can be initialized using UUIDs.
-    """
+    """Test that many baskets can be initialized using UUIDs."""
     # Set up ten baskets
     for uuid in range(10):
         uuid = str(uuid)

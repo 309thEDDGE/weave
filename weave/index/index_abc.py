@@ -1,12 +1,13 @@
+"""Wherein is contained the Abstract Base Class for Index.
 """
-Wherein is contained the Abstract Base Class for Index.
-"""
+
 import abc
 from datetime import datetime
 
 
 class IndexABC(abc.ABC):
-    """Abstract Base Class for the Index"""
+    """Abstract Base Class for the Index."""
+
     @abc.abstractmethod
     def __init__(self, file_system, pantry_path, **kwargs):
         """Initializes the Index class.
@@ -17,13 +18,14 @@ class IndexABC(abc.ABC):
             The fsspec object which hosts the pantry we desire to index.
         pantry_path: str
             Path to the pantry root which we want to index.
-        **metadata: Existing metadata for the Index
-
+        **metadata: dict (required)
+            Existing metadata for the Index.
         Optional kwargs controlled by concrete implementations.
         """
+
         self._file_system = file_system
         self._pantry_path = pantry_path
-        self.metadata = kwargs.get('metadata', {})
+        self.metadata = kwargs.get("metadata", {})
         self.generate_metadata()
 
     @property
@@ -46,10 +48,10 @@ class IndexABC(abc.ABC):
 
         Returns
         ----------
-        dict
-            A dictionary of metadata for the index.
+        A dictionary of metadata for the index.
         """
-        self.metadata['name'] = str(self)
+
+        self.metadata["name"] = str(self)
 
     @abc.abstractmethod
     def generate_index(self, **kwargs):
@@ -71,14 +73,12 @@ class IndexABC(abc.ABC):
         ----------
         max_rows: int
             Max rows returned in the pandas dataframe.
-
         Optional kwargs controlled by concrete implementations.
 
         Returns
         ----------
-        pandas.DataFrame
-            Returns a dataframe of the manifest data of the baskets in the
-            pantry.
+        Returns a pandas dataframe of the manifest data of the baskets in the
+        pantry.
         """
 
     @abc.abstractmethod
@@ -89,7 +89,6 @@ class IndexABC(abc.ABC):
         ----------
         entry_df : pandas.DataFrame
             Uploaded baskets to append to the index.
-
         Optional kwargs controlled by concrete implementations.
         """
 
@@ -103,7 +102,6 @@ class IndexABC(abc.ABC):
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket. These may also be passed in
             as a list.
-
         Optional kwargs controlled by concrete implementations.
         """
 
@@ -117,13 +115,12 @@ class IndexABC(abc.ABC):
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket. These may also be passed in
             as a list.
-
         Optional kwargs controlled by concrete implementations.
 
         Returns
         ----------
-        pandas.DataFrame
-            Manifest information for the requested basket(s).
+        pandas.DataFrame of the Manifest information for the requested
+        basket(s).
         """
 
     @abc.abstractmethod
@@ -135,7 +132,6 @@ class IndexABC(abc.ABC):
         basket_address: str
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
-
         Optional kwargs controlled by concrete implementations.
 
         Returns
@@ -153,7 +149,6 @@ class IndexABC(abc.ABC):
         basket_address: str
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
-
         Optional kwargs controlled by concrete implementations.
 
         Returns
@@ -170,9 +165,8 @@ class IndexABC(abc.ABC):
         ----------
         basket_type: str
             The basket type to filter for.
-        max_rows: int
+        max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
-
         Optional kwargs controlled by concrete implementations.
 
         Returns
@@ -188,14 +182,14 @@ class IndexABC(abc.ABC):
         ----------
         basket_label: str
             The label to filter for.
-        max_rows: int
+        max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
-
         Optional kwargs controlled by concrete implementations.
 
         Returns
         ----------
-        pandas.DataFrame containing the manifest data of baskets with the label
+        pandas.DataFrame containing the manifest data of baskets with the
+        label.
         """
 
     @abc.abstractmethod
@@ -205,15 +199,14 @@ class IndexABC(abc.ABC):
 
         Parameters
         ----------
-        start_time: datetime.datetime
+        start_time: datetime.datetime (default=None)
             The start datetime object to filter between. If None, will filter
             from the beginning of time.
-        end_time: datetime.datetime
+        end_time: datetime.datetime (default=None)
             The end datetime object to filter between. If None, will filter
             to the current datetime.
-        max_rows: int
+        max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
-
         Optional kwargs controlled by concrete implementations.
 
         Returns
@@ -221,10 +214,11 @@ class IndexABC(abc.ABC):
         pandas.DataFrame containing the manifest data of baskets uploaded
         between the start and end times.
         """
+
         if start_time is not None and not isinstance(start_time,datetime):
-            raise ValueError('start_time is not datetime object.')
+            raise ValueError("start_time is not datetime object.")
         if end_time is not None and not isinstance(end_time,datetime):
-            raise ValueError('end_time is not datetime object.')
+            raise ValueError("end_time is not datetime object.")
 
     @abc.abstractmethod
     def query(self, expr, **kwargs):
@@ -235,7 +229,6 @@ class IndexABC(abc.ABC):
         expr: str
             An expression passed to the backend. An example could be a SQL or
             pandas query. Largely dependent on concrete implementations.
-
         Optional kwargs controlled by concrete implementations.
 
         Returns
