@@ -5,18 +5,18 @@ Weave
 Weave can be used to facilitate the creation, maintenance, and access of
 coordinated, complex data storage.
 
-Weave is used to create Baskets. A Basket is used to store an atomic unit (i.e.
+Weave is used to create baskets. A basket is used to store an atomic unit (i.e.
 the smallest sensible unit) of data, as well as it's associated metadata,
 including lineage.
 
 --> Note that there is a Basket class available in Weave. Use it to access
-individual Baskets.
+individual baskets.
 
-A collection of Baskets is known as a Pantry. A Pantry can be accessed using
-it's Index.
+A collection of baskets is known as a pantry. A pantry can be accessed using
+its Index.
 
---> Note that you can use the Index class to access a Pantry's Index. You can
-also upload new Baskets to the Pantry using Index.upload_basket().
+--> Note that you can use the Index class to access a pantry's Index. You can
+also upload new baskets to the pantry using Index.upload_basket().
 """
 
 from .basket import Basket
@@ -25,7 +25,7 @@ from .index.index_sqlite import IndexSQLite
 from .pantry import Pantry
 from .metadata_db import load_mongo
 
-__version__ = "0.14.1"
+__version__ = "0.14.2"
 
 __all__ = [
     "Basket",

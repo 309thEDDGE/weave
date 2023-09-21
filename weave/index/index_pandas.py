@@ -1,5 +1,6 @@
 """ This module is for handling the pandas based backend of the Index object.
 """
+
 import os
 import tempfile
 import warnings
@@ -11,11 +12,12 @@ from ..upload import UploadBasket
 from .create_index import create_index_from_fs
 from .index_abc import IndexABC
 
+
 class IndexPandas(IndexABC):
-    '''Handles Pandas based functionality of the Index'''
+    """Handles Pandas based functionality of the Index."""
 
     def __init__(self, file_system, pantry_path, **kwargs):
-        '''Initializes the Index class.
+        """Initializes the Index class.
 
         Parameters
         ----------
@@ -32,7 +34,8 @@ class IndexPandas(IndexABC):
             object has the same information as the index on the disk. If False,
             then the Index object may be stale, but operations will perform
             at a higher speed.
-        '''
+        """
+
         super().__init__(file_system=file_system,
                          pantry_path=pantry_path,
                          **kwargs
@@ -65,13 +68,13 @@ class IndexPandas(IndexABC):
         return self._pantry_path
 
     def _sync_if_needed(self):
-        """Check if the index_df is up to date, and sync if necessary
+        """Check if the index_df is up to date, and sync if necessary.
 
         Returns
         ----------
-        bool
-            Returns a boolean indicating if the index was updated.
+        Returns a boolean indicating if the index was updated.
         """
+
         if self.sync and not self.is_index_current():
             self.sync_index()
         elif self.index_df is None:
@@ -87,11 +90,12 @@ class IndexPandas(IndexABC):
         ----------
         **kwargs unused for this class.
         """
+
         super().generate_metadata(**kwargs)
         return self.metadata
 
     def sync_index(self):
-        '''Gets index from latest index basket'''
+        """Gets index from latest index basket."""
         index_paths = self.file_system.glob(f"{self.index_basket_dir_path}"
                                             "/**/*-index.json")
         if len(index_paths) == 0:
@@ -107,11 +111,12 @@ class IndexPandas(IndexABC):
                 self.index_json_time = path_time
                 latest_index_path = path
         self.index_df = pd.read_json(
-            self.file_system.open(latest_index_path), dtype = {'uuid': str}
+            self.file_system.open(latest_index_path), dtype = {"uuid": str}
         )
 
     def _get_index_time_from_path(self, path):
-        '''Returns time as int from index_json path.'''
+        """Returns time as int from index_json path."""
+
         path = str(path)
         return int(os.path.basename(path).replace("-index.json",""))
 
@@ -131,17 +136,19 @@ class IndexPandas(IndexABC):
             Returns a dataframe of the manifest data of the baskets in the
             pantry.
         """
+
         self._sync_if_needed()
         return self.index_df.head(max_rows)
 
     def clean_up_indices(self, n_keep=20):
-        '''Deletes any index basket except the latest n index baskets.
+        """Deletes any index basket except the latest n index baskets.
 
         Parameters
         ----------
         n_keep: int (default=20)
             n is the number of latest index baskets to keep.
-        '''
+        """
+
         n_keep = int(n_keep)
         index_paths = self.file_system.glob(f"{self.index_basket_dir_path}"
                                             "/**/*-index.json")
@@ -164,10 +171,11 @@ class IndexPandas(IndexABC):
                     warnings.warn(error)
 
     def is_index_current(self):
-        '''Checks to see if the index in memory is up to date with disk index.
+        """Checks to see if the index in memory is up to date with disk index.
 
         Returns True if index in memory is up to date, else False.
-        '''
+        """
+
         index_paths = self.file_system.glob(f"{self.index_basket_dir_path}"
                                             "/**/*-index.json")
         if len(index_paths) == 0:
@@ -186,17 +194,18 @@ class IndexPandas(IndexABC):
         ----------
         **kwargs unused for this class.
         """
+
         index = create_index_from_fs(self.pantry_path, self.file_system)
         self._upload_index(index=index)
 
     def _upload_index(self, index):
-        """Upload a new index"""
+        """Upload a new index."""
         with tempfile.TemporaryDirectory() as out:
             n_secs = time_ns()
             temp_json_path = os.path.join(out, f"{n_secs}-index.json")
-            index.to_json(temp_json_path, date_format='iso', date_unit='ns')
+            index.to_json(temp_json_path, date_format="iso", date_unit="ns")
             UploadBasket(
-                upload_items=[{'path':temp_json_path, 'stub':False}],
+                upload_items=[{"path":temp_json_path, "stub":False}],
                 basket_type=self.index_basket_dir_name,
                 file_system=self.file_system,
                 pantry_path=self.pantry_path
@@ -212,10 +221,10 @@ class IndexPandas(IndexABC):
         basket_address: str
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
-
         **upload_index: bool (optional)
-            Flag to upload the new index to the file system
+            Flag to upload the new index to the file system.
         """
+
         upload_index = kwargs.get("upload_index", True)
         if not isinstance(basket_address, list):
             basket_address = [basket_address]
@@ -243,22 +252,21 @@ class IndexPandas(IndexABC):
             self._upload_index(self.index_df)
 
     def get_parents(self, basket_address, **kwargs):
-        """Recursively gathers all parents of basket and returns index
+        """Recursively gathers all parents of basket and returns index.
 
         Parameters
         ----------
         basket_address: str
             String that holds the path of the basket
-            can also be the basket uuid
-
+            can also be the basket uuid.
         **gen_level: int (optional)
             This indicates what generation is being looked at,
-            1 for parent, 2 for grandparent and so forth
+            1 for parent, 2 for grandparent and so forth.
         **data: pd.dataframe (optional)
             This is the index or dataframe collected so far
             when it is initially called, it is empty, for every
             iteration/recursive call all the immediate parents for
-            the given basket are added
+            the given basket are added.
         **descendants: [str] (optional)
             This is a list that holds the uids of all the descendents the
             function has visited. this is used to prevent/detect any
@@ -266,10 +274,11 @@ class IndexPandas(IndexABC):
 
         Returns
         ----------
-        index or dataframe of all the parents of the immediate
+        Pandas dataframe of all the parents of the immediate
         basket given, along with all the previous parents
         of the previous calls.
         """
+
         # Collect info from kwargs
         gen_level = kwargs.get("gen_level", 1)
         data = kwargs.get("data", pd.DataFrame())
@@ -331,37 +340,37 @@ class IndexPandas(IndexABC):
         return data
 
     def get_children(self, basket_address, **kwargs):
-        """Recursively gathers all the children of basket and returns an index
+        """Recursively gathers all the children of basket and returns an index.
 
         Parameters
         ----------
         basket_address: str
             String that holds the path of the basket
-            can also be the basket uuid
-
-        **gen_level: int
+            can also be the basket uuid.
+        **gen_level: int (internally used)
             This indicates what generation is being looked at,
-            -1 for child, -2 for grandchild and so forth
-        **data: dataframe (optional)
-            This is the index or dataframe that has been collected so far
-            when it is initially called, it is empty, for every
-            iteration/recursive call all of the immediate children for
-            the given basket are added
-        **ancestors: [str]
+            -1 for child, -2 for grandchild and so forth.
+        **ancestors: [str] (internally used)
             This is a list of basket uuids of all the ancestors that have been
             visited. This is being used to detect if there is a parent-child
-            loop inside the basket structure
+            loop inside the basket structure.
+        **data: dataframe (optional)
+            This is the pandas dataframe that has been collected so far
+            when it is initially called, it is empty, for every
+            iteration/recursive call all of the immediate children for
+            the given basket are added.
 
         Returns
         ----------
-        index or dataframe of all the children of the immediate
+        Pandas dataframe of all the children of the immediate
         basket, along with all the previous children
         of the previous calls.
         """
+
         # Collect info from kwargs
         gen_level = kwargs.get("gen_level", -1)
-        data = kwargs.get("data", pd.DataFrame())
         ancestors = kwargs.get("ancestors", [])
+        data = kwargs.get("data", pd.DataFrame())
 
         self._sync_if_needed()
 
@@ -418,7 +427,7 @@ class IndexPandas(IndexABC):
         return data
 
     def track_basket(self, entry_df, **kwargs):
-        """Track a basket to from the pantry referenced by the Index
+        """Track a basket to from the pantry referenced by the Index.
 
         Parameters
         ----------
@@ -427,6 +436,7 @@ class IndexPandas(IndexABC):
 
         **kwargs unused for this class.
         """
+
         if not self._sync_if_needed():
             self._upload_index(
                 pd.concat([self.index_df, entry_df], ignore_index=True)
@@ -449,6 +459,7 @@ class IndexPandas(IndexABC):
         rows: pd.DataFrame
             Manifest information for the requested basket.
         """
+
         self._sync_if_needed()
 
         if not isinstance(basket_address, list):
@@ -474,6 +485,7 @@ class IndexPandas(IndexABC):
         ----------
         pandas.DataFrame containing the manifest data of baskets of the type.
         """
+
         self._sync_if_needed()
 
         return self.index_df[
@@ -489,12 +501,15 @@ class IndexPandas(IndexABC):
             The label to filter for.
         max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
-       **kwargs unused for this class.
+
+        **kwargs unused for this class.
 
         Returns
         ----------
-        pandas.DataFrame containing the manifest data of baskets with the label
+        pandas.DataFrame containing the manifest data of baskets with the 
+        label.
         """
+
         self._sync_if_needed()
 
         return self.index_df[
@@ -523,6 +538,7 @@ class IndexPandas(IndexABC):
         pandas.DataFrame containing the manifest data of baskets uploaded
         between the start and end times.
         """
+
         super().get_baskets_by_upload_time(start_time, end_time)
         if start_time is None and end_time is None:
             return self.to_pandas_df(max_rows, **kwargs)
@@ -548,7 +564,7 @@ class IndexPandas(IndexABC):
         Parameters
         ----------
         expr: str
-           Pass SQL Query to the pandas dataframe
+           Pass SQL Query to the pandas dataframe.
 
        **kwargs unused for this class.
 
@@ -556,5 +572,6 @@ class IndexPandas(IndexABC):
         ----------
         pandas.DataFrame of the resulting query.
         """
+
         self._sync_if_needed()
         return self.index_df.query(expr)

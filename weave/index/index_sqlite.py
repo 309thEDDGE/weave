@@ -29,6 +29,7 @@ class IndexSQLite(IndexABC):
             Path to the sqlite db file to be used. If none is set, defaults to
             './basket-data.db'
         """
+
         self._file_system = file_system
         self._pantry_path = pantry_path
 
@@ -70,6 +71,7 @@ class IndexSQLite(IndexABC):
         ----------
         **kwargs unused for this function.
         """
+
         return {"db_path": self.db_path}
 
     def generate_index(self, **kwargs):
@@ -82,6 +84,7 @@ class IndexSQLite(IndexABC):
         ----------
         **kwargs unused for this function.
         """
+
         if not isinstance(self.pantry_path, str):
             raise TypeError("'pantry_path' must be a string: "
                             f"'{self.pantry_path}'")
@@ -159,6 +162,7 @@ class IndexSQLite(IndexABC):
             Returns a dataframe of the manifest data of the baskets in the
             pantry.
         """
+
         columns = (
             [info[1] for info in
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
@@ -183,8 +187,10 @@ class IndexSQLite(IndexABC):
         ----------
         entry_df: pd.DataFrame
             Uploaded baskets' manifest data to append to the index.
+
         **kwargs unused for this function.
         """
+
         entry_df["parent_uuids"] = entry_df["parent_uuids"].astype(str)
         entry_df["upload_time"] = (
             entry_df["upload_time"].astype(int) // 1e9
@@ -201,8 +207,10 @@ class IndexSQLite(IndexABC):
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket. These may also be passed in
             as a list.
+
         **kwargs unused for this function.
         """
+
         if not isinstance(basket_address, list):
             basket_address = [basket_address]
 
@@ -243,6 +251,7 @@ class IndexSQLite(IndexABC):
         pandas.DataFrame
             Manifest information for the requested basket(s).
         """
+
         if not isinstance(basket_address, list):
             basket_address = [basket_address]
 
@@ -288,6 +297,7 @@ class IndexSQLite(IndexABC):
         pandas.DataFrame containing all the manifest data AND generation level
         of parents (and recursively their parents) of the given basket.
         """
+
         if self.file_system.exists(os.fspath(basket_address)):
             id_column = "address"
         else:
@@ -364,6 +374,7 @@ class IndexSQLite(IndexABC):
         basket_address: str
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
+
         **kwargs unused for this function.
 
         Returns
@@ -371,6 +382,7 @@ class IndexSQLite(IndexABC):
         pandas.DataFrame containing all the manifest data AND generation level
         of children (and recursively their children) of the given basket.
         """
+
         if self.file_system.exists(os.fspath(basket_address)):
             id_column = "address"
         else:
@@ -446,12 +458,14 @@ class IndexSQLite(IndexABC):
             The basket type to filter for.
         max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+
         **kwargs unused for this function.
 
         Returns
         ----------
         pandas.DataFrame containing the manifest data of baskets of the type.
         """
+
         columns = (
             [info[1] for info in
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
@@ -480,12 +494,14 @@ class IndexSQLite(IndexABC):
             The label to filter for.
         max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+
         **kwargs unused for this function.
 
         Returns
         ----------
         pandas.DataFrame containing the manifest data of baskets with the label
         """
+
         columns = (
             [info[1] for info in
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
@@ -519,6 +535,7 @@ class IndexSQLite(IndexABC):
             to the current datetime.
         max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+
         **kwargs unused for this function.
 
         Returns
@@ -526,6 +543,7 @@ class IndexSQLite(IndexABC):
         pandas.DataFrame containing the manifest data of baskets uploaded
         between the start and end times.
         """
+
         super().get_baskets_by_upload_time(start_time, end_time)
         if start_time is None and end_time is None:
             return self.to_pandas_df(max_rows=max_rows)
@@ -585,6 +603,7 @@ class IndexSQLite(IndexABC):
         ----------
         pandas.DataFrame of the resulting query.
         """
+
         expr_args = kwargs.get("expr_args", ())
         return pd.DataFrame(self.cur.execute(expr, expr_args).fetchall())
 
