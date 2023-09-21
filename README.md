@@ -107,11 +107,11 @@ Basket(args, file_system=local_fs)
 UploadBasket(args) # Default s3fs used
 ```
 
-The default pantry name for Weave classes is 'basket-data'. A pantry can be 
+The default pantry name for Weave classes is 'weave-test'. A pantry can be 
 named any valid fsspec directory name. This can be done as follows:
 
 ```python
-pantry_name = 'basket-data'
+pantry_name = 'weave-test'
 s3_fs.mkdir(path_to_pantry + os.path.sep + pantry_name)
 local_fs.mkdir(path_to_pantry + os.path.sep + pantry_name)
 ```
@@ -154,7 +154,7 @@ from weave.upload import UploadBasket
 upload_items = [{'path':'Path_to_file_or_dir', 'stub': False}]
 upload_path = UploadBasket(upload_items,
                            basket_type = 'item',
-                           upload_directory = 'basket-data',
+                           upload_directory = 'weave-test',
                           )
 ```
 

@@ -17,7 +17,7 @@ class Pantry():
     """Facilitate user interaction with the index of a Weave data warehouse.
     """
 
-    def __init__(self, index: IndexABC, pantry_path="basket-data", **kwargs):
+    def __init__(self, index: IndexABC, pantry_path="weave-test", **kwargs):
         """Initialize Pantry object
 
         A pantry is a collection of baskets. This class facilitates the upload,
@@ -30,7 +30,7 @@ class Pantry():
         index: IndexABC
             The concrete implementation of an IndexABC. This is used to track
             the contents within the pantry.
-        pantry_path: str (default="basket-data")
+        pantry_path: str (default="weave-test")
             Name of the pantry this object is associated with.
         **file_system: fsspec object (optional)
             The fsspec object which hosts the pantry we desire to index.
