@@ -1,6 +1,5 @@
-"""
-config.py provides configuration settings used by weave.
-"""
+"""Provides configuration settings used by Weave."""
+
 import os
 
 import pymongo
@@ -85,23 +84,20 @@ supplement_schema = {
 
 
 def index_schema():
-    """
-    Return the keys expected from the manifest.json file.
-    """
+    """Return the keys expected from the manifest.json file."""
     return ["uuid", "upload_time", "parent_uuids",
             "basket_type", "label", "weave_version"]
 
 
 def get_file_system():
-    """Get the filesystem to be used for storing baskets"""
+    """Get the filesystem to be used for storing baskets."""
     return s3fs.S3FileSystem(
         client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
     )
 
 
 def get_mongo_db():
-    """Get the mongodb client to be used for metadata search"""
-
+    """Get the mongodb client to be used for metadata search."""
     # If MONGODB_HOST, USERNAME and PASSWORD are provided as environment
     # variables, initialize the mongo client with the provided
     # credentials. Else defer to default credentials for OPAL.

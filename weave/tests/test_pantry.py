@@ -52,7 +52,7 @@ local_fs = LocalFileSystem()
     ids=["S3FileSystem", "LocalFileSystem"],
 )
 def fixture_test_pantry(request, tmpdir):
-    """Sets up test pantry for the tests"""
+    """Sets up test pantry for the tests."""
     file_system = request.param
     test_pantry = PantryForTest(tmpdir, file_system)
     yield test_pantry
@@ -61,8 +61,9 @@ def fixture_test_pantry(request, tmpdir):
 
 def test_root_dir_does_not_exist(test_pantry):
     """try to create an index in a pantry that doesn't exist,
-    check that it throws an error
+    check that it throws an error.
     """
+
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     with pytest.raises(FileNotFoundError, match="'root_dir' does not exist"):
         create_index_from_fs(
@@ -73,13 +74,15 @@ def test_root_dir_does_not_exist(test_pantry):
 
 def test_root_dir_is_string(test_pantry):
     """Tests create_index_from_fs to make sure it errors when root dir is
-    not a string"""
+    not a string.
+    """
+
     with pytest.raises(TypeError, match="'root_dir' must be a string"):
         create_index_from_fs(765, test_pantry.file_system)
 
 
 def test_correct_index(test_pantry):
-    """Tests create_index_from_fs to make sure it returns as expected"""
+    """Tests create_index_from_fs to make sure it returns as expected."""
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     addr_one = test_pantry.upload_basket(
         tmp_basket_dir=tmp_basket_dir_one, uid="0001"
@@ -131,9 +134,7 @@ def test_correct_index(test_pantry):
     params=[s3fs, local_fs],
 )
 def fixture_set_up_malformed_baskets(request, tmpdir):
-    """
-    upload a basket with a basket_details.json with incorrect keys.
-    """
+    """Upload a basket with a basket_details.json with incorrect keys."""
     file_system = request.param
     test_pantry = PantryForTest(tmpdir, file_system)
 
@@ -176,6 +177,7 @@ def fixture_set_up_malformed_baskets(request, tmpdir):
 def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
     """Check that the index is made correctly when a malformed basket
     exists."""
+
     test_pantry, good_addresses, _ = set_up_malformed_baskets
 
     truth_index_dict = {
@@ -295,7 +297,9 @@ def test_delete_basket_stays_in_pantry(test_pantry):
 
 def test_delete_basket_deletes_basket(test_pantry):
     """Tests Pantry.delete_basket to make sure it does, in fact, delete the
-    basket."""
+    basket.
+    """
+
     # Put basket in the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
@@ -357,11 +361,11 @@ def test_pantry_delete_basket_with_parents(test_pantry):
 
 
 def test_upload_basket_updates_the_pantry(test_pantry):
-    """
-    In this test the pantry already exists with one basket inside of it.
+    """In this test the pantry already exists with one basket inside of it.
     This test will add another basket using Pantry.upload_basket, and then
     check to ensure that the index_df has been updated.
     """
+
     # Put basket in the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid="0001")
@@ -401,12 +405,12 @@ def test_upload_basket_updates_the_pantry(test_pantry):
 def test_upload_basket_gracefully_fails(
     mocked_obj_1, mocked_obj_2, test_pantry
 ):
-    """
-    In this test an engineered failure to upload the basket occurs.
+    """In this test an engineered failure to upload the basket occurs.
     Pantry.upload_basket() should not add anything to the index_df.
     Additionally, the basket in question should be deleted from storage (I will
     make the process fail only after a partial upload).
     """
+
     tmp_basket = test_pantry.set_up_basket("basket_one")
 
     pantry = Pantry(
@@ -436,7 +440,7 @@ def test_upload_basket_gracefully_fails(
 
 def test_index_get_basket_works_correctly(test_pantry):
     """Test that Pantry.get_basket() returns a Basket object with correct
-    values
+    values.
     """
 
     uuid = "0001"
@@ -586,11 +590,11 @@ def test_pantry_get_metadata_existing_data(test_pantry):
 
 
 def test_upload_basket_works_on_empty_basket(test_pantry):
+    """In this test the Pantry object will upload a basket to a pantry that
+    does not have any baskets yet. This test will make sure that this
+    functionality is present, and that the index_df has been updated.
     """
-    In this test the Pantry object will upload a basket to a pantry that does
-    not have any baskets yet. This test will make sure that this functionality
-    is present, and that the index_df has been updated.
-    """
+
     # Put basket in the temporary pantry
     tmp_basket = test_pantry.set_up_basket("basket_one")
     pantry = Pantry(
@@ -617,6 +621,7 @@ def test_index_basket_with_no_version_number(test_pantry):
     """Test that a basket that was created before the version number was
     implemented still is able to be validated and an index created.
     """
+
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
     upload_path = test_pantry.upload_basket(tmp_basket_dir)

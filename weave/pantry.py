@@ -1,8 +1,8 @@
-"""
-This class builds the user-facing Index class. It pulls from the _Index class
-which uses Pandas as it's backend to build and interface with the on disk
+"""This class builds the user-facing Index class. It pulls from the _Index 
+class which uses Pandas as it's backend to build and interface with the on disk
 Index baskets.
 """
+
 import json
 import os
 
@@ -18,7 +18,7 @@ class Pantry():
     """
 
     def __init__(self, index: IndexABC, pantry_path="weave-test", **kwargs):
-        """Initialize Pantry object
+        """Initialize Pantry object.
 
         A pantry is a collection of baskets. This class facilitates the upload,
         retrieval, and deletion of baskets within a file system. It uses and
@@ -37,6 +37,7 @@ class Pantry():
             If file_system is None, then the default fs is retrieved from the
             config.
         """
+
         self.file_system = kwargs.pop("file_system", get_file_system())
         if not self.file_system.exists(pantry_path):
             raise ValueError(
@@ -76,7 +77,7 @@ class Pantry():
             )
 
     def load_metadata(self):
-        """Load pantry metadata from pantry_metadata.json"""
+        """Load pantry metadata from pantry_metadata.json."""
         self.metadata_path = os.path.join(
                                 self.pantry_path,'pantry_metadata.json'
         )
@@ -89,7 +90,7 @@ class Pantry():
             self.metadata['index_metadata'] = {}
 
     def save_metadata(self):
-        """Dump metadata to to pantry metadata file"""
+        """Dump metadata to to pantry metadata file."""
         self.metadata['index_metadata'] = self.index.metadata
         with self.file_system.open(
                     self.metadata_path, "w", encoding="utf-8"
@@ -104,6 +105,7 @@ class Pantry():
         A list of all invalid basket locations (will return an empty list if
         no warnings are raised)
         """
+
         return validate_pantry(self)
 
     def delete_basket(self, basket_address, **kwargs):
@@ -120,6 +122,7 @@ class Pantry():
         **kwargs:
             Additional parameters to pass to the index
         """
+
         basket_address = str(basket_address)
         remove_item = self.index.get_rows(basket_address)
 
@@ -162,6 +165,7 @@ class Pantry():
         **label: str (optional)
             Optional user friendly label associated with the basket.
         """
+
         parent_ids = kwargs.get("parent_ids", [])
         metadata = kwargs.get("metadata", {})
         label = kwargs.get("label", "")
@@ -193,6 +197,7 @@ class Pantry():
         ----------
         The Basket object associated with the given UUID or path.
         """
+
         # Create a Basket from the given address, and the index's file_system
         # and pantry name. Basket will catch invalid inputs and raise
         # appropriate errors.

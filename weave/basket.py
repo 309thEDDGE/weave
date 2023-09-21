@@ -1,4 +1,4 @@
-"""Wherein scripts concerning the Basket class reside
+"""Contains scripts concerning the Basket class.
 """
 
 import json
@@ -13,6 +13,7 @@ from .config import get_file_system, prohibited_filenames
 class BasketInitializer:
     """Initializes basket class. Validates input args.
     """
+
     def __init__(self, basket_address, **kwargs):
         """Handles set up of basket. Calls validation.
 
@@ -25,10 +26,11 @@ class BasketInitializer:
             The fsspec filesystem to be used for retrieving and uploading. This
             is only used when basket_address is a path.
         **pantry: weave.Pantry (optional)
-            The pantry which the basket uuid is associated with. Only for UUID
+            The pantry which the basket uuid is associated with. Only for UUID.
         """
-        if 'pantry' in kwargs:
-            self.file_system = kwargs['pantry'].file_system
+
+        if "pantry" in kwargs:
+            self.file_system = kwargs["pantry"].file_system
         else:
             self.file_system = kwargs.get("file_system", get_file_system())
         try:
@@ -37,10 +39,10 @@ class BasketInitializer:
             if str(error) != f"Basket does not exist: {self.basket_path}":
                 raise error
 
-            if 'pantry' not in kwargs:
+            if "pantry" not in kwargs:
                 raise KeyError("pantry, required to set up basket from UUID,"
                                "is not in kwargs.") from error
-            self.set_up_basket_from_uuid(basket_address, kwargs['pantry'])
+            self.set_up_basket_from_uuid(basket_address, kwargs["pantry"])
 
         self.manifest_path = f"{self.basket_path}/basket_manifest.json"
         self.supplement_path = f"{self.basket_path}/basket_supplement.json"
@@ -54,9 +56,10 @@ class BasketInitializer:
         ---------
         basket_address: str
             Argument can take one of two forms: either a path to the basket
-            directory, or the UUID of the basket. In this case it is assumed to
+            directory or the UUID of the basket. In this case it is assumed to
             be a path to the basket directory.
         """
+
         self.basket_path = os.fspath(basket_address)
         self.validate_basket_path()
 
@@ -66,13 +69,16 @@ class BasketInitializer:
         Note that if the basket cannot be set up from a uuid then an attempt to
         set up the basket from a filepath will be made.
 
+        Parameters
+        ----------
         basket_address: str
             Argument can take one of two forms: either a path to the basket
-            directory, or the UUID of the basket. In this case it is assumed to
+            directory or the UUID of the basket. In this case it is assumed to
             be the UUID of the basket.
         pantry: weave.Pantry
             The pantry which the basket uuid is associated with.
         """
+
         try:
             row = pantry.index.get_rows(basket_address)
             pantry.validate_path_in_pantry(row.iloc[0].address)
@@ -85,16 +91,17 @@ class BasketInitializer:
                 raise error
             self.validate_basket_path()
             # The above line should raise an exception
-            # The below line is more or less a fail safe and will raise the ex.
+            # The below line is more or less a fail safe and will raise the
+            # exception
             raise error
 
     def validate_basket_path(self):
-        """Validates basket exists"""
+        """Validates basket exists."""
         if not self.file_system.exists(self.basket_path):
             raise ValueError(f"Basket does not exist: {self.basket_path}")
 
     def validate(self):
-        """Validates basket health"""
+        """Validates basket health."""
         if not self.file_system.exists(self.manifest_path):
             raise FileNotFoundError(
                 f"Invalid Basket, basket_manifest.json "
@@ -125,7 +132,7 @@ class Basket(BasketInitializer):
         ----------
         basket_address: str
             Argument can take one of two forms: either a path to the Basket
-            directory, or the UUID of the basket.
+            directory or the UUID of the basket.
         **file_system: fsspec object (optional)
             The fsspec filesystem to be used for retrieving and uploading. May
             be used if basket_address is a path.
@@ -133,7 +140,9 @@ class Basket(BasketInitializer):
             The pantry which the basket uuid is associated with. Required if
             basket_address is a UUID.
         """
+
         super().__init__(basket_address, **kwargs)
+
         self.manifest = None
         self.supplement = None
         self.metadata = None
@@ -141,7 +150,7 @@ class Basket(BasketInitializer):
         self.populate_members()
 
     def populate_members(self):
-        """Populate the Basket_Class member variables"""
+        """Populate the Basket_Class member variables."""
         self.uuid = self.manifest["uuid"]
         self.upload_time = self.manifest["upload_time"]
         self.parent_uuids = self.manifest["parent_uuids"]
@@ -152,7 +161,7 @@ class Basket(BasketInitializer):
         self.storage_type = self.file_system.__class__.__name__
 
     def get_manifest(self):
-        """Return basket_manifest.json as a python dictionary"""
+        """Return basket_manifest.json as a python dictionary."""
         if self.manifest is not None:
             return self.manifest
 
@@ -161,7 +170,7 @@ class Basket(BasketInitializer):
             return self.manifest
 
     def get_supplement(self):
-        """Return basket_supplement.json as a python dictionary"""
+        """Return basket_supplement.json as a python dictionary."""
         if self.supplement is not None:
             return self.supplement
 
@@ -170,9 +179,9 @@ class Basket(BasketInitializer):
             return self.supplement
 
     def get_metadata(self):
-        """Return basket_metadata.json as a python dictionary
+        """Return basket_metadata.json as a python dictionary.
 
-        Return None if metadata doesn't exist
+        Return None if metadata doesn't exist.
         """
         if self.metadata is not None:
             return self.metadata
@@ -195,14 +204,16 @@ class Basket(BasketInitializer):
            When relative_path = None, filesystem.ls is invoked
            from the base directory of the basket. If there are folders
            within the basket, relative path can be used to observe contents
-           within folders. Example: if there exists a folder with the
+           within folders.
+
+           Example: if there exists a folder with the
            name 'folder1' within the basket, 'folder1' can be passed
            as the relative path to get back the filesystem.ls results
            of 'folder1'.
 
         Parameters
         ----------
-        relative_path: str (default = None)
+        relative_path: str (default=None)
             relative path in the basket to pass to filesystem.ls.
 
         Returns
@@ -234,8 +245,7 @@ class Basket(BasketInitializer):
         return self.file_system.ls(ls_path, refresh=True)
 
     def to_pandas_df(self):
-        """Return a dataframe of the basket member variables
-        """
+        """Return a dataframe of the basket member variables."""
         data = [self.uuid, self.upload_time,
                 self.parent_uuids, self.basket_type,
                 self.label, self.weave_version, self.address,
