@@ -8,7 +8,7 @@ import warnings
 
 import pandas as pd
 
-import weave
+from ..config import get_index_column_names
 from .list_baskets import _get_list_of_basket_jsons
 from .validate_basket import validate_basket_dict
 
@@ -40,7 +40,7 @@ def create_index_from_fs(root_dir, file_system):
         raise FileNotFoundError(f"'root_dir' does not exist '{root_dir}'")
 
     basket_jsons = _get_list_of_basket_jsons(root_dir, file_system)
-    index_columns = weave.config.get_index_column_names()
+    index_columns = get_index_column_names()
     index_dict = {}
 
     for key in index_columns:

@@ -9,7 +9,7 @@ import ast
 import dateutil
 import pandas as pd
 
-import weave
+from ..config import get_index_column_names
 from .index_abc import IndexABC
 from .list_baskets import _get_list_of_basket_jsons
 from .validate_basket import validate_basket_dict
@@ -99,7 +99,7 @@ class IndexSQLite(IndexABC):
 
         storage_type = self.file_system.__class__.__name__
 
-        index_columns = weave.config.get_index_column_names()
+        index_columns = get_index_column_names()
         num_index_columns = len(index_columns)
         index_columns = ", ".join(index_columns)
 
