@@ -8,7 +8,7 @@ import warnings
 
 import pandas as pd
 
-from ..config import index_schema
+from ..config import get_index_column_names
 from .list_baskets import _get_list_of_basket_jsons
 from .validate_basket import validate_basket_dict
 
@@ -40,12 +40,10 @@ def create_index_from_fs(root_dir, file_system):
         raise FileNotFoundError(f"'root_dir' does not exist '{root_dir}'")
 
     basket_jsons = _get_list_of_basket_jsons(root_dir, file_system)
-
-    schema = index_schema()
-
+    index_columns = get_index_column_names()
     index_dict = {}
 
-    for key in schema:
+    for key in index_columns:
         index_dict[key] = []
     index_dict["address"] = []
     index_dict["storage_type"] = []
