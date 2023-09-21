@@ -51,9 +51,6 @@ file_systems = [s3fs, local_fs]
 indexes = [IndexSQLite, IndexPandas]
 indexes_ids = ["SQLite", "Pandas"]
 
-indexes = [IndexPandas]
-indexes_ids = ["Pandas"]
-
 # Create combinations of the above parameters to pass into the fixture..
 params = []
 params_ids = []
@@ -94,7 +91,6 @@ def fixture_test_index_only(request):
     Use this fixture for tests that DO NOT manipulate the pantry (ie
     type checking tests, etc.)
     """
-
     index_constructor = request.param
     file_system = weave.config.get_file_system()
     pantry_path = (
@@ -115,7 +111,6 @@ def fixture_test_index_only(request):
 def test_index_abc_builtin_len_works(test_pantry):
     """Test IndexABC builtin __len__ returns number of baskets being tracked.
     """
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -200,9 +195,7 @@ def test_index_abc_to_pandas_df_works(test_pantry):
 
     # Check df columns are named correctly.
     assert (
-        list(ind_df.columns) == ["uuid", "upload_time", "parent_uuids",
-                                "basket_type", "label", "weave_version",
-                                 "address", "storage_type"]
+        list(ind_df.columns) == weave.config.get_index_column_names()
     ), "Dataframe columns do not match"
 
     # Check values of basket are accurate
@@ -238,9 +231,7 @@ def test_index_abc_to_pandas_df_works(test_pantry):
 
     # Check df columns are named correctly.
     assert (
-        list(ind_df.columns) == ["uuid", "upload_time", "parent_uuids",
-                                "basket_type", "label", "weave_version",
-                                 "address", "storage_type"]
+        list(ind_df.columns) == weave.config.get_index_column_names()
     ), "Dataframe columns do not match"
 
     # Check values of basket are accurate
@@ -366,9 +357,7 @@ def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
 
     # Check df columns are named correctly.
     assert (
-        list(ind_df.columns) == ["uuid", "upload_time", "parent_uuids",
-                                "basket_type", "label", "weave_version",
-                                 "address", "storage_type"]
+        list(ind_df.columns) == weave.config.get_index_column_names()
     ), "Dataframe columns do not match"
 
 
@@ -402,7 +391,6 @@ def test_index_abc_untrack_basket_removes_single_basket(test_pantry):
 def test_index_abc_untrack_basket_raises_warning(test_pantry):
     """Test IndexABC untrack_basket raises a warning when the address to be
     untracked wasn't tracked to begin with."""
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -597,7 +585,6 @@ def test_index_abc_get_rows_multiple_address_works(test_pantry):
 
 def test_index_abc_get_parents_path_works(test_pantry):
     """Test IndexABC get_parents(path) returns proper structure and values."""
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -772,7 +759,6 @@ def test_index_abc_get_parents_no_parents(test_pantry):
     """Test IndexABC get_parents returns an empty dataframe when a basket has
     no parents.
     """
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -836,7 +822,6 @@ def test_index_abc_get_parents_15_deep(test_pantry):
 
     Manually make the data and compare with the result.
     """
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -1107,7 +1092,6 @@ def test_index_abc_get_children_invalid_basket_address(test_pantry):
 def test_index_abc_get_children_no_children(test_pantry):
     """Test IndexABC get_children returns an empty dataframe when a basket has
     no children."""
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -1130,7 +1114,6 @@ def test_index_abc_get_children_child_is_parent_loop(test_pantry):
     parent_ids has the child's uid. This causes an infinite loop,
     check that it throws an error.
     """
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -1170,7 +1153,6 @@ def test_index_abc_get_children_15_deep(test_pantry):
     for the highest grandparent.
     Manually make the data and compare with the result.
     """
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
     parent_id = "x"
@@ -1226,7 +1208,6 @@ def test_index_abc_get_children_complex_fail(test_pantry):
     """Test IndexABC get_children fails on an invalid complicated loop tree.
     Make a complicated tree with a loop to test new algorithm.
     """
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -1331,7 +1312,6 @@ def test_index_abc_get_baskets_of_type_returns_empty_df(test_pantry):
     """Test IndexABC get_baskets_of_type returns empty df if no baskets of
     type.
     """
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -1351,7 +1331,6 @@ def test_index_abc_get_baskets_of_type_returns_empty_df(test_pantry):
 
 def test_index_abc_get_baskets_of_label_works(test_pantry):
     """Test IndexABC get_baskets_of_label returns correct dataframe."""
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -1402,7 +1381,6 @@ def test_index_abc_get_baskets_of_label_returns_empty_df(test_pantry):
     """Test IndexABC get_baskets_of_label returns empty df if no baskets have
     the given label.
     """
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -1425,7 +1403,6 @@ def test_index_abc_get_baskets_by_upload_time_raises_value_error2(test_pantry):
     """Test IndexABC get_baskets_by_upload_time raises a ValueError when
     either start or stop times are not valid datetime format (ie, not UTC).
     """
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -1439,37 +1416,25 @@ def test_index_abc_get_baskets_by_upload_time_raises_value_error2(test_pantry):
 def test_index_abc_get_baskets_by_upload_time_start_works(test_pantry):
     """Test IndexABC get_baskets_by_upload_time works with only a start time.
     """
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
-
-    # Put basket in the temporary pantry.
-    columns = [
-        "uuid",
-        "upload_time",
-        "parent_uuids",
-        "basket_type",
-        "label",
-        "address",
-        "storage_type"
-    ]
 
     # Save the current time, and set the 'end' time to 5 seconds ago.
     start = datetime.now(timezone.utc) - timedelta(seconds=5)
 
-    # Create a placeholder record that will have the time and uuid replaced.
-    manifest_values = (
-        ["PLACEHOLDER"],
-        [start],
-        [[]],
-        ["test_basket_type"],
-        ["test_label"],
-        ["temp-pantry"],
-        ["fake-storage"]
-    )
-    manifest_dict = {}
-    for key, value in zip(columns, manifest_values, strict=True):
-        manifest_dict[key] = value
+    # Get the index columns and instantiate with empty lists.
+    columns = weave.config.get_index_column_names()
+    manifest_dict = dict.fromkeys(columns, ["placeholder-data"])
+
+    # Set placeholder values (for columns that matter)
+    # that will have the time and uuid replaced.
+    manifest_dict["uuid"] = ["PLACEHOLDER"]
+    manifest_dict["upload_time"] = [start]
+    manifest_dict["parent_uuids"] = [[]]
+    manifest_dict["basket_type"] = ["test_basket_type"]
+    manifest_dict["label"] = ["test_label"]
+    manifest_dict["address"] = ["temp-pantry-address"]
+    manifest_dict["storage_type"] = ["fake-storage"]
 
     # Create and track a record, with the upload time 1 second before start.
     manifest_dict["uuid"] = ["0001"]
@@ -1499,36 +1464,24 @@ def test_index_abc_get_baskets_by_upload_time_end_works(test_pantry):
     """Test IndexABC get_baskets_by_upload_time works with only an end time."""
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
-
-    # Put basket in the temporary pantry.
-    columns = [
-        "uuid",
-        "upload_time",
-        "parent_uuids",
-        "basket_type",
-        "label",
-        "address",
-        "storage_type"
-    ]
-
     ind.to_pandas_df()
 
     # Save the current time, and set the 'end' time to 5 seconds ago.
     end = datetime.now(timezone.utc) - timedelta(seconds=5)
 
-    # Create a placeholder record that will have the time and uuid replaced.
-    manifest_values = (
-        ["PLACEHOLDER"],
-        [end],
-        [[]],
-        ["test_basket_type"],
-        ["test_label"],
-        ["temp-pantry"],
-        ["fake-storage"]
-    )
-    manifest_dict = {}
-    for key, value in zip(columns, manifest_values, strict=True):
-        manifest_dict[key] = value
+    # Get the index columns and instantiate with empty lists.
+    columns = weave.config.get_index_column_names()
+    manifest_dict = dict.fromkeys(columns, ["placeholder-data"])
+
+    # Set placeholder values (for columns that matter)
+    # that will have the time and uuid replaced.
+    manifest_dict["uuid"] = ["PLACEHOLDER"]
+    manifest_dict["upload_time"] = [end]
+    manifest_dict["parent_uuids"] = [[]]
+    manifest_dict["basket_type"] = ["test_basket_type"]
+    manifest_dict["label"] = ["test_label"]
+    manifest_dict["address"] = ["temp-pantry-address"]
+    manifest_dict["storage_type"] = ["fake-storage"]
 
     # Create and track a record, with the upload time 1 second before the end.
     manifest_dict["uuid"] = ["0001"]
@@ -1558,38 +1511,26 @@ def test_index_abc_get_baskets_by_upload_time_start_end_works(test_pantry):
     """Test IndexABC get_baskets_by_upload_time works with both start and end
     times supplied.
     """
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
-
-    # Put basket in the temporary pantry.
-    columns = [
-        "uuid",
-        "upload_time",
-        "parent_uuids",
-        "basket_type",
-        "label",
-        "address",
-        "storage_type"
-    ]
     ind.to_pandas_df()
 
     # Save the current time, and set the 'start' time to now.
     start = datetime.now(timezone.utc)
 
-    # Create a placeholder record that will have the time and uuid replaced.
-    manifest_values = (
-        ["PLACEHOLDER"],
-        [start],
-        [[]],
-        ["test_basket_type"],
-        ["test_label"],
-        ["temp-pantry"],
-        ["fake-storage"]
-    )
-    manifest_dict = {}
-    for key, value in zip(columns, manifest_values, strict=True):
-        manifest_dict[key] = value
+    # Get the index columns and instantiate with empty lists.
+    columns = weave.config.get_index_column_names()
+    manifest_dict = dict.fromkeys(columns, ["placeholder-data"])
+
+    # Set placeholder values (for columns that matter)
+    # that will have the time and uuid replaced.
+    manifest_dict["uuid"] = ["PLACEHOLDER"]
+    manifest_dict["upload_time"] = [start]
+    manifest_dict["parent_uuids"] = [[]]
+    manifest_dict["basket_type"] = ["test_basket_type"]
+    manifest_dict["label"] = ["test_label"]
+    manifest_dict["address"] = ["temp-pantry-address"]
+    manifest_dict["storage_type"] = ["fake-storage"]
 
     # Create and track a record, with the upload time 1 second after the start.
     manifest_dict["uuid"] = ["0001"]
@@ -1629,42 +1570,33 @@ def test_index_abc_get_baskets_by_upload_time_returns_empty_df(test_pantry):
     """Test IndexABC get_baskets_by_upload_time returns empty df when no entry
     is found between start/end.
     """
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
-    # Put basket in the temporary pantry.
-    columns = [
-        "uuid",
-        "upload_time",
-        "parent_uuids",
-        "basket_type",
-        "label",
-        "address",
-        "storage_type"
-    ]
-
     # Save the current time, and set the 'start' time to now.
+    # Save the end time to 2 seconds after the start.
     start = datetime.now(timezone.utc)
     end = start + timedelta(seconds=2)
 
-    # Create a placeholder record that will have the time and uuid replaced.
-    manifest_values = (
-        ["PLACEHOLDER"],
-        [start],
-        [[]],
-        ["test_basket_type"],
-        ["test_label"],
-        ["temp-pantry"],
-        ["fake-storage"]
-    )
-    manifest_dict = {}
-    for key, value in zip(columns, manifest_values, strict=True):
-        manifest_dict[key] = value
+    # Get the index columns and instantiate with empty lists.
+    columns = weave.config.get_index_column_names()
+    manifest_dict = dict.fromkeys(columns, ["placeholder-data"])
+
+    # Set placeholder values (for columns that matter)
+    # that will have the time and uuid replaced.
+    manifest_dict["uuid"] = ["PLACEHOLDER"]
+    manifest_dict["upload_time"] = [start]
+    manifest_dict["parent_uuids"] = [[]]
+    manifest_dict["basket_type"] = ["test_basket_type"]
+    manifest_dict["label"] = ["test_label"]
+    manifest_dict["address"] = ["temp-pantry-address"]
+    manifest_dict["storage_type"] = ["fake-storage"]
 
     # Create and track a record, with the upload time 1 second before the start
     manifest_dict["uuid"] = ["0001"]
     manifest_dict["upload_time"] = [start - timedelta(seconds=1)]
+    print(manifest_dict)
+
     basket_df = pd.DataFrame.from_dict(manifest_dict)
     ind.track_basket(basket_df)
 
@@ -1680,8 +1612,10 @@ def test_index_abc_get_baskets_by_upload_time_returns_empty_df(test_pantry):
     assert isinstance(baskets, pd.DataFrame) and len(baskets) == 0
 
 
-def test_index_abc_columns_in_df_are_same_as_config_index_schema(test_pantry):
-    """Test IndexABC tracks the same columns found in config.index_schema."""
+def test_index_abc_columns_in_df_are_same_as_config_index_columns(test_pantry):
+    """Test IndexABC tracks the same columns found in
+    config.get_index_column_names().
+    """
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -1698,12 +1632,10 @@ def test_index_abc_columns_in_df_are_same_as_config_index_schema(test_pantry):
     ind_df_columns = list(ind_df.columns)
 
     # Get the columns in the schema, and add derived columns.
-    index_schema_columns = weave.config.index_schema()
-    index_schema_columns.append("storage_type")
-    index_schema_columns.append("address")
+    index_columns = weave.config.get_index_column_names()
 
     # Sort both for comparisons.
     ind_df_columns.sort()
-    index_schema_columns.sort()
+    index_columns.sort()
 
-    assert ind_df_columns == index_schema_columns
+    assert ind_df_columns == index_columns
