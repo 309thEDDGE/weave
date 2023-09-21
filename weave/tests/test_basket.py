@@ -640,9 +640,8 @@ def test_basket_to_pandas_df(test_pantry):
 def test_basket_time_is_utc(test_pantry):
     """Make sure time data is in UTC format"""
     # Upload a basket
-    tmp_basket_dir = test_pantry.set_up_basket("basket")
     uuid = "0000"
-    time = datetime.now(timezone.utc).isoformat()
+    tmp_basket_dir = test_pantry.set_up_basket("basket")
     basket_path = test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir,
                                             uid=uuid)
 
