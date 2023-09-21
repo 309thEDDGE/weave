@@ -24,7 +24,6 @@ class MongoForTest(PantryForTest):
 
     def load_data(self):
         """Loads data into the file_system."""
-
         # Create a temporary basket with a test file.
         tmp_basket_dir_name = "test_basket_tmp_dir"
         tmp_basket_dir = self.set_up_basket(tmp_basket_dir_name)
@@ -43,7 +42,6 @@ class MongoForTest(PantryForTest):
 
     def cleanup(self):
         """Cleans up the pantry and mongodb."""
-
         self.cleanup_pantry()
         self.mongodb[self.test_collection].drop()
 
@@ -61,7 +59,6 @@ local_fs = LocalFileSystem()
 )
 def set_up(request, tmpdir):
     """Sets up the fixture for testing usage."""
-
     file_system = request.param
     database = MongoForTest(tmpdir, file_system)
     yield database
@@ -142,7 +139,6 @@ def test_load_mongo_check_dataframe_for_uuid(set_up):
 
 def test_load_mongo_check_dataframe_for_address(set_up):
     """Test that load_mongo prevents loading data with missing address."""
-
     with pytest.raises(
         ValueError, match="Invalid index_table: " "missing address column"
     ):
@@ -155,7 +151,6 @@ def test_load_mongo_check_dataframe_for_address(set_up):
 
 def test_load_mongo_check_dataframe_for_basket_type(set_up):
     """Test that load_mongo prevents loading data with missing basket type."""
-
     with pytest.raises(
         ValueError, match="Invalid index_table: " "missing basket_type column"
     ):

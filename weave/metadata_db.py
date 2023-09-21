@@ -1,5 +1,4 @@
-"""Contains scripts concerning MongoDB functionality.
-"""
+"""Contains scripts concerning MongoDB functionality."""
 
 import pandas as pd
 
@@ -26,7 +25,7 @@ def load_mongo(index_table, collection="metadata", **kwargs):
                address
         collection: str (default="metadata")
             Metadata will be added to the Mongo collection specified.
-        **file_system: fsspec object
+        **file_system: fsspec object (required)
             The file system to retrieve the baskets' metadata from.
         """
 

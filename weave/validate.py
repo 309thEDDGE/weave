@@ -1,5 +1,4 @@
-"""Contains functions and classes used by uploader.py's upload function.
-"""
+"""Contains functions and classes used by uploader.py's upload function."""
 
 import json
 import os
@@ -69,10 +68,10 @@ def _check_level(current_dir, **kwargs):
     current_dir: string
         the current directory that we want to search all files and
         directories of
-    **pantry: weave.Pantry
+    **pantry: weave.Pantry (required)
         Pantry object representing the pantry to validate.
-    **in_basket: bool
-        optional parameter. This is a flag to signify that we are in a basket
+    **in_basket: bool (optional)
+        This is a flag to signify that we are in a basket
         and we are looking for a nested basket now.
 
     Returns

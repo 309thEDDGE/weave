@@ -39,7 +39,6 @@ def file_path_in_list(search_path, search_list):
 
 class PantryForTest:
     """Handles resources for much of weave testing."""
-
     def __init__(self, tmpdir, file_system, pantry_path=None):
         self.tmpdir = tmpdir
         self.file_system = file_system
@@ -55,7 +54,6 @@ class PantryForTest:
 
     def _set_up_pantry(self):
         """Create a temporary pantry for testing purposes."""
-
         try:
             self.file_system.mkdir(self.pantry_path)
         except FileExistsError:
@@ -66,7 +64,6 @@ class PantryForTest:
         self, tmp_dir_name, file_name="test.txt", file_content="This is a test"
     ):
         """Create a temporary (local) basket, with a single text file."""
-
         tmp_basket_dir = self.tmpdir.mkdir(tmp_dir_name)
         tmp_basket_txt_file = tmp_basket_dir.join(file_name)
 
@@ -80,7 +77,6 @@ class PantryForTest:
 
     def add_lower_dir_to_temp_basket(self, tmp_basket_dir):
         """Add a nested directory inside the temporary basket."""
-
         nested_dir = tmp_basket_dir.mkdir("nested_dir")
         nested_dir.join("another_test.txt").write("more test text")
         return tmp_basket_dir
@@ -89,7 +85,6 @@ class PantryForTest:
         self, tmp_basket_dir, uid="0000", basket_type="test_basket", **kwargs
     ):
         """Upload a temporary (local) basket to the S3 test pantry."""
-
         upload_items = [
             {"path": str(tmp_basket_dir.realpath()), "stub": False}
         ]
@@ -109,7 +104,6 @@ class PantryForTest:
 
     def cleanup_pantry(self):
         """Delete the temporary test pantry, including any uploaded baskets."""
-
         self.file_system.rm(self.pantry_path, recursive=True)
 
 # This class is to facilitate creating and deleting indices for tests.

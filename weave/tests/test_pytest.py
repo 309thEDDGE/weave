@@ -23,7 +23,6 @@ local_fs = LocalFileSystem()
 )
 def set_up_tb_no_cleanup(request, tmpdir):
     """Sets up test basket fixture."""
-
     file_system = request.param
     temp_basket = PantryForTest(tmpdir, file_system)
     # Purposefully don't clean up pantry, it will be cleaned up in the test.
@@ -34,7 +33,6 @@ def set_up_tb_no_cleanup(request, tmpdir):
 # pylint: disable=redefined-outer-name
 def test_weave_pytest_suffix(set_up_tb_no_cleanup):
     """Test that env var suffix works, and pantrys are still deleted."""
-
     # Check pantry name includes suffix if applicable.
     suffix = os.environ.get('WEAVE_PYTEST_SUFFIX', '')
     assert set_up_tb_no_cleanup.pantry_path == f"pytest-temp-pantry{suffix}"

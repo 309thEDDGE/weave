@@ -92,13 +92,11 @@ class BasketInitializer:
 
     def validate_basket_path(self):
         """Validates basket exists."""
-
         if not self.file_system.exists(self.basket_path):
             raise ValueError(f"Basket does not exist: {self.basket_path}")
 
     def validate(self):
         """Validates basket health."""
-
         if not self.file_system.exists(self.manifest_path):
             raise FileNotFoundError(
                 f"Invalid Basket, basket_manifest.json "
@@ -148,7 +146,6 @@ class Basket(BasketInitializer):
 
     def populate_members(self):
         """Populate the Basket_Class member variables."""
-
         self.uuid = self.manifest["uuid"]
         self.upload_time = self.manifest["upload_time"]
         self.parent_uuids = self.manifest["parent_uuids"]
@@ -160,7 +157,6 @@ class Basket(BasketInitializer):
 
     def get_manifest(self):
         """Return basket_manifest.json as a python dictionary."""
-
         if self.manifest is not None:
             return self.manifest
 
@@ -170,7 +166,6 @@ class Basket(BasketInitializer):
 
     def get_supplement(self):
         """Return basket_supplement.json as a python dictionary."""
-
         if self.supplement is not None:
             return self.supplement
 
@@ -183,7 +178,6 @@ class Basket(BasketInitializer):
 
         Return None if metadata doesn't exist.
         """
-
         if self.metadata is not None:
             return self.metadata
 
@@ -247,7 +241,6 @@ class Basket(BasketInitializer):
 
     def to_pandas_df(self):
         """Return a dataframe of the basket member variables."""
-
         data = [self.uuid, self.upload_time,
                 self.parent_uuids, self.basket_type,
                 self.label, self.weave_version, self.address,

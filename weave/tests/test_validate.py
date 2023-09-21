@@ -23,7 +23,6 @@ from weave.tests.pytest_resources import PantryForTest
 
 class ValidateForTest(PantryForTest):
     """A class to test functions in validate.py"""
-
     # The arguments for the below function should be changed,
     # as it is over-riding PantryForTest.set_up_basket. Pylint hates it.
     # pylint: disable-next=arguments-differ
@@ -45,22 +44,22 @@ class ValidateForTest(PantryForTest):
         ----------
         tmp_dir_name: str
             The directory name of where the nested basket will be.
-        **is_man: bool
+        **is_man: bool (optional)
             A bool that signals if there should be a manifest file,
             defaults to no manifest.
-        **is_sup: bool
+        **is_sup: bool (optional)
             A bool that signals if there should be a supplement file,
             defaults to no supplement.
-        **is_meta: bool
+        **is_meta: bool (optional)
             A bool that signals if there should be a metadata file,
             defaults to no metadata.
-        **man_data: str
+        **man_data: str (optional)
             The json data to be put into the manifest file,
             defaults to a valid manifest schema.
-        **sup_data: str
+        **sup_data: str (optional)
             The json data to be put into the supplement file,
             defaults to a valid supplement schema.
-        **meta_data: str
+        **meta_data: str (optional)
             The json data to be put into the metadata file,
             defaults to a valid json object.
 
@@ -192,7 +191,6 @@ local_fs = LocalFileSystem()
 )
 def test_validate(request, tmpdir):
     """Pytest fixture for testing validate."""
-
     file_system = request.param
     test_validate_obj = ValidateForTest(tmpdir, file_system)
     yield test_validate_obj
@@ -1208,7 +1206,6 @@ def test_validate_invalid_metadata_json(test_validate):
 
 def test_validate_nested_basket(test_validate):
     """Make a basket with nested basket, check that it collects one warning."""
-
     tmp_basket_dir = test_validate.set_up_basket(
         "my_nested_basket",
         is_man=True,

@@ -46,7 +46,6 @@ local_fs = LocalFileSystem()
 )
 def fixture_test_pantry(request, tmpdir):
     """Fixture to set up and tear down test_basket."""
-
     file_system = request.param
     test_pantry = PantryForTest(tmpdir, file_system)
     yield test_pantry
@@ -173,7 +172,6 @@ def test_basket_get_manifest(test_pantry):
 
 def test_basket_get_manifest_cached(test_pantry):
     """Test that the get_manifest function retreives the cached copy."""
-
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
@@ -207,7 +205,6 @@ def test_basket_get_manifest_cached(test_pantry):
 
 def test_basket_get_supplement(test_pantry):
     """Test that the get_supplement function returns the expected values."""
-
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
@@ -263,7 +260,6 @@ def test_basket_get_supplement_cached(test_pantry):
 
 def test_basket_get_metadata(test_pantry):
     """Test that the get_metadata function returns the expected values."""
-
     metadata_in = {"test": 1}
 
     # Create a temporary basket with a test file, and upload it.
@@ -318,7 +314,6 @@ def test_basket_get_metadata_cached(test_pantry):
 
 def test_basket_get_metadata_none(test_pantry):
     """Test that get_metadata returns None when no metadata was uploaded."""
-
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
@@ -336,7 +331,6 @@ def test_basket_get_metadata_none(test_pantry):
 
 def test_basket_ls(test_pantry):
     """Test that the basket ls function returns the expected values."""
-
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
@@ -353,7 +347,6 @@ def test_basket_ls(test_pantry):
 
 def test_basket_ls_relpath(test_pantry):
     """Test that the basket ls function works when using relative paths."""
-
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
@@ -523,7 +516,6 @@ def test_basket_pantry_name_does_not_exist(test_pantry):
 
 def test_basket_from_uuid_with_many_baskets(test_pantry):
     """Test that many baskets can be initialized using UUIDs."""
-
     # Set up ten baskets
     for uuid in range(10):
         uuid = str(uuid)

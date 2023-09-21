@@ -123,7 +123,7 @@ def example_function(var_1, var_2, var_3=5, **kwargs):
         This is a list of integers that will check if var_2 is less than the sum of integers in this list.
     var_3: int (default=5)
         This is our input integer that we will compare.
-    **var_4: str
+    **var_4: str (required)
         This string will be printed to the console during the execution of the function.
     **var_5: bool (optional)
         Will only check if the length of var_1 is less than the sum of integers in var_2 if set to True.

@@ -79,7 +79,6 @@ local_fs = LocalFileSystem()
 )
 def set_up_tu(request, tmpdir):
     """Sets up the test uploader."""
-
     file_system = request.param
     test_upload = UploadForTest(tmpdir, file_system)
     yield test_upload
@@ -93,7 +92,6 @@ def set_up_tu(request, tmpdir):
 
 def test_upload_test_txt_in_uploaded_files(set_up_tu):
     """Test that uploaded test files are properly uploaded."""
-
     test_uploader = set_up_tu
 
     tmp_basket_dir_name = "test_basket_tmp_dir"
@@ -107,7 +105,6 @@ def test_upload_test_txt_in_uploaded_files(set_up_tu):
 
 def test_upload_basket_manifest_in_uploaded_files(set_up_tu):
     """Test that basket manifest files are properly uploaded."""
-
     test_uploader = set_up_tu
 
     tmp_basket_dir_name = "test_basket_tmp_dir"
@@ -122,7 +119,6 @@ def test_upload_basket_manifest_in_uploaded_files(set_up_tu):
 
 def test_upload_basket_supplement_in_uploaded_files(set_up_tu):
     """Test that basket supplement files are properly uploaded."""
-
     test_uploader = set_up_tu
 
     tmp_basket_dir_name = "test_basket_tmp_dir"
@@ -137,7 +133,6 @@ def test_upload_basket_supplement_in_uploaded_files(set_up_tu):
 
 def test_upload_basket_metadata_in_uploaded_files(set_up_tu):
     """Test that basket metadata files are properly uploaded."""
-
     test_uploader = set_up_tu
 
     tmp_basket_dir_name = "test_basket_tmp_dir"
@@ -152,7 +147,6 @@ def test_upload_basket_metadata_in_uploaded_files(set_up_tu):
 
 def test_upload_nothing_else_in_uploaded_files(set_up_tu):
     """Test that only basket data and required files are uploaded."""
-
     test_uploader = set_up_tu
 
     tmp_basket_dir_name = "test_basket_tmp_dir"
@@ -422,7 +416,6 @@ def test_derive_integrity_data_small_byte_count(tmp_path):
 
 def test_derive_integrity_data_file_size(tmp_path):
     """Test that derive_integrity_data returns the correct file size value."""
-
     text_file_name = "test.txt"
     text_file_content = "0123456789"
 
@@ -437,7 +430,6 @@ def test_derive_integrity_data_file_size(tmp_path):
 
 def test_derive_integrity_data_date(tmp_path):
     """Test that derive_integrity_data returns the correct data access date."""
-
     text_file_name = "test.txt"
     text_file_content = "0123456789"
 
@@ -469,7 +461,6 @@ def test_derive_integrity_data_source_path(tmp_path):
 
 def test_derive_integrity_byte_count(tmp_path):
     """Test that derive_integrity_data returns the correct byte count value."""
-
     text_file_name = "test.txt"
     text_file_content = "0123456789"
 
@@ -520,7 +511,6 @@ def test_derive_integrity_data_max_byte_count_exact(tmp_path):
 @pytest.fixture(params=[s3fs, local_fs])
 def test_basket(request, tmpdir):
     """Sets up pytest fixture."""
-
     file_system = request.param
     test_pantry = PantryForTest(tmpdir, file_system)
     yield test_pantry
@@ -1303,7 +1293,6 @@ def test_upload_basket_invalid_test_clean_up_datatype(test_basket):
 
 def test_upload_basket_file_contents_identical(test_basket):
     """Test that files uploaded using upload_basket are the same as local."""
-
     # Create a temporary basket with a test file.
     test_file_name = "test.txt"
     tmp_basket_dir_name = "test_basket_tmp_dir"
@@ -1346,8 +1335,9 @@ def test_upload_basket_file_contents_identical(test_basket):
 
 def test_upload_correct_version_number(test_basket):
     """Test that when a basket is uploaded, the manifest contains the
-       correct version of weave
+    correct version of weave.
     """
+
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_basket.set_up_basket(tmp_basket_dir_name)
     upload_path = test_basket.upload_basket(tmp_basket_dir)

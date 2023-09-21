@@ -1,5 +1,4 @@
-"""Contains functions and classes concerning the upload functionality.
-"""
+"""Contains functions and classes concerning the upload functionality."""
 
 import hashlib
 from importlib import metadata
@@ -16,7 +15,6 @@ from .config import get_file_system, prohibited_filenames
 
 def validate_upload_item(upload_item):
     """Validates an upload_item."""
-
     if not isinstance(upload_item, dict):
         raise TypeError(
             "'upload_item' must be a dictionary: "
@@ -124,7 +122,6 @@ def derive_integrity_data(file_path, byte_count=10**8):
 
 class UploadBasket:
     """This class abstracts functionality used by upload_basket."""
-
     def __init__(
         self,
         upload_items,
@@ -146,9 +143,9 @@ class UploadBasket:
             Stubs are useful when original file source information is desired
             without uploading the data itself. This is especially useful when
             dealing with large files.
-        **upload_directory: str
+        **upload_directory: str (required)
             Path where basket is to be uploaded (on the upload FS).
-        **unique_id: str
+        **unique_id: str (required)
             Unique ID to identify the basket once uploaded.
         **basket_type: str
             Type of basket being uploaded.
@@ -181,7 +178,6 @@ class UploadBasket:
 
     def run_logic(self):
         """Handles running the functions that make up the class."""
-
         self.sanitize_args()
         self.check_that_upload_dir_does_not_exist()
 
@@ -204,7 +200,6 @@ class UploadBasket:
 
     def sanitize_upload_basket_kwargs(self):
         """Sanitizes kwargs for upload_basket."""
-
         kwargs_schema = {"test_clean_up": bool,
                          "file_system": object,
                          "upload_directory": str,
@@ -241,7 +236,6 @@ class UploadBasket:
 
     def sanitize_upload_basket_non_kwargs(self):
         """Sanitize upload_basket's non kwargs args."""
-
         if not isinstance(self.upload_items, list):
             raise TypeError(
                 "'upload_items' must be a list of dictionaries: "
@@ -273,7 +267,6 @@ class UploadBasket:
 
     def sanitize_args(self):
         """Sanitize all args with one call."""
-
         self.sanitize_upload_basket_kwargs()
         self.sanitize_upload_basket_non_kwargs()
 
@@ -312,12 +305,10 @@ class UploadBasket:
 
     def setup_temp_dir_for_staging_prior_to_fs(self):
         """Sets up a temporary directory to hold stuff before upload to FS."""
-
         self.file_system.mkdir(self.kwargs.get("upload_directory"))
 
     def upload_files_and_stubs_to_fs(self):
         """Method to upload both files and stubs to FS."""
-
         supplement_data = {}
         supplement_data["upload_items"] = self.upload_items
         supplement_data["integrity_data"] = []
@@ -373,7 +364,6 @@ class UploadBasket:
 
     def create_and_upload_basket_json_to_fs(self):
         """Creates and dumps a JSON containing basket metadata."""
-
         basket_json_path = os.path.join(
             self.temp_dir_path, "basket_manifest.json"
         )
@@ -395,7 +385,6 @@ class UploadBasket:
 
     def upload_basket_metadata_to_fs(self):
         """Dumps metadata to tempdir, and then uploads to FS."""
-
         metadata_path = os.path.join(
             self.temp_dir_path, "basket_metadata.json"
         )
@@ -410,7 +399,6 @@ class UploadBasket:
 
     def upload_basket_supplement_to_fs(self):
         """Dumps metadata to tempdir, and then uploads to FS."""
-
         supplement_json_path = os.path.join(
             self.temp_dir_path, "basket_supplement.json"
         )
@@ -424,18 +412,15 @@ class UploadBasket:
 
     def fs_upload_path_exists(self):
         """Returns True if FS upload_path has been created, else False."""
-
         return self.file_system.exists(self.kwargs.get("upload_directory"))
 
     def clean_out_fs_upload_dir(self):
         """Removes everything from upload_path inside of FS."""
-
         self.file_system.rm(self.kwargs.get("upload_directory"),
                             recursive=True)
 
     def get_upload_path(self):
         """Gets upload path from kwargs and returns it."""
-
         upload_path = self.kwargs.get("upload_directory")
         if upload_path is not None:
             return upload_path

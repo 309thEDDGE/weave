@@ -67,7 +67,6 @@ for iter_file_system in file_systems:
 @pytest.fixture(name="test_pantry", params=params, ids=params_ids)
 def fixture_test_pantry(request, tmpdir):
     """Sets up test pantry for the tests."""
-
     file_system = request.param[0]
     pantry_path = (
         "pytest-temp-pantry" f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
@@ -143,7 +142,6 @@ def test_index_abc_builtin_str_works(test_index_only):
 
 def test_index_abc_generate_metadata_returns_dict(test_index_only):
     """Test IndexABC generate_metadata returns a python dictionary."""
-
     ind = test_index_only
 
     metadata = ind.generate_metadata()
@@ -154,7 +152,6 @@ def test_index_abc_generate_metadata_returns_dict(test_index_only):
 
 def test_index_abc_generate_index_works(test_pantry):
     """Tests IndexABC generate_index uses the pantry fs to add to the index."""
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -181,7 +178,6 @@ def test_index_abc_generate_index_works(test_pantry):
 
 def test_index_abc_to_pandas_df_works(test_pantry):
     """Tests IndexABC to_pandas_df returns dataframe with proper values."""
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -262,7 +258,6 @@ def test_index_abc_to_pandas_df_works(test_pantry):
 
 def test_index_abc_track_basket_adds_single_basket(test_pantry):
     """Test IndexABC track_basket works when passing a single basket df."""
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -304,7 +299,6 @@ def test_index_abc_track_basket_adds_single_basket(test_pantry):
 
 def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
     """Test IndexABC track_basket works when passing a multi-basket df."""
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -380,7 +374,6 @@ def test_index_abc_track_basket_adds_multiple_baskets(test_pantry):
 
 def test_index_abc_untrack_basket_removes_single_basket(test_pantry):
     """Test IndexABC untrack_basket works when passing a basket address."""
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -448,7 +441,6 @@ def test_index_abc_untrack_basket_raises_warning(test_pantry):
 
 def test_index_abc_untrack_basket_removes_multiple_baskets(test_pantry):
     """Test IndexABC untrack_basket works when passing a multi-address list."""
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -474,7 +466,6 @@ def test_index_abc_untrack_basket_removes_multiple_baskets(test_pantry):
 
 def test_index_abc_get_rows_single_address_works(test_pantry):
     """Test IndexABC get_rows returns manifest data of a single address."""
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -542,7 +533,6 @@ def test_index_abc_get_rows_single_address_works(test_pantry):
 
 def test_index_abc_get_rows_multiple_address_works(test_pantry):
     """Test IndexABC get_rows returns manifest data of multiple addresses."""
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -687,7 +677,6 @@ def test_index_abc_get_parents_path_works(test_pantry):
 
 def test_index_abc_get_parents_uuid_works(test_pantry):
     """Test IndexABC get_parents(uuid) returns proper structure and values."""
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -767,7 +756,6 @@ def test_index_abc_get_parents_uuid_works(test_pantry):
 
 def test_index_abc_get_parents_invalid_basket_address(test_pantry):
     """Test IndexABC get_parents fails given an invalid basket address."""
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -906,7 +894,6 @@ def test_index_abc_get_parents_15_deep(test_pantry):
 
 def test_index_abc_get_parents_complex_fail(test_pantry):
     """Test IndexABC get_parents fails on an invalid complicated loop tree."""
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -963,7 +950,6 @@ def test_index_abc_get_parents_complex_fail(test_pantry):
 
 def test_index_abc_get_children_path_works(test_pantry):
     """Test IndexABC get_children(path) returns proper structure and values."""
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -1035,7 +1021,6 @@ def test_index_abc_get_children_path_works(test_pantry):
 
 def test_index_abc_get_children_uuid_works(test_pantry):
     """Test IndexABC get_children(uuid) returns proper structure and values."""
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -1108,7 +1093,6 @@ def test_index_abc_get_children_uuid_works(test_pantry):
 
 def test_index_abc_get_children_invalid_basket_address(test_pantry):
     """Test IndexABC get_children fails given an invalid basket address."""
-
     test_pantry, ind = test_pantry
 
     basket_path = "INVALIDpath"
@@ -1123,6 +1107,7 @@ def test_index_abc_get_children_invalid_basket_address(test_pantry):
 def test_index_abc_get_children_no_children(test_pantry):
     """Test IndexABC get_children returns an empty dataframe when a basket has
     no children."""
+
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -1239,7 +1224,8 @@ def test_index_abc_get_children_15_deep(test_pantry):
 
 def test_index_abc_get_children_complex_fail(test_pantry):
     """Test IndexABC get_children fails on an invalid complicated loop tree.
-    Make a complicated tree with a loop to test new algorithm."""
+    Make a complicated tree with a loop to test new algorithm.
+    """
 
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
@@ -1297,7 +1283,6 @@ def test_index_abc_get_children_complex_fail(test_pantry):
 
 def test_index_abc_get_baskets_of_type_works(test_pantry):
     """Test IndexABC get_baskets_of_type returns correct dataframe."""
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -1324,7 +1309,6 @@ def test_index_abc_get_baskets_of_type_works(test_pantry):
 
 def test_index_abc_get_baskets_of_type_max_rows_works(test_pantry):
     """Test IndexABC get_baskets_of_type max_rows argument works properly."""
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -1395,7 +1379,6 @@ def test_index_abc_get_baskets_of_label_works(test_pantry):
 
 def test_index_abc_get_baskets_of_label_max_rows_works(test_pantry):
     """Test IndexABC get_baskets_of_label max_rows argument works properly."""
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 
@@ -1514,7 +1497,6 @@ def test_index_abc_get_baskets_by_upload_time_start_works(test_pantry):
 
 def test_index_abc_get_baskets_by_upload_time_end_works(test_pantry):
     """Test IndexABC get_baskets_by_upload_time works with only an end time."""
-
     # Unpack the test_pantry into two variables for the pantry and index.
     test_pantry, ind = test_pantry
 

@@ -68,13 +68,13 @@ class IndexPandas(IndexABC):
         return self._pantry_path
 
     def _sync_if_needed(self):
-        """Check if the index_df is up to date, and sync if necessary
+        """Check if the index_df is up to date, and sync if necessary.
 
         Returns
         ----------
-        bool
-            Returns a boolean indicating if the index was updated.
+        Returns a boolean indicating if the index was updated.
         """
+
         if self.sync and not self.is_index_current():
             self.sync_index()
         elif self.index_df is None:
@@ -90,12 +90,12 @@ class IndexPandas(IndexABC):
         ----------
         **kwargs unused for this class.
         """
+
         super().generate_metadata(**kwargs)
         return self.metadata
 
     def sync_index(self):
         """Gets index from latest index basket."""
-
         index_paths = self.file_system.glob(f"{self.index_basket_dir_path}"
                                             "/**/*-index.json")
         if len(index_paths) == 0:
@@ -200,7 +200,6 @@ class IndexPandas(IndexABC):
 
     def _upload_index(self, index):
         """Upload a new index."""
-
         with tempfile.TemporaryDirectory() as out:
             n_secs = time_ns()
             temp_json_path = os.path.join(out, f"{n_secs}-index.json")
@@ -222,7 +221,6 @@ class IndexPandas(IndexABC):
         basket_address: str
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
-
         **upload_index: bool (optional)
             Flag to upload the new index to the file system.
         """
@@ -349,10 +347,10 @@ class IndexPandas(IndexABC):
         basket_address: str
             String that holds the path of the basket
             can also be the basket uuid.
-        **gen_level: int
+        **gen_level: int (required)
             This indicates what generation is being looked at,
             -1 for child, -2 for grandchild and so forth.
-        **ancestors: [str]
+        **ancestors: [str] (required)
             This is a list of basket uuids of all the ancestors that have been
             visited. This is being used to detect if there is a parent-child
             loop inside the basket structure.
@@ -503,11 +501,13 @@ class IndexPandas(IndexABC):
             The label to filter for.
         max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
-       **kwargs unused for this class.
+
+        **kwargs unused for this class.
 
         Returns
         ----------
-        pandas.DataFrame containing the manifest data of baskets with the label
+        pandas.DataFrame containing the manifest data of baskets with the 
+        label.
         """
 
         self._sync_if_needed()

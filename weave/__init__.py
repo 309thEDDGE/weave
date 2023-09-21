@@ -12,7 +12,7 @@ including lineage.
 --> Note that there is a Basket class available in Weave. Use it to access
 individual baskets.
 
-A collection of Baskets is known as a pantry. A pantry can be accessed using
+A collection of baskets is known as a pantry. A pantry can be accessed using
 its Index.
 
 --> Note that you can use the Index class to access a pantry's Index. You can

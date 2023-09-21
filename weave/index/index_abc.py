@@ -18,7 +18,7 @@ class IndexABC(abc.ABC):
             The fsspec object which hosts the pantry we desire to index.
         pantry_path: str
             Path to the pantry root which we want to index.
-        **metadata: dict
+        **metadata: dict (required)
             Existing metadata for the Index.
         Optional kwargs controlled by concrete implementations.
         """
@@ -119,8 +119,8 @@ class IndexABC(abc.ABC):
 
         Returns
         ----------
-        pandas.DataFrame
-            Manifest information for the requested basket(s).
+        pandas.DataFrame of the Manifest information for the requested
+        basket(s).
         """
 
     @abc.abstractmethod
