@@ -45,8 +45,6 @@ def create_index_from_fs(root_dir, file_system):
 
     for key in index_columns:
         index_dict[key] = []
-    index_dict["address"] = []
-    index_dict["storage_type"] = []
 
     bad_baskets = []
     for basket_json_address in basket_jsons:
