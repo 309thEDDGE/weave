@@ -69,7 +69,7 @@ class Pantry():
         valid = path.startswith(self.pantry_path + os.path.sep)
         if valid:
             bad_str = os.path.sep + '..' + os.path.sep
-            valid = not bad_str in path
+            valid = bad_str not in path
 
         if not valid:
             raise ValueError(

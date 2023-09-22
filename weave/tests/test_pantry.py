@@ -256,7 +256,7 @@ def test_pantry_fails_with_bad_path(test_pantry):
     bad_path = 'BadPath'
     error_msg = f"Invalid pantry Path. Pantry does not exist at: {bad_path}"
     with pytest.raises(ValueError, match=error_msg):
-        pantry = Pantry(
+        Pantry(
             IndexPandas,
             pantry_path=bad_path,
             file_system=test_pantry.file_system
@@ -276,24 +276,24 @@ def test_delete_basket_stays_in_pantry(test_pantry):
 
     # Save and delete the basket.
     pantry.index.generate_index()
-    df = pantry.index.to_pandas_df()
-    pantry.index.untrack_basket(df.iloc[0].uuid)
+    index = pantry.index.to_pandas_df()
+    pantry.index.untrack_basket(index.iloc[0].uuid)
 
     # Modify the basket address to a new (fake) pantry.
-    address = df.iloc[0].address
+    address = index.iloc[0].address
     address = address.split(os.path.sep)
     address[0] += '-2'
     new_address = (os.path.sep).join(address)
-    df.at[0,'address'] = new_address
+    index.at[0,'address'] = new_address
 
     # Track the new basket
-    pantry.index.track_basket(df)
+    pantry.index.track_basket(index)
 
     error_msg = f"Attempting to access basket outside of pantry: {new_address}"
     with pytest.raises(ValueError, match=error_msg):
-        pantry.delete_basket(df.iloc[0].uuid)
+        pantry.delete_basket(index.iloc[0].uuid)
     with pytest.raises(ValueError, match=error_msg):
-        pantry.delete_basket(df.iloc[0].address)
+        pantry.delete_basket(index.iloc[0].address)
 
 def test_delete_basket_deletes_basket(test_pantry):
     """Tests Pantry.delete_basket to make sure it does, in fact, delete the
@@ -519,24 +519,24 @@ def test_get_basket_stays_in_pantry(test_pantry):
 
     # Save and delete the basket.
     pantry.index.generate_index()
-    df = pantry.index.to_pandas_df()
-    pantry.index.untrack_basket(df.iloc[0].uuid)
+    index = pantry.index.to_pandas_df()
+    pantry.index.untrack_basket(index.iloc[0].uuid)
 
     # Modify the basket address to a new (fake) pantry.
-    address = df.iloc[0].address
+    address = index.iloc[0].address
     address = address.split(os.path.sep)
     address[0] += '-2'
     new_address = (os.path.sep).join(address)
-    df.at[0,'address'] = new_address
+    index.at[0,'address'] = new_address
 
     # Track the new basket
-    pantry.index.track_basket(df)
+    pantry.index.track_basket(index)
 
     error_msg = f"Attempting to access basket outside of pantry: {new_address}"
     with pytest.raises(ValueError, match=error_msg):
-        pantry.get_basket(df.iloc[0].uuid)
+        pantry.get_basket(index.iloc[0].uuid)
     with pytest.raises(ValueError, match=error_msg):
-        pantry.get_basket(df.iloc[0].address)
+        pantry.get_basket(index.iloc[0].address)
 
 
 def test_pantry_get_metadata_no_data(test_pantry):
