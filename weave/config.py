@@ -83,10 +83,10 @@ supplement_schema = {
 }
 
 
-def index_schema():
-    """Return the keys expected from the manifest.json file."""
-    return ["uuid", "upload_time", "parent_uuids",
-            "basket_type", "label", "weave_version"]
+def get_index_column_names():
+    """Return index column names."""
+    return ["uuid", "upload_time", "parent_uuids", "basket_type", "label",
+            "weave_version", "address", "storage_type"]
 
 
 def get_file_system():

@@ -9,6 +9,7 @@ import ast
 import dateutil
 import pandas as pd
 
+from ..config import get_index_column_names
 from .index_abc import IndexABC
 from .list_baskets import _get_list_of_basket_jsons
 from .validate_basket import validate_basket_dict
@@ -29,7 +30,6 @@ class IndexSQLite(IndexABC):
             Path to the sqlite db file to be used. If none is set, defaults to
             './basket-data.db'
         """
-
         self._file_system = file_system
         self._pantry_path = pantry_path
 
@@ -40,11 +40,14 @@ class IndexSQLite(IndexABC):
 
     def _create_tables(self):
         """Create the required DB tables if they do not already exist."""
+        # THIS NEEDS TO BE UPDATED MANUALLY IF NEW COLUMNS ARE ADDED TO INDEX.
+        # THE INSERT IN OTHER FUNCTIONS USE config.index_schema(), BUT THAT
+        # CAN'T BE USED HERE AS TYPE NEEDS TO BE SPECIFIED.
         self.cur.execute("""
             CREATE TABLE IF NOT EXISTS pantry_index(
                 uuid TEXT, upload_time INT, parent_uuids TEXT,
-                basket_type TEXT, label TEXT, address TEXT, storage_type TEXT,
-                PRIMARY KEY(uuid), UNIQUE(uuid));
+                basket_type TEXT, label TEXT, weave_version TEXT, address TEXT,
+                storage_type TEXT, PRIMARY KEY(uuid), UNIQUE(uuid));
         """)
 
         self.cur.execute("""
@@ -71,7 +74,6 @@ class IndexSQLite(IndexABC):
         ----------
         **kwargs unused for this function.
         """
-
         return {"db_path": self.db_path}
 
     def generate_index(self, **kwargs):
@@ -84,7 +86,6 @@ class IndexSQLite(IndexABC):
         ----------
         **kwargs unused for this function.
         """
-
         if not isinstance(self.pantry_path, str):
             raise TypeError("'pantry_path' must be a string: "
                             f"'{self.pantry_path}'")
@@ -97,6 +98,10 @@ class IndexSQLite(IndexABC):
                                                  self.file_system)
 
         storage_type = self.file_system.__class__.__name__
+
+        index_columns = get_index_column_names()
+        num_index_columns = len(index_columns)
+        index_columns = ", ".join(index_columns)
 
         bad_baskets = []
         for basket_json_address in basket_jsons:
@@ -127,13 +132,15 @@ class IndexSQLite(IndexABC):
                 parent_uuids = basket_dict["parent_uuids"]
                 basket_dict["parent_uuids"] = str(basket_dict["parent_uuids"])
 
-                sql = """INSERT OR IGNORE INTO pantry_index(
-                uuid, upload_time, parent_uuids, basket_type,
-                label, address, storage_type) VALUES(?,?,?,?,?,?,?) """
+                if 'weave_version' not in basket_dict.keys():
+                    basket_dict['weave_version'] = "<0.13.0"
 
-                val = tuple(basket_dict.values())
+                sql = (
+                    f"INSERT OR IGNORE INTO pantry_index({index_columns}) "
+                    f"VALUES({','.join(['?']*num_index_columns)}) "
+                )
 
-                self.cur.execute(sql, val)
+                self.cur.execute(sql, tuple(basket_dict.values()))
 
                 sql = """INSERT OR IGNORE INTO parent_uuids(
                 uuid, parent_uuid) VALUES(?,?)"""
@@ -162,7 +169,6 @@ class IndexSQLite(IndexABC):
             Returns a dataframe of the manifest data of the baskets in the
             pantry.
         """
-
         columns = (
             [info[1] for info in
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
@@ -190,7 +196,6 @@ class IndexSQLite(IndexABC):
 
         **kwargs unused for this function.
         """
-
         entry_df["parent_uuids"] = entry_df["parent_uuids"].astype(str)
         entry_df["upload_time"] = (
             entry_df["upload_time"].astype(int) // 1e9
@@ -210,7 +215,6 @@ class IndexSQLite(IndexABC):
 
         **kwargs unused for this function.
         """
-
         if not isinstance(basket_address, list):
             basket_address = [basket_address]
 
@@ -251,7 +255,6 @@ class IndexSQLite(IndexABC):
         pandas.DataFrame
             Manifest information for the requested basket(s).
         """
-
         if not isinstance(basket_address, list):
             basket_address = [basket_address]
 
@@ -297,7 +300,6 @@ class IndexSQLite(IndexABC):
         pandas.DataFrame containing all the manifest data AND generation level
         of parents (and recursively their parents) of the given basket.
         """
-
         if self.file_system.exists(os.fspath(basket_address)):
             id_column = "address"
         else:
@@ -382,7 +384,6 @@ class IndexSQLite(IndexABC):
         pandas.DataFrame containing all the manifest data AND generation level
         of children (and recursively their children) of the given basket.
         """
-
         if self.file_system.exists(os.fspath(basket_address)):
             id_column = "address"
         else:
@@ -465,7 +466,6 @@ class IndexSQLite(IndexABC):
         ----------
         pandas.DataFrame containing the manifest data of baskets of the type.
         """
-
         columns = (
             [info[1] for info in
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
@@ -501,7 +501,6 @@ class IndexSQLite(IndexABC):
         ----------
         pandas.DataFrame containing the manifest data of baskets with the label
         """
-
         columns = (
             [info[1] for info in
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
@@ -543,7 +542,6 @@ class IndexSQLite(IndexABC):
         pandas.DataFrame containing the manifest data of baskets uploaded
         between the start and end times.
         """
-
         super().get_baskets_by_upload_time(start_time, end_time)
         if start_time is None and end_time is None:
             return self.to_pandas_df(max_rows=max_rows)
@@ -603,7 +601,6 @@ class IndexSQLite(IndexABC):
         ----------
         pandas.DataFrame of the resulting query.
         """
-
         expr_args = kwargs.get("expr_args", ())
         return pd.DataFrame(self.cur.execute(expr, expr_args).fetchall())
 
