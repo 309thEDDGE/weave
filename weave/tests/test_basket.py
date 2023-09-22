@@ -104,9 +104,9 @@ def test_make_basket_with_uuid_stays_in_pantry(test_pantry):
     # Modify the basket address to a new (fake) pantry.
     address = index.iloc[0].address
     address = address.split(os.path.sep)
-    address[0] += '-2'
+    address[0] += "-2"
     new_address = (os.path.sep).join(address)
-    index.at[0,'address'] = new_address
+    index.at[0,"address"] = new_address
 
     # Track the new basket
     pantry.index.track_basket(index)

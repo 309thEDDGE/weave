@@ -282,9 +282,9 @@ def test_delete_basket_stays_in_pantry(test_pantry):
     # Modify the basket address to a new (fake) pantry.
     address = index.iloc[0].address
     address = address.split(os.path.sep)
-    address[0] += '-2'
+    address[0] += "-2"
     new_address = (os.path.sep).join(address)
-    index.at[0,'address'] = new_address
+    index.at[0,"address"] = new_address
 
     # Track the new basket
     pantry.index.track_basket(index)
@@ -525,9 +525,9 @@ def test_get_basket_stays_in_pantry(test_pantry):
     # Modify the basket address to a new (fake) pantry.
     address = index.iloc[0].address
     address = address.split(os.path.sep)
-    address[0] += '-2'
+    address[0] += "-2"
     new_address = (os.path.sep).join(address)
-    index.at[0,'address'] = new_address
+    index.at[0,"address"] = new_address
 
     # Track the new basket
     pantry.index.track_basket(index)
@@ -661,7 +661,7 @@ def test_validate_path_does_not_start_with_pantry_path(test_pantry):
 
     path = os.path.join(test_pantry.pantry_path,"test","0001")
     address = path.split(os.path.sep)
-    address[0] += '-2'
+    address[0] += "-2"
     new_address = (os.path.sep).join(address)
 
     error_msg = f"Attempting to access basket outside of pantry: {new_address}"

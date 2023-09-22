@@ -86,7 +86,7 @@ class BasketInitializer:
         except BaseException as error:
             self.basket_path = basket_address
 
-            pantry_error_msg = 'Attempting to access basket outside of pantry:'
+            pantry_error_msg = "Attempting to access basket outside of pantry:"
             if str(error).startswith(pantry_error_msg):
                 raise error
             self.validate_basket_path()

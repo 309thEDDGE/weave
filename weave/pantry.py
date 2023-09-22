@@ -59,7 +59,7 @@ class Pantry():
         """Validate the given path is within the pantry.
 
         Check 1: Ensure the path begins with the pantry path.
-        Check 2: Ensure the '..' navigation command is not used.
+        Check 2: Ensure the ".." navigation command is not used.
 
         Parameters:
         -----------
@@ -68,7 +68,7 @@ class Pantry():
         """
         valid = path.startswith(self.pantry_path + os.path.sep)
         if valid:
-            bad_str = os.path.sep + '..' + os.path.sep
+            bad_str = os.path.sep + ".." + os.path.sep
             valid = bad_str not in path
 
         if not valid:
