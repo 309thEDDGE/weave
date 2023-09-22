@@ -152,13 +152,8 @@ can be uploaded directly:
 from weave.upload import UploadBasket
 upload_items = [{"path":"Path_to_file_or_dir", "stub": False}]
 upload_path = UploadBasket(upload_items,
-<<<<<<< HEAD
-                           basket_type = 'item',
-                           upload_directory = 'weave-test',
-=======
                            basket_type = "item",
-                           upload_directory = "basket-data",
->>>>>>> a83ad0f05a8b5cae7c317e89994828fa70234199
+                           upload_directory = "weave-test",
                           )
 ```
 

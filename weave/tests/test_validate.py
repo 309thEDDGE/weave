@@ -190,13 +190,8 @@ local_fs = LocalFileSystem()
     params=[s3fs, local_fs],
     ids=["S3FileSystem", "LocalFileSystem"],
 )
-<<<<<<< HEAD
 def fixture_test_validate(request, tmpdir):
-    """Pytest fixture for testing validate"""
-=======
-def test_validate(request, tmpdir):
     """Pytest fixture for testing validate."""
->>>>>>> a83ad0f05a8b5cae7c317e89994828fa70234199
     file_system = request.param
     test_validate_obj = ValidateForTest(tmpdir, file_system)
     yield test_validate_obj
