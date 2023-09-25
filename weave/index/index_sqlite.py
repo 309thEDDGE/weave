@@ -33,7 +33,9 @@ class IndexSQLite(IndexABC):
         self._file_system = file_system
         self._pantry_path = pantry_path
 
-        self.db_path = kwargs.get("db_path", "basket-data.db")
+        # print('\npantry path: ', self._pantry_path)
+        # self.db_path = kwargs.get("db_path", "basket-data.db")
+        self.db_path = kwargs.get("db_path", f"{self._pantry_path}.db")
         self.con = sqlite3.connect(self.db_path)
         self.cur = self.con.cursor()
         self._create_tables()

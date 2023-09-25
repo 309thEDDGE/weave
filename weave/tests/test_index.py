@@ -1595,7 +1595,6 @@ def test_index_abc_get_baskets_by_upload_time_returns_empty_df(test_pantry):
     # Create and track a record, with the upload time 1 second before the start
     manifest_dict["uuid"] = ["0001"]
     manifest_dict["upload_time"] = [start - timedelta(seconds=1)]
-    print(manifest_dict)
 
     basket_df = pd.DataFrame.from_dict(manifest_dict)
     ind.track_basket(basket_df)
