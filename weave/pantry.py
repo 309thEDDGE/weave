@@ -17,7 +17,7 @@ class Pantry():
     """Facilitate user interaction with the index of a Weave data warehouse.
     """
 
-    def __init__(self, index: IndexABC, pantry_path="basket-data", **kwargs):
+    def __init__(self, index: IndexABC, pantry_path="weave-test", **kwargs):
         """Initialize Pantry object.
 
         A pantry is a collection of baskets. This class facilitates the upload,
@@ -30,7 +30,7 @@ class Pantry():
         index: IndexABC
             The concrete implementation of an IndexABC. This is used to track
             the contents within the pantry.
-        pantry_path: str (default="basket-data")
+        pantry_path: str (default="weave-test")
             Name of the pantry this object is associated with.
         **file_system: fsspec object (optional)
             The fsspec object which hosts the pantry we desire to index.
@@ -54,6 +54,27 @@ class Pantry():
                            **kwargs
         )
         self.metadata['index_metadata'] = self.index.generate_metadata()
+
+    def validate_path_in_pantry(self, path):
+        """Validate the given path is within the pantry.
+
+        Check 1: Ensure the path begins with the pantry path.
+        Check 2: Ensure the ".." navigation command is not used.
+
+        Parameters:
+        -----------
+        path: str
+            Path to verify.
+        """
+        valid = path.startswith(self.pantry_path + os.path.sep)
+        if valid:
+            bad_str = os.path.sep + ".." + os.path.sep
+            valid = bad_str not in path
+
+        if not valid:
+            raise ValueError(
+                f"Attempting to access basket outside of pantry: {path}"
+            )
 
     def load_metadata(self):
         """Load pantry metadata from pantry_metadata.json."""
@@ -111,6 +132,8 @@ class Pantry():
                 "is listed as a parent UUID for another basket. Please " +
                 "delete that basket before deleting its parent basket."
             )
+
+        self.validate_path_in_pantry(remove_item.iloc[0].address)
         self.index.untrack_basket(remove_item.iloc[0].address, **kwargs)
         self.file_system.rm(remove_item.iloc[0].address, recursive=True)
 
@@ -181,4 +204,5 @@ class Pantry():
         row = self.index.get_rows(basket_address)
         if len(row) == 0:
             raise ValueError(f"Basket does not exist: {basket_address}")
+        self.validate_path_in_pantry(row.iloc[0].address)
         return Basket(row.iloc[0].address, pantry=self)

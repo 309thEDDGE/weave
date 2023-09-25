@@ -186,20 +186,17 @@ local_fs = LocalFileSystem()
 
 # Test with two different fsspec file systems (above).
 @pytest.fixture(
+    name="test_validate",
     params=[s3fs, local_fs],
     ids=["S3FileSystem", "LocalFileSystem"],
 )
-def test_validate(request, tmpdir):
+def fixture_test_validate(request, tmpdir):
     """Pytest fixture for testing validate."""
     file_system = request.param
     test_validate_obj = ValidateForTest(tmpdir, file_system)
     yield test_validate_obj
     test_validate_obj.cleanup_pantry()
 
-
-# Ignoring pylint's warning "redefined-outer-name" as this is simply
-# how pytest works when it comes to pytest fixtures.
-# pylint: disable=redefined-outer-name
 
 def test_validate_pantry_does_not_exist(test_validate):
     """Give a pantry path that does not exist and check that it throws
@@ -216,9 +213,10 @@ def test_validate_pantry_does_not_exist(test_validate):
     ):
         pantry = Pantry(
             IndexPandas,
-            pantry_path=pantry_path,
+            pantry_path=test_validate.pantry_path,
             file_system=test_validate.file_system
         )
+        pantry.pantry_path = pantry_path
         validate.validate_pantry(pantry)
 
 
