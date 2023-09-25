@@ -1,5 +1,6 @@
 """This script contains tests that test that pytest is deleting baskets
 correctly."""
+
 import os
 
 from fsspec.implementations.local import LocalFileSystem
@@ -21,7 +22,7 @@ local_fs = LocalFileSystem()
     ids=["S3FileSystem", "LocalFileSystem"],
 )
 def set_up_tb_no_cleanup(request, tmpdir):
-    """Sets up test basket fixture"""
+    """Sets up test basket fixture."""
     file_system = request.param
     temp_basket = PantryForTest(tmpdir, file_system)
     # Purposefully don't clean up pantry, it will be cleaned up in the test.

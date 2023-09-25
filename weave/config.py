@@ -1,6 +1,5 @@
-"""
-config.py provides configuration settings used by weave.
-"""
+"""Provides configuration settings used by Weave."""
+
 import os
 
 import s3fs
@@ -91,23 +90,21 @@ supplement_schema = {
 }
 
 
-def index_schema():
-    """
-    Return the keys expected from the manifest.json file.
-    """
-    return ["uuid", "upload_time", "parent_uuids",
-            "basket_type", "label", "weave_version"]
+def get_index_column_names():
+    """Return index column names."""
+    return ["uuid", "upload_time", "parent_uuids", "basket_type", "label",
+            "weave_version", "address", "storage_type"]
 
 
 def get_file_system():
-    """Get the filesystem to be used for storing baskets"""
+    """Get the filesystem to be used for storing baskets."""
     return s3fs.S3FileSystem(
         client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
     )
 
 
 def get_mongo_db():
-    """Get the mongodb client to be used for metadata search"""
+    """Get the mongodb client to be used for metadata search."""
 
     if not _HAS_PYMONGO:
         raise ImportError("Missing Dependency. The package 'pymongo' "

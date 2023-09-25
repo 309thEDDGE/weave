@@ -1,6 +1,5 @@
-"""
-Resources for use in pytest.
-"""
+"""Resources for use in pytest."""
+
 import json
 import os
 
@@ -15,7 +14,7 @@ def file_path_in_list(search_path, search_list):
     search_path: str
         The file path being searched for.
     search_list: [str]
-        A list of strings (presumably file paths)
+        A list of strings (presumably file paths).
 
     Returns
     ----------
@@ -29,6 +28,7 @@ def file_path_in_list(search_path, search_list):
     and the function is searching for 'data/file.txt',
     the function will return True as the file exists.
     """
+
     search_path = str(search_path)
     for file_path in search_list:
         if str(file_path).endswith(search_path):
@@ -39,7 +39,6 @@ def file_path_in_list(search_path, search_list):
 
 class PantryForTest:
     """Handles resources for much of weave testing."""
-
     def __init__(self, tmpdir, file_system, pantry_path=None):
         self.tmpdir = tmpdir
         self.file_system = file_system

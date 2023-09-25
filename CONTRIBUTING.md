@@ -64,7 +64,7 @@ pylint <local file path>
 <p>After the pull request has been created, the repository owners will review your code and may request some changes.</p>
 
 ## Weave Style Guide
-<p>Welcome to the weave Coding Style Guide. This comprehensive guide is designed to ensure uniformity, readability, and maintainability in the codebase. By following these guidelines, you'll contribute to a consistent and efficient development process, enhancing collaborative efforts, and streamlining code reviews. As part of the commitment to excellence aimed for not only a smooth code execution, but also strive for rigorous adherence to quality, aspire for your code to pass the rigorous tests of both ruff and pylint at a 10/10 rating. PEP-8 standards are also followed.</p>
+<p>Welcome to the Weave Coding Style Guide. This comprehensive guide is designed to ensure uniformity, readability, and maintainability in the codebase. By following these guidelines, you'll contribute to a consistent and efficient development process, enhancing collaborative efforts, and streamlining code reviews. As part of the commitment to excellence aimed for not only a smooth code execution, but also strive for rigorous adherence to quality, aspire for your code to pass the rigorous tests of both ruff and pylint at a 10/10 rating. PEP-8 standards are also followed.</p>
 
 ### Classes
 <p>Class names should be written in Pascal Case, with no underscores between words.</p>
@@ -72,9 +72,9 @@ pylint <local file path>
 <p>See PEP-8 <a href="https://peps.python.org/pep-0008/#class-names">Class Name</a> guide.</p>
 
 ### Functions and Methods
-<p>Function and Method names should be written in all lowercase, with underscores between each word.</p>
+<p>Function and method names should be written in all lowercase, with underscores between each word.</p>
 
-<p>For Function and Method Docstrings, go to <a href="https://github.com/309thEDDGE/weave/blob/main/CONTRIBUTING.md#docstrings">Docstrings</a>.</p>
+<p>For function and method Docstrings, go to <a href="https://github.com/309thEDDGE/weave/blob/main/CONTRIBUTING.md#docstrings">Docstrings</a>.</p>
 
 <p>If you have a function that exceeds the line limit, check <a href="https://peps.python.org/pep-0008/#indentation">PEP-8 Indentation</a> guide.</p>
 
@@ -83,7 +83,7 @@ pylint <local file path>
 ### Variables
 <p>Variable names should be written in all lowercase with underscores between each word.</p>
 
-<p>It is encouraged that variable names be consistent between classes, functions/methods, and different files. This is done because of increased readability and simplicity. If an object is named 'temp_basket_dir' in a couple functions, then strive to keep that name consistent throughout weave. You are encouraged to make consistent names, but not required.</p>
+<p>It is encouraged that variable names be consistent between classes, functions/methods, and different files. This is done because of increased readability and simplicity. If an object is named 'temp_basket_dir' in a couple functions, then strive to keep that name consistent throughout Weave. You are encouraged to make consistent names, but not required.</p>
 
 <p>Variable names should be short, but descriptive.</p>
 
@@ -98,7 +98,7 @@ pylint <local file path>
 ### Docstrings
 <p>Docstrings serve as crucial string literals, providing descriptions for classes, functions, and methods. We prioritize creating succinct docstrings that offer brief explanations about the purpose of a class or function. This practice is designed to assist individuals who are unfamiliar with the codebase in understanding the functionality of each component.</p>
 
-<p>Docstrings have 4 sections: <i>Brief description, Detailed Description, Parameters, Returns, Use Case Example</i>.</p>
+<p>Docstrings have 4 sections: <i>Brief description, Detailed Description, Parameters, and Returns</i>.</p>
 
 <p>A well-structured docstring opens with a succinct overview limited to the very first line, outlining the class's purpose. Following a blank line, a more detailed description can be added if necessary. The subsequent "<i>Parameters</i>" section should enumerate parameter names, types, and succinct explanations, maintaining the same order as their appearance in the function call. If the function has a kwargs, then those should be listed separately after the rest of the parameters. Afterwards, a "<i>Returns</i>" section follows, applicable only when the function produces a return value. In this section the return value's type and purpose are described. This format ensures coherent documentation of classes and functions, promoting clarity throughout the codebase.</p>
 
@@ -154,7 +154,7 @@ for i in range(10):
 
 <p>A recommended guideline is to furnish succinct descriptions of the encountered issues, accompanied by suggestions for rectification. For instance, consider the case of an "<i>Invalid basket. Invalid manifest found at {manifest_path}.</i>" Here, the term "<i>Invalid basket</i>" denotes the issue, followed by an explanation of the underlying problem, and a path that pinpoints the location of the problematic manifest. This structure ensures clarity by adhering to a coherent format. Furthermore, when addressing errors or warnings linked to the basket, starting with "<i>Invalid basket</i>" offers consistency and a clear indication of the problem area. If a specific file is the root cause of the error, explicitly specifying it aids in precise identification. Conversely, for missing files within the basket, directing users to the basket itself simplifies the resolution process. In scenarios involving the entire pantry, a formulation such as "<i>Invalid pantry. Error found at: {path or list of paths}</i>" serves as an effective descriptor. By adopting these practices, errors and warning messages become a valuable asset for users, fostering a seamless debugging experience and facilitating prompt resolutions.</p>
 
-<p>All the Errors and Warnings must be consistent throughout weave. If it's an invalid data type, that error message should be consistent.</p>
+<p>All the Errors and Warnings must be consistent throughout Weave. If it's an invalid data type, that error message should be consistent.</p>
 
 List of some helpful, frequent errors:
 <br>

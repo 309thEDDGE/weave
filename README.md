@@ -5,7 +5,7 @@
 # Weave
 
 Weave is a custom package used to facilitate the creation and maintenance of
-complex data warehouse.
+complex data warehouses.
 
 Weave was created from a need to track the lineage of data products derived
 from multiple sources. Weave can be used to upload arbitrary data products to a
@@ -18,7 +18,7 @@ access to data provenance.
 
 **Bucket**: A location in MINIO where files may be stored.
 
-**Pantry**: A storage location that hold baskets or collections of baskets.
+**Pantry**: A storage location that holds baskets or collections of baskets.
 
 **Basket**: A representation of an atomic data product within a pantry.
 
@@ -26,8 +26,7 @@ access to data provenance.
 
 **Manifest**: A concise definition of a basket for representation in the index.
 
-**Supplement**: Extended details of basket contents including including
-integrity data.
+**Supplement**: Extended details of basket contents, including integrity data.
 
 **Metadata**: Additional data the user may add when uploading a basket to a
 pantry.
@@ -73,11 +72,11 @@ saved in the basket as a .json file.
 Weave can be installed by running `pip install .` from the root directory.
 Optional dependencies can be included by running `pip install .[extras]` instead.
 Optional dependencies currently include: pymongo.
-Useful functions are available after running `import weave`
+Useful functions are available after running `import weave`.
 Weave was built with the intention of connecting to an S3 pantry with an
 `s3fs.S3FileSystem` object and also supports a LocalFileSystem. Any filesystem 
 that uses an `fsspec.implementations` API should be possible to implement. For 
-now, Weave has only been tested using an S3 and local filesystems.
+now, Weave has only been tested using S3 and local filesystems.
 
 The following environment variables are required to establish an S3 connection:  
 - AWS_ACCESS_KEY_ID
@@ -113,7 +112,7 @@ The default pantry name for Weave classes is 'basket-data'. A pantry can be
 named any valid fsspec directory name. This can be done as follows:
 
 ```python
-pantry_name = 'basket-data'
+pantry_name = "basket-data"
 s3_fs.mkdir(path_to_pantry + os.path.sep + pantry_name)
 local_fs.mkdir(path_to_pantry + os.path.sep + pantry_name)
 ```
@@ -121,10 +120,10 @@ local_fs.mkdir(path_to_pantry + os.path.sep + pantry_name)
 ### Baskets
 
 Weave handles much of its data provenance tracking through the creation of
-Baskets. A Basket is meant to represent an atomic data product. It can contain
+baskets. A basket is meant to represent an atomic data product. It can contain
 whatever a user wishes to put in the basket, but it's intended purpose is to
 hold a single instance of one type of data, be it an image, video, text file,
-or curated training set. A Basket in its entirety contains the actual data
+or curated training set. A basket in its entirety contains the actual data
 files specified by the user along with the supplemental files that Weave
 creates. These supplemental files contain data integrity information, arbitrary
 metadata specified by the user, and lineage artifacts. Baskets are created at
@@ -136,15 +135,15 @@ Weave automatically creates baskets during the upload process. However, the
 user must specify what information they want contained in the basket.
 
 Required basket information:
-- upload items: List of dictionaries of items to upload.
+- upload_items: List of dictionaries of items to upload.
     - path: Path of the file on the local system.
-    - stub: Boolean to indicate whether the basket include a copy or reference
+    - stub: Boolean to indicate whether the basket includes a copy or reference
             to the file. True indicates a reference is uploaded.
-- basket type: A category for the basket.
-- pantry name/upload_directory: Where to upload the files.
+- basket_type: A category for the basket.
+- pantry_name/upload_directory: Where to upload the files.
 
 Optional basket information:
-- parent ids: Baskets from which the current basket was derived.
+- parent_ids: Baskets from which the current basket was derived.
 - metadata: User customizable metadata.
 - label: Additional user label.
 
@@ -153,10 +152,10 @@ can be uploaded directly:
 
 ```python
 from weave.upload import UploadBasket
-upload_items = [{'path':'Path_to_file_or_dir', 'stub': False}]
+upload_items = [{"path":"Path_to_file_or_dir", "stub": False}]
 upload_path = UploadBasket(upload_items,
-                           basket_type = 'item',
-                           upload_directory = 'basket-data',
+                           basket_type = "item",
+                           upload_directory = "basket-data",
                           )
 ```
 
@@ -179,14 +178,14 @@ basket_contents = basket.ls()
 
 Basket can readily list and access files within the file system using
 basket.ls(). Once the the ls() retrieves the avaialable files, they are used
-like any file path. The following example loads a csv using Basket.
+like any file path. The following example loads a csv using Basket:
 
 ```python
 s3 = s3fs.S3FileSystem(
     client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
 )
 basket_contents = [pantry_name/basket_type/uuid/data.csv]
-df = pd.read_csv(s3.open(basket_contents[0], mode='rb'))
+df = pd.read_csv(s3.open(basket_contents[0], mode="rb"))
 ```
 
 ### Using a Pantry
@@ -198,8 +197,9 @@ that tracks whenever baskets are added and removed from the file system. This
 index provides information about each basket, including its uuid, upload time,
 parent uuids, basket type, label, address and storage type. An index is created
 by passing an Index object as the first argument to the Pantry constructor.
- Weave supports a Pandas and SQLlite implementation for the index backend.
- Example code to create this index:
+
+Weave supports a Pandas and SQLlite implementation for the index backend.
+Example code to create this index:
 ```python
 from weave.pantry import Pantry
 from weave.index.index_pandas import PandasIndex
@@ -227,9 +227,9 @@ and deleting baskets.
 pantry_metadata = pantry.metadata
 
 # Upload a basket using the Index.
-upload_items = [{'path':'Path_to_file_or_dir', 'stub': False}]
+upload_items = [{"path":"Path_to_file_or_dir", "stub": False}]
 uploaded_info = pantry.upload_basket(upload_items,
-                                     basket_type='item',
+                                     basket_type="item",
                                      parent_ids=Optional,
                                      metadata=Optional,
                                      label=Optional)
@@ -263,5 +263,5 @@ pantry.validate()
 Anyone who desires to contribute to Weave is encouraged to create a branch,
 make the changes as they see fit, and submit them for review to a member of
 309th EDDGE. Make sure contributions follow proper test driven development
-practices and PEP 8 style guidelines. The contribution guide can be found
-<a href="https://github.com/309thEDDGE/weave/blob/main/CONTRIBUTING.md">here</a>
+practices and PEP-8 style guidelines. The contribution guide can be found
+<a href="https://github.com/309thEDDGE/weave/blob/main/CONTRIBUTING.md">here</a>.

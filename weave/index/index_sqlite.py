@@ -9,6 +9,7 @@ import ast
 import dateutil
 import pandas as pd
 
+from ..config import get_index_column_names
 from .index_abc import IndexABC
 from .list_baskets import _get_list_of_basket_jsons
 from .validate_basket import validate_basket_dict
@@ -39,11 +40,14 @@ class IndexSQLite(IndexABC):
 
     def _create_tables(self):
         """Create the required DB tables if they do not already exist."""
+        # THIS NEEDS TO BE UPDATED MANUALLY IF NEW COLUMNS ARE ADDED TO INDEX.
+        # THE INSERT IN OTHER FUNCTIONS USE config.index_schema(), BUT THAT
+        # CAN'T BE USED HERE AS TYPE NEEDS TO BE SPECIFIED.
         self.cur.execute("""
             CREATE TABLE IF NOT EXISTS pantry_index(
                 uuid TEXT, upload_time INT, parent_uuids TEXT,
-                basket_type TEXT, label TEXT, address TEXT, storage_type TEXT,
-                PRIMARY KEY(uuid), UNIQUE(uuid));
+                basket_type TEXT, label TEXT, weave_version TEXT, address TEXT,
+                storage_type TEXT, PRIMARY KEY(uuid), UNIQUE(uuid));
         """)
 
         self.cur.execute("""
@@ -95,6 +99,10 @@ class IndexSQLite(IndexABC):
 
         storage_type = self.file_system.__class__.__name__
 
+        index_columns = get_index_column_names()
+        num_index_columns = len(index_columns)
+        index_columns = ", ".join(index_columns)
+
         bad_baskets = []
         for basket_json_address in basket_jsons:
             with self.file_system.open(basket_json_address, "rb") as file:
@@ -124,13 +132,15 @@ class IndexSQLite(IndexABC):
                 parent_uuids = basket_dict["parent_uuids"]
                 basket_dict["parent_uuids"] = str(basket_dict["parent_uuids"])
 
-                sql = """INSERT OR IGNORE INTO pantry_index(
-                uuid, upload_time, parent_uuids, basket_type,
-                label, address, storage_type) VALUES(?,?,?,?,?,?,?) """
+                if 'weave_version' not in basket_dict.keys():
+                    basket_dict['weave_version'] = "<0.13.0"
 
-                val = tuple(basket_dict.values())
+                sql = (
+                    f"INSERT OR IGNORE INTO pantry_index({index_columns}) "
+                    f"VALUES({','.join(['?']*num_index_columns)}) "
+                )
 
-                self.cur.execute(sql, val)
+                self.cur.execute(sql, tuple(basket_dict.values()))
 
                 sql = """INSERT OR IGNORE INTO parent_uuids(
                 uuid, parent_uuid) VALUES(?,?)"""
@@ -183,6 +193,7 @@ class IndexSQLite(IndexABC):
         ----------
         entry_df: pd.DataFrame
             Uploaded baskets' manifest data to append to the index.
+
         **kwargs unused for this function.
         """
         entry_df["parent_uuids"] = entry_df["parent_uuids"].astype(str)
@@ -201,6 +212,7 @@ class IndexSQLite(IndexABC):
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket. These may also be passed in
             as a list.
+
         **kwargs unused for this function.
         """
         if not isinstance(basket_address, list):
@@ -364,6 +376,7 @@ class IndexSQLite(IndexABC):
         basket_address: str
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
+
         **kwargs unused for this function.
 
         Returns
@@ -446,6 +459,7 @@ class IndexSQLite(IndexABC):
             The basket type to filter for.
         max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+
         **kwargs unused for this function.
 
         Returns
@@ -480,6 +494,7 @@ class IndexSQLite(IndexABC):
             The label to filter for.
         max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+
         **kwargs unused for this function.
 
         Returns
@@ -519,6 +534,7 @@ class IndexSQLite(IndexABC):
             to the current datetime.
         max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+
         **kwargs unused for this function.
 
         Returns
