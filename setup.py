@@ -21,5 +21,8 @@ setup(
     name="weave",
     version=get_version("weave/__init__.py"),
     packages=["weave", "weave/tests", "weave/index"],
-    install_requires=["pandas", "s3fs", "fsspec", "pymongo", "jsonschema"]
+    install_requires=["pandas", "s3fs", "fsspec", "jsonschema"],
+    extras_require={
+        "extras": ["pymongo"],
+    }
 )

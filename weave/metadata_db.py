@@ -1,6 +1,23 @@
 """Contains scripts concerning MongoDB functionality."""
 
 import pandas as pd
+# Try-Except required to make pymongo an optional dependency.
+
+# Ignore pylint duplicate code. Code here is used to explicitly show pymongo is
+# an optional dependency. Duplicate code is found in config.py (where pymongo
+# is actually imported)
+# pylint: disable-next=duplicate-code
+try:
+    # For the sake of explicitly showing that pymongo is optional, import
+    # pymongo here, even though it is not currently used in this file.
+    # Pylint ignore the next unused-import pylint warning.
+    # Also inline ruff ignore unused import (F401)
+    # pylint: disable-next=unused-import
+    import pymongo # noqa: F401
+except ImportError:
+    _HAS_PYMONGO = False
+else:
+    _HAS_PYMONGO = True
 
 from .basket import Basket
 from .config import get_file_system, get_mongo_db
@@ -28,6 +45,9 @@ def load_mongo(index_table, collection="metadata", **kwargs):
         **file_system: fsspec object (required)
             The file system to retrieve the baskets' metadata from.
         """
+    if not _HAS_PYMONGO:
+        raise ImportError("Missing Dependency. The package 'pymongo' "
+                          "is required to use this function")
 
     if not isinstance(index_table, pd.DataFrame):
         raise TypeError("Invalid datatype for index_table: "
