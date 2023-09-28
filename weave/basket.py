@@ -156,7 +156,7 @@ class Basket(BasketInitializer):
         self.parent_uuids = self.manifest["parent_uuids"]
         self.basket_type = self.manifest["basket_type"]
         self.label = self.manifest["label"]
-        self.weave_version = self.manifest["weave_version"]
+        self.weave_version = self.manifest.get("weave_version", "<0.13.0")
         self.address = self.basket_path
         self.storage_type = self.file_system.__class__.__name__
 
