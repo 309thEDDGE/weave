@@ -178,6 +178,7 @@ class Pantry():
             parent_ids=parent_ids,
             metadata=metadata,
             label=label,
+            **kwargs,
         ).get_upload_path()
 
         single_indice_index = create_index_from_fs(up_dir, self.file_system)
