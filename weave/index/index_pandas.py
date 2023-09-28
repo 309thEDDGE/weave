@@ -259,6 +259,9 @@ class IndexPandas(IndexABC):
         basket_address: str
             String that holds the path of the basket
             can also be the basket uuid.
+        **max_gen_level: int (optional)
+            This indicates the maximum generation level that will be reported.
+            Must be a positive int.
         **gen_level: int (optional)
             This indicates what generation is being looked at,
             1 for parent, 2 for grandparent and so forth.
@@ -280,6 +283,7 @@ class IndexPandas(IndexABC):
         """
 
         # Collect info from kwargs
+        max_gen_level = kwargs.get("max_gen_level", 100)
         gen_level = kwargs.get("gen_level", 1)
         data = kwargs.get("data", pd.DataFrame())
         descendants = kwargs.get("descendants", [])
@@ -337,6 +341,11 @@ class IndexPandas(IndexABC):
         data = data.drop_duplicates(
             subset=['uuid', 'generation_level']
         ).reset_index(drop=True)
+
+        # Keep all of the rows where the generation_level is less than or
+        # equal to the max_gen_level
+        data = data[data["generation_level"] <= max_gen_level]
+
         return data
 
     def get_children(self, basket_address, **kwargs):
@@ -354,6 +363,8 @@ class IndexPandas(IndexABC):
             This is a list of basket uuids of all the ancestors that have been
             visited. This is being used to detect if there is a parent-child
             loop inside the basket structure.
+        **min_gen_level: int (optional)
+            This indicates the minimum generation level that will be reported.
         **data: dataframe (optional)
             This is the pandas dataframe that has been collected so far
             when it is initially called, it is empty, for every
@@ -368,6 +379,7 @@ class IndexPandas(IndexABC):
         """
 
         # Collect info from kwargs
+        min_gen_level = kwargs.get("min_gen_level", -100)
         gen_level = kwargs.get("gen_level", -1)
         ancestors = kwargs.get("ancestors", [])
         data = kwargs.get("data", pd.DataFrame())
@@ -424,6 +436,11 @@ class IndexPandas(IndexABC):
         data = data.drop_duplicates(
             subset=['uuid', 'generation_level']
         ).reset_index(drop=True)
+
+        # Keep all of the rows where the generation_level is more than
+        # or equal to the min_gen_level
+        data = data[data["generation_level"] >= min_gen_level]
+
         return data
 
     def track_basket(self, entry_df, **kwargs):

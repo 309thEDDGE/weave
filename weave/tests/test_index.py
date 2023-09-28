@@ -933,6 +933,63 @@ def test_index_abc_get_parents_complex_fail(test_pantry):
         ind.get_parents(child_path)
 
 
+def test_index_abc_get_parents_max_gen_level(test_pantry):
+    """Test IndexABC get_parents max_gen_level removes uuids where the
+    gen_level is greater than the max_gen_level.
+    """
+
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+    # Setup random strucutre of parents and children
+    tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
+
+    tmp_dir = test_pantry.set_up_basket("great_grandparent_3_1")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3003")
+
+    tmp_dir = test_pantry.set_up_basket("great_grandparent_3_2")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3333")
+
+    tmp_dir = test_pantry.set_up_basket("great_grandparent_3_3")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3303")
+
+    tmp_dir = test_pantry.set_up_basket("grandparent_2")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_dir, uid="2000", parent_ids=["3000", "3003", "3333"]
+    )
+
+    tmp_dir = test_pantry.set_up_basket("grandparent_2_1")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="2002")
+
+    tmp_dir = test_pantry.set_up_basket("parent_1")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_dir, uid="1000", parent_ids=["2000", "2002", "3303"]
+    )
+
+    tmp_dir = test_pantry.set_up_basket("parent_1_1")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="1001")
+
+    tmp_dir = test_pantry.set_up_basket("child_0")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_dir, uid="0000", parent_ids=["1001", "1000"]
+    )
+
+    ind.generate_index()
+
+    great_grandparent_uuids = ["3000", "3003", "3333"]
+    parents_df = ind.get_parents("0000", max_gen_level=2)
+
+    parents_df_uuids = parents_df["uuid"].to_list()
+
+    # Find the uuids that are in great_grandparent_uuids and parents_df after
+    # the max_gen_level filter. This should be empty.
+    uuid_diff_list = np.setdiff1d(great_grandparent_uuids,
+                                  parents_df_uuids).tolist()
+
+    assert uuid_diff_list == []
+
+
 def test_index_abc_get_children_path_works(test_pantry):
     """Test IndexABC get_children(path) returns proper structure and values."""
     # Unpack the test_pantry into two variables for the pantry and index.
@@ -1260,6 +1317,63 @@ def test_index_abc_get_children_complex_fail(test_pantry):
         ValueError, match=re.escape("Parent-Child loop found at uuid: 007")
     ):
         ind.get_children(parent_path)
+
+
+def test_index_abc_get_children_min_gen_level(test_pantry):
+    """Test IndexABC get_parents min_gen_level removes uuids where the
+    gen_level is less than the min_gen_level.
+    """
+
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+    # Setup random strucutre of parents and children
+    tmp_dir = test_pantry.set_up_basket("great_grandparent_3")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3000")
+
+    tmp_dir = test_pantry.set_up_basket("great_grandparent_3_1")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3003")
+
+    tmp_dir = test_pantry.set_up_basket("great_grandparent_3_2")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3333")
+
+    tmp_dir = test_pantry.set_up_basket("great_grandparent_3_3")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="3303")
+
+    tmp_dir = test_pantry.set_up_basket("grandparent_2")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_dir, uid="2000", parent_ids=["3000", "3003", "3333"]
+    )
+
+    tmp_dir = test_pantry.set_up_basket("grandparent_2_1")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="2002")
+
+    tmp_dir = test_pantry.set_up_basket("parent_1")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_dir, uid="1000", parent_ids=["2000", "2002", "3303"]
+    )
+
+    tmp_dir = test_pantry.set_up_basket("parent_1_1")
+    test_pantry.upload_basket(tmp_basket_dir=tmp_dir, uid="1001")
+
+    tmp_dir = test_pantry.set_up_basket("child_0")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_dir, uid="0000", parent_ids=["1001", "1000"]
+    )
+
+    ind.generate_index()
+
+    great_grandchildren_uuids = ["0000"]
+    children_df = ind.get_children("3000", min_gen_level=-2)
+
+    children_df_uuids = children_df["uuid"].to_list()
+
+    # Find the uuids that are in great_grandchildren_uuids and children_df
+    # after the min_gen_level filter. This should be empty.
+    uuid_diff_list = np.setdiff1d(great_grandchildren_uuids,
+                                  children_df_uuids).tolist()
+
+    assert uuid_diff_list == []
 
 
 def test_index_abc_get_baskets_of_type_works(test_pantry):
