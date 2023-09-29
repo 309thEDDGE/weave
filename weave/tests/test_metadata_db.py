@@ -1,6 +1,7 @@
 """Pytests for the metadata_db functionality."""
 
 import os
+import sys
 
 import pandas as pd
 import pytest
@@ -69,6 +70,11 @@ def set_up(request, tmpdir):
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
 
+# Skip tests if pymongo is not installed.
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules,
+    reason="Pymongo required for this test",
+)
 def test_load_mongo(set_up):
     """Test that load_mongo successfully loads valid metadata to the set_up.
     """
@@ -95,6 +101,10 @@ def test_load_mongo(set_up):
     assert truth_db == compared_data
 
 
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules,
+    reason="Pymongo required for this test",
+)
 def test_load_mongo_check_for_dataframe(set_up):
     """Test that load_mongo prevents loading data with an invalid index_table.
     """
@@ -110,6 +120,10 @@ def test_load_mongo_check_for_dataframe(set_up):
         )
 
 
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules,
+    reason="Pymongo required for this test",
+)
 def test_load_mongo_check_collection_for_string(set_up):
     """Test that load_mongo prevents loading data with an invalid set_up
     collection.
@@ -123,6 +137,10 @@ def test_load_mongo_check_collection_for_string(set_up):
         )
 
 
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules,
+    reason="Pymongo required for this test",
+)
 def test_load_mongo_check_dataframe_for_uuid(set_up):
     """Test that load_mongo prevents loading data with missing uuid.
     """
@@ -137,6 +155,10 @@ def test_load_mongo_check_dataframe_for_uuid(set_up):
         )
 
 
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules,
+    reason="Pymongo required for this test",
+)
 def test_load_mongo_check_dataframe_for_address(set_up):
     """Test that load_mongo prevents loading data with missing address."""
     with pytest.raises(
@@ -149,6 +171,10 @@ def test_load_mongo_check_dataframe_for_address(set_up):
         )
 
 
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules,
+    reason="Pymongo required for this test",
+)
 def test_load_mongo_check_dataframe_for_basket_type(set_up):
     """Test that load_mongo prevents loading data with missing basket type."""
     with pytest.raises(
@@ -161,6 +187,10 @@ def test_load_mongo_check_dataframe_for_basket_type(set_up):
         )
 
 
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules,
+    reason="Pymongo required for this test",
+)
 def test_load_mongo_check_for_duplicate_uuid(set_up):
     """Test duplicate metadata won't be uploaded to mongoDB, based on the UUID.
     """

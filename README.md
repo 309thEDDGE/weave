@@ -70,6 +70,8 @@ saved in the basket as a .json file.
 ## Usage
 
 Weave can be installed by running `pip install .` from the root directory.
+Optional dependencies can be included by running `pip install .[extras]` instead.
+Optional dependencies currently include: pymongo.
 Useful functions are available after running `import weave`.
 Weave was built with the intention of connecting to an S3 pantry with an
 `s3fs.S3FileSystem` object and also supports a LocalFileSystem. Any filesystem 
@@ -80,8 +82,8 @@ The following environment variables are required to establish an S3 connection:
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
 - S3_ENDPOINT
-  
-The following environment variables are required to establish a MongoClient connection:  
+
+If pymongo is intended to be used, the following environment variables are required to establish a MongoClient connection:  
 - MONGODB_HOST
 - MONGODB_USERNAME
 - MONGODB_PASSWORD
