@@ -1,4 +1,4 @@
-"""Pytest tests for the index directory."""
+"""Pytest tests for the sqlite index."""
 import os
 from datetime import datetime
 
@@ -70,14 +70,12 @@ def test_index_is_different_between_pantries(test_pantry):
         IndexSQLite,
         pantry_path=pantry_1_path,
         file_system=test_pantry.file_system,
-        sync=True,
     )
 
     pantry_2 = Pantry(
         IndexSQLite,
         pantry_path=pantry_2_path,
         file_system=test_pantry.file_system,
-        sync=True,
     )
 
     # Upload a basket to each pantry.
@@ -148,14 +146,12 @@ def test_index_pantry_with_same_name(test_pantry):
         IndexSQLite,
         pantry_path=pantry_1_path,
         file_system=test_pantry.file_system,
-        sync=True,
     )
 
     pantry_2 = Pantry(
         IndexSQLite,
         pantry_path=pantry_2_path,
         file_system=test_pantry.file_system,
-        sync=True,
     )
 
     # Upload a basket to each pantry.
