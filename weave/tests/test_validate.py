@@ -14,11 +14,13 @@ from weave.index.index_pandas import IndexPandas
 from weave.tests.pytest_resources import PantryForTest
 
 # This module is long and has many tests. Pylint is complaining that it is too
-# long. This isn't necessarily bad in this case, as the alternative
+# long, and has too many local variables throughout each test.
+# This isn't necessarily bad in this case, as the alternative
 # would be to write the tests continuing in a different script, which would
 # be unnecessarily complex.
 # Disabling this warning for this script.
 # pylint: disable=too-many-lines
+# pylint: disable=too-many-locals
 
 
 class ValidateForTest(PantryForTest):
@@ -239,13 +241,15 @@ def test_validate_no_supplement_file(test_validate):
         file_system=test_validate.file_system
     )
 
-    warn_info = validate.validate_pantry(pantry)
-    warning_1 = warn_info[0]
-
     # Check that there is only one warning raised
-    assert len(warn_info) == 1
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 1
+
+    # Sort the warnings so they are in proper order
+    warning_list = sorted(warning_list, key=lambda x: x.args[1])
 
     # Check that the correct warning is raised
+    warning_1 = warning_list[0]
     assert warning_1.args[0] == (
         "Invalid Basket. No Supplement file found at: "
     )
@@ -269,10 +273,9 @@ def test_validate_no_metadata_file(test_validate):
         file_system=test_validate.file_system
     )
 
-    warn_info = validate.validate_pantry(pantry)
-
     # Check that no warnings are collected
-    assert len(warn_info) == 0
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 0
 
 
 def test_validate_invalid_manifest_schema(test_validate):
@@ -312,13 +315,13 @@ def test_validate_invalid_manifest_schema(test_validate):
         file_system=test_validate.file_system
     )
 
-    warn_info = validate.validate_pantry(pantry)
-
     # Check that three warnings are raised
-    assert len(warn_info) == 3
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 3
 
+    # Check that a specific warning is in the list.
     warn_manifest = [
-        warn for warn in warn_info if
+        warn for warn in warning_list if
         str(warn.args[0]).startswith(
             "Invalid Basket. Manifest Schema does not match at: "
         )
@@ -399,17 +402,20 @@ def test_validate_manifest_schema_missing_field(test_validate):
     )
 
     # Catch warnings and validate it throws 1 and is correct
-    warn_info = validate.validate_pantry(pantry)
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 1
 
-    assert len(warn_info) == 1
+    # Sort the warnings so they are in proper order
+    warning_list = sorted(warning_list, key=lambda x: x.args[1])
 
     # Check that the correct warning is raised
-    assert warn_info[0].args[0] == (
+    warning_1 = warning_list[0]
+    assert warning_1.args[0] == (
         "Invalid Basket. Manifest Schema does not match at: "
     )
     # Check the invalid basket path is what is expected
     # (ignoring File System prefix)
-    assert warn_info[0].args[1].endswith(os.path.join(basket_path,
+    assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_man_schema",
                                                    "basket_manifest.json"))
 
@@ -481,18 +487,21 @@ def test_validate_manifest_schema_additional_field(test_validate):
         file_system=test_validate.file_system
     )
 
-    warn_info = validate.validate_pantry(pantry)
-
     # Check that there is only one warning raised
-    assert len(warn_info) == 1
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 1
+
+    # Sort the warnings so they are in proper order
+    warning_list = sorted(warning_list, key=lambda x: x.args[1])
 
     # Check that the correct warning is raised
-    assert warn_info[0].args[0] == (
+    warning_1 = warning_list[0]
+    assert warning_1.args[0] == (
         "Invalid Basket. Manifest Schema does not match at: "
     )
     # Check the invalid basket path is what is expected
     # (ignoring File System prefix)
-    assert warn_info[0].args[1].endswith(os.path.join(basket_path,
+    assert warning_1.args[1].endswith(os.path.join(basket_path,
                                                    "bad_man_schema",
                                                    "basket_manifest.json"))
 
@@ -580,13 +589,15 @@ def test_validate_invalid_supplement_schema(test_validate):
         file_system=test_validate.file_system
     )
 
-    warn_info = validate.validate_pantry(pantry)
-    warning_1 = warn_info[0]
-
     # Check that there is only one warning raised
-    assert len(warn_info) == 1
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 1
+
+    # Sort the warnings so they are in proper order
+    warning_list = sorted(warning_list, key=lambda x: x.args[1])
 
     # Check that the correct warning is raised
+    warning_1 = warning_list[0]
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement Schema does not match at: "
     )
@@ -632,13 +643,15 @@ def test_validate_supplement_schema_missing_field(test_validate):
         file_system=test_validate.file_system
     )
 
-    warn_info = validate.validate_pantry(pantry)
-    warning_1 = warn_info[0]
-
     # Check that there is only one warning raised
-    assert len(warn_info) == 1
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 1
+
+    # Sort the warnings so they are in proper order
+    warning_list = sorted(warning_list, key=lambda x: x.args[1])
 
     # Check that the correct warning is raised
+    warning_1 = warning_list[0]
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement Schema does not match at: "
     )
@@ -695,13 +708,15 @@ def test_validate_supplement_schema_missing_array_field(test_validate):
         file_system=test_validate.file_system
     )
 
-    warn_info = validate.validate_pantry(pantry)
-    warning_1 = warn_info[0]
-
     # Check that there is only one warning raised
-    assert len(warn_info) == 1
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 1
+
+    # Sort the warnings so they are in proper order
+    warning_list = sorted(warning_list, key=lambda x: x.args[1])
 
     # Check that the correct warning is raised
+    warning_1 = warning_list[0]
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement Schema does not match at: "
     )
@@ -759,13 +774,15 @@ def test_validate_supplement_schema_missing_array_field_2(test_validate):
         file_system=test_validate.file_system
     )
 
-    warn_info = validate.validate_pantry(pantry)
-    warning_1 = warn_info[0]
-
     # Check that there is only one warning raised
-    assert len(warn_info) == 1
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 1
+
+    # Sort the warnings so they are in proper order
+    warning_list = sorted(warning_list, key=lambda x: x.args[1])
 
     # Check that the correct warning is raised
+    warning_1 = warning_list[0]
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement Schema does not match at: "
     )
@@ -827,13 +844,15 @@ def test_validate_supplement_schema_added_array_field(test_validate):
         file_system=test_validate.file_system
     )
 
-    warn_info = validate.validate_pantry(pantry)
-    warning_1 = warn_info[0]
-
     # Check that there is only one warning raised
-    assert len(warn_info) == 1
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 1
+
+    # Sort the warnings so they are in proper order
+    warning_list = sorted(warning_list, key=lambda x: x.args[1])
 
     # Check that the correct warning is raised
+    warning_1 = warning_list[0]
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement Schema does not match at: "
     )
@@ -895,13 +914,15 @@ def test_validate_supplement_schema_added_array_field_2(test_validate):
         file_system=test_validate.file_system
     )
 
-    warn_info = validate.validate_pantry(pantry)
-    warning_1 = warn_info[0]
-
     # Check that there is only one warning raised
-    assert len(warn_info) == 1
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 1
+
+    # Sort the warnings so they are in proper order
+    warning_list = sorted(warning_list, key=lambda x: x.args[1])
 
     # Check that the correct warning is raised
+    warning_1 = warning_list[0]
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement Schema does not match at: "
     )
@@ -961,13 +982,15 @@ def test_validate_supplement_schema_additional_field(test_validate):
         file_system=test_validate.file_system
     )
 
-    warn_info = validate.validate_pantry(pantry)
-    warning_1 = warn_info[0]
-
     # Check that there is only one warning raised
-    assert len(warn_info) == 1
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 1
+
+    # Sort the warnings so they are in proper order
+    warning_list = sorted(warning_list, key=lambda x: x.args[1])
 
     # Check that the correct warning is raised
+    warning_1 = warning_list[0]
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement Schema does not match at: "
     )
@@ -1022,13 +1045,15 @@ def test_validate_supplement_schema_empty_upload_items(test_validate):
         file_system=test_validate.file_system
     )
 
-    warn_info = validate.validate_pantry(pantry)
-    warning_1 = warn_info[0]
-
     # Check that there is only one warning raised
-    assert len(warn_info) == 1
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 1
+
+    # Sort the warnings so they are in proper order
+    warning_list = sorted(warning_list, key=lambda x: x.args[1])
 
     # Check that the correct warning is raised
+    warning_1 = warning_list[0]
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement Schema does not match at: "
     )
@@ -1075,13 +1100,15 @@ def test_validate_supplement_schema_empty_integrity_data(test_validate):
         file_system=test_validate.file_system
     )
 
-    warn_info = validate.validate_pantry(pantry)
-    warning_1 = warn_info[0]
-
     # Check that there is only one warning raised
-    assert len(warn_info) == 1
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 1
+
+    # Sort the warnings so they are in proper order
+    warning_list = sorted(warning_list, key=lambda x: x.args[1])
 
     # Check that the correct warning is raised
+    warning_1 = warning_list[0]
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement Schema does not match at: "
     )
@@ -1117,13 +1144,15 @@ def test_validate_invalid_supplement_json(test_validate):
         file_system=test_validate.file_system
     )
 
-    warn_info = validate.validate_pantry(pantry)
-    warning_1 = warn_info[0]
-
     # Check that there is only one warning raised
-    assert len(warn_info) == 1
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 1
+
+    # Sort the warnings so they are in proper order
+    warning_list = sorted(warning_list, key=lambda x: x.args[1])
 
     # Check that the correct warning is raised
+    warning_1 = warning_list[0]
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement could not be loaded into json at: "
     )
@@ -1187,16 +1216,15 @@ def test_validate_invalid_metadata_json(test_validate):
         file_system=test_validate.file_system
     )
 
-    warn_info = validate.validate_pantry(pantry)
+    # Check that there is only one warning raised
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 1
 
     # Sort the warnings so they are in proper order
-    warn_info = sorted(warn_info, key=lambda x: x.args[1])
-    warning_1 = warn_info[0]
-
-    # Check that there is only one warning raised
-    assert len(warn_info) == 1
+    warning_list = sorted(warning_list, key=lambda x: x.args[1])
 
     # Check that the correct warning is raised
+    warning_1 = warning_list[0]
     assert warning_1.args[0] == (
         "Invalid Basket. Metadata could not be loaded into json at: "
     )
@@ -1223,13 +1251,15 @@ def test_validate_nested_basket(test_validate):
         file_system=test_validate.file_system
     )
 
-    warn_info = validate.validate_pantry(pantry)
-    warning_1 = warn_info[0]
-
     # Check that there is only one warning raised
-    assert len(warn_info) == 1
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 1
+
+    # Sort the warnings so they are in proper order
+    warning_list = sorted(warning_list, key=lambda x: x.args[1])
 
     # Check that the correct warning is raised
+    warning_1 = warning_list[0]
     assert warning_1.args[0] == (
         "Invalid Basket. Manifest File found in sub directory of basket at: "
     )
@@ -1279,15 +1309,12 @@ def test_validate_deeply_nested(test_validate):
         file_system=test_validate.file_system
     )
 
-    warn_info = validate.validate_pantry(pantry)
-
-    warn_info = sorted(warn_info, key=lambda x: x.args[1])
-    warning_1 = warn_info[0]
-
     # Check that there is only one warning raised
-    assert len(warn_info) == 1
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 1
 
     # Check that the correct warning is raised
+    warning_1 = warning_list[0]
     assert warning_1.args[0] == (
         "Invalid Basket. Manifest File found in sub directory of basket at: "
     )
@@ -1315,10 +1342,9 @@ def test_validate_no_files_or_dirs(test_validate):
         file_system=test_validate.file_system
     )
 
-    warn_info = validate.validate_pantry(pantry)
-
     # Check that no warnings are collected
-    assert len(warn_info) == 0
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 0
 
 
 def test_validate_no_baskets(test_validate):
@@ -1348,10 +1374,10 @@ def test_validate_no_baskets(test_validate):
         pantry_path=test_validate.pantry_path,
         file_system=test_validate.file_system
     )
-    warn_info = validate.validate_pantry(pantry)
 
     # Check that no warnings are collected
-    assert len(warn_info) == 0
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 0
 
 
 def test_validate_twenty_baskets_invalid(test_validate):
@@ -1384,13 +1410,15 @@ def test_validate_twenty_baskets_invalid(test_validate):
         file_system=test_validate.file_system
     )
 
-    warn_info = validate.validate_pantry(pantry)
-    warning_1 = warn_info[0]
-
     # Check that there is only one warning raised
-    assert len(warn_info) == 1
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 1
+
+    # Sort the warnings so they are in proper order
+    warning_list = sorted(warning_list, key=lambda x: x.args[1])
 
     # Check that the correct warning is raised
+    warning_1 = warning_list[0]
     assert warning_1.args[0] == (
         "Invalid Basket. Manifest File found in sub directory of basket at: "
     )
@@ -1428,10 +1456,9 @@ def test_validate_twenty_baskets_valid(test_validate):
         file_system=test_validate.file_system
     )
 
-    warn_info = validate.validate_pantry(pantry)
-
     # Check that no warnings are collected
-    assert len(warn_info) == 0
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 0
 
 
 def test_validate_call_check_level(test_validate):
@@ -1562,12 +1589,12 @@ def test_validate_bad_manifest_and_supplement_schema(test_validate):
         file_system=test_validate.file_system
     )
 
-    warn_info = validate.validate_pantry(pantry)
     # Check that there are two warnings raised
-    assert len(warn_info) == 2
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 2
 
     warn_manifest = [
-        warn for warn in warn_info if
+        warn for warn in warning_list if
         str(warn.args[0]).startswith(
             "Invalid Basket. Manifest Schema does not match at: "
         )
@@ -1581,7 +1608,7 @@ def test_validate_bad_manifest_and_supplement_schema(test_validate):
                                                    "basket_manifest.json"))
 
     warn_supplement = [
-        warn for warn in warn_info if
+        warn for warn in warning_list if
         str(warn.args[0]).startswith(
             "Invalid Basket. Supplement Schema does not match at: "
         )
@@ -1630,17 +1657,16 @@ def test_validate_bad_metadata_and_supplement_schema_with_nested_basket(
         file_system=test_validate.file_system
     )
 
-    warn_info = validate.validate_pantry(pantry)
+    # Check that there are three warnings raised
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 3
 
     # Sort the errors because they return differently for different fs
-    warn_info = sorted(warn_info, key=lambda x: x.args[1])
+    warning_list = sorted(warning_list, key=lambda x: x.args[1])
 
-    warning_1 = warn_info[1]
-    warning_2 = warn_info[2]
-    warning_3 = warn_info[0]
-
-    # Check that there are three warnings raised
-    assert len(warn_info) == 3
+    warning_1 = warning_list[1]
+    warning_2 = warning_list[2]
+    warning_3 = warning_list[0]
 
     # Check that the first warning raised is correct with the correct
     # invalid basket path (disregarding FS prefix)
@@ -1688,23 +1714,30 @@ def test_validate_check_parent_uuids_missing_basket(test_validate):
     pantry = Pantry(
         IndexPandas,
         pantry_path=test_validate.pantry_path,
-        file_system=test_validate.file_system
+        file_system=test_validate.file_system,
     )
 
-    warn_info = validate.validate_pantry(pantry)
+    # Check that there are two warning raised.
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 2
 
-    assert len(warn_info) == 2
+    warning_1 = [
+        warn for warn in warning_list if
+        str(warn.args[0]) == (
+            "The uuids: ['BAD123123'] were not found in the index, "
+            "which was found inside basket: 001"
+        )
+    ]
+    assert warning_1 != [], "Expected warning is not in warning_list."
 
-    warning_1 = warn_info[0].args[0]
-    warning_2 = warn_info[1].args[0]
-
-    warn_msg_1 = ("The uuids: ['BAD123123'] were not found in the index, "
-                  "which was found inside basket: 001")
-    assert warning_1 == warn_msg_1
-
-    warn_msg_2 = ("The uuids: ['003', 'BAD!', 'BAD2', 'BAD323'] were not "
-                  "found in the index, which was found inside basket: 002")
-    assert warning_2 == warn_msg_2
+    warning_2 = [
+        warn for warn in warning_list if
+        str(warn.args[0]) == (
+            "The uuids: ['003', 'BAD!', 'BAD2', 'BAD323'] were not "
+            "found in the index, which was found inside basket: 002"
+        )
+    ]
+    assert warning_2 != [], "Expected warning is not in warning_list."
 
 
 def test_validate_file_not_in_supplement(test_validate):
@@ -1734,12 +1767,16 @@ def test_validate_file_not_in_supplement(test_validate):
         file_system=test_validate.file_system
     )
 
-    warn_list = validate.validate_pantry(pantry)
+    # Check that there is one warning raised.
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 1
 
-    warning_msg = warn_list[0].args[0]
-    warning_path = warn_list[0].args[1]
+    # Sort the warnings
+    warning_list = sorted(warning_list, key=lambda x: x.args[1])
 
-    assert len(warn_list) == 1
+    warning_msg = warning_list[0].args[0]
+    warning_path = warning_list[0].args[1]
+
     assert warning_msg == ("File found in the file system is not listed in "
                            "the basket_supplement.json: ")
     assert warning_path.endswith(upload_file_path)
@@ -1804,14 +1841,14 @@ def test_validate_file_not_in_file_system(test_validate):
         file_system=test_validate.file_system
     )
 
+    # Check that there are two warnings raised.
     warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 2
 
     # Sort the warnings
     warning_list = sorted(warning_list, key=lambda x: x.args[1])
 
     # Validate all the warnings are correct
-    assert len(warning_list) == 2
-
     warning_msg_1 = warning_list[1].args[0]
     warning_path_1 = warning_list[1].args[1]
 
