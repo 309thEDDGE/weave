@@ -283,7 +283,7 @@ class IndexPandas(IndexABC):
         """
 
         # Collect info from kwargs
-        max_gen_level = kwargs.get("max_gen_level", 100)
+        max_gen_level = kwargs.get("max_gen_level", 999)
         gen_level = kwargs.get("gen_level", 1)
         data = kwargs.get("data", pd.DataFrame())
         descendants = kwargs.get("descendants", [])
@@ -297,6 +297,11 @@ class IndexPandas(IndexABC):
             raise FileNotFoundError(
                 f"basket path or uuid does not exist '{basket_address}'"
             )
+
+        # Once we have exceeded our max_gen_level, we simply want
+        # to return our data
+        if gen_level > max_gen_level:
+            return data
 
         if self.file_system.exists(basket_address):
             current_uuid = self.index_df["uuid"].loc[
@@ -335,16 +340,13 @@ class IndexPandas(IndexABC):
         # For every parent, go get their parents
         for basket_addr in parents_index["address"]:
             data = self.get_parents(basket_address=basket_addr,
+                                    max_gen_level=max_gen_level,
                                     gen_level=gen_level+1,
                                     data=data,
                                     descendants=descendants.copy())
         data = data.drop_duplicates(
             subset=['uuid', 'generation_level']
         ).reset_index(drop=True)
-
-        # Keep all of the rows where the generation_level is less than or
-        # equal to the max_gen_level
-        data = data[data["generation_level"] <= max_gen_level]
 
         return data
 
@@ -394,6 +396,11 @@ class IndexPandas(IndexABC):
                 f"basket path or uuid does not exist '{basket_address}'"
             )
 
+        # Once we have exceeded our min_gen_level, we simply want
+        # to return our data
+        if gen_level < min_gen_level:
+            return data
+
         if self.file_system.exists(basket_address):
             current_uuid = self.index_df["uuid"].loc[
                 self.index_df["address"].str.endswith(basket_address)
@@ -430,16 +437,13 @@ class IndexPandas(IndexABC):
         # Go through all the children and get their children too
         for basket_addr in child_index["address"]:
             data =  self.get_children(basket_address=basket_addr,
+                                      min_gen_level=min_gen_level,
                                       gen_level=gen_level-1,
                                       data=data,
                                       ancestors=ancestors.copy())
         data = data.drop_duplicates(
             subset=['uuid', 'generation_level']
         ).reset_index(drop=True)
-
-        # Keep all of the rows where the generation_level is more than
-        # or equal to the min_gen_level
-        data = data[data["generation_level"] >= min_gen_level]
 
         return data
 

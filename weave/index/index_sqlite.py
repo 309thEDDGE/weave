@@ -327,7 +327,7 @@ class IndexSQLite(IndexABC):
         columns.append("path")
 
         parent_df = pd.DataFrame(self.cur.execute(
-            """WITH RECURSIVE
+            f"""WITH RECURSIVE
                 child_record(level, id, path) AS (
                     VALUES(0, ?, ?)
                     UNION
@@ -339,6 +339,7 @@ class IndexSQLite(IndexABC):
                         AND path NOT LIKE '%' || parent_uuids.parent_uuid
                         AND path
                             NOT LIKE '%' || parent_uuids.parent_uuid || '/%'
+                        AND child_record.level < {max_gen_level}
                 )
             SELECT pantry_index.*, child_record.level, child_record.path
             FROM pantry_index
@@ -370,10 +371,6 @@ class IndexSQLite(IndexABC):
                     )
 
         parent_df.drop(columns="path", inplace=True)
-
-        # Keep all of the rows where the generation_level is less than or
-        # equal to the max_gen_level
-        parent_df = parent_df[parent_df["generation_level"] <= max_gen_level]
 
         return parent_df
 
@@ -419,7 +416,7 @@ class IndexSQLite(IndexABC):
         columns.append("path")
 
         child_df = pd.DataFrame(self.cur.execute(
-                """WITH RECURSIVE
+                f"""WITH RECURSIVE
                     child_record(level, id, path) AS (
                         VALUES(0, ?, ?)
                         UNION
@@ -431,6 +428,7 @@ class IndexSQLite(IndexABC):
                         WHERE path NOT LIKE parent_uuids.uuid || '/%'
                             AND path NOT LIKE '%' || parent_uuids.uuid
                             AND path NOT LIKE '%' || parent_uuids.uuid || '/%'
+                            AND child_record.level > {min_gen_level}
                     )
                 SELECT pantry_index.*, child_record.level, child_record.path
                 FROM pantry_index
@@ -460,10 +458,6 @@ class IndexSQLite(IndexABC):
 
         child_df = child_df[child_df['uuid'] != basket_uuid]
         child_df.drop(columns="path", inplace=True)
-
-        # Keep all of the rows where the generation_level is more than
-        # or equal to the min_gen_level
-        child_df = child_df[child_df["generation_level"] >= min_gen_level]
 
         return child_df
 

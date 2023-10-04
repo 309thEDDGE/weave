@@ -313,18 +313,22 @@ def test_validate_invalid_manifest_schema(test_validate):
     )
 
     warn_info = validate.validate_pantry(pantry)
-    warning_1 = warn_info[0]
 
-    # Check that there is only one warning raised
+    # Check that three warnings are raised
     assert len(warn_info) == 3
 
-    # Check that the correct warning is raised
-    assert warning_1.args[0] == (
-        "Invalid Basket. Manifest Schema does not match at: "
-    )
+    warn_manifest = [
+        warn for warn in warn_info if
+        str(warn.args[0]).startswith(
+            "Invalid Basket. Manifest Schema does not match at: "
+        )
+    ]
+    assert warn_manifest != []
+    warn_manifest = warn_manifest[0]
+
     # Check the invalid basket path is what is expected
     # (ignoring File System prefix)
-    assert warning_1.args[1].endswith(os.path.join(basket_path,
+    assert warn_manifest.args[1].endswith(os.path.join(basket_path,
                                                    "bad_man_schema",
                                                    "basket_manifest.json"))
 
@@ -1559,27 +1563,34 @@ def test_validate_bad_manifest_and_supplement_schema(test_validate):
     )
 
     warn_info = validate.validate_pantry(pantry)
-    warning_1 = warn_info[0]
-    warning_2 = warn_info[1]
-
     # Check that there are two warnings raised
     assert len(warn_info) == 2
 
-    # Check that the first warning raised is correct with the correct
+    warn_manifest = [
+        warn for warn in warn_info if
+        str(warn.args[0]).startswith(
+            "Invalid Basket. Manifest Schema does not match at: "
+        )
+    ]
+    assert warn_manifest != []
+    warn_manifest = warn_manifest[0]
+    # Check that the warning raised is correct with the correct
     # invalid basket path (disregarding FS prefix)
-    assert warning_1.args[0] == (
-        "Invalid Basket. Manifest Schema does not match at: "
-    )
-    assert warning_1.args[1].endswith(os.path.join(basket_path,
+    assert warn_manifest.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_and_man_schema",
                                                    "basket_manifest.json"))
 
+    warn_supplement = [
+        warn for warn in warn_info if
+        str(warn.args[0]).startswith(
+            "Invalid Basket. Supplement Schema does not match at: "
+        )
+    ]
+    assert warn_supplement != []
+    warn_supplement = warn_supplement[0]
     # Check that the second warning raised is correct with the correct
     # invalid basket path (disregarding FS prefix)
-    assert warning_2.args[0] == (
-        "Invalid Basket. Supplement Schema does not match at: "
-    )
-    assert warning_2.args[1].endswith(os.path.join(basket_path,
+    assert warn_supplement.args[1].endswith(os.path.join(basket_path,
                                                    "bad_sup_and_man_schema",
                                                    "basket_supplement.json"))
 

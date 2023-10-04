@@ -977,17 +977,12 @@ def test_index_abc_get_parents_max_gen_level(test_pantry):
 
     ind.generate_index()
 
-    great_grandparent_uuids = ["3000", "3003", "3333"]
     parents_df = ind.get_parents("0000", max_gen_level=2)
+    # Create a dataframe with max_gen_level filtered. This should be exactly
+    # equal to the parents_df if max_gen_level works correctly.
+    max_gen_level_parents_df = parents_df[parents_df["generation_level"] <= 2]
 
-    parents_df_uuids = parents_df["uuid"].to_list()
-
-    # Find the uuids that are in great_grandparent_uuids and parents_df after
-    # the max_gen_level filter. This should be empty.
-    uuid_diff_list = np.setdiff1d(great_grandparent_uuids,
-                                  parents_df_uuids).tolist()
-
-    assert uuid_diff_list == []
+    assert parents_df.equals(max_gen_level_parents_df)
 
 
 def test_index_abc_get_children_path_works(test_pantry):
@@ -1320,7 +1315,7 @@ def test_index_abc_get_children_complex_fail(test_pantry):
 
 
 def test_index_abc_get_children_min_gen_level(test_pantry):
-    """Test IndexABC get_parents min_gen_level removes uuids where the
+    """Test IndexABC get_children min_gen_level removes uuids where the
     gen_level is less than the min_gen_level.
     """
 
@@ -1363,17 +1358,13 @@ def test_index_abc_get_children_min_gen_level(test_pantry):
 
     ind.generate_index()
 
-    great_grandchildren_uuids = ["0000"]
     children_df = ind.get_children("3000", min_gen_level=-2)
+    # Create a dataframe with min_gen_level filtered. This should be exactly
+    # equal to the children_df if min_gen_level works correctly.
+    min_gen_level_children_df = children_df[
+                                children_df["generation_level"] >= -2]
 
-    children_df_uuids = children_df["uuid"].to_list()
-
-    # Find the uuids that are in great_grandchildren_uuids and children_df
-    # after the min_gen_level filter. This should be empty.
-    uuid_diff_list = np.setdiff1d(great_grandchildren_uuids,
-                                  children_df_uuids).tolist()
-
-    assert uuid_diff_list == []
+    assert children_df.equals(min_gen_level_children_df)
 
 
 def test_index_abc_get_baskets_of_type_works(test_pantry):
