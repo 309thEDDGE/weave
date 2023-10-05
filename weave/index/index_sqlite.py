@@ -302,7 +302,7 @@ class IndexSQLite(IndexABC):
         of parents (and recursively their parents) of the given basket.
         """
 
-        max_gen_level = kwargs.get("max_gen_level", 100)
+        max_gen_level = kwargs.get("max_gen_level", 999)
 
         if self.file_system.exists(os.fspath(basket_address)):
             id_column = "address"
@@ -327,7 +327,7 @@ class IndexSQLite(IndexABC):
         columns.append("path")
 
         parent_df = pd.DataFrame(self.cur.execute(
-            f"""WITH RECURSIVE
+            """WITH RECURSIVE
                 child_record(level, id, path) AS (
                     VALUES(0, ?, ?)
                     UNION
@@ -339,12 +339,13 @@ class IndexSQLite(IndexABC):
                         AND path NOT LIKE '%' || parent_uuids.parent_uuid
                         AND path
                             NOT LIKE '%' || parent_uuids.parent_uuid || '/%'
-                        AND child_record.level < {max_gen_level}
+                        AND child_record.level < ?
                 )
             SELECT pantry_index.*, child_record.level, child_record.path
             FROM pantry_index
             JOIN child_record ON pantry_index.uuid = child_record.id
-            ORDER BY child_record.level ASC;""", (basket_uuid, basket_uuid)
+            ORDER BY child_record.level ASC;""",
+            (basket_uuid, basket_uuid, max_gen_level)
         ).fetchall(),
             columns=columns,
         )
@@ -391,7 +392,7 @@ class IndexSQLite(IndexABC):
         of children (and recursively their children) of the given basket.
         """
 
-        min_gen_level = kwargs.get("min_gen_level", -100)
+        min_gen_level = kwargs.get("min_gen_level", -999)
 
         if self.file_system.exists(os.fspath(basket_address)):
             id_column = "address"
@@ -416,7 +417,7 @@ class IndexSQLite(IndexABC):
         columns.append("path")
 
         child_df = pd.DataFrame(self.cur.execute(
-                f"""WITH RECURSIVE
+                """WITH RECURSIVE
                     child_record(level, id, path) AS (
                         VALUES(0, ?, ?)
                         UNION
@@ -428,12 +429,13 @@ class IndexSQLite(IndexABC):
                         WHERE path NOT LIKE parent_uuids.uuid || '/%'
                             AND path NOT LIKE '%' || parent_uuids.uuid
                             AND path NOT LIKE '%' || parent_uuids.uuid || '/%'
-                            AND child_record.level > {min_gen_level}
+                            AND child_record.level > ?
                     )
                 SELECT pantry_index.*, child_record.level, child_record.path
                 FROM pantry_index
                 JOIN child_record ON pantry_index.uuid = child_record.id
-                ORDER BY child_record.level DESC""", (basket_uuid, basket_uuid)
+                ORDER BY child_record.level DESC""",
+                (basket_uuid, basket_uuid, min_gen_level)
             ).fetchall(),
             columns=columns,
         )

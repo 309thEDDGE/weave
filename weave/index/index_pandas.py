@@ -381,7 +381,7 @@ class IndexPandas(IndexABC):
         """
 
         # Collect info from kwargs
-        min_gen_level = kwargs.get("min_gen_level", -100)
+        min_gen_level = kwargs.get("min_gen_level", -999)
         gen_level = kwargs.get("gen_level", -1)
         ancestors = kwargs.get("ancestors", [])
         data = kwargs.get("data", pd.DataFrame())
