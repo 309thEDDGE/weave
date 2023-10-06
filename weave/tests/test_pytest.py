@@ -76,7 +76,7 @@ def test_github_cicd_sql_server():
     username = 'sa'
 
     con = pyodbc.connect(
-        "DRIVER={ODBC Driver 13 for SQL Server};"
+        "DRIVER={ODBC Driver 18 for SQL Server};"
         f"SERVER={server};DATABASE={database};"
         f"UID={username};PWD={mssql_password}"
     )
