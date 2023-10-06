@@ -69,7 +69,7 @@ def test_github_cicd_sql_server():
     assert mssql_password is not None
 
     server = '127.0.0.1'
-    database = 'MyTestDb'
+    database = 'tempdb'
     username = 'sa'
 
     con = pyodbc.connect(
