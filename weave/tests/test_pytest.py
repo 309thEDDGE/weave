@@ -82,7 +82,7 @@ def test_github_cicd_sql_server():
     )
     cur = con.cursor()
 
-    print(cursor.execute("SELECT @@version;").fetchone())
+    print(cur.execute("SELECT @@version;").fetchone())
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS test_table(

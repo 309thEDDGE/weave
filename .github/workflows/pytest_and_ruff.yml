@@ -45,8 +45,8 @@ jobs:
         mongodb-password: testpassword
     - name: Install ODBC Driver for SQL Server
       run: |
-        wget https://gallery.technet.microsoft.com/ODBC-Driver-13-for-Ubuntu-b87369f0/file/154097/2/installodbc.sh
-        sudo sh installodbc.sh
+        wget https://packages.microsoft.com/ubuntu/16.04/prod/pool/main/m/msodbcsql/msodbcsql_13.1.9.2-1_amd64.deb
+        sudo dpkg -i msodbcsql_13.1.9.2-1_amd64.deb
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
