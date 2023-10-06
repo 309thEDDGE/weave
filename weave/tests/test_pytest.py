@@ -4,6 +4,13 @@ correctly."""
 import os
 
 from fsspec.implementations.local import LocalFileSystem
+# Try-Except required to make pyodbc an optional dependency.
+try:
+    import pyodbc
+except ImportError:
+    _HAS_PYODBC = False
+else:
+    _HAS_PYODBC = True
 import pytest
 import s3fs
 
@@ -49,3 +56,22 @@ def test_weave_pytest_suffix(set_up_tb_no_cleanup):
     assert not set_up_tb_no_cleanup.file_system.exists(
         set_up_tb_no_cleanup.pantry_path
     )
+
+# Skip tests if pyodbc is not installed.
+@pytest.mark.skipif(
+    "pyodbc" not in sys.modules or not _HAS_PYODBC,
+    reason="Modeule 'pyodbc' required for this test",
+)
+def test_github_cicd_sql_server():
+    MSSQL_PASSWORD = os.environ["MSSQL_PASSWORD"]
+    assert MSSQL_PASSWORD is not None
+
+    con = pyodbc.connect(f"Server=localhost,1433;Initial Catalog=MyTestDb;User Id=sa;Password={MSSQL_PASSWORD};")
+    cur = con.cursor()
+
+    cur.execute("""CREATE TABLE IF NOT EXISTS test_table(
+                uuid TEXT, num INT, PRIMARY KEY(uuid), UNIQUE(uuid));
+        """)
+    cur.execute("""INSERT INTO test_table VALUES ("0001", 1);""")
+    cur.commit()
+    print(cur.execute("SELECT * FROM test_table").fetchall())
