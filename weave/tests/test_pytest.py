@@ -61,16 +61,28 @@ def test_weave_pytest_suffix(set_up_tb_no_cleanup):
 # Skip tests if pyodbc is not installed.
 @pytest.mark.skipif(
     "pyodbc" not in sys.modules or not _HAS_PYODBC,
-    reason="Modeule 'pyodbc' required for this test",
+    reason="Module 'pyodbc' required for this test",
 )
 def test_github_cicd_sql_server():
     """Test that the MS SQL Server is properly setup in CICD."""
     mssql_password = os.environ["MSSQL_PASSWORD"]
     assert MSSQL_PASSWORD is not None
 
-    con = pyodbc.connect("Server=localhost,1433;Initial Catalog=MyTestDb;"
-                         f"User Id=sa;Password={mssql_password};")
+    # con = pyodbc.connect("Server=localhost,1433;Initial Catalog=MyTestDb;"
+    #                      f"User Id=sa;Password={mssql_password};")
+
+    server = 'localhost'
+    database = 'test_db'
+    username = 'sa'
+
+    con = pyodbc.connect(
+        f"DRIVER={ODBC Driver 13 for SQL Server};"
+        f"SERVER={server};DATABASE={database};"
+        f"UID={username};PWD={mssql_password}"
+    )
     cur = con.cursor()
+
+    print(cursor.execute("SELECT @@version;").fetchone())
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS test_table(
