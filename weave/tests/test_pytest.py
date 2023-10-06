@@ -66,7 +66,7 @@ def test_weave_pytest_suffix(set_up_tb_no_cleanup):
 def test_github_cicd_sql_server():
     """Test that the MS SQL Server is properly setup in CICD."""
     mssql_password = os.environ["MSSQL_PASSWORD"]
-    assert MSSQL_PASSWORD is not None
+    assert mssql_password is not None
 
     # con = pyodbc.connect("Server=localhost,1433;Initial Catalog=MyTestDb;"
     #                      f"User Id=sa;Password={mssql_password};")
