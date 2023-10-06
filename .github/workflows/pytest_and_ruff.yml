@@ -4,7 +4,7 @@ name: Weave CI/CD
 
 on:
   push:
-    branches: [ "main"]
+    branches: [ "main", "OPAL-304"]
   pull_request:
     branches: [ "main"]
 
