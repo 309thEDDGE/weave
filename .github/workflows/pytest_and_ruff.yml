@@ -16,9 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     services:
       mssql:
-        image: mcr.microsoft.com/mssql/server:2019-latest
+        image: mcr.microsoft.com/mssql/server:2022-latest
         env:
-          MSSQL_SA_PASSWORD: testpassword
+          MSSQL_SA_PASSWORD: Testpassword1
           ACCEPT_EULA: "Y"
         ports:
           - 1433:1433
@@ -72,7 +72,7 @@ jobs:
         pip install .[extras]
     - name: Test with pytest
       run: |
-        export MSSQL_PASSWORD=testpassword
+        export MSSQL_PASSWORD=Testpassword1
         export MONGODB_HOST=localhost
         export MONGODB_USERNAME=testusername
         export MONGODB_PASSWORD=testpassword

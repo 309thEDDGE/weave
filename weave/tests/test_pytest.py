@@ -68,11 +68,8 @@ def test_github_cicd_sql_server():
     mssql_password = os.environ["MSSQL_PASSWORD"]
     assert mssql_password is not None
 
-    # con = pyodbc.connect("Server=localhost,1433;Initial Catalog=MyTestDb;"
-    #                      f"User Id=sa;Password={mssql_password};")
-
-    server = 'localhost'
-    database = 'test_db'
+    server = '127.0.0.1'
+    database = 'MyTestDb'
     username = 'sa'
 
     con = pyodbc.connect(
