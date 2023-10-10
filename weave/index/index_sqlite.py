@@ -28,7 +28,7 @@ class IndexSQLite(IndexABC):
             Path to the pantry root which we want to index.
         **db_path: str (optional)
             Path to the sqlite db file to be used. If none is set, defaults to
-            './basket-data.db'
+            '{pantry_path}.db'
         """
         self._file_system = file_system
         self._pantry_path = pantry_path
