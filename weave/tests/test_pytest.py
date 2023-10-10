@@ -89,21 +89,21 @@ def test_github_cicd_sql_server():
     IF NOT EXISTS (
         SELECT * FROM sys.tables t
         JOIN sys.schemas s ON (t.schema_id = s.schema_id)
-        WHERE s.name = 'pytest' AND t.name = 'test_table')
-        CREATE TABLE pytest.test_table (
+        WHERE s.name = 'dbo' AND t.name = 'test_table')
+        CREATE TABLE dbo.test_table (
             uuid varchar(64),
             num int
         );
     """)
 
     # Insert a test value, and then check we can retrieve the value.
-    cur.execute("""INSERT INTO pytest.test_table (uuid, num) VALUES ("0001", 1);""")
+    cur.execute("""INSERT INTO dbo.test_table (uuid, num) VALUES ("0001", 1);""")
     cur.commit()
-    assert cur.execute("SELECT * pytest.FROM test_table").fetchall() != []
+    assert cur.execute("SELECT * FROM dbo.test_table").fetchall() != []
 
     # Delete the test value, and then check it was actually deleted.
     cur.execute("""DELETE FROM dbo.test_table WHERE uuid = "0001";""")
     cur.commit()
-    assert cur.execute("SELECT * pytest.FROM test_table;").fetchall() == []
+    assert cur.execute("SELECT * FROM dbo.test_table;").fetchall() == []
 
-    cur.execute("""DROP TABLE test_table;""")
+    cur.execute("""DROP TABLE dbo.test_table;""")
