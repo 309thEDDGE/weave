@@ -97,12 +97,14 @@ def test_github_cicd_sql_server():
     """)
 
     # Insert a test value, and then check we can retrieve the value.
-    cur.execute("""INSERT INTO dbo.test_table (uuid, num) VALUES ("0001", 1);""")
+    cur.execute("""
+        INSERT INTO dbo.test_table (uuid, num) VALUES ('0001', 1);
+    """)
     cur.commit()
     assert cur.execute("SELECT * FROM dbo.test_table").fetchall() != []
 
     # Delete the test value, and then check it was actually deleted.
-    cur.execute("""DELETE FROM dbo.test_table WHERE uuid = "0001";""")
+    cur.execute("""DELETE FROM dbo.test_table WHERE uuid = '0001';""")
     cur.commit()
     assert cur.execute("SELECT * FROM dbo.test_table;").fetchall() == []
 
