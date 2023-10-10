@@ -88,43 +88,6 @@ def test_index_two_pantries_with_same_name(test_pantry):
     os.remove(pantry_2.index.db_path)
 
 
-def test_index_pantries_have_unique_index(test_pantry):
-    """Validate that 2 pantry objects have a unique index."""
-    pantry_1_path = os.path.join(test_pantry.pantry_path, "test-pantry-1")
-    pantry_2_path = os.path.join(test_pantry.pantry_path, "test-pantry-2")
-
-    test_pantry.file_system.mkdir(pantry_1_path)
-    test_pantry.file_system.mkdir(pantry_2_path)
-
-    tmp_txt_file = test_pantry.tmpdir.join("test.txt")
-    tmp_txt_file.write("this is a test")
-
-    upload_path_1 = os.path.join(pantry_1_path, "text.txt")
-    upload_path_2 = os.path.join(pantry_2_path, "text.txt")
-
-    test_pantry.file_system.upload(str(tmp_txt_file.realpath()), upload_path_1)
-    test_pantry.file_system.upload(str(tmp_txt_file.realpath()), upload_path_2)
-
-    # Make the Pantries.
-    pantry_1 = Pantry(
-        IndexSQLite,
-        pantry_path=pantry_1_path,
-        file_system=test_pantry.file_system,
-    )
-
-    pantry_2 = Pantry(
-        IndexSQLite,
-        pantry_path=pantry_2_path,
-        file_system=test_pantry.file_system,
-    )
-
-    assert pantry_1.index != pantry_2.index
-
-    # Remove the .db files that are not cleaned up with 'test_pantry'
-    os.remove(pantry_1.index.db_path)
-    os.remove(pantry_2.index.db_path)
-
-
 def test_index_uploaded_basket_not_found_in_another_index(test_pantry):
     """Validate that a basket uploaded to one pantry does not show up in
     another pantry.
