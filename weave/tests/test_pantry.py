@@ -651,7 +651,7 @@ def test_index_basket_with_no_version_number(test_pantry):
 
 
 def test_validate_path_does_not_start_with_pantry_path(test_pantry):
-    """Tests the pantry does not delete baskets outside of itself."""
+    """Tests the validate path begins with the pantry path"""
 
     pantry = Pantry(
         IndexPandas,
@@ -670,7 +670,7 @@ def test_validate_path_does_not_start_with_pantry_path(test_pantry):
 
 
 def test_validate_path_does_not_backtrack_from_pantry_path(test_pantry):
-    """Tests the pantry does not delete baskets outside of itself."""
+    """Tests the validate path does not navigate out of the pantry."""
 
     pantry = Pantry(
         IndexPandas,
