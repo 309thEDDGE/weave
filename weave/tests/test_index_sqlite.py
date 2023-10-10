@@ -63,6 +63,7 @@ def test_index_two_pantries_with_same_name(test_pantry):
     upload_path_1 = os.path.join(pantry_1_path, "text.txt")
     upload_path_2 = os.path.join(pantry_2_path, "text.txt")
 
+    # Must upload a file because Minio will remove empty directories
     test_pantry.file_system.upload(str(tmp_txt_file.realpath()), upload_path_1)
     test_pantry.file_system.upload(str(tmp_txt_file.realpath()), upload_path_2)
 
@@ -104,6 +105,7 @@ def test_index_uploaded_basket_not_found_in_another_index(test_pantry):
     upload_path_1 = os.path.join(pantry_1_path, "text.txt")
     upload_path_2 = os.path.join(pantry_2_path, "text.txt")
 
+    # Must upload a file because Minio will remove empty directories
     test_pantry.file_system.upload(str(tmp_txt_file.realpath()), upload_path_1)
     test_pantry.file_system.upload(str(tmp_txt_file.realpath()), upload_path_2)
 
