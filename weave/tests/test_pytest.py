@@ -60,7 +60,8 @@ def test_weave_pytest_suffix(set_up_tb_no_cleanup):
 
 # Skip tests if pyodbc is not installed.
 @pytest.mark.skipif(
-    "pyodbc" not in sys.modules or not _HAS_PYODBC,
+    "pyodbc" not in sys.modules or not _HAS_PYODBC
+    or not os.environ["MSSQL_PASSWORD"],
     reason="Module 'pyodbc' required for this test",
 )
 def test_github_cicd_sql_server():
@@ -81,8 +82,6 @@ def test_github_cicd_sql_server():
         f"Encrypt=no;"
     )
     cur = con.cursor()
-
-    print(cur.execute("SELECT @@version;").fetchone())
 
     # Create a temporary table for testing.
     cur.execute("""
