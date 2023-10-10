@@ -85,9 +85,16 @@ def test_github_cicd_sql_server():
     print(cur.execute("SELECT @@version;").fetchone())
 
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS test_table(
-        uuid TEXT, num INT, PRIMARY KEY(uuid), UNIQUE(uuid));
+    IF NOT EXISTS (
+        SELECT * FROM sys.tables t
+        JOIN sys.schemas s ON (t.schema_id = s.schema_id)
+        WHERE s.name = 'dbo' AND t.name = 'test_table')
+        CREATE TABLE dbo.test_table (
+            uuid varchar(64),
+            num int
+        );
     """)
-    cur.execute("""INSERT INTO test_table VALUES ("0001", 1);""")
+
+    cur.execute("""INSERT INTO dbo.test_table VALUES ("0001", 1);""")
     cur.commit()
-    print(cur.execute("SELECT * FROM test_table").fetchall())
+    print(cur.execute("SELECT * dbo.FROM test_table").fetchall())
