@@ -23,6 +23,6 @@ setup(
     packages=["weave", "weave/tests", "weave/index"],
     install_requires=["pandas", "s3fs", "fsspec", "jsonschema"],
     extras_require={
-        "extras": ["pymongo"],
+        "extras": ["pymongo", "pyodbc"],
     }
 )

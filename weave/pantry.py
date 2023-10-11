@@ -166,9 +166,9 @@ class Pantry():
             Optional user friendly label associated with the basket.
         """
 
-        parent_ids = kwargs.get("parent_ids", [])
-        metadata = kwargs.get("metadata", {})
-        label = kwargs.get("label", "")
+        parent_ids = kwargs.pop("parent_ids", [])
+        metadata = kwargs.pop("metadata", {})
+        label = kwargs.pop("label", "")
 
         up_dir = UploadBasket(
             upload_items=upload_items,

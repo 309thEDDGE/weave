@@ -669,9 +669,10 @@ def test_validate_path_does_not_start_with_pantry_path(test_pantry):
         pantry.validate_path_in_pantry(new_address)
 
 
-def test_validate_path_does_not_backtrack_from_pantry_path(test_pantry):
+def test_validate_path_does_not_backtrack_from_pantry_path(tmpdir):
     """Tests the validate path does not navigate out of the pantry."""
 
+    test_pantry = PantryForTest(tmpdir, local_fs)
     pantry = Pantry(
         IndexPandas,
         pantry_path=test_pantry.pantry_path,
