@@ -26,10 +26,11 @@ local_fs = LocalFileSystem()
 
 # Test with two different fsspec file systems (above).
 @pytest.fixture(
+    name="set_up_tb_no_cleanup",
     params=[s3fs, local_fs],
     ids=["S3FileSystem", "LocalFileSystem"],
 )
-def set_up_tb_no_cleanup(request, tmpdir):
+def fixture_set_up_tb_no_cleanup(request, tmpdir):
     """Sets up test basket fixture."""
     file_system = request.param
     temp_basket = PantryForTest(tmpdir, file_system)
@@ -37,9 +38,6 @@ def set_up_tb_no_cleanup(request, tmpdir):
     return temp_basket
 
 
-# Ignore pylint's warning "redefined-outer-name" as this is simply
-# how pytest works when it comes to pytest fixtures.
-# pylint: disable=redefined-outer-name
 def test_weave_pytest_suffix(set_up_tb_no_cleanup):
     """Test that env var suffix works, and pantrys are still deleted."""
     # Check pantry name includes suffix if applicable.
