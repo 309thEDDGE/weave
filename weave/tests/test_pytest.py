@@ -69,10 +69,13 @@ def test_weave_pytest_suffix(set_up_tb_no_cleanup):
 )
 def test_github_cicd_sql_server():
     """Test that the MS SQL Server is properly setup in CICD."""
+    # Documentation for mssql container:
+    # https://hub.docker.com/_/microsoft-mssql-server
+    # Default System Administrator username is "sa"
+    username = "sa"
     mssql_password = os.environ["MSSQL_PASSWORD"]
     server = "127.0.0.1"
     database = "tempdb"
-    username = "sa"
 
     con = pyodbc.connect(
         "DRIVER={ODBC Driver 18 for SQL Server};"

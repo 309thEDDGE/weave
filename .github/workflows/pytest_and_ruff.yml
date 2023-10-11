@@ -18,6 +18,9 @@ jobs:
       mssql:
         image: mcr.microsoft.com/mssql/server:2022-latest
         env:
+          # Documentation for mssql container vars.
+          # https://hub.docker.com/_/microsoft-mssql-server
+          # Set the default System Administrator password (required)
           MSSQL_SA_PASSWORD: Testpassword1
           ACCEPT_EULA: "Y"
         ports:
