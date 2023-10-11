@@ -36,13 +36,14 @@ def set_up_tb_no_cleanup(request, tmpdir):
     # Purposefully don't clean up pantry, it will be cleaned up in the test.
     return temp_basket
 
+
 # Ignore pylint's warning "redefined-outer-name" as this is simply
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
 def test_weave_pytest_suffix(set_up_tb_no_cleanup):
     """Test that env var suffix works, and pantrys are still deleted."""
     # Check pantry name includes suffix if applicable.
-    suffix = os.environ.get('WEAVE_PYTEST_SUFFIX', '')
+    suffix = os.environ.get("WEAVE_PYTEST_SUFFIX", "")
     assert set_up_tb_no_cleanup.pantry_path == f"pytest-temp-pantry{suffix}"
 
     # Check the pantry was made.
@@ -58,20 +59,20 @@ def test_weave_pytest_suffix(set_up_tb_no_cleanup):
         set_up_tb_no_cleanup.pantry_path
     )
 
+
 # Skip tests if pyodbc is not installed.
 @pytest.mark.skipif(
     "pyodbc" not in sys.modules or not _HAS_PYODBC
     or not os.environ["MSSQL_PASSWORD"],
-    reason="Module 'pyodbc' required for this test",
+    reason="Module 'pyodbc' required for this test "
+    "AND env var 'MSSQL_PASSWORD'",
 )
 def test_github_cicd_sql_server():
     """Test that the MS SQL Server is properly setup in CICD."""
     mssql_password = os.environ["MSSQL_PASSWORD"]
-    assert mssql_password is not None
-
-    server = '127.0.0.1'
-    database = 'tempdb'
-    username = 'sa'
+    server = "127.0.0.1"
+    database = "tempdb"
+    username = "sa"
 
     con = pyodbc.connect(
         "DRIVER={ODBC Driver 18 for SQL Server};"
@@ -108,3 +109,4 @@ def test_github_cicd_sql_server():
     assert cur.execute("SELECT * FROM dbo.test_table;").fetchall() == []
 
     cur.execute("""DROP TABLE dbo.test_table;""")
+    cur.commit()
