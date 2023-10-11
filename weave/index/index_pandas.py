@@ -259,6 +259,9 @@ class IndexPandas(IndexABC):
         basket_address: str
             String that holds the path of the basket
             can also be the basket uuid.
+        **max_gen_level: int (optional)
+            This indicates the maximum generation level that will be reported.
+            Must be a positive int.
         **gen_level: int (optional)
             This indicates what generation is being looked at,
             1 for parent, 2 for grandparent and so forth.
@@ -280,6 +283,7 @@ class IndexPandas(IndexABC):
         """
 
         # Collect info from kwargs
+        max_gen_level = kwargs.get("max_gen_level", 999)
         gen_level = kwargs.get("gen_level", 1)
         data = kwargs.get("data", pd.DataFrame())
         descendants = kwargs.get("descendants", [])
@@ -293,6 +297,11 @@ class IndexPandas(IndexABC):
             raise FileNotFoundError(
                 f"basket path or uuid does not exist '{basket_address}'"
             )
+
+        # Once we have exceeded our max_gen_level, we simply want
+        # to return our data
+        if gen_level > max_gen_level:
+            return data
 
         if self.file_system.exists(basket_address):
             current_uuid = self.index_df["uuid"].loc[
@@ -331,12 +340,14 @@ class IndexPandas(IndexABC):
         # For every parent, go get their parents
         for basket_addr in parents_index["address"]:
             data = self.get_parents(basket_address=basket_addr,
+                                    max_gen_level=max_gen_level,
                                     gen_level=gen_level+1,
                                     data=data,
                                     descendants=descendants.copy())
         data = data.drop_duplicates(
             subset=['uuid', 'generation_level']
         ).reset_index(drop=True)
+
         return data
 
     def get_children(self, basket_address, **kwargs):
@@ -354,6 +365,8 @@ class IndexPandas(IndexABC):
             This is a list of basket uuids of all the ancestors that have been
             visited. This is being used to detect if there is a parent-child
             loop inside the basket structure.
+        **min_gen_level: int (optional)
+            This indicates the minimum generation level that will be reported.
         **data: dataframe (optional)
             This is the pandas dataframe that has been collected so far
             when it is initially called, it is empty, for every
@@ -368,6 +381,7 @@ class IndexPandas(IndexABC):
         """
 
         # Collect info from kwargs
+        min_gen_level = kwargs.get("min_gen_level", -999)
         gen_level = kwargs.get("gen_level", -1)
         ancestors = kwargs.get("ancestors", [])
         data = kwargs.get("data", pd.DataFrame())
@@ -381,6 +395,11 @@ class IndexPandas(IndexABC):
             raise FileNotFoundError(
                 f"basket path or uuid does not exist '{basket_address}'"
             )
+
+        # Once we have exceeded our min_gen_level, we simply want
+        # to return our data
+        if gen_level < min_gen_level:
+            return data
 
         if self.file_system.exists(basket_address):
             current_uuid = self.index_df["uuid"].loc[
@@ -418,12 +437,14 @@ class IndexPandas(IndexABC):
         # Go through all the children and get their children too
         for basket_addr in child_index["address"]:
             data =  self.get_children(basket_address=basket_addr,
+                                      min_gen_level=min_gen_level,
                                       gen_level=gen_level-1,
                                       data=data,
                                       ancestors=ancestors.copy())
         data = data.drop_duplicates(
             subset=['uuid', 'generation_level']
         ).reset_index(drop=True)
+
         return data
 
     def track_basket(self, entry_df, **kwargs):
