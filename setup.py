@@ -21,7 +21,7 @@ with open("README.md", "r") as f:
     long_description = f.read()
 
 setup(
-    name="weave",
+    name="weave-db",
     package_name="weave-db",
     version=get_version("weave/__init__.py"),
     description="Library to facilitate the creation and maintenance of " +
