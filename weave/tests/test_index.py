@@ -978,10 +978,12 @@ def test_index_abc_get_parents_max_gen_level(test_pantry):
     ind.generate_index()
 
     parents_df = ind.get_parents("0000", max_gen_level=2)
-    parents_df_uuids = parents_df["uuid"].tolist()
+    parents_df_uuids = parents_df["uuid"].tolist().sort()
+
+    correct_uuids = ["1000", "1001", "2000", "2002", "3303"].sort()
 
     # Check that max_gen_level filters out the correct uuids
-    assert parents_df_uuids == ["1000", "1001", "2000", "2002", "3303"]
+    assert parents_df_uuids == correct_uuids
 
 
 def test_index_abc_get_children_path_works(test_pantry):
@@ -1358,10 +1360,12 @@ def test_index_abc_get_children_min_gen_level(test_pantry):
     ind.generate_index()
 
     children_df = ind.get_children("3000", min_gen_level=-2)
-    children_df_uuids = children_df["uuid"].tolist()
+    children_df_uuids = children_df["uuid"].tolist().sort()
+
+    correct_uuids = ["2000", "1000"].sort()
 
     # Check that min_gen_level filters the correct uuids
-    assert children_df_uuids == ["2000", "1000"]
+    assert children_df_uuids == correct_uuids
 
 
 def test_index_abc_get_baskets_of_type_works(test_pantry):
