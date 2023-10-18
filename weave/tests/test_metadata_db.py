@@ -8,6 +8,7 @@ import pytest
 import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
+import weave
 from weave.tests.pytest_resources import PantryForTest
 
 
