@@ -3,7 +3,7 @@
 import json
 import os
 
-from weave_db.upload import UploadBasket
+from weave.upload import UploadBasket
 
 
 def file_path_in_list(search_path, search_list):

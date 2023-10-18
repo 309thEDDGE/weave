@@ -22,7 +22,6 @@ with open("README.md", "r") as f:
 
 setup(
     name="weave-db",
-    package_name="weave-db",
     version=get_version("weave/__init__.py"),
     description="Library to facilitate the creation and maintenance of " +
                 "complex data warehouses.",
