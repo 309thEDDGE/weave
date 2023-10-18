@@ -10,13 +10,12 @@ import s3fs
 import pandas as pd
 from fsspec.implementations.local import LocalFileSystem
 
-import weave_db as weave
-from weave.__init__ import __version__ as weave_version
-from weave.basket import Basket
-from weave.index.create_index import create_index_from_fs
-from weave.pantry import Pantry
-from weave.index.index_pandas import IndexPandas
-from weave.tests.pytest_resources import PantryForTest
+from weave_db.__init__ import __version__ as weave_version
+from weave_db.basket import Basket
+from weave_db.index.create_index import create_index_from_fs
+from weave_db.pantry import Pantry
+from weave_db.index.index_pandas import IndexPandas
+from weave_db.tests.pytest_resources import PantryForTest
 
 ###############################################################################
 #                      Pytest Fixtures Documentation:                         #
