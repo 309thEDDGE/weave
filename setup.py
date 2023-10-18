@@ -39,7 +39,7 @@ setup(
     ],
     install_requires=["pandas", "s3fs", "fsspec", "jsonschema"],
     extras_require={
-        "extras": ["pymongo"],
+        "extras": ["pymongo", "pyodbc"],
     },
     python_requires=">=3.0",
 )
