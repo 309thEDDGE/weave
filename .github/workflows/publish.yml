@@ -1,5 +1,9 @@
 name: Publish to PyPI
-on: push
+on:
+  push:
+    branches:
+      - main
+      - Opal-270
 
 jobs:
   tests:
