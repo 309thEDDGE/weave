@@ -6,10 +6,9 @@ import pytest
 import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
-import weave-db as weave
-from weave.pantry import Pantry
-from weave.index.index_pandas import IndexPandas
-from weave.tests.pytest_resources import PantryForTest
+from weave_db.pantry import Pantry
+from weave_db.index.index_pandas import IndexPandas
+from weave_db.tests.pytest_resources import PantryForTest
 
 
 ###############################################################################

@@ -8,10 +8,10 @@ import pytest
 import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
-from weave import validate
-from weave.pantry import Pantry
-from weave.index.index_pandas import IndexPandas
-from weave.tests.pytest_resources import PantryForTest
+from weave_db import validate
+from weave_db.pantry import Pantry
+from weave_db.index.index_pandas import IndexPandas
+from weave_db.tests.pytest_resources import PantryForTest
 
 # This module is long and has many tests. Pylint is complaining that it is too
 # long, and has too many local variables throughout each test.

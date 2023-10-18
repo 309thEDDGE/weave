@@ -8,8 +8,7 @@ import pytest
 import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
-import weave-db as weave
-from weave.tests.pytest_resources import PantryForTest
+from weave-db.tests.pytest_resources import PantryForTest
 
 
 class MongoForTest(PantryForTest):

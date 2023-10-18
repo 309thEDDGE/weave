@@ -15,7 +15,7 @@ else:
 import pytest
 import s3fs
 
-from weave.tests.pytest_resources import PantryForTest
+from weave-db.tests.pytest_resources import PantryForTest
 
 
 s3fs = s3fs.S3FileSystem(

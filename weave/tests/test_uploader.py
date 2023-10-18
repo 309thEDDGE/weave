@@ -11,7 +11,7 @@ import pytest
 import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
-import weave
+import weave-db as weave
 from weave.tests.pytest_resources import PantryForTest, file_path_in_list
 from weave.upload import (
     UploadBasket,
