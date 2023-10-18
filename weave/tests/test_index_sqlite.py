@@ -5,6 +5,7 @@ import pytest
 import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
+import weave-db as weave
 from weave.pantry import Pantry
 from weave.index.index_sqlite import IndexSQLite
 from weave.tests.pytest_resources import PantryForTest

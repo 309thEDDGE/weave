@@ -10,6 +10,7 @@ import s3fs
 import pandas as pd
 from fsspec.implementations.local import LocalFileSystem
 
+import weave-db as weave
 from weave.__init__ import __version__ as weave_version
 from weave.basket import Basket
 from weave.index.create_index import create_index_from_fs

@@ -41,5 +41,5 @@ setup(
     extras_require={
         "extras": ["pymongo", "pyodbc"],
     },
-    python_requires=">=3.0",
+    python_requires=">=3.10",
 )

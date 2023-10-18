@@ -11,7 +11,7 @@ import pytest
 import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
-import weave
+import weave-db as weave
 from weave import IndexSQLite
 from weave.index.index_pandas import IndexPandas
 from weave.index.create_index import create_index_from_fs

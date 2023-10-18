@@ -3,6 +3,7 @@
 import json
 import os
 
+import weave-db as weave
 from weave.upload import UploadBasket
 
 
