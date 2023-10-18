@@ -32,10 +32,14 @@ class IndexSQL(IndexABC):
             The fsspec object which hosts the pantry we desire to index.
         pantry_path: str
             Path to the pantry root which we want to index.
-        db_path: str (optional)
-            DB to be used. If none is set, defaults to
-            'pantry_path'
-        encrypt: bool (default=True)
+        **database_name: str (optional)
+            DB to be used. If none is set, defaults to the pantry_path.
+        **encrypt: bool (default=False)
+            Whether or not to encrypt the database (disabled by default, due
+            to the fact that it requires additional configuration).
+        **odbc_driver: str (default='{ODBC Driver 18 for SQL Server}')
+            Driver to be used for the connection. Usually similar to:
+            '{ODBC Driver <18, 17, 13...> for SQL Server}'.
         """
         if not _HAS_PYODBC:
             raise ImportError("Missing Dependency. The package 'pyodbc' "
@@ -47,27 +51,43 @@ class IndexSQL(IndexABC):
             MSSQL_PASSWORD = os.environ["MSSQL_PASSWORD"]
         except KeyError as key_error:
             raise KeyError("The following environment variables must be set "
-                           "to use this class: MSSQL_HOST, MSSQL_USERNAME "
+                           "to use this class: MSSQL_HOST, MSSQL_USERNAME, "
                            "MSSQL_PASSWORD.")
 
         self._file_system = file_system
         self._pantry_path = pantry_path
 
-        db_name = self._pantry_path.replace(os.sep, "-")
-        # self.db_path = kwargs.get("db_path", db_name)
-        self.db_path = "tempdb"
+        tmp_db_name = self._pantry_path.replace(os.sep, "_").replace("-", "_")
+        self.database_name = kwargs.get("database_name", tmp_db_name)
 
-        self.encrypt = kwargs.get("encrypt", False)
+        driver = kwargs.get("odbc_driver", "{ODBC Driver 18 for SQL Server}")
+        encrypt = kwargs.get("encrypt", False)
 
+        # Create a temporary connection to the tempdb database
+        # then create or connect to the pantry database.
         self.con = pyodbc.connect(
-            "DRIVER={ODBC Driver 18 for SQL Server};"
+            f"DRIVER={driver};"
             f"SERVER={MSSQL_HOST};"
-            f"DATABASE={self.db_path};"
+            f"DATABASE=tempdb;"
             f"UID={MSSQL_USERNAME};"
             f"PWD={MSSQL_PASSWORD};"
-            f"Encrypt={'yes' if self.encrypt else 'no'};"
+            f"Encrypt={'yes' if encrypt else 'no'};"
         )
         self.cur = self.con.cursor()
+
+        # Query to see if the pantry database exists.
+        self.cur.execute(
+            "SELECT * FROM sys.databases WHERE name = ?", (self.database_name,)
+        )
+        # If the pantry database does not exist, create it.
+        if not self.cur.fetchone():
+            self.con.autocommit = True
+            self.cur.execute(f"CREATE DATABASE {self.database_name};")
+            self.cur.execute(f"USE {self.database_name};")
+            self.con.autocommit = False
+        else:
+            self.cur.execute(f"USE {self.database_name};")
+        
         self._create_tables()
 
     def _create_tables(self):
