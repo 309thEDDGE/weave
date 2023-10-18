@@ -28,12 +28,14 @@ class IndexSQLite(IndexABC):
             Path to the pantry root which we want to index.
         **db_path: str (optional)
             Path to the sqlite db file to be used. If none is set, defaults to
-            './basket-data.db'
+            '{pantry_path}.db'
         """
         self._file_system = file_system
         self._pantry_path = pantry_path
 
-        self.db_path = kwargs.get("db_path", "basket-data.db")
+        db_file_name = self._pantry_path.replace(os.sep, "-")
+
+        self.db_path = kwargs.get("db_path", f"{db_file_name}.db")
         self.con = sqlite3.connect(self.db_path)
         self.cur = self.con.cursor()
         self._create_tables()
@@ -293,13 +295,17 @@ class IndexSQLite(IndexABC):
         basket_address: str
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
-        **kwargs unused for this function.
+        **max_gen_level: int (optional)
+            This indicates the maximum generation level that will be reported.
 
         Returns
         ----------
         pandas.DataFrame containing all the manifest data AND generation level
         of parents (and recursively their parents) of the given basket.
         """
+
+        max_gen_level = kwargs.get("max_gen_level", 999)
+
         if self.file_system.exists(os.fspath(basket_address)):
             id_column = "address"
         else:
@@ -335,11 +341,13 @@ class IndexSQLite(IndexABC):
                         AND path NOT LIKE '%' || parent_uuids.parent_uuid
                         AND path
                             NOT LIKE '%' || parent_uuids.parent_uuid || '/%'
+                        AND child_record.level < ?
                 )
             SELECT pantry_index.*, child_record.level, child_record.path
             FROM pantry_index
             JOIN child_record ON pantry_index.uuid = child_record.id
-            ORDER BY child_record.level ASC;""", (basket_uuid, basket_uuid)
+            ORDER BY child_record.level ASC;""",
+            (basket_uuid, basket_uuid, max_gen_level)
         ).fetchall(),
             columns=columns,
         )
@@ -366,6 +374,7 @@ class IndexSQLite(IndexABC):
                     )
 
         parent_df.drop(columns="path", inplace=True)
+
         return parent_df
 
     def get_children(self, basket_address, **kwargs):
@@ -376,14 +385,17 @@ class IndexSQLite(IndexABC):
         basket_address: str
             Argument can take one of two forms: either a path to the basket
             directory, or the UUID of the basket.
-
-        **kwargs unused for this function.
+        **min_gen_level: int (optional)
+            This indicates the minimum generation level that will be reported.
 
         Returns
         ----------
         pandas.DataFrame containing all the manifest data AND generation level
         of children (and recursively their children) of the given basket.
         """
+
+        min_gen_level = kwargs.get("min_gen_level", -999)
+
         if self.file_system.exists(os.fspath(basket_address)):
             id_column = "address"
         else:
@@ -419,11 +431,13 @@ class IndexSQLite(IndexABC):
                         WHERE path NOT LIKE parent_uuids.uuid || '/%'
                             AND path NOT LIKE '%' || parent_uuids.uuid
                             AND path NOT LIKE '%' || parent_uuids.uuid || '/%'
+                            AND child_record.level > ?
                     )
                 SELECT pantry_index.*, child_record.level, child_record.path
                 FROM pantry_index
                 JOIN child_record ON pantry_index.uuid = child_record.id
-                ORDER BY child_record.level DESC""", (basket_uuid, basket_uuid)
+                ORDER BY child_record.level DESC""",
+                (basket_uuid, basket_uuid, min_gen_level)
             ).fetchall(),
             columns=columns,
         )
@@ -448,6 +462,7 @@ class IndexSQLite(IndexABC):
 
         child_df = child_df[child_df['uuid'] != basket_uuid]
         child_df.drop(columns="path", inplace=True)
+
         return child_df
 
     def get_baskets_of_type(self, basket_type, max_rows=1000, **kwargs):
