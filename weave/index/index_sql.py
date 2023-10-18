@@ -54,9 +54,10 @@ class IndexSQL(IndexABC):
         self._pantry_path = pantry_path
 
         db_name = self._pantry_path.replace(os.sep, "-")
-        self.db_path = kwargs.get("db_path", db_name)
+        # self.db_path = kwargs.get("db_path", db_name)
+        self.db_path = "tempdb"
 
-        self.encrypt = kwargs.get("encrypt", True)
+        self.encrypt = kwargs.get("encrypt", False)
 
         self.con = pyodbc.connect(
             "DRIVER={ODBC Driver 18 for SQL Server};"
@@ -75,17 +76,40 @@ class IndexSQL(IndexABC):
         # THE INSERT IN OTHER FUNCTIONS USE config.index_schema(), BUT THAT
         # CAN'T BE USED HERE AS TYPE NEEDS TO BE SPECIFIED.
         self.cur.execute("""
-            CREATE TABLE IF NOT EXISTS pantry_index(
-                uuid TEXT, upload_time INT, parent_uuids TEXT,
-                basket_type TEXT, label TEXT, weave_version TEXT, address TEXT,
-                storage_type TEXT, PRIMARY KEY(uuid), UNIQUE(uuid));
-        """)
+            IF NOT EXISTS (
+                SELECT * FROM sys.tables t
+                JOIN sys.schemas s ON (t.schema_id = s.schema_id)
+                WHERE s.name = 'dbo' AND t.name = 'pantry_index'
+            )
+            CREATE TABLE dbo.pantry_index (
+                uuid varchar(64),
+                upload_time INT,
+                parent_uuids TEXT,
+                basket_type TEXT,
+                label TEXT,
+                weave_version TEXT,
+                address TEXT,
+                storage_type TEXT,
+                PRIMARY KEY(uuid),
+                UNIQUE(uuid)
+            );
+            """
+        )
 
         self.cur.execute("""
-            CREATE TABLE IF NOT EXISTS parent_uuids(
-                uuid TEXT, parent_uuid TEXT,
-                PRIMARY KEY(uuid, parent_uuid), UNIQUE(uuid, parent_uuid));
-        """)
+            IF NOT EXISTS (
+                SELECT * FROM sys.tables t
+                JOIN sys.schemas s ON (t.schema_id = s.schema_id)
+                WHERE s.name = 'dbo' AND t.name = 'parent_uuids'
+            )
+            CREATE TABLE dbo.parent_uuids (
+                uuid varchar(64),
+                parent_uuid varchar(64),
+                PRIMARY KEY(uuid, parent_uuid),
+                UNIQUE(uuid, parent_uuid)
+            );
+            """
+        )
         self.con.commit()
 
     @property
@@ -105,7 +129,7 @@ class IndexSQL(IndexABC):
         ----------
         **kwargs unused for this function.
         """
-        return {"db_path": self.db_path}
+        raise NotImplementedError("IMPLMENT THIS")
 
     def generate_index(self, **kwargs):
         """Populates the index from the file system.
@@ -167,16 +191,35 @@ class IndexSQL(IndexABC):
                     basket_dict['weave_version'] = "<0.13.0"
 
                 sql = (
-                    f"INSERT OR IGNORE INTO pantry_index({index_columns}) "
-                    f"VALUES({','.join(['?']*num_index_columns)}) "
+                    f"""
+                    INSERT INTO pantry_index({index_columns})
+                    SELECT {','.join(['?']*num_index_columns)}
+                    WHERE NOT EXISTS
+                        (SELECT 1 FROM pantry_index WHERE uuid = ?);
+                    """
                 )
 
-                self.cur.execute(sql, tuple(basket_dict.values()))
+                # Get the args as a single tuple value.
+                args = tuple(basket_dict.values()) + (basket_dict['uuid'],)
+                self.cur.execute(sql, args)
 
-                sql = """INSERT OR IGNORE INTO parent_uuids(
-                uuid, parent_uuid) VALUES(?,?)"""
+                # sql = """INSERT OR IGNORE INTO parent_uuids(
+                # uuid, parent_uuid) VALUES(?,?)"""
+                sql = (
+                    """
+                    INSERT INTO parent_uuids(uuid, parent_uuid)
+                    SELECT ?, ?
+                    WHERE NOT EXISTS 
+                        (SELECT 1 FROM parent_uuids
+                        WHERE uuid = ? AND parent_uuid = ?);
+                    """
+                )
                 for parent_uuid in parent_uuids:
-                    self.cur.execute(sql, (basket_dict['uuid'], parent_uuid))
+                    self.cur.execute(
+                        sql,
+                        (basket_dict['uuid'], parent_uuid,
+                         basket_dict['uuid'], parent_uuid),
+                    )
 
         if len(bad_baskets) != 0:
             warnings.warn('baskets found in the following locations '
@@ -200,15 +243,15 @@ class IndexSQL(IndexABC):
             Returns a dataframe of the manifest data of the baskets in the
             pantry.
         """
-        columns = (
-            [info[1] for info in
-             self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
-        )
-        ind_df = pd.DataFrame(
-            self.cur.execute("SELECT * FROM pantry_index LIMIT ?", (max_rows,))
-            .fetchall(),
-            columns=columns
-        )
+        # Get the rows from the index as a list of lists, then get the columns.
+        result = self.cur.execute(
+            "SELECT TOP (?) * FROM pantry_index",
+            (max_rows,)
+        ).fetchall()
+        result = [list(row) for row in result]
+        columns=[column[0] for column in self.cur.description]
+
+        ind_df = pd.DataFrame(result, columns=columns)
         ind_df["parent_uuids"] = ind_df["parent_uuids"].apply(ast.literal_eval)
         ind_df["upload_time"] = pd.to_datetime(
             ind_df["upload_time"],
@@ -231,8 +274,38 @@ class IndexSQL(IndexABC):
         entry_df["upload_time"] = (
             entry_df["upload_time"].astype(int) // 1e9
         ).astype(int)
-        entry_df.to_sql("pantry_index", self.con,
-                        if_exists="append", method="multi", index=False)
+
+        index_columns = get_index_column_names()
+        index_columns_str = ", ".join(index_columns)
+
+        for basket_dict in entry_df.to_dict(orient="records"):
+            sql = (
+                f"""
+                INSERT INTO pantry_index({index_columns_str})
+                SELECT {', '.join(['?']*len(index_columns))}
+                WHERE NOT EXISTS (SELECT 1 FROM pantry_index WHERE uuid = ?);
+                """
+            )
+
+            # Get the args as a single tuple value.
+            args = tuple(basket_dict.values()) + (basket_dict['uuid'],)
+            self.cur.execute(sql, args)
+
+            parent_uuids = basket_dict["parent_uuids"]
+            sql = (
+                """
+                INSERT INTO parent_uuids(uuid, parent_uuid)
+                SELECT ?, ?
+                WHERE NOT EXISTS (SELECT 1 FROM parent_uuids
+                WHERE uuid = ? AND parent_uuid = ?);
+                """
+            )
+            for parent_uuid in parent_uuids:
+                self.cur.execute(
+                    sql,
+                    (basket_dict['uuid'], parent_uuid,
+                     basket_dict['uuid'], parent_uuid),
+                )
 
     def untrack_basket(self, basket_address, **kwargs):
         """Remove a basket from being tracked of given UUID or path.
@@ -255,10 +328,12 @@ class IndexSQL(IndexABC):
             id_column = "uuid"
 
         query = (
-            f"DELETE FROM pantry_index WHERE {id_column} in "
-            f"({','.join(['?']*len(basket_address))})"
+            "DELETE FROM pantry_index WHERE " 
+            f"CONVERT(nvarchar(MAX), {id_column}) IN "
+            "(SELECT CONVERT(nvarchar(MAX), value) FROM STRING_SPLIT(?, ','))"
         )
-        self.cur.execute(query, basket_address)
+        self.cur.execute(query, ','.join(basket_address))
+
         if self.cur.rowcount != len(basket_address):
             warnings.warn(
                 UserWarning(
@@ -295,15 +370,14 @@ class IndexSQL(IndexABC):
             id_column = "uuid"
 
         query = (
-            f"SELECT * FROM pantry_index WHERE {id_column} in "
-            f"({','.join(['?']*len(basket_address))})"
+            "SELECT * FROM pantry_index "
+            f"WHERE CONVERT(nvarchar(MAX), {id_column}) IN "
+            "(SELECT CONVERT(nvarchar(MAX), value) FROM STRING_SPLIT(?, ','))"
         )
-        results = self.cur.execute(query, basket_address).fetchall()
+        results = self.cur.execute(query, ','.join(basket_address)).fetchall()
+        results = [list(row) for row in results]
+        columns = [column[0] for column in self.cur.description]
 
-        columns = (
-            [info[1] for info in
-             self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
-        )
         ind_df = pd.DataFrame(
             results,
             columns=columns
@@ -339,8 +413,10 @@ class IndexSQL(IndexABC):
             id_column = "address"
         else:
             id_column = "uuid"
+        
         basket_uuid = self.cur.execute(
-            f"SELECT uuid FROM pantry_index WHERE {id_column} = ?",
+            "SELECT uuid FROM pantry_index "
+            f"WHERE CONVERT(nvarchar(MAX), {id_column}) = ?",
             (basket_address,)
         ).fetchone()
 
@@ -350,37 +426,40 @@ class IndexSQL(IndexABC):
             )
         basket_uuid = basket_uuid[0]
 
-        columns = (
-            [info[1] for info in
-             self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
-        )
-        columns.append("generation_level")
-        columns.append("path")
-
-        parent_df = pd.DataFrame(self.cur.execute(
-            """WITH RECURSIVE
-                child_record(level, id, path) AS (
-                    VALUES(0, ?, ?)
-                    UNION
-                    SELECT child_record.level + 1, parent_uuids.parent_uuid,
-                        path || '/' || parent_uuids.parent_uuid
-                    FROM parent_uuids
-                    JOIN child_record ON parent_uuids.uuid = child_record.id
-                    WHERE path NOT LIKE parent_uuids.parent_uuid || '/%'
-                        AND path NOT LIKE '%' || parent_uuids.parent_uuid
-                        AND path
-                            NOT LIKE '%' || parent_uuids.parent_uuid || '/%'
-                        AND child_record.level < ?
-                )
+        results = self.cur.execute(
+            """
+            WITH child_record AS (
+                SELECT
+                    0 AS level,
+                    CAST(? AS nvarchar(max)) AS id,
+                    CAST(? AS nvarchar(max)) AS path
+                UNION ALL
+                SELECT
+                    child_record.level + 1,
+                    CAST(parent_uuids.parent_uuid AS nvarchar(max)) AS id,
+                    CAST(child_record.path + '/' + parent_uuids.parent_uuid
+                        AS nvarchar(max)) AS path
+                FROM parent_uuids
+                JOIN child_record ON parent_uuids.uuid = child_record.id
+                WHERE 
+                    CHARINDEX(
+                        parent_uuids.parent_uuid, child_record.path + '/'
+                    ) = 0
+                AND child_record.level < ?
+            )
             SELECT pantry_index.*, child_record.level, child_record.path
             FROM pantry_index
             JOIN child_record ON pantry_index.uuid = child_record.id
-            ORDER BY child_record.level ASC;""",
+            ORDER BY child_record.level ASC;
+            """,
             (basket_uuid, basket_uuid, max_gen_level)
-        ).fetchall(),
-            columns=columns,
-        )
+        ).fetchall()
 
+        results = [list(row) for row in results]
+        columns = [column[0] for column in self.cur.description]
+        columns[columns.index("level")] = "generation_level"
+
+        parent_df = pd.DataFrame(results, columns=columns)
         parent_df = parent_df.drop_duplicates()
         parent_df = parent_df[parent_df["uuid"] != basket_uuid]
 
@@ -429,8 +508,10 @@ class IndexSQL(IndexABC):
             id_column = "address"
         else:
             id_column = "uuid"
+        
         basket_uuid = self.cur.execute(
-            f"SELECT uuid FROM pantry_index WHERE {id_column} = ?",
+            "SELECT uuid FROM pantry_index "
+            f"WHERE CONVERT(nvarchar(MAX), {id_column}) = ?",
             (basket_address,)
         ).fetchone()
 
@@ -440,36 +521,37 @@ class IndexSQL(IndexABC):
             )
         basket_uuid = basket_uuid[0]
 
-        columns = (
-            [info[1] for info in
-             self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
-        )
-        columns.append("generation_level")
-        columns.append("path")
+        results = self.cur.execute(
+            """
+            WITH child_record AS (
+                SELECT
+                    0 AS level,
+                    CAST(? AS nvarchar(max)) AS id,
+                    CAST(? AS nvarchar(max)) AS path
+                UNION ALL
+                SELECT 
+                    child_record.level - 1,
+                    CAST(parent_uuids.uuid AS nvarchar(max)) AS id,
+                    CAST(child_record.path + '/' + parent_uuids.uuid AS 
+                        nvarchar(max)) AS path
+                FROM parent_uuids
+                JOIN child_record ON parent_uuids.parent_uuid = child_record.id
+                WHERE CHARINDEX(parent_uuids.uuid, child_record.path + '/') = 0
+                    AND child_record.level > ?
+            )
+            SELECT pantry_index.*, child_record.level, child_record.path
+            FROM pantry_index
+            JOIN child_record ON pantry_index.uuid = child_record.id
+            ORDER BY child_record.level DESC;
+            """,
+            (basket_uuid, basket_uuid, min_gen_level)
+        ).fetchall()
 
-        child_df = pd.DataFrame(self.cur.execute(
-                """WITH RECURSIVE
-                    child_record(level, id, path) AS (
-                        VALUES(0, ?, ?)
-                        UNION
-                        SELECT child_record.level - 1, parent_uuids.uuid,
-                            path || '/' || parent_uuids.uuid
-                        FROM parent_uuids
-                        JOIN child_record
-                            ON parent_uuids.parent_uuid = child_record.id
-                        WHERE path NOT LIKE parent_uuids.uuid || '/%'
-                            AND path NOT LIKE '%' || parent_uuids.uuid
-                            AND path NOT LIKE '%' || parent_uuids.uuid || '/%'
-                            AND child_record.level > ?
-                    )
-                SELECT pantry_index.*, child_record.level, child_record.path
-                FROM pantry_index
-                JOIN child_record ON pantry_index.uuid = child_record.id
-                ORDER BY child_record.level DESC""",
-                (basket_uuid, basket_uuid, min_gen_level)
-            ).fetchall(),
-            columns=columns,
-        )
+        results = [list(row) for row in results]
+        columns = [column[0] for column in self.cur.description]
+        columns[columns.index("level")] = "generation_level"
+
+        child_df = pd.DataFrame(results, columns=columns)
         child_df = child_df.drop_duplicates()
         child_df["parent_uuids"] = child_df["parent_uuids"].apply(
             ast.literal_eval
@@ -510,17 +592,15 @@ class IndexSQL(IndexABC):
         ----------
         pandas.DataFrame containing the manifest data of baskets of the type.
         """
-        columns = (
-            [info[1] for info in
-             self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
-        )
-        ind_df = pd.DataFrame(
-            self.cur.execute(
-                """SELECT * FROM pantry_index
-                WHERE basket_type = ? LIMIT ?""", (basket_type, max_rows)
-            ).fetchall(),
-            columns=columns,
-        )
+        result = self.cur.execute(
+            "SELECT TOP (?) * FROM pantry_index "
+            "WHERE CONVERT(nvarchar(MAX), basket_type) = ?",
+            (max_rows, basket_type),
+        ).fetchall()
+        result = [list(row) for row in result]
+        columns = [column[0] for column in self.cur.description]
+
+        ind_df = pd.DataFrame(result, columns=columns)
         ind_df["parent_uuids"] = ind_df["parent_uuids"].apply(ast.literal_eval)
         ind_df["upload_time"] = pd.to_datetime(
             ind_df["upload_time"],
@@ -545,17 +625,15 @@ class IndexSQL(IndexABC):
         ----------
         pandas.DataFrame containing the manifest data of baskets with the label
         """
-        columns = (
-            [info[1] for info in
-             self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
-        )
-        ind_df = pd.DataFrame(
-            self.cur.execute(
-                """SELECT * FROM pantry_index
-                WHERE label = ? LIMIT ?""", (basket_label, max_rows)
-            ).fetchall(),
-            columns=columns,
-        )
+        result = self.cur.execute(
+            "SELECT TOP (?) * FROM pantry_index "
+            "WHERE CONVERT(nvarchar(MAX), label) = ?",
+            (max_rows, basket_label),
+        ).fetchall()
+        result = [list(row) for row in result]
+        columns = [column[0] for column in self.cur.description]
+
+        ind_df = pd.DataFrame(result, columns=columns)
         ind_df["parent_uuids"] = ind_df["parent_uuids"].apply(ast.literal_eval)
         ind_df["upload_time"] = pd.to_datetime(
             ind_df["upload_time"],
@@ -590,43 +668,36 @@ class IndexSQL(IndexABC):
         if start_time is None and end_time is None:
             return self.to_pandas_df(max_rows=max_rows)
 
-        columns = (
-            [info[1] for info in
-             self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
-        )
-
         if start_time and end_time:
             start_time = int(datetime.timestamp(start_time))
             end_time = int(datetime.timestamp(end_time))
             results = self.cur.execute(
-                """SELECT * FROM pantry_index
+                """SELECT TOP (?) * FROM pantry_index
                 WHERE upload_time >= ? AND upload_time <= ?
-                LIMIT ?
-                """, (start_time, end_time, max_rows)).fetchall()
+                """, (max_rows, start_time, end_time)).fetchall()
         elif start_time:
             start_time = int(datetime.timestamp(start_time))
             results = self.cur.execute(
-                """SELECT * FROM pantry_index
-                WHERE upload_time >= ? LIMIT ?
-                """, (start_time, max_rows)).fetchall()
+                """SELECT TOP (?) * FROM pantry_index
+                WHERE upload_time >= ?
+                """, (max_rows, start_time)).fetchall()
         elif end_time:
             end_time = int(datetime.timestamp(end_time))
             results = self.cur.execute(
-                """SELECT * FROM pantry_index
-                WHERE upload_time <= ? LIMIT ?
-                """, (end_time, max_rows)).fetchall()
+                """SELECT TOP (?) * FROM pantry_index
+                WHERE upload_time <= ?
+                """, (max_rows, end_time)).fetchall()
+        
+        results = [list(row) for row in results]
+        columns = [column[0] for column in self.cur.description]
 
-        ind_df = pd.DataFrame(
-            results,
-            columns=columns
-        )
+        ind_df = pd.DataFrame(results, columns=columns)
         ind_df["parent_uuids"] = ind_df["parent_uuids"].apply(ast.literal_eval)
         ind_df["upload_time"] = pd.to_datetime(
             ind_df["upload_time"],
             unit="s",
             origin="unix",
         )
-
         return ind_df
 
     def query(self, expr, **kwargs):
@@ -646,14 +717,17 @@ class IndexSQL(IndexABC):
         pandas.DataFrame of the resulting query.
         """
         expr_args = kwargs.get("expr_args", ())
-        return pd.DataFrame(self.cur.execute(expr, expr_args).fetchall())
+        results = self.cur.execute(expr, expr_args).fetchall()
+        results = [list(row) for row in results]
+        columns = [column[0] for column in self.cur.description]
+        return pd.DataFrame(results, columns=columns)
 
     def __len__(self):
         """Returns the number of baskets in the index."""
         return (
-            self.cur.execute("SELECT COUNT () FROM pantry_index").fetchone()[0]
+            self.cur.execute("SELECT COUNT (*) FROM pantry_index").fetchone()[0]
         )
 
     def __str__(self):
-        """Returns the str instantiation type of this Index (ie 'SQLIndex')."""
+        """Returns the str instantiation type of this Index (ie 'IndexSQL')."""
         return self.__class__.__name__

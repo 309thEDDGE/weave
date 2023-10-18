@@ -136,3 +136,21 @@ class IndexForTest:
         # Remove SQLite db file.
         if os.path.exists(self.db_path):
             os.remove(self.db_path)
+
+        if self.index.__class__.__name__ == "IndexSQL":
+            # Drop the pantry_index (User Table) if it exists.
+            self.index.cur.execute("""
+                IF OBJECT_ID('pantry_index', 'U') IS NOT NULL
+                BEGIN
+                    DROP TABLE pantry_index;
+                END
+            """)
+
+            # Drop the parent_uuids (User Table) if it exists.
+            self.index.cur.execute("""
+                IF OBJECT_ID('parent_uuids', 'U') IS NOT NULL
+                BEGIN
+                    DROP TABLE parent_uuids;
+                END
+            """)
+            self.index.con.commit()
