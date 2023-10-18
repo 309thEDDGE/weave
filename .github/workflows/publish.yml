@@ -6,8 +6,6 @@ on:
       - Opal-270
 
 jobs:
-  tests:
-    uses: ./.github/workflows/pytest_and_ruff.yml
   build:
     name: Build Distribution
     runs-on: ubuntu-latest
@@ -41,7 +39,7 @@ jobs:
       runs-on: ubuntu-latest
       environment:
         name: testpypi
-        url: https://test.pypi.org/project/weave-db
+        url: https://test.pypi.org/p/weave-db
       permissions:
         id-token: write
       steps:
