@@ -1,5 +1,5 @@
 import os
-from setuptools import find_packages, setup
+from setuptools import setup
 
 def read(rel_path: str) -> str:
     here = os.path.abspath(os.path.dirname(__file__))
