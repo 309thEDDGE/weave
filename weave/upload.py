@@ -375,7 +375,7 @@ class UploadBasket:
         basket_json["parent_uuids"] = self.kwargs.get("parent_ids", [])
         basket_json["basket_type"] = self.kwargs.get("basket_type")
         basket_json["label"] = self.kwargs.get("label","")
-        basket_json["weave_version"] = metadata.version("weave")
+        basket_json["weave_version"] = metadata.version("weave-db")
 
         with open(basket_json_path, "w", encoding="utf-8") as outfile:
             json.dump(basket_json, outfile)
