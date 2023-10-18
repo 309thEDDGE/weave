@@ -202,9 +202,9 @@ Weave supports a Pandas and SQLlite implementation for the index backend.
 Example code to create this index:
 ```python
 from weave.pantry import Pantry
-from weave.index.index_pandas import PandasIndex
+from weave.index.index_pandas import IndexPandas
 pantry = Pantry(
-    PandasIndex,
+    IndexPandas,
     pantry_path,
     file_system=file_system,
 )
