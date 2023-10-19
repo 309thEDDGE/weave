@@ -17,12 +17,28 @@ def get_version(rel_path: str) -> str:
     raise RuntimeError("Unable to find version string.")
 
 
+with open("README.md", "r") as f:
+    long_description = f.read()
+
 setup(
-    name="weave",
+    name="weave-db",
     version=get_version("weave/__init__.py"),
+    description="Library to facilitate the creation and maintenance of " +
+                "complex data warehouses.",
     packages=["weave", "weave/tests", "weave/index"],
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://github.com/309thEDDGE/weave",
+    author="309thEDDGE",
+    license="GNU General Public",
+    classifiers=[
+        "License :: OSI Approved :: GNU General Public License (GPL)",
+        "Programming Language :: Python :: 3.10",
+        "Operating System :: OS Independent",
+    ],
     install_requires=["pandas", "s3fs", "fsspec", "jsonschema"],
     extras_require={
-        "extras": ["pymongo"],
-    }
+        "extras": ["pymongo", "pyodbc"],
+    },
+    python_requires=">=3.10",
 )

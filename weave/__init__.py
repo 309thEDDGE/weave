@@ -27,6 +27,7 @@ from .metadata_db import load_mongo
 
 __version__ = "1.1.2"
 
+
 __all__ = [
     "Basket",
     "IndexPandas",
