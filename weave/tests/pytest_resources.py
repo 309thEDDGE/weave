@@ -149,9 +149,10 @@ class IndexForTest:
 
     def cleanup_index(self):
         """Clean up any artifacts created by index implementations."""
-        # Remove SQLite db file.
-        if os.path.exists(self.db_path):
-            os.remove(self.db_path)
+        if self.index.__class__.__name__ == "IndexSQLite":
+            # Remove SQLite db file.
+            if os.path.exists(self.db_path):
+                os.remove(self.db_path)
 
         if self.index.__class__.__name__ == "IndexSQL":
             # Drop the pantry_index (User Table) if it exists.

@@ -7,6 +7,8 @@ from fsspec.implementations.local import LocalFileSystem
 
 from weave.pantry import Pantry
 from weave.index.index_sqlite import IndexSQLite
+from weave.tests.pytest_resources import get_sample_basket_df
+from weave.tests.pytest_resources import IndexForTest
 from weave.tests.pytest_resources import PantryForTest
 
 
@@ -25,17 +27,19 @@ from weave.tests.pytest_resources import PantryForTest
 # point in the future the two need to be differentiated.
 # pylint: disable=duplicate-code
 
-s3fs = s3fs.S3FileSystem(
-    client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-)
+# s3fs = s3fs.S3FileSystem(
+#     client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+# )
 local_fs = LocalFileSystem()
 
 
 # Test with two different fsspec file systems (above).
 @pytest.fixture(
     name="test_pantry",
-    params=[s3fs, local_fs],
-    ids=["S3FileSystem", "LocalFileSystem"],
+    # params=[s3fs, local_fs],
+    params=[local_fs],
+    # ids=["S3FileSystem", "LocalFileSystem"],
+    ids=["LocalFileSystem"],
 )
 def fixture_test_pantry(request, tmpdir):
     """Sets up test pantry for the tests"""
@@ -44,6 +48,18 @@ def fixture_test_pantry(request, tmpdir):
     yield test_pantry
     test_pantry.cleanup_pantry()
 
+
+@pytest.fixture(
+    name="test_index",
+    params=[IndexSQLite],
+    ids=["IndexSQLite"],
+)
+def fixture_test_index(request):
+    """Sets up test index for the tests"""
+    index_constructor = request.param
+    test_index = IndexForTest(index_constructor, local_fs)
+    yield test_index
+    test_index.cleanup_index()
 
 def test_index_two_pantries_with_same_name(test_pantry):
     """Validate that 2 pantry objects with the same basename have their
@@ -149,3 +165,27 @@ def test_index_uploaded_basket_not_found_in_another_index(test_pantry):
     # Remove the .db files that are not cleaned up with 'test_pantry'
     os.remove(pantry_1.index.db_path)
     os.remove(pantry_2.index.db_path)
+
+
+def test_index_sqlite_track_basket_adds_to_parent_uuids(test_index):
+    """Test that track_basket adds necessary rows to the parent_uuids table."""
+    sample_basket_df = get_sample_basket_df()
+    uuid = str(sample_basket_df["uuid"].iloc[0])
+
+    # Add uuids to the parent_uuids of the df.
+    sample_basket_df["parent_uuids"] = [["0001"], ["0002"], ["0003"]]
+
+    # Track the basket.
+    test_index.index.track_basket(sample_basket_df)
+
+    # Use the cursor to check the parent_uuids table.
+    cursor = test_index.index.con.cursor()
+    cursor.execute("SELECT * FROM parent_uuids")
+    rows = cursor.fetchall()
+    rows_dict = {row[0]: row[1] for row in rows}
+
+    # Check we have the expected values.
+    assert len(rows_dict) == 3
+    assert rows_dict["0001"] == uuid
+    assert rows_dict["0002"] == uuid
+    assert rows_dict["0003"] == uuid

@@ -198,12 +198,18 @@ class IndexSQLite(IndexABC):
 
         **kwargs unused for this function.
         """
+        parent_uuids = entry_df["parent_uuids"]
         entry_df["parent_uuids"] = entry_df["parent_uuids"].astype(str)
         entry_df["upload_time"] = (
             entry_df["upload_time"].astype(int) // 1e9
         ).astype(int)
         entry_df.to_sql("pantry_index", self.con,
                         if_exists="append", method="multi", index=False)
+        sql = """INSERT OR IGNORE INTO parent_uuids(
+                uuid, parent_uuid) VALUES(?,?)"""
+        for parent_uuid in parent_uuids:
+            self.cur.execute(sql, (entry_df['uuid'], parent_uuid))
+        self.con.commit()
 
     def untrack_basket(self, basket_address, **kwargs):
         """Remove a basket from being tracked of given UUID or path.
@@ -431,7 +437,7 @@ class IndexSQLite(IndexABC):
                         WHERE path NOT LIKE parent_uuids.uuid || '/%'
                             AND path NOT LIKE '%' || parent_uuids.uuid
                             AND path NOT LIKE '%' || parent_uuids.uuid || '/%'
-                            AND child_record.level > ?
+                        AND child_record.level > ?
                     )
                 SELECT pantry_index.*, child_record.level, child_record.path
                 FROM pantry_index
