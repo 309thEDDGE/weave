@@ -32,23 +32,27 @@ class IndexSQL(IndexABC):
             The fsspec object which hosts the pantry we desire to index.
         pantry_path: str
             Path to the pantry root which we want to index.
-        **database_name: str (optional)
-            DB to be used. If none is set, defaults to the pantry_path.
+        **database_name: str (default='weave_db')
+            DB to be used. If none is set, defaults to 'weave_db'.
         **encrypt: bool (default=False)
             Whether or not to encrypt the database (disabled by default, due
             to the fact that it requires additional configuration).
         **odbc_driver: str (default='{ODBC Driver 18 for SQL Server}')
             Driver to be used for the connection. Usually similar to:
             '{ODBC Driver <18, 17, 13...> for SQL Server}'.
+        **pantry_schema: str (default=<pantry_path>)
+            The schema to use for the pantry. If none is set, defaults to the
+            pantry path (with _ replacements when necessary).
         """
         if not _HAS_PYODBC:
             raise ImportError("Missing Dependency. The package 'pyodbc' "
                               "is required to use this class")
 
+        # Check that the required environment variables are set.
         try:
-            MSSQL_HOST = os.environ["MSSQL_HOST"]
-            MSSQL_USERNAME = os.environ["MSSQL_USERNAME"]
-            MSSQL_PASSWORD = os.environ["MSSQL_PASSWORD"]
+            os.environ["MSSQL_HOST"]
+            os.environ["MSSQL_USERNAME"]
+            os.environ["MSSQL_PASSWORD"]
         except KeyError as key_error:
             raise KeyError("The following environment variables must be set "
                            "to use this class: MSSQL_HOST, MSSQL_USERNAME, "
@@ -57,51 +61,106 @@ class IndexSQL(IndexABC):
         self._file_system = file_system
         self._pantry_path = pantry_path
 
-        tmp_db_name = self._pantry_path.replace(os.sep, "_").replace("-", "_")
-        self.database_name = kwargs.get("database_name", tmp_db_name)
+        self._database_name = kwargs.get("database_name", "weave_db")
+        d_schema_name = self._pantry_path.replace(os.sep, "_").replace("-", "_")
+        self._pantry_schema = kwargs.get("pantry_schema", d_schema_name)
 
+        # Make a connection to tempdb, then create the desired database if it
+        # does not exist. Then connect to the desired database, and create the
+        # tables if they do not exist.
+        self._connect(database_name="tempdb", **kwargs)
+        self._select_db(database_name=self._database_name)
+        self._create_schema()
+        self._create_tables()
+
+    # Create read-only properties for the database and schema names.
+    @property
+    def database_name(self):
+        """The database name of the index."""
+        return self._database_name
+    
+    @property
+    def pantry_schema(self):
+        """The schema name of the index."""
+        return self._pantry_schema
+    
+    def __del__(self):
+        """Close the connection to the database."""
+        self.con.close()    
+
+    def _connect(self, database_name="weave_db", **kwargs):
+        """Connect to the server, and select the specified DB.
+
+        Parameters
+        ----------
+        database_name: str (default='weave_db')
+            The database to connect to.
+        **driver: str (default='{ODBC Driver 18 for SQL Server}')
+            Driver to be used for the connection. Usually similar to:
+            '{ODBC Driver <18, 17, 13...> for SQL Server}'.
+        **encrypt: bool (default=False)
+            Whether or not to encrypt the database (disabled by default, due
+            to the fact that it requires additional configuration).
+        """
         driver = kwargs.get("odbc_driver", "{ODBC Driver 18 for SQL Server}")
         encrypt = kwargs.get("encrypt", False)
 
-        # Create a temporary connection to the tempdb database
-        # then create or connect to the pantry database.
         self.con = pyodbc.connect(
             f"DRIVER={driver};"
-            f"SERVER={MSSQL_HOST};"
-            f"DATABASE=tempdb;"
-            f"UID={MSSQL_USERNAME};"
-            f"PWD={MSSQL_PASSWORD};"
+            f"SERVER={os.environ['MSSQL_HOST']};"
+            f"DATABASE={database_name};"
+            f"UID={os.environ['MSSQL_USERNAME']};"
+            f"PWD={os.environ['MSSQL_PASSWORD']};"
             f"Encrypt={'yes' if encrypt else 'no'};"
         )
         self.cur = self.con.cursor()
 
-        # Query to see if the pantry database exists.
+    def _select_db(self, database_name="weave_db"):
+        """Select the database to use, or create it if it does not exist. 
+
+        Parameters
+        ----------
+        database_name: str (default='weave_db')
+            The database to connect to.
+        """
+        # Query to see if the database exists.
         self.cur.execute(
-            "SELECT * FROM sys.databases WHERE name = ?", (self.database_name,)
+            "SELECT * FROM sys.databases WHERE name = ?", (database_name,)
         )
-        # If the pantry database does not exist, create it.
+        # If the database does not exist, create it.
         if not self.cur.fetchone():
             self.con.autocommit = True
-            self.cur.execute(f"CREATE DATABASE {self.database_name};")
-            self.cur.execute(f"USE {self.database_name};")
+            self.cur.execute(f"CREATE DATABASE {database_name};")
+            self.cur.execute(f"USE {database_name};")
             self.con.autocommit = False
         else:
-            self.cur.execute(f"USE {self.database_name};")
-        
-        self._create_tables()
+            self.cur.execute(f"USE {database_name};")
+
+    def _create_schema(self):
+        """Create the schema if it does not already exist."""
+        # Check if self.pantry_schema exists.
+        self.cur.execute(
+            "SELECT * FROM sys.schemas WHERE name = ?", (self.pantry_schema,)
+        )
+        # If it does not exist, create it.
+        if not self.cur.fetchone():
+            self.cur.execute(f"CREATE SCHEMA {self.pantry_schema};")
+            self.con.commit()
 
     def _create_tables(self):
-        """Create the required DB tables if they do not already exist."""
+        """Create the required tables if they do not already exist."""
         # THIS NEEDS TO BE UPDATED MANUALLY IF NEW COLUMNS ARE ADDED TO INDEX.
         # THE INSERT IN OTHER FUNCTIONS USE config.index_schema(), BUT THAT
         # CAN'T BE USED HERE AS TYPE NEEDS TO BE SPECIFIED.
-        self.cur.execute("""
+        self.cur.execute(
+            f"""
             IF NOT EXISTS (
                 SELECT * FROM sys.tables t
                 JOIN sys.schemas s ON (t.schema_id = s.schema_id)
-                WHERE s.name = 'dbo' AND t.name = 'pantry_index'
+                WHERE s.name = '{self.pantry_schema}'
+                AND t.name = 'pantry_index'
             )
-            CREATE TABLE dbo.pantry_index (
+            CREATE TABLE {self.pantry_schema}.pantry_index (
                 uuid varchar(64),
                 upload_time INT,
                 parent_uuids TEXT,
@@ -116,13 +175,15 @@ class IndexSQL(IndexABC):
             """
         )
 
-        self.cur.execute("""
+        self.cur.execute(
+            f"""
             IF NOT EXISTS (
                 SELECT * FROM sys.tables t
                 JOIN sys.schemas s ON (t.schema_id = s.schema_id)
-                WHERE s.name = 'dbo' AND t.name = 'parent_uuids'
+                WHERE s.name = '{self.pantry_schema}'
+                AND t.name = 'parent_uuids'
             )
-            CREATE TABLE dbo.parent_uuids (
+            CREATE TABLE {self.pantry_schema}.parent_uuids (
                 uuid varchar(64),
                 parent_uuid varchar(64),
                 PRIMARY KEY(uuid, parent_uuid),
@@ -149,7 +210,11 @@ class IndexSQL(IndexABC):
         ----------
         **kwargs unused for this function.
         """
-        raise NotImplementedError("IMPLMENT THIS")
+        return {
+            "database_host": os.environ["MSSQL_HOST"],
+            "database_name": self.database_name,
+            "database_schema": self.pantry_schema,
+        }
 
     def generate_index(self, **kwargs):
         """Populates the index from the file system.
@@ -207,15 +272,18 @@ class IndexSQL(IndexABC):
                 parent_uuids = basket_dict["parent_uuids"]
                 basket_dict["parent_uuids"] = str(basket_dict["parent_uuids"])
 
-                if 'weave_version' not in basket_dict.keys():
-                    basket_dict['weave_version'] = "<0.13.0"
+                if "weave_version" not in basket_dict.keys():
+                    basket_dict["weave_version"] = "<0.13.0"
 
                 sql = (
                     f"""
-                    INSERT INTO pantry_index({index_columns})
+                    INSERT INTO {self.pantry_schema}.pantry_index(
+                        {index_columns}
+                    )
                     SELECT {','.join(['?']*num_index_columns)}
                     WHERE NOT EXISTS
-                        (SELECT 1 FROM pantry_index WHERE uuid = ?);
+                        (SELECT 1 FROM {self.pantry_schema}.pantry_index
+                        WHERE uuid = ?);
                     """
                 )
 
@@ -223,14 +291,14 @@ class IndexSQL(IndexABC):
                 args = tuple(basket_dict.values()) + (basket_dict['uuid'],)
                 self.cur.execute(sql, args)
 
-                # sql = """INSERT OR IGNORE INTO parent_uuids(
-                # uuid, parent_uuid) VALUES(?,?)"""
                 sql = (
-                    """
-                    INSERT INTO parent_uuids(uuid, parent_uuid)
+                    f"""
+                    INSERT INTO {self.pantry_schema}.parent_uuids(
+                        uuid, parent_uuid
+                    )
                     SELECT ?, ?
                     WHERE NOT EXISTS 
-                        (SELECT 1 FROM parent_uuids
+                        (SELECT 1 FROM {self.pantry_schema}.parent_uuids
                         WHERE uuid = ? AND parent_uuid = ?);
                     """
                 )
@@ -242,9 +310,9 @@ class IndexSQL(IndexABC):
                     )
 
         if len(bad_baskets) != 0:
-            warnings.warn('baskets found in the following locations '
-                          'do not follow specified weave schema:\n'
-                          f'{bad_baskets}')
+            warnings.warn("baskets found in the following locations "
+                          "do not follow specified weave schema:\n"
+                          f"{bad_baskets}")
 
         self.con.commit()
 
@@ -265,7 +333,7 @@ class IndexSQL(IndexABC):
         """
         # Get the rows from the index as a list of lists, then get the columns.
         result = self.cur.execute(
-            "SELECT TOP (?) * FROM pantry_index",
+            f"SELECT TOP (?) * FROM {self.pantry_schema}.pantry_index",
             (max_rows,)
         ).fetchall()
         result = [list(row) for row in result]
@@ -301,9 +369,13 @@ class IndexSQL(IndexABC):
         for basket_dict in entry_df.to_dict(orient="records"):
             sql = (
                 f"""
-                INSERT INTO pantry_index({index_columns_str})
+                INSERT INTO {self.pantry_schema}.pantry_index(
+                    {index_columns_str}
+                )
                 SELECT {', '.join(['?']*len(index_columns))}
-                WHERE NOT EXISTS (SELECT 1 FROM pantry_index WHERE uuid = ?);
+                WHERE NOT EXISTS 
+                    (SELECT 1 FROM {self.pantry_schema}.pantry_index
+                    WHERE uuid = ?);
                 """
             )
 
@@ -313,11 +385,12 @@ class IndexSQL(IndexABC):
 
             parent_uuids = basket_dict["parent_uuids"]
             sql = (
-                """
-                INSERT INTO parent_uuids(uuid, parent_uuid)
+                f"""
+                INSERT INTO {self.pantry_schema}.parent_uuids(uuid, parent_uuid)
                 SELECT ?, ?
-                WHERE NOT EXISTS (SELECT 1 FROM parent_uuids
-                WHERE uuid = ? AND parent_uuid = ?);
+                WHERE NOT EXISTS
+                    (SELECT 1 FROM {self.pantry_schema}.parent_uuids
+                    WHERE uuid = ? AND parent_uuid = ?);
                 """
             )
             for parent_uuid in parent_uuids:
@@ -348,7 +421,7 @@ class IndexSQL(IndexABC):
             id_column = "uuid"
 
         query = (
-            "DELETE FROM pantry_index WHERE " 
+            f"DELETE FROM {self.pantry_schema}.pantry_index WHERE " 
             f"CONVERT(nvarchar(MAX), {id_column}) IN "
             "(SELECT CONVERT(nvarchar(MAX), value) FROM STRING_SPLIT(?, ','))"
         )
@@ -390,7 +463,7 @@ class IndexSQL(IndexABC):
             id_column = "uuid"
 
         query = (
-            "SELECT * FROM pantry_index "
+            f"SELECT * FROM {self.pantry_schema}.pantry_index "
             f"WHERE CONVERT(nvarchar(MAX), {id_column}) IN "
             "(SELECT CONVERT(nvarchar(MAX), value) FROM STRING_SPLIT(?, ','))"
         )
@@ -435,7 +508,7 @@ class IndexSQL(IndexABC):
             id_column = "uuid"
         
         basket_uuid = self.cur.execute(
-            "SELECT uuid FROM pantry_index "
+            f"SELECT uuid FROM {self.pantry_schema}.pantry_index "
             f"WHERE CONVERT(nvarchar(MAX), {id_column}) = ?",
             (basket_address,)
         ).fetchone()
@@ -447,7 +520,7 @@ class IndexSQL(IndexABC):
         basket_uuid = basket_uuid[0]
 
         results = self.cur.execute(
-            """
+            f"""
             WITH child_record AS (
                 SELECT
                     0 AS level,
@@ -459,7 +532,7 @@ class IndexSQL(IndexABC):
                     CAST(parent_uuids.parent_uuid AS nvarchar(max)) AS id,
                     CAST(child_record.path + '/' + parent_uuids.parent_uuid
                         AS nvarchar(max)) AS path
-                FROM parent_uuids
+                FROM {self.pantry_schema}.parent_uuids
                 JOIN child_record ON parent_uuids.uuid = child_record.id
                 WHERE 
                     CHARINDEX(
@@ -468,9 +541,9 @@ class IndexSQL(IndexABC):
                 AND child_record.level < ?
             )
             SELECT pantry_index.*, child_record.level, child_record.path
-            FROM pantry_index
+            FROM {self.pantry_schema}.pantry_index as pantry_index
             JOIN child_record ON pantry_index.uuid = child_record.id
-            ORDER BY child_record.level ASC;
+            ORDER BY child_record.level ASC OPTION (MAXRECURSION 0);
             """,
             (basket_uuid, basket_uuid, max_gen_level)
         ).fetchall()
@@ -530,7 +603,7 @@ class IndexSQL(IndexABC):
             id_column = "uuid"
         
         basket_uuid = self.cur.execute(
-            "SELECT uuid FROM pantry_index "
+            f"SELECT uuid FROM {self.pantry_schema}.pantry_index "
             f"WHERE CONVERT(nvarchar(MAX), {id_column}) = ?",
             (basket_address,)
         ).fetchone()
@@ -542,7 +615,7 @@ class IndexSQL(IndexABC):
         basket_uuid = basket_uuid[0]
 
         results = self.cur.execute(
-            """
+            f"""
             WITH child_record AS (
                 SELECT
                     0 AS level,
@@ -554,15 +627,15 @@ class IndexSQL(IndexABC):
                     CAST(parent_uuids.uuid AS nvarchar(max)) AS id,
                     CAST(child_record.path + '/' + parent_uuids.uuid AS 
                         nvarchar(max)) AS path
-                FROM parent_uuids
+                FROM {self.pantry_schema}.parent_uuids
                 JOIN child_record ON parent_uuids.parent_uuid = child_record.id
                 WHERE CHARINDEX(parent_uuids.uuid, child_record.path + '/') = 0
                     AND child_record.level > ?
             )
             SELECT pantry_index.*, child_record.level, child_record.path
-            FROM pantry_index
+            FROM {self.pantry_schema}.pantry_index as pantry_index
             JOIN child_record ON pantry_index.uuid = child_record.id
-            ORDER BY child_record.level DESC;
+            ORDER BY child_record.level DESC OPTION (MAXRECURSION 0);
             """,
             (basket_uuid, basket_uuid, min_gen_level)
         ).fetchall()
@@ -613,7 +686,7 @@ class IndexSQL(IndexABC):
         pandas.DataFrame containing the manifest data of baskets of the type.
         """
         result = self.cur.execute(
-            "SELECT TOP (?) * FROM pantry_index "
+            f"SELECT TOP (?) * FROM {self.pantry_schema}.pantry_index "
             "WHERE CONVERT(nvarchar(MAX), basket_type) = ?",
             (max_rows, basket_type),
         ).fetchall()
@@ -646,7 +719,7 @@ class IndexSQL(IndexABC):
         pandas.DataFrame containing the manifest data of baskets with the label
         """
         result = self.cur.execute(
-            "SELECT TOP (?) * FROM pantry_index "
+            f"SELECT TOP (?) * FROM {self.pantry_schema}.pantry_index "
             "WHERE CONVERT(nvarchar(MAX), label) = ?",
             (max_rows, basket_label),
         ).fetchall()
@@ -692,19 +765,19 @@ class IndexSQL(IndexABC):
             start_time = int(datetime.timestamp(start_time))
             end_time = int(datetime.timestamp(end_time))
             results = self.cur.execute(
-                """SELECT TOP (?) * FROM pantry_index
+                f"""SELECT TOP (?) * FROM {self.pantry_schema}.pantry_index
                 WHERE upload_time >= ? AND upload_time <= ?
                 """, (max_rows, start_time, end_time)).fetchall()
         elif start_time:
             start_time = int(datetime.timestamp(start_time))
             results = self.cur.execute(
-                """SELECT TOP (?) * FROM pantry_index
+                f"""SELECT TOP (?) * FROM {self.pantry_schema}.pantry_index
                 WHERE upload_time >= ?
                 """, (max_rows, start_time)).fetchall()
         elif end_time:
             end_time = int(datetime.timestamp(end_time))
             results = self.cur.execute(
-                """SELECT TOP (?) * FROM pantry_index
+                f"""SELECT TOP (?) * FROM {self.pantry_schema}.pantry_index
                 WHERE upload_time <= ?
                 """, (max_rows, end_time)).fetchall()
         
@@ -745,7 +818,9 @@ class IndexSQL(IndexABC):
     def __len__(self):
         """Returns the number of baskets in the index."""
         return (
-            self.cur.execute("SELECT COUNT (*) FROM pantry_index").fetchone()[0]
+            self.cur.execute(
+                f"SELECT COUNT (*) FROM {self.pantry_schema}.pantry_index"
+            ).fetchone()[0]
         )
 
     def __str__(self):

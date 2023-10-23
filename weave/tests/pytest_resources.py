@@ -2,8 +2,24 @@
 
 import json
 import os
+import io
+
+import pandas as pd
 
 from weave.upload import UploadBasket
+
+
+def get_sample_basket_df():
+    """Return a sample basket dataframe. THIS SHOULD ONLY BE USED AS A REFERENCE
+    FOR THE STRUCTURE OF THE DATAFRAME (ie column names, data types, etc.)"""
+    df = pd.read_csv(io.StringIO(
+        "uuid,upload_time,parent_uuids,basket_type,label,weave_version,address,"
+        "storage_type\n"
+        "1000,2023-10-23 16:52:43.992310+00:00,[],test_basket,test_label,1.2.0,"
+        "pytest-temp-pantry/test_basket/1000,LocalFileSystem")
+    )
+    df["upload_time"] = pd.to_datetime(df["upload_time"])
+    return df
 
 
 def file_path_in_list(search_path, search_list):
@@ -139,18 +155,32 @@ class IndexForTest:
 
         if self.index.__class__.__name__ == "IndexSQL":
             # Drop the pantry_index (User Table) if it exists.
-            self.index.cur.execute("""
-                IF OBJECT_ID('pantry_index', 'U') IS NOT NULL
+            self.index.cur.execute(f"""
+                IF OBJECT_ID('{self.index.pantry_schema}.pantry_index', 'U')
+                IS NOT NULL
                 BEGIN
-                    DROP TABLE pantry_index;
+                    DROP TABLE {self.index.pantry_schema}.pantry_index;
                 END
             """)
 
             # Drop the parent_uuids (User Table) if it exists.
-            self.index.cur.execute("""
-                IF OBJECT_ID('parent_uuids', 'U') IS NOT NULL
+            self.index.cur.execute(f"""
+                IF OBJECT_ID('{self.index.pantry_schema}.parent_uuids', 'U')
+                IS NOT NULL
                 BEGIN
-                    DROP TABLE parent_uuids;
+                    DROP TABLE {self.index.pantry_schema}.parent_uuids;
+                END
+            """)
+
+            # Drop the pantry_schema (Schema) if it exists.
+            self.index.cur.execute(f"""
+                IF EXISTS (
+                    SELECT schema_name
+                    FROM information_schema.schemata
+                    WHERE schema_name = '{self.index.pantry_schema}'
+                )
+                BEGIN
+                    DROP SCHEMA {self.index.pantry_schema};
                 END
             """)
             self.index.con.commit()

@@ -61,9 +61,9 @@ def test_weave_pytest_suffix(set_up_tb_no_cleanup):
 # Skip tests if pyodbc is not installed.
 @pytest.mark.skipif(
     "pyodbc" not in sys.modules or not _HAS_PYODBC
-    or not os.environ["MSSQL_PASSWORD"],
+    or not os.environ["MSSQL_PASSWORD"] or not os.environ["MSSQL_HOST"],
     reason="Module 'pyodbc' required for this test "
-    "AND env var 'MSSQL_PASSWORD'",
+    "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
 )
 def test_github_cicd_sql_server():
     """Test that the MS SQL Server is properly setup in CICD."""
@@ -72,7 +72,7 @@ def test_github_cicd_sql_server():
     # Default System Administrator username is "sa"
     username = "sa"
     mssql_password = os.environ["MSSQL_PASSWORD"]
-    server = "127.0.0.1"
+    server = os.environ["MSSQL_HOST"]
     database = "tempdb"
 
     con = pyodbc.connect(
