@@ -506,7 +506,7 @@ class IndexSQL(IndexABC):
             id_column = "address"
         else:
             id_column = "uuid"
-        
+
         basket_uuid = self.cur.execute(
             f"SELECT uuid FROM {self.pantry_schema}.pantry_index "
             f"WHERE CONVERT(nvarchar(MAX), {id_column}) = ?",
@@ -535,9 +535,10 @@ class IndexSQL(IndexABC):
                 FROM {self.pantry_schema}.parent_uuids
                 JOIN child_record ON parent_uuids.uuid = child_record.id
                 WHERE 
-                    CHARINDEX(
-                        parent_uuids.parent_uuid, child_record.path + '/'
-                    ) = 0
+                    path NOT LIKE CONCAT(parent_uuids.parent_uuid, '/%')
+                    AND path NOT LIKE CONCAT('%', parent_uuids.parent_uuid)
+                    AND path NOT LIKE
+                        CONCAT('%', parent_uuids.parent_uuid, '/%')
                 AND child_record.level < ?
             )
             SELECT pantry_index.*, child_record.level, child_record.path
@@ -601,7 +602,7 @@ class IndexSQL(IndexABC):
             id_column = "address"
         else:
             id_column = "uuid"
-        
+
         basket_uuid = self.cur.execute(
             f"SELECT uuid FROM {self.pantry_schema}.pantry_index "
             f"WHERE CONVERT(nvarchar(MAX), {id_column}) = ?",
@@ -625,12 +626,15 @@ class IndexSQL(IndexABC):
                 SELECT 
                     child_record.level - 1,
                     CAST(parent_uuids.uuid AS nvarchar(max)) AS id,
-                    CAST(child_record.path + '/' + parent_uuids.uuid AS 
-                        nvarchar(max)) AS path
+                    CAST(child_record.path + '/' + parent_uuids.uuid
+                        AS nvarchar(max)) AS path
                 FROM {self.pantry_schema}.parent_uuids
                 JOIN child_record ON parent_uuids.parent_uuid = child_record.id
-                WHERE CHARINDEX(parent_uuids.uuid, child_record.path + '/') = 0
-                    AND child_record.level > ?
+                WHERE 
+                    path NOT LIKE CONCAT(parent_uuids.uuid, '/%')
+                    AND path NOT LIKE CONCAT('%', parent_uuids.uuid)
+                    AND path NOT LIKE CONCAT('%', parent_uuids.uuid, '/%')
+                AND child_record.level > ?
             )
             SELECT pantry_index.*, child_record.level, child_record.path
             FROM {self.pantry_schema}.pantry_index as pantry_index
