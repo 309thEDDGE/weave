@@ -53,7 +53,7 @@ file_systems = [s3fs, local_fs]
 indexes = [IndexPandas, IndexSQLite]
 indexes_ids = ["Pandas", "SQLite"]
 
-# Only add SQL Index if the environment variables are set and pyodbc is present.
+# Only add IndexSQL if the environment variables are set and pyodbc is present.
 if "MSSQL_HOST" in os.environ and "pyodbc" in sys.modules:
     indexes.append(IndexSQL)
     indexes_ids.append("SQL")

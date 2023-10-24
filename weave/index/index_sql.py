@@ -20,6 +20,9 @@ from .index_abc import IndexABC
 from .list_baskets import _get_list_of_basket_jsons
 from .validate_basket import validate_basket_dict
 
+# Pylint doesn't like the similarity between this file and the SQLite file, but
+# it doesn't make sense to write shared functions for them. So ignore pylint.
+# pylint: disable=duplicate-code
 
 class IndexSQL(IndexABC):
     """Concrete implementation of Index, using SQL."""
@@ -50,19 +53,26 @@ class IndexSQL(IndexABC):
 
         # Check that the required environment variables are set.
         try:
+            # We want to fail early if these are not set, so we check them here
+            # even though they are not used until we connect.
+            # Pylint thinks this is pointless, so pylint is getting ignored.
+            # pylint: disable=pointless-statement
             os.environ["MSSQL_HOST"]
             os.environ["MSSQL_USERNAME"]
             os.environ["MSSQL_PASSWORD"]
+            # pylint: enable=pointless-statement
         except KeyError as key_error:
             raise KeyError("The following environment variables must be set "
                            "to use this class: MSSQL_HOST, MSSQL_USERNAME, "
-                           "MSSQL_PASSWORD.")
+                           "MSSQL_PASSWORD.") from key_error
 
         self._file_system = file_system
         self._pantry_path = pantry_path
 
-        self._database_name = kwargs.get("database_name", "weave_db")
-        d_schema_name = self._pantry_path.replace(os.sep, "_").replace("-", "_")
+        self._database_name = kwargs.get("database_name", "weave_db")\
+            .replace("-", "_")
+        d_schema_name = self._pantry_path.replace(os.sep, "_")\
+            .replace("-", "_")
         self._pantry_schema = kwargs.get("pantry_schema", d_schema_name)
 
         # Make a connection to tempdb, then create the desired database if it
@@ -78,15 +88,16 @@ class IndexSQL(IndexABC):
     def database_name(self):
         """The database name of the index."""
         return self._database_name
-    
+
     @property
     def pantry_schema(self):
         """The schema name of the index."""
         return self._pantry_schema
-    
+
     def __del__(self):
         """Close the connection to the database."""
-        self.con.close()    
+        self.cur.close()
+        self.con.close()
 
     def _connect(self, database_name="weave_db", **kwargs):
         """Connect to the server, and select the specified DB.
@@ -105,6 +116,9 @@ class IndexSQL(IndexABC):
         driver = kwargs.get("odbc_driver", "{ODBC Driver 18 for SQL Server}")
         encrypt = kwargs.get("encrypt", False)
 
+        # Pylint has a problem recognizing 'connect' as a valid member function
+        # so we ignore that here.
+        # pylint: disable-next=c-extension-no-member
         self.con = pyodbc.connect(
             f"DRIVER={driver};"
             f"SERVER={os.environ['MSSQL_HOST']};"
@@ -116,7 +130,7 @@ class IndexSQL(IndexABC):
         self.cur = self.con.cursor()
 
     def _select_db(self, database_name="weave_db"):
-        """Select the database to use, or create it if it does not exist. 
+        """Select the database to use, or create it if it does not exist.
 
         Parameters
         ----------
@@ -234,11 +248,10 @@ class IndexSQL(IndexABC):
             raise FileNotFoundError("'pantry_path' does not exist: "
                                     f"'{self.pantry_path}'")
 
-        basket_jsons = _get_list_of_basket_jsons(self.pantry_path,
-                                                 self.file_system)
-
-        storage_type = self.file_system.__class__.__name__
-
+        basket_jsons = _get_list_of_basket_jsons(
+            self.pantry_path,
+            self.file_system,
+        )
         index_columns = get_index_column_names()
         num_index_columns = len(index_columns)
         index_columns = ", ".join(index_columns)
@@ -261,8 +274,9 @@ class IndexSQL(IndexABC):
                     absolute_path[absolute_path.find(self.pantry_path):]
                 )
                 basket_dict["address"] = relative_path
-                basket_dict["storage_type"] = storage_type
-
+                basket_dict["storage_type"] = (
+                    self.file_system.__class__.__name__
+                )
                 basket_dict["upload_time"] = int(
                     datetime.timestamp(
                         dateutil.parser.parse(basket_dict["upload_time"])
@@ -373,7 +387,7 @@ class IndexSQL(IndexABC):
                     {index_columns_str}
                 )
                 SELECT {', '.join(['?']*len(index_columns))}
-                WHERE NOT EXISTS 
+                WHERE NOT EXISTS
                     (SELECT 1 FROM {self.pantry_schema}.pantry_index
                     WHERE uuid = ?);
                 """
@@ -386,7 +400,9 @@ class IndexSQL(IndexABC):
             parent_uuids = basket_dict["parent_uuids"]
             sql = (
                 f"""
-                INSERT INTO {self.pantry_schema}.parent_uuids(uuid, parent_uuid)
+                INSERT INTO {self.pantry_schema}.parent_uuids(
+                    uuid, parent_uuid
+                )
                 SELECT ?, ?
                 WHERE NOT EXISTS
                     (SELECT 1 FROM {self.pantry_schema}.parent_uuids
@@ -416,26 +432,36 @@ class IndexSQL(IndexABC):
             basket_address = [basket_address]
 
         if self.file_system.exists(os.fspath(basket_address[0])):
-            id_column = "address"
+            uuids = self.cur.execute(
+                f"SELECT uuid FROM {self.pantry_schema}.pantry_index "
+                f"WHERE address in ({','.join(['?']*len(basket_address))})"
+            ).fetchall()
+            uuids = [uuid[0] for uuid in uuids]
         else:
-            id_column = "uuid"
+            uuids = basket_address
 
+        # Delete from pantry_index.
         query = (
-            f"DELETE FROM {self.pantry_schema}.pantry_index WHERE " 
-            f"CONVERT(nvarchar(MAX), {id_column}) IN "
+            f"DELETE FROM {self.pantry_schema}.pantry_index WHERE "
+            "CONVERT(nvarchar(MAX), uuid) IN "
             "(SELECT CONVERT(nvarchar(MAX), value) FROM STRING_SPLIT(?, ','))"
         )
-        self.cur.execute(query, ','.join(basket_address))
-
-        if self.cur.rowcount != len(basket_address):
+        self.cur.execute(query, ','.join(uuids))
+        if self.cur.rowcount != len(uuids):
             warnings.warn(
                 UserWarning(
                     "Incomplete Request. Index could not untrack baskets, "
                     "as some were not being tracked to begin with.",
-                    len(basket_address) - self.cur.rowcount
+                    len(uuids) - self.cur.rowcount
                 )
             )
 
+        # Delete from parent_uuids.
+        query = (
+            f"DELETE FROM {self.pantry_schema}.parent_uuids WHERE uuid in "
+            f"({','.join(['?']*len(uuids))})"
+        )
+        self.cur.execute(query, uuids)
         self.con.commit()
 
     def get_rows(self, basket_address, **kwargs):
@@ -784,7 +810,7 @@ class IndexSQL(IndexABC):
                 f"""SELECT TOP (?) * FROM {self.pantry_schema}.pantry_index
                 WHERE upload_time <= ?
                 """, (max_rows, end_time)).fetchall()
-        
+
         results = [list(row) for row in results]
         columns = [column[0] for column in self.cur.description]
 

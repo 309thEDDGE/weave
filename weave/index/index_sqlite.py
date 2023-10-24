@@ -198,17 +198,27 @@ class IndexSQLite(IndexABC):
 
         **kwargs unused for this function.
         """
+        uuids = entry_df["uuid"]
         parent_uuids = entry_df["parent_uuids"]
+
         entry_df["parent_uuids"] = entry_df["parent_uuids"].astype(str)
         entry_df["upload_time"] = (
             entry_df["upload_time"].astype(int) // 1e9
         ).astype(int)
+        # Bulk insert into pantry_index.
         entry_df.to_sql("pantry_index", self.con,
                         if_exists="append", method="multi", index=False)
+
+        # Insert into the parent_uuids table.
         sql = """INSERT OR IGNORE INTO parent_uuids(
                 uuid, parent_uuid) VALUES(?,?)"""
-        for parent_uuid in parent_uuids:
-            self.cur.execute(sql, (entry_df['uuid'], parent_uuid))
+
+        # Loop all uuids and parent uuids (list of lists).
+        for uuid, parent_uuids in zip(uuids, parent_uuids):
+            # Loop all parent uuids (now a list of strings)
+            for parent_uuid in parent_uuids:
+                # Add the uuid, parent_uuid combo to the parent_uuids table.
+                self.cur.execute(sql, (uuid, parent_uuid))
         self.con.commit()
 
     def untrack_basket(self, basket_address, **kwargs):
@@ -227,24 +237,36 @@ class IndexSQLite(IndexABC):
             basket_address = [basket_address]
 
         if self.file_system.exists(os.fspath(basket_address[0])):
-            id_column = "address"
+            uuids = self.cur.execute(
+                "SELECT uuid FROM pantry_index WHERE address in"
+                f"({','.join(['?']*len(basket_address))})",
+                basket_address,
+            ).fetchall()
+            uuids = [uuid[0] for uuid in uuids]
         else:
-            id_column = "uuid"
+            uuids = basket_address
 
-        query = (
-            f"DELETE FROM pantry_index WHERE {id_column} in "
-            f"({','.join(['?']*len(basket_address))})"
+        # Delete from pantry_index.
+        self.cur.execute(
+            f"DELETE FROM pantry_index WHERE uuid in "
+            f"({','.join(['?']*len(uuids))})",
+            uuids,
         )
-        self.cur.execute(query, basket_address)
-        if self.cur.rowcount != len(basket_address):
+        if self.cur.rowcount != len(uuids):
             warnings.warn(
                 UserWarning(
                     "Incomplete Request. Index could not untrack baskets, "
                     "as some were not being tracked to begin with.",
-                    len(basket_address) - self.cur.rowcount
+                    len(uuids) - self.cur.rowcount
                 )
             )
 
+        # Delete from parent_uuids.
+        self.cur.execute(
+            "DELETE FROM parent_uuids WHERE uuid in "
+            f"({','.join(['?']*len(uuids))})",
+            uuids,
+        )
         self.con.commit()
 
     def get_rows(self, basket_address, **kwargs):

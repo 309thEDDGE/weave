@@ -10,15 +10,16 @@ from weave.upload import UploadBasket
 
 
 def get_sample_basket_df():
-    """Return a sample basket dataframe. THIS SHOULD ONLY BE USED AS A REFERENCE
+    """Return a sample basket dataframe. THIS SHOULD ONLY BE USED AS REFERENCE
     FOR THE STRUCTURE OF THE DATAFRAME (ie column names, data types, etc.)"""
     df = pd.read_csv(io.StringIO(
-        "uuid,upload_time,parent_uuids,basket_type,label,weave_version,address,"
-        "storage_type\n"
-        "1000,2023-10-23 16:52:43.992310+00:00,[],test_basket,test_label,1.2.0,"
-        "pytest-temp-pantry/test_basket/1000,LocalFileSystem")
+        "uuid,upload_time,parent_uuids,basket_type,label,"
+        "weave_version,address,storage_type\n"
+        "1000,2023-10-23 16:52:43.992310+00:00,[],test_basket,test_label,"
+        "1.2.0,pytest-temp-pantry/test_basket/1000,LocalFileSystem")
     )
     df["upload_time"] = pd.to_datetime(df["upload_time"])
+    df["uuid"].astype(str)
     return df
 
 
@@ -44,7 +45,6 @@ def file_path_in_list(search_path, search_list):
     and the function is searching for 'data/file.txt',
     the function will return True as the file exists.
     """
-
     search_path = str(search_path)
     for file_path in search_list:
         if str(file_path).endswith(search_path):
