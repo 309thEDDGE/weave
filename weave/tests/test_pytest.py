@@ -6,9 +6,9 @@ import sys
 
 from fsspec.implementations.local import LocalFileSystem
 # Try-Except required to make pyodbc an optional dependency.
+# Ignore pylint. This is used to explicitly show the optional dependency.
+# pylint: disable=duplicate-code
 try:
-    # Ignore pylint. This is used to explicitly show the optional dependency.
-    # pylint: disable-next=duplicate-code
     import pyodbc
 except ImportError:
     _HAS_PYODBC = False
@@ -77,6 +77,9 @@ def test_github_cicd_sql_server():
     server = os.environ["MSSQL_HOST"]
     database = "tempdb"
 
+    # Pylint has a problem recognizing 'connect' as a valid member function
+    # so we ignore that here.
+    # pylint: disable-next=c-extension-no-member
     con = pyodbc.connect(
         "DRIVER={ODBC Driver 18 for SQL Server};"
         f"SERVER={server};"
