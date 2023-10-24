@@ -1,4 +1,7 @@
 """Wherein is contained the concrete SQLite implementation of the Index."""
+# Pylint doesn't like the similarity between this file and the SQLite file, but
+# it doesn't make sense to write shared functions for them. So ignore pylint.
+# pylint: disable=duplicate-code
 import json
 import os
 import warnings
@@ -19,10 +22,6 @@ from ..config import get_index_column_names
 from .index_abc import IndexABC
 from .list_baskets import _get_list_of_basket_jsons
 from .validate_basket import validate_basket_dict
-
-# Pylint doesn't like the similarity between this file and the SQLite file, but
-# it doesn't make sense to write shared functions for them. So ignore pylint.
-# pylint: disable=duplicate-code
 
 class IndexSQL(IndexABC):
     """Concrete implementation of Index, using SQL."""
