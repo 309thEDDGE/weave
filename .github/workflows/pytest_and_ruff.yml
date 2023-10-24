@@ -69,7 +69,10 @@ jobs:
         pip install pytest
         pip install .[extras]
     - name: Test with pytest
+      # MSSQL_USERNAME is set to default System Administrator name ('sa')
       run: |
+        export MSSQL_HOST=localhost
+        export MSSQL_USERNAME=sa
         export MSSQL_PASSWORD=Testpassword1
         export MONGODB_HOST=localhost
         export MONGODB_USERNAME=testusername
