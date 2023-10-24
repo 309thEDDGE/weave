@@ -6,7 +6,7 @@ Weave can be used to facilitate the creation, maintenance, and access of
 coordinated, complex data storage.
 
 Weave is used to create baskets. A basket is used to store an atomic unit (i.e.
-the smallest sensible unit) of data, as well as it's associated metadata,
+the smallest sensible unit) of data, as well as its associated metadata,
 including lineage.
 
 --> Note that there is a Basket class available in Weave. Use it to access
