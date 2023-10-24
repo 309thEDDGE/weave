@@ -159,11 +159,19 @@ def test_index_sql_track_basket_adds_to_parent_uuids(test_index):
 
     # Use the cursor to check the parent_uuids table.
     cursor = test_index.index.con.cursor()
-    cursor.execute("SELECT * FROM parent_uuids")
-    rows = cursor.fetchall()
+    rows = cursor.execute(
+        f"SELECT * FROM {test_index.index.pantry_schema}.parent_uuids"
+    ).fetchall()
 
     # Check we have the expected values.
     assert len(rows) == 3
-    assert rows[0] == ("1000", "0001")
-    assert rows[1] == ("1000", "0002")
-    assert rows[2] == ("1000", "0003")
+    assert str(rows[0]) == str(("1000", "0001"))
+    assert str(rows[1]) == str(("1000", "0002"))
+    assert str(rows[2]) == str(("1000", "0003"))
+
+    # Untrack the basket and ensure values are removed from parent_uuids table.
+    test_index.index.untrack_basket(uuid)
+    rows = cursor.execute(
+        f"SELECT * FROM {test_index.index.pantry_schema}.parent_uuids"
+    ).fetchall()
+    assert len(rows) == 0

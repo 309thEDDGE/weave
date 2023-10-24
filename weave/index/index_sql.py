@@ -371,6 +371,11 @@ class IndexSQL(IndexABC):
 
         **kwargs unused for this function.
         """
+        # Save off the original uuid and parent_uuids columns.
+        uuids = entry_df["uuid"]
+        parent_uuids = entry_df["parent_uuids"]
+
+        # Convert the parent_uuids to a string, and the upload_time to an int.
         entry_df["parent_uuids"] = entry_df["parent_uuids"].astype(str)
         entry_df["upload_time"] = (
             entry_df["upload_time"].astype(int) // 1e9
@@ -380,6 +385,7 @@ class IndexSQL(IndexABC):
         index_columns_str = ", ".join(index_columns)
 
         for basket_dict in entry_df.to_dict(orient="records"):
+            # Insert into pantry_index.
             sql = (
                 f"""
                 INSERT INTO {self.pantry_schema}.pantry_index(
@@ -391,12 +397,11 @@ class IndexSQL(IndexABC):
                     WHERE uuid = ?);
                 """
             )
-
             # Get the args as a single tuple value.
             args = tuple(basket_dict.values()) + (basket_dict['uuid'],)
             self.cur.execute(sql, args)
 
-            parent_uuids = basket_dict["parent_uuids"]
+            # Insert into parent_uuids.
             sql = (
                 f"""
                 INSERT INTO {self.pantry_schema}.parent_uuids(
@@ -408,12 +413,15 @@ class IndexSQL(IndexABC):
                     WHERE uuid = ? AND parent_uuid = ?);
                 """
             )
-            for parent_uuid in parent_uuids:
-                self.cur.execute(
-                    sql,
-                    (basket_dict['uuid'], parent_uuid,
-                     basket_dict['uuid'], parent_uuid),
-                )
+            # Loop all uuids and parent uuids (list of lists).
+            for uuid, parent_uuids in zip(uuids, parent_uuids):
+                # Loop all parent uuids (now a list of strings)
+                for parent_uuid in parent_uuids:
+                    self.cur.execute(
+                        sql,
+                        (uuid, parent_uuid,
+                        uuid, parent_uuid),
+                    )
 
     def untrack_basket(self, basket_address, **kwargs):
         """Remove a basket from being tracked of given UUID or path.
@@ -435,7 +443,7 @@ class IndexSQL(IndexABC):
                 f"SELECT uuid FROM {self.pantry_schema}.pantry_index "
                 "WHERE CONVERT(nvarchar(MAX), address) IN "
                 "(SELECT CONVERT(nvarchar(MAX), value) "
-                "FROM STRING_SPLIT(?, ',')",
+                "FROM STRING_SPLIT(?, ','))",
                 ','.join(basket_address)
             ).fetchall()
             uuids = [uuid[0] for uuid in uuids]
