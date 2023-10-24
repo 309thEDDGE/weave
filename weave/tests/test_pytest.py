@@ -7,6 +7,8 @@ import sys
 from fsspec.implementations.local import LocalFileSystem
 # Try-Except required to make pyodbc an optional dependency.
 try:
+    # Ignore pylint. This is used to explicitly show the optional dependency.
+    # pylint: disable-next=duplicate-code
     import pyodbc
 except ImportError:
     _HAS_PYODBC = False
