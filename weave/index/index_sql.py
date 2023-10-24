@@ -433,7 +433,10 @@ class IndexSQL(IndexABC):
         if self.file_system.exists(os.fspath(basket_address[0])):
             uuids = self.cur.execute(
                 f"SELECT uuid FROM {self.pantry_schema}.pantry_index "
-                f"WHERE address in ({','.join(['?']*len(basket_address))})"
+                "WHERE CONVERT(nvarchar(MAX), address) IN "
+                "(SELECT CONVERT(nvarchar(MAX), value) "
+                "FROM STRING_SPLIT(?, ',')",
+                ','.join(basket_address)
             ).fetchall()
             uuids = [uuid[0] for uuid in uuids]
         else:
@@ -457,10 +460,11 @@ class IndexSQL(IndexABC):
 
         # Delete from parent_uuids.
         query = (
-            f"DELETE FROM {self.pantry_schema}.parent_uuids WHERE uuid in "
-            f"({','.join(['?']*len(uuids))})"
+            f"DELETE FROM {self.pantry_schema}.parent_uuids WHERE "
+            "CONVERT(nvarchar(MAX), uuid) IN "
+            "(SELECT CONVERT(nvarchar(MAX), value) FROM STRING_SPLIT(?, ','))"
         )
-        self.cur.execute(query, uuids)
+        self.cur.execute(query, ','.join(uuids))
         self.con.commit()
 
     def get_rows(self, basket_address, **kwargs):
