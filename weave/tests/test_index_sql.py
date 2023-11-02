@@ -19,6 +19,7 @@ else:
 import pytest
 import s3fs
 from fsspec.implementations.local import LocalFileSystem
+from unittest import mock
 
 from weave.index.index_sql import IndexSQL
 from weave.tests.pytest_resources import IndexForTest
@@ -58,10 +59,25 @@ def fixture_test_index(request):
     test_index.cleanup_index()
 
 
+# Mock the environment variables for the test. 
+@mock.patch.dict(os.environ, {}, clear=True)
+def test_index_sql_no_env_vars():
+    """Test that the SQL Index will raise an error if the required env vars
+    are not set.
+    """
+    with pytest.raises(KeyError) as err:
+        IndexSQL(LocalFileSystem(), "weave-test-pantry")
+
+    assert (
+        str(err.value) == "'The following environment variables must be set to "
+        "use this class: MSSQL_HOST, MSSQL_USERNAME, MSSQL_PASSWORD.'"
+    )
+
+
 # Skip tests if pyodbc is not installed.
 @pytest.mark.skipif(
     "pyodbc" not in sys.modules or not _HAS_PYODBC
-    or not os.environ["MSSQL_PASSWORD"],
+    or not os.environ.get("MSSQL_PASSWORD", False),
     reason="Module 'pyodbc' required for this test "
     "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
 )
@@ -92,7 +108,7 @@ def test_index_sql_properties_are_read_only():
 # Skip tests if pyodbc is not installed.
 @pytest.mark.skipif(
     "pyodbc" not in sys.modules or not _HAS_PYODBC
-    or not os.environ["MSSQL_PASSWORD"],
+    or not os.environ.get("MSSQL_PASSWORD", False),
     reason="Module 'pyodbc' required for this test "
     "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
 )
@@ -141,7 +157,7 @@ def test_index_sql_tracks_different_pantries():
 # Skip tests if pyodbc is not installed.
 @pytest.mark.skipif(
     "pyodbc" not in sys.modules or not _HAS_PYODBC
-    or not os.environ["MSSQL_PASSWORD"],
+    or not os.environ.get("MSSQL_PASSWORD", False),
     reason="Module 'pyodbc' required for this test "
     "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
 )

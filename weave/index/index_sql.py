@@ -95,8 +95,11 @@ class IndexSQL(IndexABC):
 
     def __del__(self):
         """Close the connection to the database."""
-        self.cur.close()
-        self.con.close()
+        try:
+            self.cur.close()
+            self.con.close()
+        except Exception:
+            pass
 
     def _connect(self, database_name="weave_db", **kwargs):
         """Connect to the server, and select the specified DB.
@@ -105,7 +108,7 @@ class IndexSQL(IndexABC):
         ----------
         database_name: str (default='weave_db')
             The database to connect to.
-        **driver: str (default='{ODBC Driver 18 for SQL Server}')
+        **odbc_driver: str (default='{ODBC Driver 18 for SQL Server}')
             Driver to be used for the connection. Usually similar to:
             '{ODBC Driver <18, 17, 13...> for SQL Server}'.
         **encrypt: bool (default=False)
@@ -222,6 +225,11 @@ class IndexSQL(IndexABC):
         Parameters
         ----------
         **kwargs unused for this function.
+
+        Returns
+        ----------
+        dict
+            Returns a dictionary of the metadata.
         """
         return {
             "database_host": os.environ["MSSQL_HOST"],
