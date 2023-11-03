@@ -98,7 +98,7 @@ class IndexSQL(IndexABC):
         try:
             self.cur.close()
             self.con.close()
-        except Exception:
+        except AttributeError:
             pass
 
     def _connect(self, database_name="weave_db", **kwargs):

@@ -3,6 +3,7 @@ correctly."""
 
 import os
 import sys
+from unittest import mock
 
 # Try-Except required to make pyodbc an optional dependency.
 try:
@@ -19,7 +20,6 @@ else:
 import pytest
 import s3fs
 from fsspec.implementations.local import LocalFileSystem
-from unittest import mock
 
 from weave.index.index_sql import IndexSQL
 from weave.tests.pytest_resources import IndexForTest
@@ -59,7 +59,7 @@ def fixture_test_index(request):
     test_index.cleanup_index()
 
 
-# Mock the environment variables for the test. 
+# Mock the environment variables for the test.
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_index_sql_no_env_vars():
     """Test that the SQL Index will raise an error if the required env vars
