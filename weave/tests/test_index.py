@@ -54,7 +54,7 @@ indexes = [IndexPandas, IndexSQLite]
 indexes_ids = ["Pandas", "SQLite"]
 
 # Only add IndexSQL if the environment variables are set and pyodbc is present.
-if "MSSQL_HOST" in os.environ and "pyodbc" in sys.modules:
+if "MSSQL_HOST" in os.environ and "sqlalchemy" in sys.modules:
     indexes.append(IndexSQL)
     indexes_ids.append("SQL")
 

@@ -63,6 +63,8 @@ jobs:
         source ~/.bashrc
         # optional: for unixODBC development headers
         sudo apt-get install -y unixodbc-dev
+
+        sqlcmd -Q "CREATE DATABASE weave_db"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
