@@ -64,7 +64,7 @@ jobs:
         # optional: for unixODBC development headers
         sudo apt-get install -y unixodbc-dev
 
-        sqlcmd -Q "CREATE DATABASE weave_db"
+        sqlcmd -S localhost -U sa -P Testpassword1 -Q "CREATE DATABASE weave_db"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
