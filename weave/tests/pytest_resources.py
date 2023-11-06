@@ -156,25 +156,25 @@ class IndexForTest:
 
         if self.index.__class__.__name__ == "IndexSQL":
             # Drop the pantry_index (User Table) if it exists.
-            self.index.cur.execute(f"""
+            self.index.execute_sql(f"""
                 IF OBJECT_ID('{self.index.pantry_schema}.pantry_index', 'U')
                 IS NOT NULL
                 BEGIN
                     DROP TABLE {self.index.pantry_schema}.pantry_index;
                 END
-            """)
+            """, commit=True)
 
             # Drop the parent_uuids (User Table) if it exists.
-            self.index.cur.execute(f"""
+            self.index.execute_sql(f"""
                 IF OBJECT_ID('{self.index.pantry_schema}.parent_uuids', 'U')
                 IS NOT NULL
                 BEGIN
                     DROP TABLE {self.index.pantry_schema}.parent_uuids;
                 END
-            """)
+            """, commit=True)
 
             # Drop the pantry_schema (Schema) if it exists.
-            self.index.cur.execute(f"""
+            self.index.execute_sql(f"""
                 IF EXISTS (
                     SELECT schema_name
                     FROM information_schema.schemata
@@ -183,5 +183,4 @@ class IndexForTest:
                 BEGIN
                     DROP SCHEMA {self.index.pantry_schema};
                 END
-            """)
-            self.index.con.commit()
+            """, commit=True)

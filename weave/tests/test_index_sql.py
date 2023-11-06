@@ -2,21 +2,22 @@
 correctly."""
 
 import os
-import sys
 from unittest import mock
 
-# Try-Except required to make pyodbc an optional dependency.
+# Try-Except required to make pyodbc/sqlalchemy an optional dependency.
 try:
-     # For the sake of explicitly showing that pyodbc is optional, import
+    # For the sake of explicitly showing that pyodbc is optional, import
     # pyodbc here, even though it is not currently used in this file.
     # Pylint ignore the next unused-import pylint warning.
     # Also inline ruff ignore unused import (F401)
-    # pylint: disable-next=unused-import
+    # pylint: disable=unused-import
     import pyodbc # noqa: F401
+    import sqlalchemy as sqla # noqa: F401
+    # pylint: enable=unused-import
 except ImportError:
-    _HAS_PYODBC = False
+    _HAS_REQUIRED_DEPS = False
 else:
-    _HAS_PYODBC = True
+    _HAS_REQUIRED_DEPS = True
 import pytest
 import s3fs
 from fsspec.implementations.local import LocalFileSystem
@@ -76,7 +77,7 @@ def test_index_sql_no_env_vars():
 
 # Skip tests if pyodbc is not installed.
 @pytest.mark.skipif(
-    "pyodbc" not in sys.modules or not _HAS_PYODBC
+    not _HAS_REQUIRED_DEPS
     or not os.environ.get("MSSQL_PASSWORD", False),
     reason="Module 'pyodbc' required for this test "
     "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
@@ -107,7 +108,7 @@ def test_index_sql_properties_are_read_only():
 
 # Skip tests if pyodbc is not installed.
 @pytest.mark.skipif(
-    "pyodbc" not in sys.modules or not _HAS_PYODBC
+    not _HAS_REQUIRED_DEPS
     or not os.environ.get("MSSQL_PASSWORD", False),
     reason="Module 'pyodbc' required for this test "
     "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
@@ -143,20 +144,23 @@ def test_index_sql_tracks_different_pantries():
     assert len(ind_2) == 0
 
     # Need to manually clean up the database in this test.
-    ind_1.cur.execute(f"DROP TABLE {ind_1.pantry_schema}.pantry_index;")
-    ind_1.cur.execute(f"DROP TABLE {ind_1.pantry_schema}.parent_uuids;")
-    ind_1.cur.execute(f"DROP SCHEMA {ind_1.pantry_schema};")
-    ind_1.cur.commit()
-
-    ind_2.cur.execute(f"DROP TABLE {ind_2.pantry_schema}.pantry_index;")
-    ind_2.cur.execute(f"DROP TABLE {ind_2.pantry_schema}.parent_uuids;")
-    ind_2.cur.execute(f"DROP SCHEMA {ind_2.pantry_schema};")
-    ind_2.cur.commit()
+    ind_1.execute_sql(f"DROP TABLE {ind_1.pantry_schema}.pantry_index;",
+        commit=True)
+    ind_1.execute_sql(f"DROP TABLE {ind_1.pantry_schema}.parent_uuids;",
+        commit=True)
+    ind_1.execute_sql(f"DROP SCHEMA {ind_1.pantry_schema};",
+        commit=True)
+    ind_2.execute_sql(f"DROP TABLE {ind_2.pantry_schema}.pantry_index;",
+        commit=True)
+    ind_2.execute_sql(f"DROP TABLE {ind_2.pantry_schema}.parent_uuids;",
+        commit=True)
+    ind_2.execute_sql(f"DROP SCHEMA {ind_2.pantry_schema};",
+        commit=True)
 
 
 # Skip tests if pyodbc is not installed.
 @pytest.mark.skipif(
-    "pyodbc" not in sys.modules or not _HAS_PYODBC
+    not _HAS_REQUIRED_DEPS
     or not os.environ.get("MSSQL_PASSWORD", False),
     reason="Module 'pyodbc' required for this test "
     "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
@@ -173,11 +177,13 @@ def test_index_sql_track_basket_adds_to_parent_uuids(test_index):
     # Track the basket.
     test_index.index.track_basket(sample_basket_df)
 
-    # Use the cursor to check the parent_uuids table.
-    cursor = test_index.index.con.cursor()
-    rows = cursor.execute(
+    ind = test_index.index
+    # Manually check the parent_uuids table.
+    rows, _ = ind.execute_sql(
         f"SELECT * FROM {test_index.index.pantry_schema}.parent_uuids"
-    ).fetchall()
+    )
+
+    print(rows)
 
     # Check we have the expected values.
     assert len(rows) == 3
@@ -187,7 +193,7 @@ def test_index_sql_track_basket_adds_to_parent_uuids(test_index):
 
     # Untrack the basket and ensure values are removed from parent_uuids table.
     test_index.index.untrack_basket(uuid)
-    rows = cursor.execute(
+    rows, _ = ind.execute_sql(
         f"SELECT * FROM {test_index.index.pantry_schema}.parent_uuids"
-    ).fetchall()
+    )
     assert len(rows) == 0
