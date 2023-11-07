@@ -10,10 +10,9 @@ from datetime import datetime
 import ast
 import dateutil
 import pandas as pd
-# Try-Except required to make pyodbc an optional dependency.
+# Try-Except required to make sqlalchemy an optional dependency.
 try:
     # pylint: disable-next=unused-import
-    import pyodbc # noqa: F401
     import sqlalchemy as sqla
 except ImportError:
     _HAS_REQUIRED_DEPS = False
@@ -48,7 +47,7 @@ class IndexSQL(IndexABC):
             pantry path (with _ replacements when necessary).
         """
         if not _HAS_REQUIRED_DEPS:
-            raise ImportError("Missing Dependencies. The packages: 'pyodbc', "
+            raise ImportError("Missing Dependencies. The packages: "
                               "'sqlalchemy' are required to use this class")
 
         # Check that the required environment variables are set.

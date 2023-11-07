@@ -4,16 +4,14 @@ correctly."""
 import os
 from unittest import mock
 
-# Try-Except required to make pyodbc/sqlalchemy an optional dependency.
+# Try-Except required to make sqlalchemy an optional dependency.
 try:
-    # For the sake of explicitly showing that pyodbc is optional, import
-    # pyodbc here, even though it is not currently used in this file.
+    # For the sake of explicitly showing that sqlalchemy is optional, import
+    # it here, even though it is not currently used in this file.
     # Pylint ignore the next unused-import pylint warning.
     # Also inline ruff ignore unused import (F401)
-    # pylint: disable=unused-import
-    import pyodbc # noqa: F401
+    # pylint: disable-next=unused-import
     import sqlalchemy as sqla # noqa: F401
-    # pylint: enable=unused-import
 except ImportError:
     _HAS_REQUIRED_DEPS = False
 else:
@@ -75,11 +73,11 @@ def test_index_sql_no_env_vars():
     )
 
 
-# Skip tests if pyodbc is not installed.
+# Skip tests if sqlalchemy is not installed.
 @pytest.mark.skipif(
     not _HAS_REQUIRED_DEPS
     or not os.environ.get("MSSQL_PASSWORD", False),
-    reason="Module 'pyodbc' required for this test "
+    reason="Module 'sqlalchemy' required for this test "
     "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
 )
 def test_index_sql_properties_are_read_only():
@@ -106,11 +104,11 @@ def test_index_sql_properties_are_read_only():
     assert ind.pantry_schema == original_schema_name
 
 
-# Skip tests if pyodbc is not installed.
+# Skip tests if sqlalchemy is not installed.
 @pytest.mark.skipif(
     not _HAS_REQUIRED_DEPS
     or not os.environ.get("MSSQL_PASSWORD", False),
-    reason="Module 'pyodbc' required for this test "
+    reason="Module 'sqlalchemy' required for this test "
     "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
 )
 def test_index_sql_tracks_different_pantries():
@@ -158,11 +156,11 @@ def test_index_sql_tracks_different_pantries():
         commit=True)
 
 
-# Skip tests if pyodbc is not installed.
+# Skip tests if sqlalchemy is not installed.
 @pytest.mark.skipif(
     not _HAS_REQUIRED_DEPS
     or not os.environ.get("MSSQL_PASSWORD", False),
-    reason="Module 'pyodbc' required for this test "
+    reason="Module 'sqlalchemy' required for this test "
     "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
 )
 def test_index_sql_track_basket_adds_to_parent_uuids(test_index):
