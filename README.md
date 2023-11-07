@@ -71,7 +71,7 @@ saved in the basket as a .json file.
 
 Weave can be installed by running `pip install .` from the root directory.
 Optional dependencies can be included by running `pip install .[extras]` instead.
-Optional dependencies currently include: pymongo, pyodbc.
+Optional dependencies currently include: pymongo, pyodbc, sqlalchemy.
 Useful functions are available after running `import weave`.
 Weave was built with the intention of connecting to an S3 pantry with an
 `s3fs.S3FileSystem` object and also supports a LocalFileSystem. Any filesystem 
@@ -92,6 +92,7 @@ If the IndexSQL backend is intended to be used, the following environment variab
 - MSSQL_HOST
 - MSSQL_USERNAME
 - MSSQL_PASSWORD
+- MSSQL_PORT (optional, defaults to 1433)
 
 ### Initializing FileSystem
 
