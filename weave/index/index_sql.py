@@ -10,10 +10,13 @@ from datetime import datetime
 import ast
 import dateutil
 import pandas as pd
-# Try-Except required to make sqlalchemy an optional dependency.
+# Try-Except required to make pyodbc/sqlalchemy an optional dependency.
 try:
-    # pylint: disable-next=unused-import
-    import sqlalchemy as sqla
+    # pylint: disable=unused-import
+    # pyodbc is imported here because sqlalchemy requires it.
+    import pyodbc # noqa: F401
+    import sqlalchemy as sqla # noqa: F401
+    # pylint: enable=unused-import
 except ImportError:
     _HAS_REQUIRED_DEPS = False
 else:

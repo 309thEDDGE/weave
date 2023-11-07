@@ -10,8 +10,11 @@ try:
     # it here, even though it is not currently used in this file.
     # Pylint ignore the next unused-import pylint warning.
     # Also inline ruff ignore unused import (F401)
-    # pylint: disable-next=unused-import
+    # pylint: disable=unused-import
+    # pyodbc is imported here because sqlalchemy requires it.
+    import pyodbc # noqa: F401
     import sqlalchemy as sqla # noqa: F401
+    # pylint: enable=unused-import
 except ImportError:
     _HAS_REQUIRED_DEPS = False
 else:
@@ -77,7 +80,7 @@ def test_index_sql_no_env_vars():
 @pytest.mark.skipif(
     not _HAS_REQUIRED_DEPS
     or not os.environ.get("MSSQL_PASSWORD", False),
-    reason="Module 'sqlalchemy' required for this test "
+    reason="Modules: 'pyodbc', 'sqlalchemy' required for this test "
     "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
 )
 def test_index_sql_properties_are_read_only():
@@ -108,7 +111,7 @@ def test_index_sql_properties_are_read_only():
 @pytest.mark.skipif(
     not _HAS_REQUIRED_DEPS
     or not os.environ.get("MSSQL_PASSWORD", False),
-    reason="Module 'sqlalchemy' required for this test "
+    reason="Modules: 'pyodbc', 'sqlalchemy' required for this test "
     "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
 )
 def test_index_sql_tracks_different_pantries():
@@ -160,7 +163,7 @@ def test_index_sql_tracks_different_pantries():
 @pytest.mark.skipif(
     not _HAS_REQUIRED_DEPS
     or not os.environ.get("MSSQL_PASSWORD", False),
-    reason="Module 'sqlalchemy' required for this test "
+    reason="Modules: 'pyodbc', 'sqlalchemy' required for this test "
     "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
 )
 def test_index_sql_track_basket_adds_to_parent_uuids(test_index):
