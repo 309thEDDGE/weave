@@ -61,6 +61,13 @@ def fixture_test_index(request):
     test_index.cleanup_index()
 
 
+# Skip tests if sqlalchemy is not installed.
+@pytest.mark.skipif(
+    not _HAS_REQUIRED_DEPS
+    or not os.environ.get("MSSQL_PASSWORD", False),
+    reason="Modules: 'pyodbc', 'sqlalchemy' required for this test "
+    "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
+)
 # Mock the environment variables for the test.
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_index_sql_no_env_vars():
