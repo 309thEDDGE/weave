@@ -6,6 +6,8 @@ import sys
 
 from fsspec.implementations.local import LocalFileSystem
 # Try-Except required to make pyodbc an optional dependency.
+# Ignore pylint. This is used to explicitly show the optional dependency.
+# pylint: disable=duplicate-code
 try:
     import pyodbc
 except ImportError:
@@ -61,9 +63,9 @@ def test_weave_pytest_suffix(set_up_tb_no_cleanup):
 # Skip tests if pyodbc is not installed.
 @pytest.mark.skipif(
     "pyodbc" not in sys.modules or not _HAS_PYODBC
-    or not os.environ["MSSQL_PASSWORD"],
+    or not os.environ["MSSQL_PASSWORD"] or not os.environ["MSSQL_HOST"],
     reason="Module 'pyodbc' required for this test "
-    "AND env var 'MSSQL_PASSWORD'",
+    "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
 )
 def test_github_cicd_sql_server():
     """Test that the MS SQL Server is properly setup in CICD."""
@@ -72,9 +74,12 @@ def test_github_cicd_sql_server():
     # Default System Administrator username is "sa"
     username = "sa"
     mssql_password = os.environ["MSSQL_PASSWORD"]
-    server = "127.0.0.1"
+    server = os.environ["MSSQL_HOST"]
     database = "tempdb"
 
+    # Pylint has a problem recognizing 'connect' as a valid member function
+    # so we ignore that here.
+    # pylint: disable-next=c-extension-no-member
     con = pyodbc.connect(
         "DRIVER={ODBC Driver 18 for SQL Server};"
         f"SERVER={server};"

@@ -72,7 +72,7 @@ def set_up(request, tmpdir):
 
 # Skip tests if pymongo is not installed.
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules,
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
     reason="Pymongo required for this test",
 )
 def test_load_mongo(set_up):
@@ -102,7 +102,7 @@ def test_load_mongo(set_up):
 
 
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules,
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
     reason="Pymongo required for this test",
 )
 def test_load_mongo_check_for_dataframe(set_up):
@@ -121,7 +121,7 @@ def test_load_mongo_check_for_dataframe(set_up):
 
 
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules,
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
     reason="Pymongo required for this test",
 )
 def test_load_mongo_check_collection_for_string(set_up):
@@ -138,7 +138,7 @@ def test_load_mongo_check_collection_for_string(set_up):
 
 
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules,
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
     reason="Pymongo required for this test",
 )
 def test_load_mongo_check_dataframe_for_uuid(set_up):
@@ -156,7 +156,7 @@ def test_load_mongo_check_dataframe_for_uuid(set_up):
 
 
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules,
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
     reason="Pymongo required for this test",
 )
 def test_load_mongo_check_dataframe_for_address(set_up):
@@ -172,7 +172,7 @@ def test_load_mongo_check_dataframe_for_address(set_up):
 
 
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules,
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
     reason="Pymongo required for this test",
 )
 def test_load_mongo_check_dataframe_for_basket_type(set_up):
@@ -188,7 +188,7 @@ def test_load_mongo_check_dataframe_for_basket_type(set_up):
 
 
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules,
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
     reason="Pymongo required for this test",
 )
 def test_load_mongo_check_for_duplicate_uuid(set_up):

@@ -63,13 +63,18 @@ jobs:
         source ~/.bashrc
         # optional: for unixODBC development headers
         sudo apt-get install -y unixodbc-dev
+
+        sqlcmd -S localhost -U sa -P Testpassword1 -Q "CREATE DATABASE weave_db"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install pytest
         pip install .[extras]
     - name: Test with pytest
+      # MSSQL_USERNAME is set to default System Administrator name ('sa')
       run: |
+        export MSSQL_HOST=localhost
+        export MSSQL_USERNAME=sa
         export MSSQL_PASSWORD=Testpassword1
         export MONGODB_HOST=localhost
         export MONGODB_USERNAME=testusername

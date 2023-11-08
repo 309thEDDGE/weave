@@ -22,15 +22,17 @@ also upload new baskets to the pantry using Index.upload_basket().
 from .basket import Basket
 from .index.index_pandas import IndexPandas
 from .index.index_sqlite import IndexSQLite
+from .index.index_sql import IndexSQL
 from .pantry import Pantry
 from .metadata_db import load_mongo
 
-__version__ = "1.1.3"
+__version__ = "1.2.0"
 
 __all__ = [
     "Basket",
     "IndexPandas",
     "IndexSQLite",
+    "IndexSQL",
     "Pantry",
     "load_mongo",
 ]

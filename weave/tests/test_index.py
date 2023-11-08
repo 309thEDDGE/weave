@@ -1,6 +1,7 @@
 """Pytest tests for the index directory."""
 
 import os
+import sys
 import re
 import warnings
 from datetime import datetime, timedelta, timezone
@@ -13,6 +14,7 @@ from fsspec.implementations.local import LocalFileSystem
 
 import weave
 from weave import IndexSQLite
+from weave import IndexSQL
 from weave.index.index_pandas import IndexPandas
 from weave.index.create_index import create_index_from_fs
 from weave.tests.pytest_resources import PantryForTest, IndexForTest
@@ -48,8 +50,13 @@ local_fs = LocalFileSystem()
 file_systems = [s3fs, local_fs]
 
 # Create Index CONSTRUCTORS of Indexes to be tested, and add to indexes list.
-indexes = [IndexSQLite, IndexPandas]
-indexes_ids = ["SQLite", "Pandas"]
+indexes = [IndexPandas, IndexSQLite]
+indexes_ids = ["Pandas", "SQLite"]
+
+# Only add IndexSQL if the env variables are set and dependencies are present.
+if "MSSQL_HOST" in os.environ and "sqlalchemy" in sys.modules:
+    indexes.append(IndexSQL)
+    indexes_ids.append("SQL")
 
 # Create combinations of the above parameters to pass into the fixture..
 params = []
@@ -272,10 +279,10 @@ def test_index_abc_track_basket_adds_single_basket(test_pantry):
     )
 
     ind.track_basket(single_indice_index)
-    ind_df = ind.to_pandas_df()
     assert len(ind) == 1, "Incorrect number of elements in the Index"
 
     # Check values of basket are accurate
+    ind_df = ind.to_pandas_df()
     assert (
         ind_df.iloc[0]["uuid"] == uuid and
         isinstance(ind_df.iloc[0]["upload_time"], datetime) and
@@ -1253,8 +1260,8 @@ def test_index_abc_get_children_15_deep(test_pantry):
         answer.loc[answer["uuid"] == i, gen_lvl] = j
 
     # Format and sort so .equals can be properly used
-    answer = answer.sort_values(by="uuid").reset_index(drop=True)
-    results = results.sort_values(by="uuid").reset_index(drop=True)
+    answer = answer.sort_values(by="generation_level").reset_index(drop=True)
+    results = results.sort_values(by="generation_level").reset_index(drop=True)
     answer[gen_lvl] = answer[gen_lvl].astype(np.int64)
     assert answer.equals(results)
 

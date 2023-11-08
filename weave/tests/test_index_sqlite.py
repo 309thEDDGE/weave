@@ -7,6 +7,8 @@ from fsspec.implementations.local import LocalFileSystem
 
 from weave.pantry import Pantry
 from weave.index.index_sqlite import IndexSQLite
+from weave.tests.pytest_resources import get_sample_basket_df
+from weave.tests.pytest_resources import IndexForTest
 from weave.tests.pytest_resources import PantryForTest
 
 
@@ -43,6 +45,19 @@ def fixture_test_pantry(request, tmpdir):
     test_pantry = PantryForTest(tmpdir, file_system)
     yield test_pantry
     test_pantry.cleanup_pantry()
+
+
+@pytest.fixture(
+    name="test_index",
+    params=[IndexSQLite],
+    ids=["IndexSQLite"],
+)
+def fixture_test_index(request):
+    """Sets up test index for the tests"""
+    index_constructor = request.param
+    test_index = IndexForTest(index_constructor, local_fs)
+    yield test_index
+    test_index.cleanup_index()
 
 
 def test_index_two_pantries_with_same_name(test_pantry):
@@ -149,3 +164,33 @@ def test_index_uploaded_basket_not_found_in_another_index(test_pantry):
     # Remove the .db files that are not cleaned up with 'test_pantry'
     os.remove(pantry_1.index.db_path)
     os.remove(pantry_2.index.db_path)
+
+
+def test_index_sqlite_track_basket_adds_to_parent_uuids(test_index):
+    """Test that track_basket adds necessary rows to the parent_uuids table."""
+    sample_basket_df = get_sample_basket_df()
+    uuid = "1000"
+    sample_basket_df["uuid"] = uuid
+
+    # Add uuids to the parent_uuids of the df.
+    sample_basket_df["parent_uuids"] = [["0001", "0002", "0003"]]
+
+    # Track the basket.
+    test_index.index.track_basket(sample_basket_df)
+
+    # Use the cursor to check the parent_uuids table.
+    cursor = test_index.index.con.cursor()
+    cursor.execute("SELECT * FROM parent_uuids")
+    rows = cursor.fetchall()
+
+    # Check we have the expected values.
+    assert len(rows) == 3
+    assert rows[0] == (uuid, "0001")
+    assert rows[1] == (uuid, "0002")
+    assert rows[2] == (uuid, "0003")
+
+    # Untrack the basket and ensure values are removed from parent_uuids table.
+    test_index.index.untrack_basket(uuid)
+    cursor.execute("SELECT * FROM parent_uuids")
+    rows = cursor.fetchall()
+    assert len(rows) == 0
