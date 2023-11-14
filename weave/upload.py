@@ -34,7 +34,7 @@ def validate_upload_item(upload_item):
                 f"Invalid upload_item type: '{key}: {type(value)}'"
                 f"\nExpected type: {expected_schema[key]}"
             )
-    if not (os.path.exists(upload_item["path"]) and s3fs.exists(upload_item["path"])):
+    if not (os.path.exists(upload_item["path"]) or s3fs.exists(upload_item["path"])):
         raise FileExistsError(
                 f"'path' does not exist: '{upload_item['path']}'"
             )
@@ -75,7 +75,7 @@ def derive_integrity_data(file_path, byte_count=10**8):
     if not isinstance(file_path, str):
         raise TypeError(f"'file_path' must be a string: '{file_path}'")
 
-    if not (os.path.isfile(file_path) and s3fs.exists(upload_item["path"])):
+    if not (os.path.isfile(file_path) or s3fs.exists(upload_item["path"])):
         raise FileExistsError(f"'file_path' does not exist: '{file_path}'")
 
     if not isinstance(byte_count, int):
