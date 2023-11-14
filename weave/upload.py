@@ -7,6 +7,7 @@ import math
 import os
 import tempfile
 import uuid
+import s3fs
 from datetime import datetime, timezone as tz
 from pathlib import Path
 
@@ -33,11 +34,10 @@ def validate_upload_item(upload_item):
                 f"Invalid upload_item type: '{key}: {type(value)}'"
                 f"\nExpected type: {expected_schema[key]}"
             )
-
-    if not os.path.exists(upload_item["path"]):
+    if not (os.path.exists(upload_item["path"]) and s3fs.exists(upload_item["path"])):
         raise FileExistsError(
-            f"'path' does not exist: '{upload_item['path']}'"
-        )
+                f"'path' does not exist: '{upload_item['path']}'"
+            )
 
 
 def derive_integrity_data(file_path, byte_count=10**8):
@@ -75,7 +75,7 @@ def derive_integrity_data(file_path, byte_count=10**8):
     if not isinstance(file_path, str):
         raise TypeError(f"'file_path' must be a string: '{file_path}'")
 
-    if not os.path.isfile(file_path):
+    if not (os.path.isfile(file_path) and s3fs.exists(upload_item["path"])):
         raise FileExistsError(f"'file_path' does not exist: '{file_path}'")
 
     if not isinstance(byte_count, int):
@@ -162,7 +162,8 @@ class UploadBasket:
             If None, it will use the default fs from the weave.config.
         **pantry_path: str
             Path to the pantry that will hold this basket.
-
+        **copy
+            move files already on s3fs to another s3fs location
         Please note that either the upload_directory OR the basket_type must
         be provided. IT IS RECOMMENDED that the user simply provide the
         basket_type as this will allow the library to choose a good unique_id,
