@@ -103,7 +103,7 @@ class IndexPandas(IndexABC):
             return
         if len(index_paths) > 20:
             warnings.warn(f"The index basket count is {len(index_paths)}. " +
-                 "Consider running weave.Index.clean_up_indices")
+                 "Consider running weave.IndexPandas.clean_up_indices")
         latest_index_path = ""
         for path in index_paths:
             path_time = self._get_index_time_from_path(path)

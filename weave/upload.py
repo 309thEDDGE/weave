@@ -14,8 +14,9 @@ from pathlib import Path
 from .config import get_file_system, prohibited_filenames
 
 
-def validate_upload_item(upload_item):
+def validate_upload_item(upload_item, **kwargs):
     """Validates an upload_item."""
+    file_system = kwargs.get("file_system", get_file_system())
     if not isinstance(upload_item, dict):
         raise TypeError(
             "'upload_item' must be a dictionary: "
@@ -34,13 +35,13 @@ def validate_upload_item(upload_item):
                 f"Invalid upload_item type: '{key}: {type(value)}'"
                 f"\nExpected type: {expected_schema[key]}"
             )
-    if not (os.path.exists(upload_item["path"]) or s3fs.exists(upload_item["path"])):
+    if not (file_system.exists(upload_item["path"])):
         raise FileExistsError(
                 f"'path' does not exist: '{upload_item['path']}'"
             )
 
 
-def derive_integrity_data(file_path, byte_count=10**8):
+def derive_integrity_data(file_path, byte_count=10**8, **kwargs):
     """Derives basic integrity data from a file.
 
     This function takes in a file path and calculates
@@ -71,11 +72,11 @@ def derive_integrity_data(file_path, byte_count=10**8):
       'byte_count': byte count used for generated checksum (int)
      }
     """
-
+    file_system = kwargs.get("file_system", get_file_system())
     if not isinstance(file_path, str):
         raise TypeError(f"'file_path' must be a string: '{file_path}'")
 
-    if not (os.path.isfile(file_path) or s3fs.exists(upload_item["path"])):
+    if not (file_system.exists(file_path)):
         raise FileExistsError(f"'file_path' does not exist: '{file_path}'")
 
     if not isinstance(byte_count, int):
@@ -162,8 +163,6 @@ class UploadBasket:
             If None, it will use the default fs from the weave.config.
         **pantry_path: str
             Path to the pantry that will hold this basket.
-        **copy
-            move files already on s3fs to another s3fs location
         Please note that either the upload_directory OR the basket_type must
         be provided. IT IS RECOMMENDED that the user simply provide the
         basket_type as this will allow the library to choose a good unique_id,
@@ -253,8 +252,9 @@ class UploadBasket:
 
         # Validate self.upload_items
         local_path_basenames = []
+        self.file_system = self.kwargs.get("file_system", get_file_system())
         for upload_item in self.upload_items:
-            validate_upload_item(upload_item)
+            validate_upload_item(upload_item, filesytem = self.file_system)
             local_path_basename = os.path.basename(Path(upload_item["path"]))
             if local_path_basename in prohibited_filenames:
                 raise ValueError(
