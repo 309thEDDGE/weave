@@ -7,7 +7,7 @@ import math
 import os
 import tempfile
 import uuid
-import s3fs
+import s3fs as s3fs
 from datetime import datetime, timezone as tz
 from pathlib import Path
 
@@ -94,17 +94,20 @@ def derive_integrity_data(file_path, byte_count=10**8, **kwargs):
             f" bytes: '{byte_count}'"
         )
 
-    file_size = os.path.getsize(file_path)
+    if file_system ==  s3fs.S3FileSystem(client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}):
+        file_size = file_system.du(file_path)
+    else:
+        file_size = os.path.getsize(file_path)
 
     if file_size <= byte_count * 3:
-        with open(file_path, "rb") as file:
+        with file_system.open(file_path, "rb") as file:
             sha256_hash = hashlib.sha256(file.read()).hexdigest()
     else:
         hasher = hashlib.sha256()
         midpoint = file_size / 2.0
         midpoint_seek_position = math.floor(midpoint - byte_count / 2.0)
         end_seek_position = file_size - byte_count
-        with open(file_path, "rb") as file:
+        with file_system.open(file_path, "rb") as file:
             hasher.update(file.read(byte_count))
             file.seek(midpoint_seek_position)
             hasher.update(file.read(byte_count))
@@ -316,11 +319,12 @@ class UploadBasket:
         supplement_data["upload_items"] = self.upload_items
         supplement_data["integrity_data"] = []
 
+        self.file_system = self.kwargs.get("file_system", get_file_system())
         # I cannot figure out how to appease pylint on this one:
         # pylint: disable-next=too-many-nested-blocks
         for upload_item in self.upload_items:
             upload_item_path = Path(upload_item["path"])
-            if upload_item_path.is_dir():
+            if (upload_item_path.is_dir()): #or upload_item_path.isdir()):
                 for root, _, files in os.walk(upload_item_path):
                     for name in files:
                         local_path = os.path.join(root, name)
@@ -346,6 +350,7 @@ class UploadBasket:
                             fid["upload_path"] = "stub"
                         supplement_data["integrity_data"].append(fid)
             else:
+                upload_item_path = upload_item["path"]
                 fid = derive_integrity_data(str(upload_item_path))
                 if upload_item["stub"] is False:
                     fid["stub"] = False
@@ -357,7 +362,7 @@ class UploadBasket:
                     base_path = os.path.split(file_upload_path)[0]
                     if not self.file_system.exists(base_path):
                         self.file_system.mkdir(base_path)
-                    self.file_system.upload(str(upload_item_path),
+                    self.file_system.copy(str(upload_item_path),
                                             file_upload_path)
                 else:
                     fid["stub"] = True
