@@ -17,7 +17,6 @@ from .config import get_file_system, prohibited_filenames
 def validate_upload_item(upload_item, **kwargs):
     """Validates an upload_item."""
     file_system = kwargs.get("file_system", get_file_system())
-    print('file_system '+str(file_system))
     if not isinstance(upload_item, dict):
         raise TypeError(
             "'upload_item' must be a dictionary: "
@@ -36,7 +35,6 @@ def validate_upload_item(upload_item, **kwargs):
                 f"Invalid upload_item type: '{key}: {type(value)}'"
                 f"\nExpected type: {expected_schema[key]}"
             )
-    print('file_system.exists '+str(file_system.exists(upload_item["path"])))
     if not (file_system.exists(upload_item["path"])):
         raise FileExistsError(
                 f"'path' does not exist: '{upload_item['path']}'"
@@ -326,8 +324,8 @@ class UploadBasket:
         # pylint: disable-next=too-many-nested-blocks
         for upload_item in self.upload_items:
             upload_item_path = Path(upload_item["path"])
-            if (upload_item_path.is_dir()): #or upload_item_path.isdir()):
-                for root, _, files in os.walk(upload_item_path):
+            if (self.file_system.isdir(upload_item_path)): #or upload_item_path.isdir()):
+                for root, _, files in self.file_system.walk(upload_item_path):
                     for name in files:
                         local_path = os.path.join(root, name)
                         # fid means "file integrity data"
@@ -345,8 +343,12 @@ class UploadBasket:
                             base_path = os.path.split(file_upload_path)[0]
                             if not self.file_system.exists(base_path):
                                 self.file_system.mkdir(base_path)
-                            self.file_system.upload(local_path,
-                                                    file_upload_path)
+                            if self.file_system == s3fs.S3FileSystem(client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}):
+                                self.file_system.copy(local_path,
+                                                      file_upload_path)
+                            else:
+                                self.file_system.upload(local_path,
+                                                        file_upload_path)
                         else:
                             fid["stub"] = True
                             fid["upload_path"] = "stub"
