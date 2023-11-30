@@ -12,6 +12,7 @@ from ..upload import UploadBasket
 from .create_index import create_index_from_fs
 from .index_abc import IndexABC
 
+from fsspec.implementations.local import LocalFileSystem
 
 class IndexPandas(IndexABC):
     """Handles Pandas based functionality of the Index."""
@@ -204,10 +205,11 @@ class IndexPandas(IndexABC):
             n_secs = time_ns()
             temp_json_path = os.path.join(out, f"{n_secs}-index.json")
             index.to_json(temp_json_path, date_format="iso", date_unit="ns")
+            print(LocalFileSystem().exists(temp_json_path))
             UploadBasket(
                 upload_items=[{"path":temp_json_path, "stub":False}],
                 basket_type=self.index_basket_dir_name,
-                file_system=self.file_system,
+                file_system=LocalFileSystem(),
                 pantry_path=self.pantry_path
             )
         self.index_df = index

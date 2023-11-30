@@ -17,6 +17,7 @@ from .config import get_file_system, prohibited_filenames
 def validate_upload_item(upload_item, **kwargs):
     """Validates an upload_item."""
     file_system = kwargs.get("file_system", get_file_system())
+    print('file_system '+str(file_system))
     if not isinstance(upload_item, dict):
         raise TypeError(
             "'upload_item' must be a dictionary: "
@@ -35,6 +36,7 @@ def validate_upload_item(upload_item, **kwargs):
                 f"Invalid upload_item type: '{key}: {type(value)}'"
                 f"\nExpected type: {expected_schema[key]}"
             )
+    print('file_system.exists '+str(file_system.exists(upload_item["path"])))
     if not (file_system.exists(upload_item["path"])):
         raise FileExistsError(
                 f"'path' does not exist: '{upload_item['path']}'"
@@ -257,7 +259,7 @@ class UploadBasket:
         local_path_basenames = []
         self.file_system = self.kwargs.get("file_system", get_file_system())
         for upload_item in self.upload_items:
-            validate_upload_item(upload_item, filesytem = self.file_system)
+            validate_upload_item(upload_item, file_system=self.file_system)
             local_path_basename = os.path.basename(Path(upload_item["path"]))
             if local_path_basename in prohibited_filenames:
                 raise ValueError(
@@ -329,7 +331,7 @@ class UploadBasket:
                     for name in files:
                         local_path = os.path.join(root, name)
                         # fid means "file integrity data"
-                        fid = derive_integrity_data(str(local_path))
+                        fid = derive_integrity_data(str(local_path), file_system=self.file_system)
                         if upload_item["stub"] is False:
                             fid["stub"] = False
                             file_upload_path = os.path.join(
@@ -351,7 +353,7 @@ class UploadBasket:
                         supplement_data["integrity_data"].append(fid)
             else:
                 upload_item_path = upload_item["path"]
-                fid = derive_integrity_data(str(upload_item_path))
+                fid = derive_integrity_data(str(upload_item_path), file_system=self.file_system)
                 if upload_item["stub"] is False:
                     fid["stub"] = False
                     file_upload_path = os.path.join(
@@ -362,7 +364,11 @@ class UploadBasket:
                     base_path = os.path.split(file_upload_path)[0]
                     if not self.file_system.exists(base_path):
                         self.file_system.mkdir(base_path)
-                    self.file_system.copy(str(upload_item_path),
+                    if self.file_system == s3fs.S3FileSystem(client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}):
+                        self.file_system.copy(str(upload_item_path),
+                                            file_upload_path)
+                    else:
+                        self.file_system.upload(str(upload_item_path),
                                             file_upload_path)
                 else:
                     fid["stub"] = True
