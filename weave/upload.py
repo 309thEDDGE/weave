@@ -328,7 +328,7 @@ class UploadBasket:
         # pylint: disable-next=too-many-nested-blocks
         for upload_item in self.upload_items:
             upload_item_path = Path(upload_item["path"])
-            if (self.source_file_system.isdir(upload_item_path)): #or upload_item_path.is_dir()):
+            if self.source_file_system.isdir(upload_item_path): #or upload_item_path.is_dir()):
                 for root, _, files in self.source_file_system.walk(upload_item_path):
                     for name in files:
                         local_path = os.path.join(root, name)

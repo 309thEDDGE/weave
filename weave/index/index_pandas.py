@@ -8,11 +8,11 @@ from time import time_ns
 
 import pandas as pd
 
+from fsspec.implementations.local import LocalFileSystem
+
 from ..upload import UploadBasket
 from .create_index import create_index_from_fs
 from .index_abc import IndexABC
-
-from fsspec.implementations.local import LocalFileSystem
 
 class IndexPandas(IndexABC):
     """Handles Pandas based functionality of the Index."""
