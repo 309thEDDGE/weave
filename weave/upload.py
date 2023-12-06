@@ -7,12 +7,12 @@ import math
 import os
 import tempfile
 import uuid
-import s3fs as s3fs
 from datetime import datetime, timezone as tz
 from pathlib import Path
+import s3fs
 
-from .config import get_file_system, prohibited_filenames
 from fsspec.implementations.local import LocalFileSystem
+from .config import get_file_system, prohibited_filenames
 
 def validate_upload_item(upload_item, **kwargs):
     """Validates an upload_item."""
@@ -93,7 +93,7 @@ def derive_integrity_data(file_path, byte_count=10**8, **kwargs):
             f" bytes: '{byte_count}'"
         )
 
-    if source_file_system ==  s3fs.S3FileSystem(client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}):
+    if isinstance(self.source_file_system, s3fs.S3FileSystem):
         file_size = source_file_system.du(file_path)
     else:
         file_size = os.path.getsize(file_path)
@@ -260,8 +260,8 @@ class UploadBasket:
         # Validate self.upload_items
         local_path_basenames = []
         for upload_item in self.upload_items:
-            validate_upload_item(upload_item, 
-                                 file_system=self.file_system, 
+            validate_upload_item(upload_item,
+                                 file_system=self.file_system,
                                  source_file_system=self.source_file_system)
             local_path_basename = os.path.basename(Path(upload_item["path"]))
             if local_path_basename in prohibited_filenames:
