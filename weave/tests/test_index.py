@@ -1761,7 +1761,6 @@ def test_index_abc_columns_in_df_are_same_as_config_index_columns(test_pantry):
     assert ind_df_columns == index_columns
 
 
-# TODO implement these two tests tests for both index pandas and index sqlite
 def test_read_only_generate_index():
     """Show that weave is able to generate an index when using a read-only fs
     """
