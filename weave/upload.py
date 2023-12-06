@@ -241,6 +241,7 @@ class UploadBasket:
         # set self.file_system *after* we have sanitized it.
         # pylint: disable-next=attribute-defined-outside-init
         self.file_system = self.kwargs.get("file_system", get_file_system())
+        # pylint: disable-next=attribute-defined-outside-init
         self.source_file_system = self.kwargs.get("source_file_system", LocalFileSystem())
 
     def sanitize_upload_basket_non_kwargs(self):
@@ -318,6 +319,8 @@ class UploadBasket:
         """Sets up a temporary directory to hold stuff before upload to FS."""
         self.file_system.mkdir(self.kwargs.get("upload_directory"))
 
+    # This block of code should probably be reworked at some point.
+    # pylint: disable-next=too-many-branches
     def upload_files_and_stubs_to_fs(self):
         """Method to upload both files and stubs to FS."""
         supplement_data = {}
@@ -328,7 +331,7 @@ class UploadBasket:
         # pylint: disable-next=too-many-nested-blocks
         for upload_item in self.upload_items:
             upload_item_path = Path(upload_item["path"])
-            if self.source_file_system.isdir(upload_item_path): #or upload_item_path.is_dir()):
+            if self.source_file_system.isdir(upload_item_path):
                 for root, _, files in self.source_file_system.walk(upload_item_path):
                     for name in files:
                         local_path = os.path.join(root, name)
