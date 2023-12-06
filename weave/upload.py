@@ -93,7 +93,7 @@ def derive_integrity_data(file_path, byte_count=10**8, **kwargs):
             f" bytes: '{byte_count}'"
         )
 
-    if isinstance(self.source_file_system, s3fs.S3FileSystem):
+    if isinstance(source_file_system, s3fs.S3FileSystem):
         file_size = source_file_system.du(file_path)
     else:
         file_size = os.path.getsize(file_path)
