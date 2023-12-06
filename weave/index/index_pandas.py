@@ -205,11 +205,11 @@ class IndexPandas(IndexABC):
             n_secs = time_ns()
             temp_json_path = os.path.join(out, f"{n_secs}-index.json")
             index.to_json(temp_json_path, date_format="iso", date_unit="ns")
-            print(LocalFileSystem().exists(temp_json_path))
             UploadBasket(
                 upload_items=[{"path":temp_json_path, "stub":False}],
                 basket_type=self.index_basket_dir_name,
-                file_system=LocalFileSystem(),
+                file_system = self.file_system,
+                source_file_system = LocalFileSystem(),
                 pantry_path=self.pantry_path
             )
         self.index_df = index
@@ -459,7 +459,6 @@ class IndexPandas(IndexABC):
 
         **kwargs unused for this class.
         """
-
         if not self._sync_if_needed():
             self._upload_index(
                 pd.concat([self.index_df, entry_df], ignore_index=True)
