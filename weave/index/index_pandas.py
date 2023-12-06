@@ -200,16 +200,20 @@ class IndexPandas(IndexABC):
 
     def _upload_index(self, index):
         """Upload a new index."""
-        with tempfile.TemporaryDirectory() as out:
-            n_secs = time_ns()
-            temp_json_path = os.path.join(out, f"{n_secs}-index.json")
-            index.to_json(temp_json_path, date_format="iso", date_unit="ns")
-            UploadBasket(
-                upload_items=[{"path":temp_json_path, "stub":False}],
-                basket_type=self.index_basket_dir_name,
-                file_system=self.file_system,
-                pantry_path=self.pantry_path
-            )
+        n_secs = time_ns()
+        # If this is not a zip file system, upload the index
+        if "zip" not in self._file_system.protocol:
+            with tempfile.TemporaryDirectory() as out:
+                temp_json_path = os.path.join(out, f"{n_secs}-index.json")
+                index.to_json(temp_json_path,
+                              date_format="iso",
+                              date_unit="ns")
+                UploadBasket(
+                    upload_items=[{"path":temp_json_path, "stub":False}],
+                    basket_type=self.index_basket_dir_name,
+                    file_system=self.file_system,
+                    pantry_path=self.pantry_path
+                )
         self.index_df = index
         self.index_json_time = n_secs
 

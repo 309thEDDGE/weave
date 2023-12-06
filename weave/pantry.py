@@ -166,6 +166,11 @@ class Pantry():
             Optional user friendly label associated with the basket.
         """
 
+        if "zip" in self.file_system.protocol:
+            raise ValueError(
+               "Unable to upload a basket to a read-only file system."
+            )
+
         parent_ids = kwargs.pop("parent_ids", [])
         metadata = kwargs.pop("metadata", {})
         label = kwargs.pop("label", "")
