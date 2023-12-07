@@ -48,9 +48,20 @@ class Pantry():
         self.pantry_path = str(pantry_path)
         self.load_metadata()
 
+        # Check if file system is read-only. If so, raise error.
+        try:
+            self.file_system.touch(os.path.join(self.pantry_path,
+                                                "test_read_only.txt"))
+            self.file_system.rm(os.path.join(self.pantry_path,
+                                                "test_read_only.txt"))
+            self.is_read_only = False
+        except ValueError:
+            self.is_read_only = True
+
         self.index = index(file_system=self.file_system,
                            pantry_path=self.pantry_path,
                            metadata=self.metadata['index_metadata'],
+                           pantry_read_only=self.is_read_only,
                            **kwargs
         )
         self.metadata['index_metadata'] = self.index.generate_metadata()
@@ -165,10 +176,10 @@ class Pantry():
         **label: str (optional)
             Optional user friendly label associated with the basket.
         """
-
-        if "zip" in self.file_system.protocol:
+        # Check if file system is read-only. If so, raise error.
+        if self.is_read_only:
             raise ValueError(
-               "Unable to upload a basket to a read-only file system."
+                "Unable to upload a basket to a read-only file system."
             )
 
         parent_ids = kwargs.pop("parent_ids", [])

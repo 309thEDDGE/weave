@@ -47,6 +47,7 @@ class IndexPandas(IndexABC):
         self.sync = bool(kwargs.get('sync', True))
         self.index_json_time = 0 # 0 is essentially same as None in this case
         self.index_df = None
+        self.pantry_read_only = kwargs.get("pantry_read_only", False)
 
     def __len__(self):
         """Returns the number of baskets in the index."""
@@ -201,8 +202,8 @@ class IndexPandas(IndexABC):
     def _upload_index(self, index):
         """Upload a new index."""
         n_secs = time_ns()
-        # If this is not a zip file system, upload the index
-        if "zip" not in self._file_system.protocol:
+        # If the pantry is read-only, don't upload the index.
+        if not self.pantry_read_only:
             with tempfile.TemporaryDirectory() as out:
                 temp_json_path = os.path.join(out, f"{n_secs}-index.json")
                 index.to_json(temp_json_path,

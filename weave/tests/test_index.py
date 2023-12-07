@@ -1761,13 +1761,15 @@ def test_index_abc_columns_in_df_are_same_as_config_index_columns(test_pantry):
     assert ind_df_columns == index_columns
 
 
-def test_read_only_generate_index():
+def test_read_only_generate_index(test_pantry):
     """Show that weave is able to generate an index when using a read-only fs
     """
+    _, index = test_pantry
     with tempfile.TemporaryDirectory() as tmpdir:
-        tmp_pantry = Pantry(IndexPandas,
+        tmp_pantry = Pantry(type(index),
                             pantry_path=tmpdir,
                             file_system=LocalFileSystem())
+
         with tempfile.NamedTemporaryFile() as tmp_file:
             tmp_pantry.upload_basket(
                 upload_items=[{"path":tmp_file.name, "stub":False}],
@@ -1779,11 +1781,18 @@ def test_read_only_generate_index():
                                        tmpdir)
 
         read_only_fs = fsspec.filesystem("zip", fo=zip_path)
-        read_only_pantry = Pantry(IndexPandas,
+
+        read_only_pantry = Pantry(type(index),
                                   pantry_path="",
                                   file_system=read_only_fs)
 
         read_only_pantry.index.generate_index()
         read_only_index = read_only_pantry.index.to_pandas_df()
+
+        remove_path = str(tmpdir).replace('/','-')
+
+        if os.path.exists(f"weave-{remove_path}.db"):
+            os.remove(f"weave-{remove_path}.db")
+            os.remove(f"weave-{read_only_pantry.pantry_path}.db")
 
         assert len(read_only_index) == 1
