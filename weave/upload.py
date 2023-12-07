@@ -353,8 +353,12 @@ class UploadBasket:
                             if not self.file_system.exists(base_path):
                                 self.file_system.mkdir(base_path)
                             if isinstance(self.source_file_system, s3fs.S3FileSystem):
-                                self.file_system.copy(local_path,
-                                                      file_upload_path)
+                                if self.source_file_system == self.file_system:
+                                    self.file_system.copy(local_path,
+                                                          file_upload_path)
+                                else:
+                                    self.source_file_system.get(local_path,
+                                                                file_upload_path)
                             else:
                                 self.file_system.upload(local_path,
                                                         file_upload_path)
@@ -378,8 +382,12 @@ class UploadBasket:
                     if not self.file_system.exists(base_path):
                         self.file_system.mkdir(base_path)
                     if isinstance(self.source_file_system, s3fs.S3FileSystem):
-                        self.file_system.copy(str(upload_item_path),
-                                            file_upload_path)
+                        if self.source_file_system == self.file_system:
+                            self.file_system.copy(str(upload_item_path),
+                                                  file_upload_path)
+                        else:
+                            self.source_file_system.get(str(upload_item_path),
+                                                        file_upload_path)
                     else:
                         self.file_system.upload(str(upload_item_path),
                                             file_upload_path)
