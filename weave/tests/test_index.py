@@ -1780,7 +1780,7 @@ def test_read_only_generate_index(test_pantry):
                                        "zip",
                                        tmpdir)
 
-        read_only_fs = fsspec.filesystem("zip", fo=zip_path)
+        read_only_fs = fsspec.filesystem("zip", fo=zip_path, mode="r")
 
         read_only_pantry = Pantry(type(index),
                                   pantry_path="",
