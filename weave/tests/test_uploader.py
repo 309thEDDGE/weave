@@ -1350,6 +1350,9 @@ def test_upload_correct_version_number(test_basket):
     assert manifest_dict["weave_version"] == weave.__version__
 
 def test_upload_from_s3fs(test_basket):
+    """Test that a basket can be uploaded from s3fs to the local file
+    system or s3fs.
+    """
     pantry_path = os.path.join(test_basket.pantry_path, "test-pantry-1")
 
     test_basket.file_system.mkdir(pantry_path)
@@ -1385,7 +1388,7 @@ def test_upload_from_s3fs(test_basket):
 
     basket = pantry_1.get_basket(basket_uuid)
 
-    if not(test_basket.file_system == local_fs):
+    if not test_basket.file_system == local_fs:
         assert basket.ls()[0].endswith('text.txt')
     else:
         assert basket.ls()[0].endswith('test.txt')
