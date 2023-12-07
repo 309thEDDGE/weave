@@ -5,7 +5,6 @@ import os
 import tempfile
 import warnings
 from time import time_ns
-
 import pandas as pd
 
 from fsspec.implementations.local import LocalFileSystem
@@ -208,8 +207,8 @@ class IndexPandas(IndexABC):
             UploadBasket(
                 upload_items=[{"path":temp_json_path, "stub":False}],
                 basket_type=self.index_basket_dir_name,
-                file_system = self.file_system,
-                source_file_system = LocalFileSystem(),
+                file_system=self.file_system,
+                source_file_system=LocalFileSystem(),
                 pantry_path=self.pantry_path
             )
         self.index_df = index

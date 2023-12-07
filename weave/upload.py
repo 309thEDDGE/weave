@@ -367,7 +367,6 @@ class UploadBasket:
                             fid["upload_path"] = "stub"
                         supplement_data["integrity_data"].append(fid)
             else:
-                upload_item_path = upload_item["path"]
                 fid = derive_integrity_data(str(upload_item_path),
                                             file_system=self.file_system,
                                             source_file_system=self.source_file_system)
