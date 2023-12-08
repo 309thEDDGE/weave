@@ -95,7 +95,7 @@ def test_index_sql_properties_are_read_only():
     are read only, and cannot be changed during execution.
     """
     pantry_path = (
-        "pytest-temp-pantry"
+        "weave-pytest-temp-pantry"
         f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
     )
 
