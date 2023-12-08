@@ -160,7 +160,7 @@ class UploadBasket:
             and stored in the basket in the upload FS.
         **label: str (optional)
             Optional user friendly label associated with the basket.
-        **soure_file_system: fsspec object (optional)
+        **source_file_system: fsspec object (optional)
             The origin file system (ie s3fs, local fs, etc).
             If none, the local fs will be used
         **file_system: fsspec object (optional)
@@ -352,13 +352,12 @@ class UploadBasket:
                             base_path = os.path.split(file_upload_path)[0]
                             if not self.file_system.exists(base_path):
                                 self.file_system.mkdir(base_path)
-                            if isinstance(self.source_file_system, s3fs.S3FileSystem):
-                                if self.source_file_system == self.file_system:
-                                    self.file_system.copy(local_path,
-                                                          file_upload_path)
-                                else:
-                                    self.source_file_system.get(local_path,
-                                                                file_upload_path)
+                            if self.source_file_system == self.file_system:
+                                self.file_system.copy(local_path,
+                                                      file_upload_path)
+                            elif isinstance(self.source_file_system,s3fs.S3FileSystem):
+                                self.source_file_system.get(local_path,
+                                                            file_upload_path)
                             else:
                                 self.file_system.upload(local_path,
                                                         file_upload_path)
@@ -380,13 +379,12 @@ class UploadBasket:
                     base_path = os.path.split(file_upload_path)[0]
                     if not self.file_system.exists(base_path):
                         self.file_system.mkdir(base_path)
-                    if isinstance(self.source_file_system, s3fs.S3FileSystem):
-                        if self.source_file_system == self.file_system:
-                            self.file_system.copy(str(upload_item_path),
-                                                  file_upload_path)
-                        else:
-                            self.source_file_system.get(str(upload_item_path),
-                                                        file_upload_path)
+                    if self.source_file_system == self.file_system:
+                        self.file_system.copy(str(upload_item_path),
+                                              file_upload_path)
+                    elif isinstance(self.source_file_system,s3fs.S3FileSystem):
+                        self.source_file_system.get(str(upload_item_path),
+                                                    file_upload_path)
                     else:
                         self.file_system.upload(str(upload_item_path),
                                             file_upload_path)
