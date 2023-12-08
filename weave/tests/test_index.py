@@ -22,6 +22,7 @@ from weave import Pantry
 from weave.index.index_pandas import IndexPandas
 from weave.index.create_index import create_index_from_fs
 from weave.tests.pytest_resources import PantryForTest, IndexForTest
+from weave.tests.pytest_resources import cleanup_sql_index
 
 
 ###############################################################################
@@ -1794,5 +1795,8 @@ def test_read_only_generate_index(test_pantry):
         if os.path.exists(f"weave-{remove_path}.db"):
             os.remove(f"weave-{remove_path}.db")
             os.remove(f"weave-{read_only_pantry.pantry_path}.db")
+
+        cleanup_sql_index(tmp_pantry.index)
+        cleanup_sql_index(read_only_pantry.index)
 
         assert len(read_only_index) == 1
