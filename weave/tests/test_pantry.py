@@ -715,6 +715,8 @@ def test_upload_basket_read_only():
                                        "zip",
                                        tmpdir)
 
+        zip_path = shutil.copy(zip_path, os.path.join(tmpdir, "my_zip"))
+
         read_only_fs = fsspec.filesystem("zip", fo=zip_path, mode="r")
         read_only_pantry = Pantry(IndexPandas,
                                   pantry_path="",
