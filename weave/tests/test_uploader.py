@@ -12,7 +12,7 @@ import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
 import weave
-from weave import Pantry, IndexPandas
+from weave import Pantry, IndexPandas, IndexSQLite
 from weave.tests.pytest_resources import PantryForTest, file_path_in_list
 from weave.upload import (
     UploadBasket,
@@ -1380,16 +1380,26 @@ def test_upload_from_s3fs(test_basket):
         pantry_path=pantry_path,
         file_system=test_basket.file_system,
     )
+    pantry_2 = Pantry(
+    IndexSQLite,
+    pantry_path=pantry_path,
+    file_system=test_basket.file_system,
+    )
     basket_uuid = pantry_1.upload_basket(
                            upload_items=[{'path': file_to_move,'stub':False}],
                            source_file_system=s3fs,
                            basket_type="test_s3fs_upload"
                            )["uuid"][0]
-
+    basket_uuid2 = pantry_2.upload_basket(
+                       upload_items=[{'path': file_to_move,'stub':False}],
+                       source_file_system=s3fs,
+                       basket_type="test_s3fs_upload"
+                       )["uuid"][0]
     basket = pantry_1.get_basket(basket_uuid)
-
+    basket2 = pantry_2.get_basket(basket_uuid2)
     if not test_basket.file_system == local_fs:
-        assert basket.ls()[0].endswith('text.txt')
+        assert basket.ls()[0].endswith('text.txt') and basket2.ls()[0].endswith('text.txt')
     else:
-        assert basket.ls()[0].endswith('test.txt')
+        assert basket.ls()[0].endswith('test.txt') and basket2.ls()[0].endswith('test.txt')
+        local_fs.rm('pytest-temp-pantry-test-pantry-1.db')
         s3fs.rm(minio_path,recursive=True)
