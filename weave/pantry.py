@@ -55,7 +55,7 @@ class Pantry():
             self.file_system.rm(os.path.join(self.pantry_path,
                                                 "test_read_only.txt"))
             self.is_read_only = False
-        except ValueError:
+        except (OSError, ValueError):
             self.is_read_only = True
 
         self.index = index(file_system=self.file_system,
