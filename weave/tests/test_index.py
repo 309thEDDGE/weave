@@ -7,7 +7,6 @@ import warnings
 import shutil
 import tempfile
 from datetime import datetime, timedelta, timezone
-from stat import S_IREAD
 
 import numpy as np
 import pandas as pd
@@ -1780,10 +1779,6 @@ def test_read_only_generate_index(test_pantry):
         zip_path = shutil.make_archive(os.path.join(tmpdir, "test_pantry"),
                                        "zip",
                                        tmpdir)
-
-        # from stat import S_IREAD, S_IRGRP, S_IROTH
-        os.chmod(zip_path, S_IREAD)
-        # zip_path = shutil.copy(zip_path, os.path.join(tmpdir, "my_zip"))
 
         read_only_fs = fsspec.filesystem("zip", fo=zip_path, mode="r")
 
