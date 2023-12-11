@@ -1409,4 +1409,3 @@ def test_upload_from_s3fs(test_basket):
         remove_path = pantry_2.index.db_path
         if local_fs.exists(remove_path):
             local_fs.rm(remove_path)
-
