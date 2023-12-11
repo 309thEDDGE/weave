@@ -5,13 +5,13 @@ import os
 import tempfile
 import warnings
 from time import time_ns
-
 import pandas as pd
+
+from fsspec.implementations.local import LocalFileSystem
 
 from ..upload import UploadBasket
 from .create_index import create_index_from_fs
 from .index_abc import IndexABC
-
 
 class IndexPandas(IndexABC):
     """Handles Pandas based functionality of the Index."""
@@ -103,7 +103,7 @@ class IndexPandas(IndexABC):
             return
         if len(index_paths) > 20:
             warnings.warn(f"The index basket count is {len(index_paths)}. " +
-                 "Consider running weave.Index.clean_up_indices")
+                 "Consider running weave.IndexPandas.clean_up_indices")
         latest_index_path = ""
         for path in index_paths:
             path_time = self._get_index_time_from_path(path)
@@ -208,6 +208,7 @@ class IndexPandas(IndexABC):
                 upload_items=[{"path":temp_json_path, "stub":False}],
                 basket_type=self.index_basket_dir_name,
                 file_system=self.file_system,
+                source_file_system=LocalFileSystem(),
                 pantry_path=self.pantry_path
             )
         self.index_df = index
@@ -457,7 +458,6 @@ class IndexPandas(IndexABC):
 
         **kwargs unused for this class.
         """
-
         if not self._sync_if_needed():
             self._upload_index(
                 pd.concat([self.index_df, entry_df], ignore_index=True)

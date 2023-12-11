@@ -149,6 +149,7 @@ Required basket information:
 - pantry_name/upload_directory: Where to upload the files.
 
 Optional basket information:
+- source_file_system: file system where weave will get the file to upload.
 - parent_ids: Baskets from which the current basket was derived.
 - metadata: User customizable metadata.
 - label: Additional user label.
