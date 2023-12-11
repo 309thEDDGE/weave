@@ -34,6 +34,9 @@ class IndexPandas(IndexABC):
             object has the same information as the index on the disk. If False,
             then the Index object may be stale, but operations will perform
             at a higher speed.
+        **pantry_read_only: bool (default=False)
+            A bool that flags if the current working file system is read-only
+            or not.
         """
 
         super().__init__(file_system=file_system,
@@ -203,17 +206,19 @@ class IndexPandas(IndexABC):
         """Upload a new index."""
         n_secs = time_ns()
         # If the pantry is read-only, don't upload the index.
-        if not self.pantry_read_only:   
-          with tempfile.TemporaryDirectory() as out:
-              temp_json_path = os.path.join(out, f"{n_secs}-index.json")
-              index.to_json(temp_json_path, date_format="iso", date_unit="ns")
-              UploadBasket(
-                  upload_items=[{"path":temp_json_path, "stub":False}],
-                  basket_type=self.index_basket_dir_name,
-                  file_system=self.file_system,
-                  source_file_system=LocalFileSystem(),
-                  pantry_path=self.pantry_path
-              )
+        if not self.pantry_read_only:
+            with tempfile.TemporaryDirectory() as out:
+                temp_json_path = os.path.join(out, f"{n_secs}-index.json")
+                index.to_json(temp_json_path,
+                              date_format="iso",
+                              date_unit="ns")
+                UploadBasket(
+                    upload_items=[{"path":temp_json_path, "stub":False}],
+                    basket_type=self.index_basket_dir_name,
+                    file_system=self.file_system,
+                    source_file_system=LocalFileSystem(),
+                    pantry_path=self.pantry_path
+                )
         self.index_df = index
         self.index_json_time = n_secs
 
@@ -530,7 +535,7 @@ class IndexPandas(IndexABC):
 
         Returns
         ----------
-        pandas.DataFrame containing the manifest data of baskets with the 
+        pandas.DataFrame containing the manifest data of baskets with the
         label.
         """
 
