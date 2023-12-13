@@ -29,7 +29,7 @@ from weave.upload import (
 
 
 class UploadForTest(PantryForTest):
-    """Test class extended from PantryForTest to include custom call for 
+    """Test class extended from PantryForTest to include custom call for
     upload.
     """
 
@@ -1372,8 +1372,10 @@ def test_upload_from_s3fs(test_basket):
     if test_basket.file_system == local_fs:
         s3fs.upload(str(tmp_txt_file.realpath()), file_to_move)
     else:
-        test_basket.file_system.upload(str(tmp_txt_file.realpath()), file_to_move)
-    test_basket.file_system.upload(str(tmp_txt_file.realpath()), nested_path)
+        test_basket.file_system.upload(str(tmp_txt_file.realpath()),
+                                       file_to_move)
+    test_basket.file_system.upload(str(tmp_txt_file.realpath()),
+                                   nested_path)
     # Make the Pantries.
     pantry_1 = Pantry(
         IndexPandas,
@@ -1381,9 +1383,9 @@ def test_upload_from_s3fs(test_basket):
         file_system=test_basket.file_system,
     )
     pantry_2 = Pantry(
-    IndexSQLite,
-    pantry_path=pantry_path,
-    file_system=test_basket.file_system,
+        IndexSQLite,
+        pantry_path=pantry_path,
+        file_system=test_basket.file_system,
     )
     basket_uuid = pantry_1.upload_basket(
                            upload_items=[{'path': file_to_move,'stub':False}],
@@ -1398,8 +1400,12 @@ def test_upload_from_s3fs(test_basket):
     basket = pantry_1.get_basket(basket_uuid)
     basket2 = pantry_2.get_basket(basket_uuid2)
     if not test_basket.file_system == local_fs:
-        assert basket.ls()[0].endswith('text.txt') and basket2.ls()[0].endswith('text.txt')
+        assert (basket.ls()[0].endswith('text.txt') and
+                basket2.ls()[0].endswith('text.txt'))
     else:
-        assert basket.ls()[0].endswith('test.txt') and basket2.ls()[0].endswith('test.txt')
-        local_fs.rm('pytest-temp-pantry-test-pantry-1.db')
+        assert (basket.ls()[0].endswith('test.txt') and
+                basket2.ls()[0].endswith('test.txt'))
         s3fs.rm(minio_path,recursive=True)
+        remove_path = pantry_2.index.db_path
+        if local_fs.exists(remove_path):
+            local_fs.rm(remove_path)

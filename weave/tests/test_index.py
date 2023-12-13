@@ -4,20 +4,25 @@ import os
 import sys
 import re
 import warnings
+import shutil
+import tempfile
 from datetime import datetime, timedelta, timezone
 
 import numpy as np
 import pandas as pd
 import pytest
 import s3fs
+import fsspec
 from fsspec.implementations.local import LocalFileSystem
 
 import weave
 from weave import IndexSQLite
 from weave import IndexSQL
+from weave import Pantry
 from weave.index.index_pandas import IndexPandas
 from weave.index.create_index import create_index_from_fs
 from weave.tests.pytest_resources import PantryForTest, IndexForTest
+from weave.tests.pytest_resources import cleanup_sql_index
 
 
 ###############################################################################
@@ -1755,3 +1760,43 @@ def test_index_abc_columns_in_df_are_same_as_config_index_columns(test_pantry):
     index_columns.sort()
 
     assert ind_df_columns == index_columns
+
+
+def test_read_only_generate_index(test_pantry):
+    """Show that weave is able to generate an index when using a read-only fs
+    """
+    _, index = test_pantry
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_pantry = Pantry(type(index),
+                            pantry_path=tmpdir,
+                            file_system=LocalFileSystem())
+
+        with tempfile.NamedTemporaryFile() as tmp_file:
+            tmp_pantry.upload_basket(
+                upload_items=[{"path":tmp_file.name, "stub":False}],
+                basket_type="read_only",
+            )
+
+        zip_path = shutil.make_archive(os.path.join(tmpdir, "test_pantry"),
+                                       "zip",
+                                       tmpdir)
+
+        read_only_fs = fsspec.filesystem("zip", fo=zip_path, mode="r")
+
+        read_only_pantry = Pantry(type(index),
+                                  pantry_path="",
+                                  file_system=read_only_fs)
+
+        read_only_pantry.index.generate_index()
+        read_only_index = read_only_pantry.index.to_pandas_df()
+
+        remove_path = str(tmpdir).replace('/','-')
+
+        if os.path.exists(f"weave-{remove_path}.db"):
+            os.remove(f"weave-{remove_path}.db")
+            os.remove(f"weave-{read_only_pantry.pantry_path}.db")
+
+        cleanup_sql_index(tmp_pantry.index)
+        cleanup_sql_index(read_only_pantry.index)
+
+        assert len(read_only_index) == 1

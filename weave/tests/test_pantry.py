@@ -1,6 +1,8 @@
 """Pytest tests for the index directory."""
 import json
 import os
+import shutil
+import tempfile
 import uuid as uuid_lib
 import warnings
 from unittest.mock import patch
@@ -8,6 +10,7 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 import s3fs
+import fsspec
 from fsspec.implementations.local import LocalFileSystem
 
 from weave import Basket
@@ -692,3 +695,34 @@ def test_validate_path_does_not_backtrack_from_pantry_path(tmpdir):
     error_msg = f"Attempting to access basket outside of pantry: {new_address}"
     with pytest.raises(ValueError, match=error_msg):
         pantry.validate_path_in_pantry(new_address)
+
+
+def test_upload_basket_read_only():
+    """Instantiate a .zip file as a file system in a tmp directory, check that
+    an error is thrown when trying to upload a basket.
+    """
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_pantry = Pantry(IndexPandas,
+                            pantry_path=tmpdir,
+                            file_system=LocalFileSystem())
+        with tempfile.NamedTemporaryFile() as tmp_file:
+            tmp_pantry.upload_basket(
+                upload_items=[{"path":tmp_file.name, "stub":False}],
+                basket_type="read_only",
+            )
+
+        zip_path = shutil.make_archive(os.path.join(tmpdir, "test_pantry"),
+                                       "zip",
+                                       tmpdir)
+
+        read_only_fs = fsspec.filesystem("zip", fo=zip_path, mode="r")
+        read_only_pantry = Pantry(IndexPandas,
+                                  pantry_path="",
+                                  file_system=read_only_fs)
+
+        error_msg = "Unable to upload a basket to a read-only file system."
+        with pytest.raises(ValueError, match=error_msg):
+            read_only_pantry.upload_basket(
+                upload_items=[{"path":tmp_file.name, "stub":False}],
+                basket_type="read_only",
+            )

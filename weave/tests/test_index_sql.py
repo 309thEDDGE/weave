@@ -78,8 +78,8 @@ def test_index_sql_no_env_vars():
         IndexSQL(LocalFileSystem(), "weave-test-pantry")
 
     assert (
-        str(err.value) == "'The following environment variables must be set to "
-        "use this class: MSSQL_HOST, MSSQL_USERNAME, MSSQL_PASSWORD.'"
+        str(err.value) == "'The following environment variables must be set "
+        "to use this class: MSSQL_HOST, MSSQL_USERNAME, MSSQL_PASSWORD.'"
     )
 
 
