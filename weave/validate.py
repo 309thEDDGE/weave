@@ -7,7 +7,7 @@ import warnings
 import jsonschema
 from jsonschema import validate
 
-from .config import manifest_schema, supplement_schema
+from .config import manifest_schema, supplement_schema, prohibited_filenames
 
 
 def validate_pantry(pantry):
@@ -183,6 +183,20 @@ def _validate_basket(basket_dir, pantry):
 
     files_in_basket = pantry.file_system.ls(path=basket_dir, refresh=True)
 
+    basenames = [os.path.basename(x) for x in files_in_basket]
+
+    if set(prohibited_filenames) == set(basenames):
+        # Basket with no files, check if it's a metadata-only basket
+        # print('\nthis is a basket with no files')
+        _check_metadata_only(files_in_basket, pantry)
+
+
+
+
+
+    # print('\n files in basket: \n', files_in_basket)
+    # if set(["basket_manifest.json", "basket_supplement.json", "basket_metadata.json"])
+
     for file in files_in_basket:
         _, file_name = os.path.split(file)
         {
@@ -245,7 +259,7 @@ def _handle_supplement(file, pantry):
         basket_dir, _ = os.path.split(file)
         _validate_supplement_files(basket_dir, data, pantry)
 
-    except jsonschema.exceptions.ValidationError:
+    except jsonschema.exceptions.ValidationError as e:
         warnings.warn(UserWarning(
             "Invalid Basket. "
             "Supplement Schema does not match at: ", file
@@ -302,6 +316,35 @@ def _handle_none_of_the_above(file, pantry):
             ))
 
 
+def _check_metadata_only(files_in_basket, pantry):
+    for file in files_in_basket:
+        if file.endswith("basket_manifest.json"):
+            man_data = json.load(pantry.file_system.open(file))
+            # print('\nmanifest json: \n', man_data)
+        if file.endswith("basket_supplement.json"):
+            supp_data = json.load(pantry.file_system.open(file))
+            # print('\nsuppdata: ', supp_data)
+
+        if file.endswith("basket_metadata.json"):
+            meta_data = json.load(pantry.file_system.open(file))
+            # print('\nmetadata.json: ', meta_data)
+            
+    # Check that it is a metadata-only basket by checking 3 things:
+    # 1. metadata is not empty
+    # 2. Basket has parent_uuids
+    # 3. No files were uploaded (this is checked twice)
+    if meta_data and not supp_data["upload_items"] and man_data["parent_uuids"]:
+        print('this is a METADATA only basket inside validation')
+    else:
+        # Raise a warning potentially that there are no files uploaded, but it
+        # is not considered to be a metadata-only basket.
+        warnings.warn(UserWarning(
+                "Invalid Basket. No files in basekt and criteria not met for "
+                "metadata-only basket. ", man_data["uuid"]
+            ))
+    
+
+
 def _validate_parent_uuids(data, pantry):
     """Validate that all the parent_uuids from the manifest exist in the
     pantry.
@@ -344,7 +387,6 @@ def _validate_supplement_files(basket_dir, data, pantry):
     pantry: weave.Pantry
         The pantry to validate.
     """
-
     pantry_path = pantry.pantry_path
     sys_file_list = pantry.file_system.find(path=basket_dir, withdirs=False)
 
@@ -360,6 +402,9 @@ def _validate_supplement_files(basket_dir, data, pantry):
     ]
 
     supp_file_list = [file["upload_path"] for file in data["integrity_data"]]
+    # if not supp_file_list:
+        # Check if this is a metadata-only basket
+        # print("there are no files in the supplement")
 
     # Remove path up until the pantry directory in both lists
     system_file_list = [

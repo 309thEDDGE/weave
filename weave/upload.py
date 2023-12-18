@@ -169,6 +169,27 @@ class UploadBasket:
         and keep the pantry organized.
         """
 
+        # if there is no files
+        # if parent uids are provided
+        # if metadata is provided
+        # then it is a metadata only basket
+
+
+        parent_uids = kwargs.get("parent_ids", "no parent ids")
+        metadata = kwargs.get("metadata", "no metadata")
+        files = upload_items
+
+        if not files and (not parent_uids or not metadata):
+            print('THIS BASKET HAS NO FILES, PROVIDE FILES OR INCLUDE METADATA AND PARENT_UIDS TO MAKE METADATA ONLY BASKET')
+            raise ValueError("Files are required to upload a basket. If you want a metadata only basket, please include metadata and parent uid(s)")
+
+        if parent_uids and metadata and not files:
+            print('METADATA ONLY BASKET!!!!!! metadata basket only')
+
+        # print("\nparent uids: ", parent_uids)
+        # print('metadata: ', metadata)
+        # print('files; ', files)
+
         self.upload_items = upload_items
         self.kwargs = kwargs
         # We cannot use with in this case, as we want the temp dir to persist

@@ -45,7 +45,7 @@ supplement_schema = {
     "properties": {
         "upload_items": {
             "type": "array",
-            "minItems": 1,
+            "minItems": 0,
             "items": {
                 "type": "object",
                 "properties": {
@@ -58,7 +58,7 @@ supplement_schema = {
         },
         "integrity_data": {
             "type": "array",
-            "minItems": 1,
+            "minItems": 0,
             "items": {
                 "type": "object",
                 "properties": {

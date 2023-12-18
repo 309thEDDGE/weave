@@ -1004,7 +1004,6 @@ def test_validate_supplement_schema_empty_upload_items(test_validate):
     """Make a basket with invalid supplement schema, check that it collects
        one warning.
     """
-
     # The supplement has an empty array of "upload_items"
     # This is invalid against the schema.
     bad_supplement_data = """{
@@ -1023,6 +1022,12 @@ def test_validate_supplement_schema_empty_upload_items(test_validate):
         }
         ]
     }"""
+    
+#     bad_supplement_data = """{
+#         "upload_items": [],
+
+#         "integrity_data": []
+#     }"""
 
     tmp_basket_dir = test_validate.set_up_basket(
         "bad_sup_schema",
@@ -1054,6 +1059,7 @@ def test_validate_supplement_schema_empty_upload_items(test_validate):
 
     # Check that the correct warning is raised
     warning_1 = warning_list[0]
+    print('\n warning 1: ', warning_1)
     assert warning_1.args[0] == (
         "Invalid Basket. Supplement Schema does not match at: "
     )
@@ -1786,7 +1792,6 @@ def test_validate_file_not_in_file_system(test_validate):
     """Add a file to the supplement data and validate that a warning is thrown
     because it does not exist in the file system.
     """
-
     # Make a basket
     tmp_basket_dir = test_validate.set_up_basket("my_basket")
     test_validate.add_lower_dir_to_temp_basket(tmp_basket_dir=tmp_basket_dir)
@@ -1862,3 +1867,9 @@ def test_validate_file_not_in_file_system(test_validate):
     assert warning_msg_2 == ("File listed in the basket_supplement.json does "
                              "not exist in the file system: ")
     assert warning_path_2.endswith(error_file_path_2)
+
+
+def test_validate_check_metadata_only_baskets(test_validate):
+    """
+    """
+    print('this is a test')

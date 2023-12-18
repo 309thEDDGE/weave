@@ -1347,3 +1347,8 @@ def test_upload_correct_version_number(test_basket):
         manifest_dict = json.load(file)
 
     assert manifest_dict["weave_version"] == weave.__version__
+
+def test_upload_metadata_only_basket(test_basket):
+    """
+    """
+    print('uploder test')
