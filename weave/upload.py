@@ -336,42 +336,44 @@ class UploadBasket:
             if self.source_file_system.isdir(item_path):
                 for root, _, files in self.source_file_system.walk(item_path):
                     for name in files:
-                        local_path = os.path.join(root, name)
-                        # fid means "file integrity data"
-                        fid = derive_integrity_data(
-                            str(local_path),
-                            file_system=self.file_system,
-                            source_file_system=self.source_file_system
-                        )
-                        if upload_item["stub"] is False:
-                            fid["stub"] = False
-                            file_upload_path = os.path.join(
-                                self.kwargs.get("upload_directory"),
-                                os.path.relpath(
-                                    local_path,
-                                    os.path.split(item_path)[0],
-                                ),
-                            )
-                            fid["upload_path"] = str(file_upload_path)
-                            base_path = os.path.split(file_upload_path)[0]
-                            if not self.file_system.exists(base_path):
-                                self.file_system.mkdir(base_path)
-                            self.upload_grouped_file(local_path,
-                                                     file_upload_path)
-                            # if self.source_file_system == self.file_system:
-                            #     self.file_system.copy(local_path,
-                            #                           file_upload_path)
-                            # elif isinstance(self.source_file_system,
-                            #                 s3fs.S3FileSystem):
-                            #     self.source_file_system.get(local_path,
-                            #                                 file_upload_path)
-                            # else:
-                            #     self.file_system.upload(local_path,
-                            #                             file_upload_path)
-                        else:
-                            fid["stub"] = True
-                            fid["upload_path"] = "stub"
-                        supplement_data["integrity_data"].append(fid)
+                        self.handle_grouped_file(root, name, upload_item,
+                                                 item_path, supplement_data)
+                        # local_path = os.path.join(root, name)
+                        # # fid means "file integrity data"
+                        # fid = derive_integrity_data(
+                        #     str(local_path),
+                        #     file_system=self.file_system,
+                        #     source_file_system=self.source_file_system
+                        # )
+                        # if upload_item["stub"] is False:
+                        #     fid["stub"] = False
+                        #     file_upload_path = os.path.join(
+                        #         self.kwargs.get("upload_directory"),
+                        #         os.path.relpath(
+                        #             local_path,
+                        #             os.path.split(item_path)[0],
+                        #         ),
+                        #     )
+                        #     fid["upload_path"] = str(file_upload_path)
+                        #     self.upload_grouped_file(local_path,
+                        #                              file_upload_path)
+                        #     # base_path = os.path.split(file_upload_path)[0]
+                        #     # if not self.file_system.exists(base_path):
+                        #     #     self.file_system.mkdir(base_path)
+                        #     # if self.source_file_system == self.file_system:
+                        #     #     self.file_system.copy(local_path,
+                        #     #                           file_upload_path)
+                        #     # elif isinstance(self.source_file_system,
+                        #     #                 s3fs.S3FileSystem):
+                        #     #     self.source_file_system.get(local_path,
+                        #     #                                 file_upload_path)
+                        #     # else:
+                        #     #     self.file_system.upload(local_path,
+                        #     #                             file_upload_path)
+                        # else:
+                        #     fid["stub"] = True
+                        #     fid["upload_path"] = "stub"
+                        # supplement_data["integrity_data"].append(fid)
             else:
                 fid = derive_integrity_data(
                     str(item_path),
@@ -402,8 +404,47 @@ class UploadBasket:
                 supplement_data["integrity_data"].append(fid)
         self.kwargs["supplement_data"] = supplement_data
 
+    def handle_grouped_file(self, root, name, upload_item, item_path,
+                            supplement_data):
+        local_path = os.path.join(root, name)
+        # fid means "file integrity data"
+        fid = derive_integrity_data(
+            str(local_path),
+            file_system=self.file_system,
+            source_file_system=self.source_file_system
+        )
+        if upload_item["stub"] is False:
+            fid["stub"] = False
+            file_upload_path = os.path.join(
+                self.kwargs.get("upload_directory"),
+                os.path.relpath(local_path, os.path.split(item_path)[0])
+            )
+            fid["upload_path"] = str(file_upload_path)
+            self.upload_grouped_file(local_path,
+                                     file_upload_path)
+            # base_path = os.path.split(file_upload_path)[0]
+            # if not self.file_system.exists(base_path):
+            #     self.file_system.mkdir(base_path)
+            # if self.source_file_system == self.file_system:
+            #     self.file_system.copy(local_path,
+            #                           file_upload_path)
+            # elif isinstance(self.source_file_system,
+            #                 s3fs.S3FileSystem):
+            #     self.source_file_system.get(local_path,
+            #                                 file_upload_path)
+            # else:
+            #     self.file_system.upload(local_path,
+            #                             file_upload_path)
+        else:
+            fid["stub"] = True
+            fid["upload_path"] = "stub"
+        supplement_data["integrity_data"].append(fid)
+    
     def upload_grouped_file(self, local_path, file_upload_path):
         """Handles uploading files from directories"""
+        base_path = os.path.split(file_upload_path)[0]
+        if not self.file_system.exists(base_path):
+            self.file_system.mkdir(base_path)
         if self.source_file_system == self.file_system:
             self.file_system.copy(local_path, file_upload_path)
         elif isinstance(self.source_file_system, s3fs.S3FileSystem):
