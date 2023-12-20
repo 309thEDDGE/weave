@@ -351,18 +351,7 @@ class UploadBasket:
                 os.path.basename(item_path)
             )
             fid["upload_path"] = str(file_upload_path)
-            base_path = os.path.split(file_upload_path)[0]
-            if not self.file_system.exists(base_path):
-                self.file_system.mkdir(base_path)
-            if self.source_file_system == self.file_system:
-                self.file_system.copy(str(item_path),
-                                      file_upload_path)
-            elif isinstance(self.source_file_system,s3fs.S3FileSystem):
-                self.source_file_system.get(str(item_path),
-                                            file_upload_path)
-            else:
-                self.file_system.upload(str(item_path),
-                                    file_upload_path)
+            self.upload_file(str(item_path), file_upload_path)
         else:
             fid["stub"] = True
             fid["upload_path"] = "stub"
@@ -392,13 +381,13 @@ class UploadBasket:
                 os.path.relpath(local_path, os.path.split(item_path)[0])
             )
             fid["upload_path"] = str(file_upload_path)
-            self.upload_grouped_file(local_path, file_upload_path)
+            self.upload_file(local_path, file_upload_path)
         else:
             fid["stub"] = True
             fid["upload_path"] = "stub"
         supplement_data["integrity_data"].append(fid)
 
-    def upload_grouped_file(self, local_path, file_upload_path):
+    def upload_file(self, local_path, file_upload_path):
         """Handles uploading files from directories"""
         base_path = os.path.split(file_upload_path)[0]
         if not self.file_system.exists(base_path):
