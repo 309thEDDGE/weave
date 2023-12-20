@@ -321,74 +321,55 @@ class UploadBasket:
         """Sets up a temporary directory to hold stuff before upload to FS."""
         self.file_system.mkdir(self.kwargs.get("upload_directory"))
 
-
     def upload_files_and_stubs_to_fs(self):
-        """Method to upload both files and stubs to FS."""
-        supplement_data = {}
-        supplement_data["upload_items"] = self.upload_items
-        supplement_data["integrity_data"] = []
-
+        """Kicks off uploading files and stubs to the file_system"""
+        supplement_data = {"integrity_data": [],
+                           "upload_items": self.upload_items}
         for upload_item in self.upload_items:
             item_path = Path(upload_item["path"])
             if self.source_file_system.isdir(item_path):
-                self.handle_directory(upload_item, item_path, supplement_data)
+                for root, _, files in self.source_file_system.walk(item_path):
+                    for name in files:
+                        local_path = os.path.join(root, name)
+                        file_int_dat = self.handle_file_integrity_data(
+                            local_path, upload_item, item_path
+                        )
+                        supplement_data["integrity_data"].append(file_int_dat)
             else:
-                self.handle_single_file(upload_item, item_path,
-                                        supplement_data)
+                file_int_dat = self.handle_file_integrity_data(
+                    str(item_path), upload_item, item_path
+                )
+                supplement_data["integrity_data"].append(file_int_dat)
         self.kwargs["supplement_data"] = supplement_data
 
-    def handle_single_file(self, upload_item, item_path, supplement_data):
-        """Gather file integrity data and upload/stub out a single file."""
-        fid = derive_integrity_data(
-            str(item_path),
-            file_system=self.file_system,
-            source_file_system=self.source_file_system
-        )
-        if upload_item["stub"] is False:
-            fid["stub"] = False
-            file_upload_path = os.path.join(
-                self.kwargs.get("upload_directory"),
-                os.path.basename(item_path)
-            )
-            fid["upload_path"] = str(file_upload_path)
-            self.upload_file(str(item_path), file_upload_path)
-        else:
-            fid["stub"] = True
-            fid["upload_path"] = "stub"
-        supplement_data["integrity_data"].append(fid)
-
-    def handle_directory(self, upload_item, item_path, supplement_data):
-        """Loop through files in the directory to be uploaded"""
-        for root, _, files in self.source_file_system.walk(item_path):
-            for name in files:
-                local_path = os.path.join(root, name)
-                self.handle_grouped_file(local_path, upload_item,
-                                         item_path, supplement_data)
-
-    def handle_grouped_file(self, local_path, upload_item, item_path,
-                            supplement_data):
-        """Prepare integrity data and upload/stub out grouped files"""
-        # fid means "file integrity data"
-        fid = derive_integrity_data(
+    def handle_file_integrity_data(self, local_path, upload_item, item_path):
+        """Gathers the file integrity data, handles stub logic"""
+        file_int_dat = derive_integrity_data(
             str(local_path),
             file_system=self.file_system,
             source_file_system=self.source_file_system
         )
         if upload_item["stub"] is False:
-            fid["stub"] = False
-            file_upload_path = os.path.join(
-                self.kwargs.get("upload_directory"),
-                os.path.relpath(local_path, os.path.split(item_path)[0])
-            )
-            fid["upload_path"] = str(file_upload_path)
-            self.upload_file(local_path, file_upload_path)
+            file_int_dat["stub"] = False
+            file_upload_path = self.construct_file_upload_path(local_path,
+                                                               item_path)
+            file_int_dat["upload_path"] = str(file_upload_path)
+            self.handle_file_upload(local_path, file_upload_path)
         else:
-            fid["stub"] = True
-            fid["upload_path"] = "stub"
-        supplement_data["integrity_data"].append(fid)
+            file_int_dat["stub"] = True
+            file_int_dat["upload_path"] = "stub"
+        return file_int_dat
 
-    def upload_file(self, local_path, file_upload_path):
-        """Handles uploading files from directories"""
+    def construct_file_upload_path(self, local_path, item_path):
+        """Constructs the file_upload_path variable"""
+        return os.path.join(
+            self.kwargs.get("upload_directory"),
+            os.path.relpath(local_path, os.path.split(item_path)[0]),
+        )
+
+    def handle_file_upload(self, local_path, file_upload_path):
+        """Upload the file to fs. Different behavior for different file systems
+        """
         base_path = os.path.split(file_upload_path)[0]
         if not self.file_system.exists(base_path):
             self.file_system.mkdir(base_path)
