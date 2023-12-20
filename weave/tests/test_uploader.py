@@ -1355,16 +1355,25 @@ def test_upload_metadata_only_basket(test_basket):
     pantry = Pantry(IndexPandas,
                     pantry_path=test_basket.pantry_path,
                     file_system=test_basket.file_system)
-    
+
     basket = pantry.upload_basket(upload_items=[],
                          basket_type="metadata_only",
                          parent_ids=["1"],
                          metadata={"metadata":"only"})
 
-    print(basket)
+    assert len(basket) == 1
 
 
-def test_upload_basket_no_files():
+def test_upload_basket_no_files(test_basket):
     """Upload a basket with no files included, ensure an error is thrown.
     """
-    print()
+    pantry = Pantry(IndexPandas,
+                    pantry_path=test_basket.pantry_path,
+                    file_system=test_basket.file_system)
+
+    with pytest.raises(
+        ValueError,
+        match=(r"Files are required to upload a basket. If you want a metadata"
+               r"-only basket, please include metadata and parent uid\(s\)"),
+    ):
+        pantry.upload_basket(upload_items=[], basket_type="no_files",)

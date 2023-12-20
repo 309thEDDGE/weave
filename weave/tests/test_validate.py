@@ -1879,14 +1879,12 @@ def test_validate_check_metadata_only_basket(test_validate):
 
     test_validate.upload_basket(tmp_basket_dir=regular_bask_dir,
                                 uid="regbasket")
-    metadata_path = test_validate.upload_basket(
+    test_validate.upload_basket(
         tmp_basket_dir=metadata_bask_dir,
         uid="metadataonlybasket",
         parent_ids=["regbasket"],
         metadata={"bad":1},
     )
-
-    files = test_validate.file_system.find(test_validate.pantry_path)
 
     pantry = Pantry(
         IndexPandas,
@@ -1909,12 +1907,11 @@ def test_validate_check_invalid_metadata_only_basket(test_validate):
     test_validate.upload_basket(tmp_basket_dir=regular_bask_dir,
                                 uid="regbasket")
 
-    metadata_path = test_validate.upload_basket(
+    test_validate.upload_basket(
         tmp_basket_dir=metadata_bask_dir,
         uid="metadataonlybasket",
         metadata={"bad":1},
     )
-    files = test_validate.file_system.find(test_validate.pantry_path)
 
     pantry = Pantry(
         IndexPandas,
@@ -1931,4 +1928,3 @@ def test_validate_check_invalid_metadata_only_basket(test_validate):
     assert warning_msg == ("Invalid Basket. No files in basket and criteria "
                            "not met for metadata-only basket. ")
     assert warning_uuid == "metadataonlybasket"
-

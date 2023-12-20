@@ -251,7 +251,7 @@ def _handle_supplement(file, pantry):
         basket_dir, _ = os.path.split(file)
         _validate_supplement_files(basket_dir, data, pantry)
 
-    except jsonschema.exceptions.ValidationError as e:
+    except jsonschema.exceptions.ValidationError:
         warnings.warn(UserWarning(
             "Invalid Basket. "
             "Supplement Schema does not match at: ", file

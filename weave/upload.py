@@ -176,19 +176,15 @@ class UploadBasket:
 
 
         parent_uids = kwargs.get("parent_ids", "no parent ids")
-        metadata = kwargs.get("metadata", "no metadata")
+        basket_metadata = kwargs.get("metadata", "no metadata")
         files = upload_items
 
-        if not files and (not parent_uids or not metadata):
-            print('THIS BASKET HAS NO FILES, PROVIDE FILES OR INCLUDE METADATA AND PARENT_UIDS TO MAKE METADATA ONLY BASKET')
-            raise ValueError("Files are required to upload a basket. If you want a metadata only basket, please include metadata and parent uid(s)")
-
-        if parent_uids and metadata and not files:
-            print('METADATA ONLY BASKET!!!!!! metadata basket only')
-
-        # print("\nparent uids: ", parent_uids)
-        # print('metadata: ', metadata)
-        # print('files; ', files)
+        # If there are no files, parent uuids are provided, and metadata is
+        # provided, then it is a metadata-only basket.
+        if not files and (not parent_uids or not basket_metadata):
+            raise ValueError(r"Files are required to upload a basket. If you "
+                             r"want a metadata-only basket, please include "
+                             r"metadata and parent uid(s)")
 
         self.upload_items = upload_items
         self.kwargs = kwargs
