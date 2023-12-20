@@ -14,9 +14,10 @@ import s3fs
 from fsspec.implementations.local import LocalFileSystem
 from .config import get_file_system, prohibited_filenames
 
+
 def validate_upload_item(upload_item, **kwargs):
     """Validates an upload_item."""
-    source_file_system = kwargs.get("source_file_system",LocalFileSystem())
+    source_file_system = kwargs.get("source_file_system", LocalFileSystem())
     if not isinstance(upload_item, dict):
         raise TypeError(
             "'upload_item' must be a dictionary: "
@@ -35,11 +36,13 @@ def validate_upload_item(upload_item, **kwargs):
                 f"Invalid upload_item type: '{key}: {type(value)}'"
                 f"\nExpected type: {expected_schema[key]}"
             )
-    if not (source_file_system.exists(upload_item["path"]) or
-            os.path.exists(upload_item["path"])):
+    if not (
+        source_file_system.exists(upload_item["path"])
+        or os.path.exists(upload_item["path"])
+    ):
         raise FileExistsError(
-                f"'path' does not exist: '{upload_item['path']}'"
-            )
+            f"'path' does not exist: '{upload_item['path']}'"
+        )
 
 
 def derive_integrity_data(file_path, byte_count=10**8, **kwargs):
@@ -73,7 +76,7 @@ def derive_integrity_data(file_path, byte_count=10**8, **kwargs):
       'byte_count': byte count used for generated checksum (int)
      }
     """
-    source_file_system = kwargs.get("source_file_system",LocalFileSystem())
+    source_file_system = kwargs.get("source_file_system", LocalFileSystem())
     if not isinstance(file_path, str):
         raise TypeError(f"'file_path' must be a string: '{file_path}'")
     if not (source_file_system.exists(file_path) or os.path.exists(file_path)):
@@ -126,6 +129,7 @@ def derive_integrity_data(file_path, byte_count=10**8, **kwargs):
 
 class UploadBasket:
     """This class abstracts functionality used by upload_basket."""
+
     def __init__(
         self,
         upload_items,
@@ -197,8 +201,10 @@ class UploadBasket:
             self.upload_basket_supplement_to_fs()
 
             if self.kwargs.get("test_clean_up", False):
+
                 class TestException(Exception):
                     """Custom exception for test excepting purposes."""
+
                 raise TestException("Test Clean Up")
 
         except Exception as the_exception:
@@ -208,18 +214,20 @@ class UploadBasket:
 
     def sanitize_upload_basket_kwargs(self):
         """Sanitizes kwargs for upload_basket."""
-        kwargs_schema = {"test_clean_up": bool,
-                         "file_system": object,
-                         "source_file_system": object,
-                         "upload_directory": str,
-                         "unique_id": str,
-                         "basket_type": str,
-                         "parent_ids": list,
-                         "metadata": dict,
-                         "label": str,
-                         "weave_version": str,
-                         "pantry_path": str,
-                         "test_prefix": str}
+        kwargs_schema = {
+            "test_clean_up": bool,
+            "file_system": object,
+            "source_file_system": object,
+            "upload_directory": str,
+            "unique_id": str,
+            "basket_type": str,
+            "parent_ids": list,
+            "metadata": dict,
+            "label": str,
+            "weave_version": str,
+            "pantry_path": str,
+            "test_prefix": str,
+        }
         for key, value in self.kwargs.items():
             if key not in kwargs_schema:
                 raise KeyError(f"Invalid kwargs argument: '{key}'")
@@ -230,10 +238,8 @@ class UploadBasket:
                 )
         # parent_ids requires further examination:
         parent_ids = self.kwargs.get("parent_ids", None)
-        if (
-            (parent_ids is not None)
-            and
-            not (all(isinstance(x, str) for x in parent_ids))
+        if (parent_ids is not None) and not (
+            all(isinstance(x, str) for x in parent_ids)
         ):
             raise TypeError(
                 f"'parent_ids' must be a list of strings: '{parent_ids}'"
@@ -243,8 +249,9 @@ class UploadBasket:
         # pylint: disable-next=attribute-defined-outside-init
         self.file_system = self.kwargs.get("file_system", get_file_system())
         # pylint: disable-next=attribute-defined-outside-init
-        self.source_file_system = self.kwargs.get("source_file_system",
-                                                  LocalFileSystem())
+        self.source_file_system = self.kwargs.get(
+            "source_file_system", LocalFileSystem()
+        )
 
     def sanitize_upload_basket_non_kwargs(self):
         """Sanitize upload_basket's non kwargs args."""
@@ -263,9 +270,11 @@ class UploadBasket:
         # Validate self.upload_items
         local_path_basenames = []
         for upload_item in self.upload_items:
-            validate_upload_item(upload_item,
-                                 file_system=self.file_system,
-                                 source_file_system=self.source_file_system)
+            validate_upload_item(
+                upload_item,
+                file_system=self.file_system,
+                source_file_system=self.source_file_system,
+            )
             local_path_basename = os.path.basename(Path(upload_item["path"]))
             if local_path_basename in prohibited_filenames:
                 raise ValueError(
@@ -323,8 +332,10 @@ class UploadBasket:
 
     def upload_files_and_stubs_to_fs(self):
         """Kicks off uploading files and stubs to the file_system"""
-        supplement_data = {"integrity_data": [],
-                           "upload_items": self.upload_items}
+        supplement_data = {
+            "integrity_data": [],
+            "upload_items": self.upload_items,
+        }
         for upload_item in self.upload_items:
             item_path = Path(upload_item["path"])
             if self.source_file_system.isdir(item_path):
@@ -347,12 +358,13 @@ class UploadBasket:
         file_int_dat = derive_integrity_data(
             str(local_path),
             file_system=self.file_system,
-            source_file_system=self.source_file_system
+            source_file_system=self.source_file_system,
         )
         if upload_item["stub"] is False:
             file_int_dat["stub"] = False
-            file_upload_path = self.construct_file_upload_path(local_path,
-                                                               item_path)
+            file_upload_path = self.construct_file_upload_path(
+                local_path, item_path
+            )
             file_int_dat["upload_path"] = str(file_upload_path)
             self.handle_file_upload(local_path, file_upload_path)
         else:
@@ -368,8 +380,10 @@ class UploadBasket:
         )
 
     def handle_file_upload(self, local_path, file_upload_path):
-        """Upload the file to fs. Different behavior for different file systems
-        """
+        """Upload the file to fs.
+
+        Depending on the input and output filesystems the behavior changes
+        slightly."""
         base_path = os.path.split(file_upload_path)[0]
         if not self.file_system.exists(base_path):
             self.file_system.mkdir(base_path)
@@ -390,15 +404,16 @@ class UploadBasket:
         basket_json["upload_time"] = datetime.now(tz.utc).isoformat()
         basket_json["parent_uuids"] = self.kwargs.get("parent_ids", [])
         basket_json["basket_type"] = self.kwargs.get("basket_type")
-        basket_json["label"] = self.kwargs.get("label","")
+        basket_json["label"] = self.kwargs.get("label", "")
         basket_json["weave_version"] = metadata.version("weave-db")
 
         with open(basket_json_path, "w", encoding="utf-8") as outfile:
             json.dump(basket_json, outfile)
         self.file_system.upload(
             basket_json_path,
-            os.path.join(self.kwargs.get("upload_directory"),
-                         "basket_manifest.json"),
+            os.path.join(
+                self.kwargs.get("upload_directory"), "basket_manifest.json"
+            ),
         )
 
     def upload_basket_metadata_to_fs(self):
@@ -411,8 +426,9 @@ class UploadBasket:
                 json.dump(self.kwargs.get("metadata"), outfile, default=str)
             self.file_system.upload(
                 metadata_path,
-                os.path.join(self.kwargs.get("upload_directory"),
-                             "basket_metadata.json"),
+                os.path.join(
+                    self.kwargs.get("upload_directory"), "basket_metadata.json"
+                ),
             )
 
     def upload_basket_supplement_to_fs(self):
@@ -424,8 +440,9 @@ class UploadBasket:
             json.dump(self.kwargs.get("supplement_data"), outfile)
         self.file_system.upload(
             supplement_json_path,
-            os.path.join(self.kwargs.get("upload_directory"),
-                         "basket_supplement.json"),
+            os.path.join(
+                self.kwargs.get("upload_directory"), "basket_supplement.json"
+            ),
         )
 
     def fs_upload_path_exists(self):
@@ -434,8 +451,9 @@ class UploadBasket:
 
     def clean_out_fs_upload_dir(self):
         """Removes everything from upload_path inside of FS."""
-        self.file_system.rm(self.kwargs.get("upload_directory"),
-                            recursive=True)
+        self.file_system.rm(
+            self.kwargs.get("upload_directory"), recursive=True
+        )
 
     def get_upload_path(self):
         """Gets upload path from kwargs and returns it."""
