@@ -9,12 +9,14 @@ import tempfile
 import uuid
 from datetime import datetime, timezone as tz
 from pathlib import Path
+import s3fs
 
+from fsspec.implementations.local import LocalFileSystem
 from .config import get_file_system, prohibited_filenames
 
-
-def validate_upload_item(upload_item):
+def validate_upload_item(upload_item, **kwargs):
     """Validates an upload_item."""
+    source_file_system = kwargs.get("source_file_system",LocalFileSystem())
     if not isinstance(upload_item, dict):
         raise TypeError(
             "'upload_item' must be a dictionary: "
@@ -33,14 +35,14 @@ def validate_upload_item(upload_item):
                 f"Invalid upload_item type: '{key}: {type(value)}'"
                 f"\nExpected type: {expected_schema[key]}"
             )
-
-    if not os.path.exists(upload_item["path"]):
+    if not (source_file_system.exists(upload_item["path"]) or
+            os.path.exists(upload_item["path"])):
         raise FileExistsError(
-            f"'path' does not exist: '{upload_item['path']}'"
-        )
+                f"'path' does not exist: '{upload_item['path']}'"
+            )
 
 
-def derive_integrity_data(file_path, byte_count=10**8):
+def derive_integrity_data(file_path, byte_count=10**8, **kwargs):
     """Derives basic integrity data from a file.
 
     This function takes in a file path and calculates
@@ -66,16 +68,15 @@ def derive_integrity_data(file_path, byte_count=10**8):
      {
       'file_size': bytes (int),
       'hash': sha256 hash (string),
-      'access_date': current date/time (string)
-      'source_path': path to the original source of data (string)
+      'access_date': current date/time (string),
+      'source_path': path to the original source of data (string),
       'byte_count': byte count used for generated checksum (int)
      }
     """
-
+    source_file_system = kwargs.get("source_file_system",LocalFileSystem())
     if not isinstance(file_path, str):
         raise TypeError(f"'file_path' must be a string: '{file_path}'")
-
-    if not os.path.isfile(file_path):
+    if not (source_file_system.exists(file_path) or os.path.exists(file_path)):
         raise FileExistsError(f"'file_path' does not exist: '{file_path}'")
 
     if not isinstance(byte_count, int):
@@ -93,17 +94,20 @@ def derive_integrity_data(file_path, byte_count=10**8):
             f" bytes: '{byte_count}'"
         )
 
-    file_size = os.path.getsize(file_path)
+    if isinstance(source_file_system, s3fs.S3FileSystem):
+        file_size = source_file_system.du(file_path)
+    else:
+        file_size = os.path.getsize(file_path)
 
     if file_size <= byte_count * 3:
-        with open(file_path, "rb") as file:
+        with source_file_system.open(file_path, "rb") as file:
             sha256_hash = hashlib.sha256(file.read()).hexdigest()
     else:
         hasher = hashlib.sha256()
         midpoint = file_size / 2.0
         midpoint_seek_position = math.floor(midpoint - byte_count / 2.0)
         end_seek_position = file_size - byte_count
-        with open(file_path, "rb") as file:
+        with source_file_system.open(file_path, "rb") as file:
             hasher.update(file.read(byte_count))
             file.seek(midpoint_seek_position)
             hasher.update(file.read(byte_count))
@@ -157,12 +161,14 @@ class UploadBasket:
             and stored in the basket in the upload FS.
         **label: str (optional)
             Optional user friendly label associated with the basket.
+        **source_file_system: fsspec object (optional)
+            The origin file system (ie s3fs, local fs, etc).
+            If none, the local fs will be used
         **file_system: fsspec object (optional)
             The file system to upload to (ie s3fs, local fs, etc).
             If None, it will use the default fs from the weave.config.
         **pantry_path: str
             Path to the pantry that will hold this basket.
-
         Please note that either the upload_directory OR the basket_type must
         be provided. IT IS RECOMMENDED that the user simply provide the
         basket_type as this will allow the library to choose a good unique_id,
@@ -221,6 +227,7 @@ class UploadBasket:
         """Sanitizes kwargs for upload_basket."""
         kwargs_schema = {"test_clean_up": bool,
                          "file_system": object,
+                         "source_file_system": object,
                          "upload_directory": str,
                          "unique_id": str,
                          "basket_type": str,
@@ -252,6 +259,9 @@ class UploadBasket:
         # set self.file_system *after* we have sanitized it.
         # pylint: disable-next=attribute-defined-outside-init
         self.file_system = self.kwargs.get("file_system", get_file_system())
+        # pylint: disable-next=attribute-defined-outside-init
+        self.source_file_system = self.kwargs.get("source_file_system",
+                                                  LocalFileSystem())
 
     def sanitize_upload_basket_non_kwargs(self):
         """Sanitize upload_basket's non kwargs args."""
@@ -270,7 +280,9 @@ class UploadBasket:
         # Validate self.upload_items
         local_path_basenames = []
         for upload_item in self.upload_items:
-            validate_upload_item(upload_item)
+            validate_upload_item(upload_item,
+                                 file_system=self.file_system,
+                                 source_file_system=self.source_file_system)
             local_path_basename = os.path.basename(Path(upload_item["path"]))
             if local_path_basename in prohibited_filenames:
                 raise ValueError(
@@ -326,6 +338,8 @@ class UploadBasket:
         """Sets up a temporary directory to hold stuff before upload to FS."""
         self.file_system.mkdir(self.kwargs.get("upload_directory"))
 
+    # This block of code should probably be reworked at some point.
+    # pylint: disable-next=too-many-branches
     def upload_files_and_stubs_to_fs(self):
         """Method to upload both files and stubs to FS."""
         supplement_data = {}
@@ -335,45 +349,67 @@ class UploadBasket:
         # I cannot figure out how to appease pylint on this one:
         # pylint: disable-next=too-many-nested-blocks
         for upload_item in self.upload_items:
-            upload_item_path = Path(upload_item["path"])
-            if upload_item_path.is_dir():
-                for root, _, files in os.walk(upload_item_path):
+            item_path = Path(upload_item["path"])
+            if self.source_file_system.isdir(item_path):
+                for root, _, files in self.source_file_system.walk(item_path):
                     for name in files:
                         local_path = os.path.join(root, name)
                         # fid means "file integrity data"
-                        fid = derive_integrity_data(str(local_path))
+                        fid = derive_integrity_data(
+                            str(local_path),
+                            file_system=self.file_system,
+                            source_file_system=self.source_file_system
+                        )
                         if upload_item["stub"] is False:
                             fid["stub"] = False
                             file_upload_path = os.path.join(
                                 self.kwargs.get("upload_directory"),
                                 os.path.relpath(
                                     local_path,
-                                    os.path.split(upload_item_path)[0],
+                                    os.path.split(item_path)[0],
                                 ),
                             )
                             fid["upload_path"] = str(file_upload_path)
                             base_path = os.path.split(file_upload_path)[0]
                             if not self.file_system.exists(base_path):
                                 self.file_system.mkdir(base_path)
-                            self.file_system.upload(local_path,
-                                                    file_upload_path)
+                            if self.source_file_system == self.file_system:
+                                self.file_system.copy(local_path,
+                                                      file_upload_path)
+                            elif isinstance(self.source_file_system,
+                                            s3fs.S3FileSystem):
+                                self.source_file_system.get(local_path,
+                                                            file_upload_path)
+                            else:
+                                self.file_system.upload(local_path,
+                                                        file_upload_path)
                         else:
                             fid["stub"] = True
                             fid["upload_path"] = "stub"
                         supplement_data["integrity_data"].append(fid)
             else:
-                fid = derive_integrity_data(str(upload_item_path))
+                fid = derive_integrity_data(
+                    str(item_path),
+                    file_system=self.file_system,
+                    source_file_system=self.source_file_system)
                 if upload_item["stub"] is False:
                     fid["stub"] = False
                     file_upload_path = os.path.join(
                         self.kwargs.get("upload_directory"),
-                        os.path.basename(upload_item_path)
+                        os.path.basename(item_path)
                     )
                     fid["upload_path"] = str(file_upload_path)
                     base_path = os.path.split(file_upload_path)[0]
                     if not self.file_system.exists(base_path):
                         self.file_system.mkdir(base_path)
-                    self.file_system.upload(str(upload_item_path),
+                    if self.source_file_system == self.file_system:
+                        self.file_system.copy(str(item_path),
+                                              file_upload_path)
+                    elif isinstance(self.source_file_system,s3fs.S3FileSystem):
+                        self.source_file_system.get(str(item_path),
+                                                    file_upload_path)
+                    else:
+                        self.file_system.upload(str(item_path),
                                             file_upload_path)
                 else:
                     fid["stub"] = True

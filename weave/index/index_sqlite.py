@@ -35,7 +35,7 @@ class IndexSQLite(IndexABC):
 
         db_file_name = self._pantry_path.replace(os.sep, "-")
 
-        self.db_path = kwargs.get("db_path", f"{db_file_name}.db")
+        self.db_path = kwargs.get("db_path", f"weave-{db_file_name}.db")
         self.con = sqlite3.connect(self.db_path)
         self.cur = self.con.cursor()
         self._create_tables()

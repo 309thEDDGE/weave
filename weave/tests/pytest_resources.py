@@ -139,7 +139,7 @@ class IndexForTest:
 
         # This is only used in the sqlite implementation and will not affect
         # other implmentations.
-        self.db_path = f"{self.pantry_path}.db"
+        self.db_path = f"weave-{self.pantry_path}.db"
 
         self.index = index_constructor(
             file_system=self.file_system,
@@ -154,33 +154,37 @@ class IndexForTest:
             if os.path.exists(self.db_path):
                 os.remove(self.db_path)
 
-        if self.index.__class__.__name__ == "IndexSQL":
-            # Drop the pantry_index (User Table) if it exists.
-            self.index.execute_sql(f"""
-                IF OBJECT_ID('{self.index.pantry_schema}.pantry_index', 'U')
-                IS NOT NULL
-                BEGIN
-                    DROP TABLE {self.index.pantry_schema}.pantry_index;
-                END
-            """, commit=True)
+        cleanup_sql_index(self.index)
 
-            # Drop the parent_uuids (User Table) if it exists.
-            self.index.execute_sql(f"""
-                IF OBJECT_ID('{self.index.pantry_schema}.parent_uuids', 'U')
-                IS NOT NULL
-                BEGIN
-                    DROP TABLE {self.index.pantry_schema}.parent_uuids;
-                END
-            """, commit=True)
+def cleanup_sql_index(index):
+    """Clean up any IndexSQL"""
+    if index.__class__.__name__ == "IndexSQL":
+        # Drop the pantry_index (User Table) if it exists.
+        index.execute_sql(f"""
+            IF OBJECT_ID('{index.pantry_schema}.pantry_index', 'U')
+            IS NOT NULL
+            BEGIN
+                DROP TABLE {index.pantry_schema}.pantry_index;
+            END
+        """, commit=True)
 
-            # Drop the pantry_schema (Schema) if it exists.
-            self.index.execute_sql(f"""
-                IF EXISTS (
-                    SELECT schema_name
-                    FROM information_schema.schemata
-                    WHERE schema_name = '{self.index.pantry_schema}'
-                )
-                BEGIN
-                    DROP SCHEMA {self.index.pantry_schema};
-                END
-            """, commit=True)
+        # Drop the parent_uuids (User Table) if it exists.
+        index.execute_sql(f"""
+            IF OBJECT_ID('{index.pantry_schema}.parent_uuids', 'U')
+            IS NOT NULL
+            BEGIN
+                DROP TABLE {index.pantry_schema}.parent_uuids;
+            END
+        """, commit=True)
+
+        # Drop the pantry_schema (Schema) if it exists.
+        index.execute_sql(f"""
+            IF EXISTS (
+                SELECT schema_name
+                FROM information_schema.schemata
+                WHERE schema_name = '{index.pantry_schema}'
+            )
+            BEGIN
+                DROP SCHEMA {index.pantry_schema};
+            END
+        """, commit=True)

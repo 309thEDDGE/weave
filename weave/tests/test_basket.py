@@ -3,11 +3,14 @@
 import json
 import os
 import re
+import tempfile
+import shutil
 from pathlib import Path
 
 import pytest
 import s3fs
 import pandas as pd
+import fsspec
 from fsspec.implementations.local import LocalFileSystem
 
 from weave.__init__ import __version__ as weave_version
@@ -686,3 +689,35 @@ def test_basket_time_is_utc(test_pantry):
 
     match_iso8601 = re.compile(regex).match
     assert match_iso8601(str(manifest_dict['upload_time'])) is not None
+
+
+def test_read_only_get_data():
+    """Make a read-only pantry, retrieve a basket, and check that you can read
+    the data
+    """
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_pantry = Pantry(IndexPandas,
+                            pantry_path=tmpdir,
+                            file_system=LocalFileSystem())
+        with tempfile.NamedTemporaryFile() as tmp_file:
+            basket_uuid = tmp_pantry.upload_basket(
+                upload_items=[{"path":tmp_file.name, "stub":False}],
+                basket_type="read_only",
+            )["uuid"][0]
+
+        zip_path = shutil.make_archive(os.path.join(tmpdir, "test_pantry"),
+                                       "zip",
+                                       tmpdir)
+
+        read_only_fs = fsspec.filesystem("zip", fo=zip_path, mode="r")
+        read_only_pantry = Pantry(IndexPandas,
+                                  pantry_path="",
+                                  file_system=read_only_fs)
+
+        my_basket = Basket(os.path.join("read_only", basket_uuid),
+                           pantry=read_only_pantry)
+
+        # Check that manifest and supplement are returned and metadata is empty
+        assert my_basket.get_manifest()
+        assert my_basket.get_supplement()
+        assert my_basket.get_metadata() == {}

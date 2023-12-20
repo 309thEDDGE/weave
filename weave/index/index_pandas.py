@@ -5,13 +5,13 @@ import os
 import tempfile
 import warnings
 from time import time_ns
-
 import pandas as pd
+
+from fsspec.implementations.local import LocalFileSystem
 
 from ..upload import UploadBasket
 from .create_index import create_index_from_fs
 from .index_abc import IndexABC
-
 
 class IndexPandas(IndexABC):
     """Handles Pandas based functionality of the Index."""
@@ -34,6 +34,9 @@ class IndexPandas(IndexABC):
             object has the same information as the index on the disk. If False,
             then the Index object may be stale, but operations will perform
             at a higher speed.
+        **pantry_read_only: bool (default=False)
+            A bool that flags if the current working file system is read-only
+            or not.
         """
 
         super().__init__(file_system=file_system,
@@ -47,6 +50,7 @@ class IndexPandas(IndexABC):
         self.sync = bool(kwargs.get('sync', True))
         self.index_json_time = 0 # 0 is essentially same as None in this case
         self.index_df = None
+        self.pantry_read_only = kwargs.get("pantry_read_only", False)
 
     def __len__(self):
         """Returns the number of baskets in the index."""
@@ -103,7 +107,7 @@ class IndexPandas(IndexABC):
             return
         if len(index_paths) > 20:
             warnings.warn(f"The index basket count is {len(index_paths)}. " +
-                 "Consider running weave.Index.clean_up_indices")
+                 "Consider running weave.IndexPandas.clean_up_indices")
         latest_index_path = ""
         for path in index_paths:
             path_time = self._get_index_time_from_path(path)
@@ -200,16 +204,21 @@ class IndexPandas(IndexABC):
 
     def _upload_index(self, index):
         """Upload a new index."""
-        with tempfile.TemporaryDirectory() as out:
-            n_secs = time_ns()
-            temp_json_path = os.path.join(out, f"{n_secs}-index.json")
-            index.to_json(temp_json_path, date_format="iso", date_unit="ns")
-            UploadBasket(
-                upload_items=[{"path":temp_json_path, "stub":False}],
-                basket_type=self.index_basket_dir_name,
-                file_system=self.file_system,
-                pantry_path=self.pantry_path
-            )
+        n_secs = time_ns()
+        # If the pantry is read-only, don't upload the index.
+        if not self.pantry_read_only:
+            with tempfile.TemporaryDirectory() as out:
+                temp_json_path = os.path.join(out, f"{n_secs}-index.json")
+                index.to_json(temp_json_path,
+                              date_format="iso",
+                              date_unit="ns")
+                UploadBasket(
+                    upload_items=[{"path":temp_json_path, "stub":False}],
+                    basket_type=self.index_basket_dir_name,
+                    file_system=self.file_system,
+                    source_file_system=LocalFileSystem(),
+                    pantry_path=self.pantry_path
+                )
         self.index_df = index
         self.index_json_time = n_secs
 
@@ -457,7 +466,6 @@ class IndexPandas(IndexABC):
 
         **kwargs unused for this class.
         """
-
         if not self._sync_if_needed():
             self._upload_index(
                 pd.concat([self.index_df, entry_df], ignore_index=True)
@@ -527,7 +535,7 @@ class IndexPandas(IndexABC):
 
         Returns
         ----------
-        pandas.DataFrame containing the manifest data of baskets with the 
+        pandas.DataFrame containing the manifest data of baskets with the
         label.
         """
 
