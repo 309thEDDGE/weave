@@ -12,6 +12,7 @@ import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
 import weave
+from weave import Pantry, IndexPandas
 from weave.tests.pytest_resources import PantryForTest, file_path_in_list
 from weave.upload import (
     UploadBasket,
@@ -28,7 +29,7 @@ from weave.upload import (
 
 
 class UploadForTest(PantryForTest):
-    """Test class extended from PantryForTest to include custom call for 
+    """Test class extended from PantryForTest to include custom call for
     upload.
     """
 
@@ -1349,6 +1350,21 @@ def test_upload_correct_version_number(test_basket):
     assert manifest_dict["weave_version"] == weave.__version__
 
 def test_upload_metadata_only_basket(test_basket):
+    """Try to upload a valid metadata-only basket
     """
+    pantry = Pantry(IndexPandas,
+                    pantry_path=test_basket.pantry_path,
+                    file_system=test_basket.file_system)
+    
+    basket = pantry.upload_basket(upload_items=[],
+                         basket_type="metadata_only",
+                         parent_ids=["1"],
+                         metadata={"metadata":"only"})
+
+    print(basket)
+
+
+def test_upload_basket_no_files():
+    """Upload a basket with no files included, ensure an error is thrown.
     """
-    print('uploder test')
+    print()
