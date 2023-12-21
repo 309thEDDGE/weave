@@ -174,20 +174,12 @@ class UploadBasket:
         basket_type as this will allow the library to choose a good unique_id,
         and keep the pantry organized.
         """
-
-        # if there is no files
-        # if parent uids are provided
-        # if metadata is provided
-        # then it is a metadata only basket
-
-
-        parent_uids = kwargs.get("parent_ids", "no parent ids")
-        basket_metadata = kwargs.get("metadata", "no metadata")
-        files = upload_items
+        parent_uids = kwargs.get("parent_ids", [])
+        basket_metadata = kwargs.get("metadata", {})
 
         # If there are no files, parent uuids are provided, and metadata is
         # provided, then it is a metadata-only basket.
-        if not files and (not parent_uids or not basket_metadata):
+        if not upload_items and (not parent_uids or not basket_metadata):
             raise ValueError(r"Files are required to upload a basket. If you "
                              r"want a metadata-only basket, please include "
                              r"metadata and parent uid(s)")
