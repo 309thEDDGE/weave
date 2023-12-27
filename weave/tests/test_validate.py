@@ -1000,124 +1000,6 @@ def test_validate_supplement_schema_additional_field(test_validate):
                                                    "basket_supplement.json"))
 
 
-def test_validate_supplement_schema_empty_upload_items(test_validate):
-    """Make a basket with invalid supplement schema, check that it collects
-       one warning.
-    """
-
-    # The supplement has an empty array of "upload_items"
-    # This is invalid against the schema.
-    bad_supplement_data = """{
-        "upload_items": [],
-
-        "integrity_data":
-        [
-        {
-            "file_size": 33,
-            "hash": "string",
-            "access_date": "string",
-            "source_path": "string",
-            "byte_count": 1,
-            "stub": false,
-            "upload_path": "text.txt"
-        }
-        ]
-    }"""
-
-    tmp_basket_dir = test_validate.set_up_basket(
-        "bad_sup_schema",
-        is_man=True,
-        sup_data=bad_supplement_data,
-        is_sup=True,
-        is_meta=False
-    )
-
-    basket_path = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
-
-    manifest_path = os.path.join(basket_path, "basket_manifest.json")
-    supplement_path = os.path.join(basket_path, "basket_supplement.json")
-    test_validate.file_system.rm(manifest_path)
-    test_validate.file_system.rm(supplement_path)
-
-    pantry = Pantry(
-        IndexPandas,
-        pantry_path=test_validate.pantry_path,
-        file_system=test_validate.file_system
-    )
-
-    # Check that there is only one warning raised
-    warning_list = validate.validate_pantry(pantry)
-    assert len(warning_list) == 1
-
-    # Sort the warnings so they are in proper order
-    warning_list = sorted(warning_list, key=lambda x: x.args[1])
-
-    # Check that the correct warning is raised
-    warning_1 = warning_list[0]
-    assert warning_1.args[0] == (
-        "Invalid Basket. Supplement Schema does not match at: "
-    )
-    # Check the invalid basket path is what is expected (ignoring FS prefix)
-    assert warning_1.args[1].endswith(os.path.join(basket_path,
-                                                   "bad_sup_schema",
-                                                   "basket_supplement.json"))
-
-
-def test_validate_supplement_schema_empty_integrity_data(test_validate):
-    """Make a basket with invalid supplement schema, check that it collects
-       one warning.
-    """
-
-    # The supplement an empty array of "integrity_data"
-    # This is invalid against the schema.
-    bad_supplement_data = """{
-        "upload_items":
-        [
-        { "path": "str", "stub": false}
-        ],
-
-        "integrity_data": []
-    }"""
-
-    tmp_basket_dir = test_validate.set_up_basket(
-        "bad_sup_schema",
-        is_man=True,
-        sup_data=bad_supplement_data,
-        is_sup=True,
-        is_meta=False
-    )
-
-    basket_path = test_validate.upload_basket(tmp_basket_dir=tmp_basket_dir)
-
-    manifest_path = os.path.join(basket_path, "basket_manifest.json")
-    supplement_path = os.path.join(basket_path, "basket_supplement.json")
-    test_validate.file_system.rm(manifest_path)
-    test_validate.file_system.rm(supplement_path)
-
-    pantry = Pantry(
-        IndexPandas,
-        pantry_path=test_validate.pantry_path,
-        file_system=test_validate.file_system
-    )
-
-    # Check that there is only one warning raised
-    warning_list = validate.validate_pantry(pantry)
-    assert len(warning_list) == 1
-
-    # Sort the warnings so they are in proper order
-    warning_list = sorted(warning_list, key=lambda x: x.args[1])
-
-    # Check that the correct warning is raised
-    warning_1 = warning_list[0]
-    assert warning_1.args[0] == (
-        "Invalid Basket. Supplement Schema does not match at: "
-    )
-    # Check the invalid basket path is what is expected (ignoring FS prefix)
-    assert warning_1.args[1].endswith(os.path.join(basket_path,
-                                                   "bad_sup_schema",
-                                                   "basket_supplement.json"))
-
-
 def test_validate_invalid_supplement_json(test_validate):
     """Make a basket with invalid supplement json check that it collects
        one warning.
@@ -1786,7 +1668,6 @@ def test_validate_file_not_in_file_system(test_validate):
     """Add a file to the supplement data and validate that a warning is thrown
     because it does not exist in the file system.
     """
-
     # Make a basket
     tmp_basket_dir = test_validate.set_up_basket("my_basket")
     test_validate.add_lower_dir_to_temp_basket(tmp_basket_dir=tmp_basket_dir)
@@ -1862,3 +1743,64 @@ def test_validate_file_not_in_file_system(test_validate):
     assert warning_msg_2 == ("File listed in the basket_supplement.json does "
                              "not exist in the file system: ")
     assert warning_path_2.endswith(error_file_path_2)
+
+
+def test_validate_check_metadata_only_basket(test_validate):
+    """Upload a metadata-only basket, validate that no warnings are thrown
+    """
+    regular_bask_dir = test_validate.set_up_basket("regular_basket")
+    metadata_bask_dir = test_validate.set_up_basket("metadata_only")
+
+    os.remove(os.path.join(metadata_bask_dir, "test.txt"))
+
+    test_validate.upload_basket(tmp_basket_dir=regular_bask_dir,
+                                uid="regbasket")
+    test_validate.upload_basket(
+        tmp_basket_dir=metadata_bask_dir,
+        uid="metadataonlybasket",
+        parent_ids=["regbasket"],
+        metadata={"bad":1},
+    )
+
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system,
+    )
+    warnings = validate.validate_pantry(pantry)
+    assert len(warnings) == 0
+
+
+def test_validate_check_invalid_metadata_only_basket(test_validate):
+    """Upload an invalid metadata-only basket (basket does not include parent-
+    uuids) and validate a warning is thrown.
+    """
+    regular_bask_dir = test_validate.set_up_basket("regular_basket")
+    metadata_bask_dir = test_validate.set_up_basket("metadata_only")
+
+    os.remove(os.path.join(metadata_bask_dir, "test.txt"))
+
+    test_validate.upload_basket(tmp_basket_dir=regular_bask_dir,
+                                uid="regbasket")
+
+    test_validate.upload_basket(
+        tmp_basket_dir=metadata_bask_dir,
+        uid="metadataonlybasket",
+        metadata={"bad":1},
+    )
+
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_validate.pantry_path,
+        file_system=test_validate.file_system,
+    )
+
+    warning_list = validate.validate_pantry(pantry)
+    assert len(warning_list) == 1
+
+    warning_msg = warning_list[0].args[0]
+    warning_uuid = warning_list[0].args[1]
+
+    assert warning_msg == ("Invalid Basket. No files in basket and criteria "
+                           "not met for metadata-only basket. ")
+    assert warning_uuid == "metadataonlybasket"

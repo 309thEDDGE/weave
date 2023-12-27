@@ -1349,6 +1349,37 @@ def test_upload_correct_version_number(test_basket):
 
     assert manifest_dict["weave_version"] == weave.__version__
 
+
+def test_upload_metadata_only_basket(test_basket):
+    """Try to upload a valid metadata-only basket
+    """
+    pantry = Pantry(IndexPandas,
+                    pantry_path=test_basket.pantry_path,
+                    file_system=test_basket.file_system)
+
+    basket = pantry.upload_basket(upload_items=[],
+                         basket_type="metadata_only",
+                         parent_ids=["1"],
+                         metadata={"metadata":"only"})
+
+    assert len(basket) == 1
+
+
+def test_upload_basket_no_files(test_basket):
+    """Upload a basket with no files included, ensure an error is thrown.
+    """
+    pantry = Pantry(IndexPandas,
+                    pantry_path=test_basket.pantry_path,
+                    file_system=test_basket.file_system)
+
+    with pytest.raises(
+        ValueError,
+        match=(r"Files are required to upload a basket. If you want a metadata"
+               r"-only basket, please include metadata and parent uid\(s\)"),
+    ):
+        pantry.upload_basket(upload_items=[], basket_type="no_files",)
+
+
 def test_upload_from_s3fs(test_basket):
     """Test that a basket can be uploaded from s3fs to the local file
     system or s3fs.
