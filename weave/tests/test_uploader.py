@@ -1392,12 +1392,12 @@ def test_upload_from_s3fs(test_basket):
 
     nested_path = os.path.join(pantry_path, "text.txt")
     file_to_move = os.path.join(test_basket.pantry_path, "text.txt")
-    breakpoint()
+
     if test_basket.file_system == local_fs:
         minio_path = "test-source-file-system"
         try:
             s3fs.mkdir(minio_path)
-        except:
+        except FileExistsError:
             s3fs.rm(minio_path,recursive=True)
             s3fs.mkdir(minio_path)
         file_to_move = os.path.join(minio_path, "test.txt")
