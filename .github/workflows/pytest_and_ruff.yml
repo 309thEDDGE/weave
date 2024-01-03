@@ -89,8 +89,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: chartboost/ruff-action@v1
-      with:
-          config: .ruff.toml
 
   pylint:
     runs-on: ubuntu-latest
