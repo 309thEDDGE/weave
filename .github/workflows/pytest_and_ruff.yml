@@ -12,12 +12,6 @@ permissions:
   contents: read
 
 jobs:
-  ruff:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - uses: chartboost/ruff-action@v1
-
   pytest:
     runs-on: ubuntu-latest
     services:
@@ -89,6 +83,12 @@ jobs:
         export AWS_SECRET_ACCESS_KEY=minioadmin
         export S3_ENDPOINT=http://172.17.0.1:9000/
         pytest -vv weave/tests/
+
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: chartboost/ruff-action@v1
 
   pylint:
     runs-on: ubuntu-latest
