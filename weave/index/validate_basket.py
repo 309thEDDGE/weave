@@ -22,6 +22,7 @@ def validate_basket_dict(basket_dict):
     ----------
     bool: True if basket has correct schema, False otherwise.
     """
+    v = "my variable to delete"
 
     try:
         validate(instance=basket_dict, schema=manifest_schema)
