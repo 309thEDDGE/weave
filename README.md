@@ -51,7 +51,7 @@ found in weave/config.py. It contains the following:
 This file follows the schema found in weave/config.py as follows:
 
 - Upload Items: The items uploaded within the basket.
-- Integrity data: A data to verify data was successfully uploaded for each 
+- Integrity data: A data to verify data was successfully uploaded for each
                     file.
     - File Size: Total size of the file in bytes.
     - Hash: SHA-256 hash checksum for the file.
@@ -64,7 +64,7 @@ This file follows the schema found in weave/config.py as follows:
 ### Metadata
 
 Users may supply an optional metadata argument to provide custom metadata for
-the uploaded files. The metadata must be in the form of a dictionary and is 
+the uploaded files. The metadata must be in the form of a dictionary and is
 saved in the basket as a .json file.
 
 ## Usage
@@ -74,21 +74,23 @@ Optional dependencies can be included by running `pip install .[extras]` instead
 Optional dependencies currently include: pymongo, pyodbc, sqlalchemy.
 Useful functions are available after running `import weave`.
 Weave was built with the intention of connecting to an S3 pantry with an
-`s3fs.S3FileSystem` object and also supports a LocalFileSystem. Any filesystem 
-that uses an `fsspec.implementations` API should be possible to implement. For 
+`s3fs.S3FileSystem` object and also supports a LocalFileSystem. Any filesystem
+that uses an `fsspec.implementations` API should be possible to implement. For
 now, Weave has only been tested using S3 and local filesystems.
 
-The following environment variables are required to establish an S3 connection:  
+The following environment variables are required to establish an S3 connection:
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
 - S3_ENDPOINT
 
-If pymongo is intended to be used, the following environment variables are required to establish a MongoClient connection:  
+If pymongo is intended to be used, the following environment variables are
+required to establish a MongoClient connection:
 - MONGODB_HOST
 - MONGODB_USERNAME
 - MONGODB_PASSWORD
 
-If the IndexSQL backend is intended to be used, the following environment variables are required to establish a MS SQL Server Connection:
+If the IndexSQL backend is intended to be used, the following environment
+variables are required to establish a MS SQL Server Connection:
 - MSSQL_HOST
 - MSSQL_USERNAME
 - MSSQL_PASSWORD
@@ -161,9 +163,20 @@ can be uploaded directly:
 from weave.upload import UploadBasket
 upload_items = [{"path":"Path_to_file_or_dir", "stub": False}]
 upload_path = UploadBasket(upload_items,
-                           basket_type = "item",
-                           upload_directory = "weave-test",
-                          )
+                           basket_type="item",
+                           upload_directory="weave-test")
+```
+
+A Basket can also be uploaded as a `metadata-only` basket. This is used to add
+more metadata to a previously existing basket. There are three requirements to
+upload a metadata-only basket: No `upload_items`, include `metadata`, and
+include `parent_ids`.
+```python
+upload_path = UploadBasket(upload_items=[],
+                           basket_type="item",
+                           upload_directory="weave-test",
+                           metadata={"test":"metadata"},
+                           parent_ids=["existing_parent_UID"])
 ```
 
 Running `help(weave.upload)` will print the docstring that provides more
