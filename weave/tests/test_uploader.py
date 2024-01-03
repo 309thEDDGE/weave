@@ -1379,7 +1379,6 @@ def test_upload_basket_no_files(test_basket):
     ):
         pantry.upload_basket(upload_items=[], basket_type="no_files",)
 
-
 def test_upload_from_s3fs(test_basket):
     """Test that a basket can be uploaded from s3fs to the local file
     system or s3fs.
@@ -1396,7 +1395,11 @@ def test_upload_from_s3fs(test_basket):
 
     if test_basket.file_system == local_fs:
         minio_path = "test-source-file-system"
-        s3fs.mkdir(minio_path)
+        try:
+            s3fs.mkdir(minio_path)
+        except FileExistsError:
+            s3fs.rm(minio_path,recursive=True)
+            s3fs.mkdir(minio_path)
         file_to_move = os.path.join(minio_path, "test.txt")
 
     # Must upload a file because Minio will remove empty directories
