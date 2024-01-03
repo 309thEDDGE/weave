@@ -176,7 +176,7 @@ upload_path = UploadBasket(upload_items=[],
                            basket_type="item",
                            upload_directory="weave-test",
                            metadata={"test":"metadata"},
-                           parent_ids=["existing_parent_UID"])
+                           parent_ids=["existing_parent_UUID"])
 ```
 
 Running `help(weave.upload)` will print the docstring that provides more
