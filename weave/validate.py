@@ -27,7 +27,6 @@ def validate_pantry(pantry):
     A list of all invalid basket locations (will return an empty list if
     no warnings are raised).
     """
-
     if not pantry.file_system.exists(pantry.pantry_path):
         raise ValueError(
             f"Invalid pantry Path. Pantry does not exist at: "
