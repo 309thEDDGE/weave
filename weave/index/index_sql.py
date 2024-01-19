@@ -367,24 +367,35 @@ class IndexSQL(IndexABC):
             pantry.
         """
         ## Increment offset because row_number() starts counting at 1
-        offset += 1
-        query = f"""SELECT *
-                FROM (
-                    SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum
-                    FROM {self.pantry_schema}.pantry_index
-                ) AS Derived
-                WHERE Derived.RowNum BETWEEN (:start_idx) AND (:end_idx)"""
+        # ORDER BY Title OFFSET 0 ROWS FETCH FIRST 100 ROWS ONLY;
+        # offset += 1
+        # query = f"""SELECT *
+        #         FROM (
+        #             SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum
+        #             FROM {self.pantry_schema}.pantry_index
+        #         ) AS Derived
+        #         WHERE Derived.RowNum BETWEEN (:start_idx) AND (:end_idx)"""
+
+        query = f"""
+                SELECT * 
+                FROM {self.pantry_schema}.pantry_index 
+                ORDER BY UUID 
+                OFFSET (:offset) ROWS 
+                FETCH FIRST (:max_rows) ROWS ONLY;
+                """
 
         # Get the rows from the index as a list of lists, then get the columns.
         result, columns = self.execute_sql(
             query,
-            {"start_idx": offset, "end_idx": offset+max_rows},
+            {"offset": offset, "max_rows": max_rows},
+            # {"start_idx": offset, "end_idx": offset+max_rows},
         )
 
         result = [list(row) for row in result]
 
         ind_df = pd.DataFrame(result, columns=columns)
         ind_df = ind_df.drop('RowNum', axis=1)
+        print(ind_df.uuid)
         ind_df["parent_uuids"] = ind_df["parent_uuids"].apply(ast.literal_eval)
         ind_df["upload_time"] = pd.to_datetime(
             ind_df["upload_time"],
