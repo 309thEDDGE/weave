@@ -156,13 +156,16 @@ class IndexSQLite(IndexABC):
 
         self.con.commit()
 
-    def to_pandas_df(self, max_rows=1000, **kwargs):
+    def to_pandas_df(self, max_rows=1000, offset=0, **kwargs):
         """Returns the pandas dataframe representation of the index.
 
         Parameters
         ----------
         max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+        offset: int (default=0)
+            Offset from the beginning of the index to begin the query
+
         **kwargs unused for this function.
 
         Returns
@@ -175,8 +178,9 @@ class IndexSQLite(IndexABC):
             [info[1] for info in
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
         )
+        query = "SELECT * FROM pantry_index ORDER BY UUID LIMIT ? OFFSET ?"
         ind_df = pd.DataFrame(
-            self.cur.execute("SELECT * FROM pantry_index LIMIT ?", (max_rows,))
+            self.cur.execute(query, (max_rows,offset,))
             .fetchall(),
             columns=columns
         )
@@ -493,7 +497,8 @@ class IndexSQLite(IndexABC):
 
         return child_df
 
-    def get_baskets_of_type(self, basket_type, max_rows=1000, **kwargs):
+    def get_baskets_of_type(self, basket_type, max_rows=1000,
+                            offset=0, **kwargs):
         """Returns a pandas dataframe containing baskets of basket_type.
 
         Parameters
@@ -502,6 +507,8 @@ class IndexSQLite(IndexABC):
             The basket type to filter for.
         max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+        offset: int (default=0)
+            Offset from the beginning of the index to begin the query
 
         **kwargs unused for this function.
 
@@ -513,10 +520,11 @@ class IndexSQLite(IndexABC):
             [info[1] for info in
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
         )
+        query="""SELECT * FROM pantry_index WHERE basket_type = ?
+                 ORDER BY UUID LIMIT ? OFFSET ?"""
         ind_df = pd.DataFrame(
             self.cur.execute(
-                """SELECT * FROM pantry_index
-                WHERE basket_type = ? LIMIT ?""", (basket_type, max_rows)
+                query, (basket_type, max_rows, offset)
             ).fetchall(),
             columns=columns,
         )
@@ -528,7 +536,8 @@ class IndexSQLite(IndexABC):
         )
         return ind_df
 
-    def get_baskets_of_label(self, basket_label, max_rows=1000, **kwargs):
+    def get_baskets_of_label(self, basket_label, max_rows=1000,
+                             offset=0, **kwargs):
         """Returns a pandas dataframe containing baskets with label.
 
         Parameters
@@ -537,6 +546,8 @@ class IndexSQLite(IndexABC):
             The label to filter for.
         max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+        offset: int (default=0)
+            Offset from the beginning of the index to begin the query
 
         **kwargs unused for this function.
 
@@ -548,10 +559,11 @@ class IndexSQLite(IndexABC):
             [info[1] for info in
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
         )
+        query = """SELECT * FROM pantry_index WHERE label = ?
+                   ORDER BY UUID LIMIT ? OFFSET ?"""
         ind_df = pd.DataFrame(
             self.cur.execute(
-                """SELECT * FROM pantry_index
-                WHERE label = ? LIMIT ?""", (basket_label, max_rows)
+                query, (basket_label, max_rows, offset)
             ).fetchall(),
             columns=columns,
         )
@@ -564,7 +576,7 @@ class IndexSQLite(IndexABC):
         return ind_df
 
     def get_baskets_by_upload_time(self, start_time=None, end_time=None,
-                                   max_rows=1000, **kwargs):
+                                   max_rows=1000, offset=0, **kwargs):
         """Returns a pandas dataframe of baskets uploaded between two times.
 
         Parameters
@@ -577,6 +589,8 @@ class IndexSQLite(IndexABC):
             to the current datetime.
         max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+        offset: int (default=0)
+            Offset from the beginning of the index to begin the query
 
         **kwargs unused for this function.
 
@@ -587,7 +601,7 @@ class IndexSQLite(IndexABC):
         """
         super().get_baskets_by_upload_time(start_time, end_time)
         if start_time is None and end_time is None:
-            return self.to_pandas_df(max_rows=max_rows)
+            return self.to_pandas_df(max_rows=max_rows, offset=offset)
 
         columns = (
             [info[1] for info in
@@ -600,20 +614,20 @@ class IndexSQLite(IndexABC):
             results = self.cur.execute(
                 """SELECT * FROM pantry_index
                 WHERE upload_time >= ? AND upload_time <= ?
-                LIMIT ?
-                """, (start_time, end_time, max_rows)).fetchall()
+                ORDER BY UUID LIMIT ? OFFSET ?
+                """, (start_time, end_time, max_rows, offset)).fetchall()
         elif start_time:
             start_time = int(datetime.timestamp(start_time))
             results = self.cur.execute(
                 """SELECT * FROM pantry_index
-                WHERE upload_time >= ? LIMIT ?
-                """, (start_time, max_rows)).fetchall()
+                WHERE upload_time >= ? ORDER BY UUID LIMIT ? OFFSET ?
+                """, (start_time, max_rows, offset)).fetchall()
         elif end_time:
             end_time = int(datetime.timestamp(end_time))
             results = self.cur.execute(
                 """SELECT * FROM pantry_index
-                WHERE upload_time <= ? LIMIT ?
-                """, (end_time, max_rows)).fetchall()
+                WHERE upload_time <= ? ORDER BY UUID LIMIT ? OFFSET ?
+                """, (end_time, max_rows, offset)).fetchall()
 
         ind_df = pd.DataFrame(
             results,
