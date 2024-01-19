@@ -379,7 +379,6 @@ class IndexSQL(IndexABC):
         result = [list(row) for row in result]
 
         ind_df = pd.DataFrame(result, columns=columns)
-        print(ind_df.uuid)
         ind_df["parent_uuids"] = ind_df["parent_uuids"].apply(ast.literal_eval)
         ind_df["upload_time"] = pd.to_datetime(
             ind_df["upload_time"],
@@ -756,23 +755,6 @@ class IndexSQL(IndexABC):
         ----------
         pandas.DataFrame containing the manifest data of baskets of the type.
         """
-        ## Increment offset because row_number() starts counting at 1
-        # result, columns = self.execute_sql(
-        #     f"""SELECT *
-        #     FROM {self.pantry_schema}.pantry_index
-        #     ORDER BY UUID
-        #     OFFSET (:offset) ROWS
-        #     FETCH FIRST (:max_rows) ROWS ONLY""",
-        #     {"offset": offset, "max_rows": max_rows},
-        # )
-        # offset += 1
-        # query = f"""SELECT *
-        #     FROM (
-        #         SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum
-        #         FROM {self.pantry_schema}.pantry_index
-        #         WHERE CONVERT(nvarchar(MAX), basket_type) = :basket_type
-        #     ) AS Derived
-        #     WHERE Derived.RowNum BETWEEN (:start_idx) AND (:end_idx)"""
         result, columns = self.execute_sql(
             f"""SELECT *
                 FROM {self.pantry_schema}.pantry_index
@@ -782,13 +764,10 @@ class IndexSQL(IndexABC):
                 FETCH FIRST (:max_rows) ROWS ONLY""",
             {"offset": offset, "max_rows": max_rows,
              "basket_type": basket_type},
-            # {"start_idx": offset, "basket_type": basket_type,
-            #  "end_idx": offset+max_rows},
         )
         result = [list(row) for row in result]
 
         ind_df = pd.DataFrame(result, columns=columns)
-        # ind_df = ind_df.drop('RowNum', axis=1)
         ind_df["parent_uuids"] = ind_df["parent_uuids"].apply(ast.literal_eval)
         ind_df["upload_time"] = pd.to_datetime(
             ind_df["upload_time"],
@@ -816,10 +795,6 @@ class IndexSQL(IndexABC):
         ----------
         pandas.DataFrame containing the manifest data of baskets with the label
         """
-        ## Increment offset because row_number() starts counting at 1
-        # offset += 1
-
-
         result, columns = self.execute_sql(
             f"""SELECT *
                 FROM {self.pantry_schema}.pantry_index
@@ -829,13 +804,10 @@ class IndexSQL(IndexABC):
                 FETCH FIRST (:max_rows) ROWS ONLY""",
             {"offset": offset, "max_rows": max_rows,
              "basket_label": basket_label},
-            # {"start_idx": offset, "basket_label": basket_label,
-             # "end_idx": offset+max_rows},
         )
         result = [list(row) for row in result]
 
         ind_df = pd.DataFrame(result, columns=columns)
-        # ind_df = ind_df.drop('RowNum', axis=1)
         ind_df["parent_uuids"] = ind_df["parent_uuids"].apply(ast.literal_eval)
         ind_df["upload_time"] = pd.to_datetime(
             ind_df["upload_time"],
@@ -872,24 +844,20 @@ class IndexSQL(IndexABC):
         if start_time is None and end_time is None:
             return self.to_pandas_df(max_rows=max_rows, offset=offset)
 
-        ## Increment offset because row_number() starts counting at 1
-        offset += 1
-        pre_query = f"""SELECT *
-            FROM (
-                SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum
-                FROM {self.pantry_schema}.pantry_index """
-        post_query = """) AS Derived
-            WHERE Derived.RowNum BETWEEN (:start_idx) AND (:end_idx)"""
+        pre_query = f"SELECT * FROM {self.pantry_schema}.pantry_index "
+        post_query = """ORDER BY UUID
+                        OFFSET (:offset) ROWS
+                        FETCH FIRST (:max_rows) ROWS ONLY"""
 
         if start_time and end_time:
             start_time = int(datetime.timestamp(start_time))
             end_time = int(datetime.timestamp(end_time))
             query = "WHERE upload_time >= :start_time " \
-                    "AND upload_time <= :end_time"
+                    "AND upload_time <= :end_time "
             results, columns = self.execute_sql(
                 pre_query + query + post_query,
-                {"start_idx": offset,
-                 "end_idx": offset+max_rows,
+                {"offset": offset,
+                 "max_rows": max_rows,
                  "start_time": start_time,
                  "end_time": end_time
                 })
@@ -898,8 +866,8 @@ class IndexSQL(IndexABC):
             query = "WHERE upload_time >= :start_time "
             results, columns = self.execute_sql(
                 pre_query + query + post_query,
-                {"start_idx": offset,
-                 "end_idx": offset+max_rows,
+                {"offset": offset,
+                 "max_rows": max_rows,
                  "start_time": start_time,
                 })
         elif end_time:
@@ -907,15 +875,14 @@ class IndexSQL(IndexABC):
             query = "WHERE upload_time <= :end_time "
             results, columns = self.execute_sql(
                 pre_query + query + post_query,
-                {"start_idx": offset,
-                 "end_idx": offset+max_rows,
+                {"offset": offset,
+                 "max_rows": max_rows,
                  "end_time": end_time,
                 })
 
         results = [list(row) for row in results]
 
         ind_df = pd.DataFrame(results, columns=columns)
-        ind_df = ind_df.drop('RowNum', axis=1)
         ind_df["parent_uuids"] = ind_df["parent_uuids"].apply(ast.literal_eval)
         ind_df["upload_time"] = pd.to_datetime(
             ind_df["upload_time"],
