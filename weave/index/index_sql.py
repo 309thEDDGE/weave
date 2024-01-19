@@ -366,13 +366,21 @@ class IndexSQL(IndexABC):
             Returns a dataframe of the manifest data of the baskets in the
             pantry.
         """
+        query = "SELECT * " \
+                "FROM (" \
+                    "SELECT *, ROW_NUMBER() OVER (ORDER BY ID) AS RowNum" \
+                    "FROM {self.pantry_schema}.pantry_index" \
+                ") AS Derived" \
+                "WHERE Derived.RowNum BETWEEN (:offset) AND (:offset+max_rows)"
 
+        # query = f"SELECT * FROM {self.pantry_schema}.pantry_index "
+                # "OFFSET (:offset) ROWS FETCH NEXT (:max_rows) ROWS ONLY",
         # Get the rows from the index as a list of lists, then get the columns.
         result, columns = self.execute_sql(
-            f"SELECT * FROM {self.pantry_schema}.pantry_index "
-            "OFFSET (:offset) ROWS FETCH NEXT (:max_rows) ROWS ONLY",
+            query,
             {"max_rows": max_rows, "offset": offset},
         )
+
         result = [list(row) for row in result]
 
         ind_df = pd.DataFrame(result, columns=columns)
