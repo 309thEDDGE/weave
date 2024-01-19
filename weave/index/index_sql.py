@@ -767,9 +767,6 @@ class IndexSQL(IndexABC):
             ") AS Derived " \
             "WHERE Derived.RowNum BETWEEN (:start_idx) AND (:end_idx)"
         result, columns = self.execute_sql(
-            # f"SELECT * FROM {self.pantry_schema}.pantry_index "
-            # "WHERE CONVERT(nvarchar(MAX), basket_type) = :basket_type "
-            # "LIMIT :max_rows OFFSET :offset",
             query,
             {"start_idx": offset, "basket_type": basket_type,
              "end_idx": offset+max_rows},
@@ -805,16 +802,23 @@ class IndexSQL(IndexABC):
         ----------
         pandas.DataFrame containing the manifest data of baskets with the label
         """
+        query = "SELECT * " \
+            "FROM (" \
+                "SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum " \
+                f"FROM {self.pantry_schema}.pantry_index " \
+                "WHERE CONVERT(nvarchar(MAX), label) = :basket_label"
+            ") AS Derived " \
+            "WHERE Derived.RowNum BETWEEN (:start_idx) AND (:end_idx)"
+
         result, columns = self.execute_sql(
-            f"SELECT * FROM {self.pantry_schema}.pantry_index "
-            "WHERE CONVERT(nvarchar(MAX), label) = :basket_label"
-            "LIMIT :max_rows OFFSET :offset",
-            {"max_rows": max_rows, "basket_label": basket_label,
-             "offset": offset},
+            query
+            {"start_idx": offset, "basket_label": basket_label,
+             "end_idx": offset+max_rows},
         )
         result = [list(row) for row in result]
 
         ind_df = pd.DataFrame(result, columns=columns)
+        ind_df = ind_df.drop('RowNum', axis=1)
         ind_df["parent_uuids"] = ind_df["parent_uuids"].apply(ast.literal_eval)
         ind_df["upload_time"] = pd.to_datetime(
             ind_df["upload_time"],
