@@ -370,7 +370,7 @@ class IndexSQL(IndexABC):
         # Get the rows from the index as a list of lists, then get the columns.
         result, columns = self.execute_sql(
             f"SELECT * FROM {self.pantry_schema}.pantry_index "
-            "LIMIT :max_rows OFFSET :offset",
+            "OFFSET (:offset) ROWS FETCH NEXT (:max_rows) ROWS ONLY"
             {"max_rows": max_rows, "offset": offset},
         )
         result = [list(row) for row in result]

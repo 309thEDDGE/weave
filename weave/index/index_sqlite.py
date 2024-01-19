@@ -601,7 +601,7 @@ class IndexSQLite(IndexABC):
         """
         super().get_baskets_by_upload_time(start_time, end_time)
         if start_time is None and end_time is None:
-            return self.to_pandas_df(max_rows=max_rows)
+            return self.to_pandas_df(max_rows=max_rows, offset=offset)
 
         columns = (
             [info[1] for info in
