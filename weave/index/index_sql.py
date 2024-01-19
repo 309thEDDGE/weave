@@ -349,13 +349,15 @@ class IndexSQL(IndexABC):
                           "do not follow specified weave schema:\n"
                           f"{bad_baskets}")
 
-    def to_pandas_df(self, max_rows=1000, **kwargs):
+    def to_pandas_df(self, max_rows=1000, offset=0, **kwargs):
         """Returns the pandas dataframe representation of the index.
 
         Parameters
         ----------
         max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+        offset: int (default=0)
+            Offset from the beginning of the index to begin the query
         **kwargs unused for this function.
 
         Returns
@@ -364,10 +366,12 @@ class IndexSQL(IndexABC):
             Returns a dataframe of the manifest data of the baskets in the
             pantry.
         """
+
         # Get the rows from the index as a list of lists, then get the columns.
         result, columns = self.execute_sql(
-            f"SELECT TOP (:max_rows) * FROM {self.pantry_schema}.pantry_index",
-            {"max_rows": max_rows},
+            f"SELECT * FROM {self.pantry_schema}.pantry_index "
+            "LIMIT :max_rows OFFSET :offset",
+            {"max_rows": max_rows, "offset": offset},
         )
         result = [list(row) for row in result]
 
@@ -729,7 +733,8 @@ class IndexSQL(IndexABC):
 
         return child_df
 
-    def get_baskets_of_type(self, basket_type, max_rows=1000, **kwargs):
+    def get_baskets_of_type(self, basket_type, max_rows=1000,
+                            offset=0, **kwargs):
         """Returns a pandas dataframe containing baskets of basket_type.
 
         Parameters
@@ -738,6 +743,8 @@ class IndexSQL(IndexABC):
             The basket type to filter for.
         max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+        offset: int (default=0)
+            Offset from the beginning of the index to begin the query
 
         **kwargs unused for this function.
 
@@ -746,9 +753,11 @@ class IndexSQL(IndexABC):
         pandas.DataFrame containing the manifest data of baskets of the type.
         """
         result, columns = self.execute_sql(
-            f"SELECT TOP (:max_rows) * FROM {self.pantry_schema}.pantry_index "
-            "WHERE CONVERT(nvarchar(MAX), basket_type) = :basket_type",
-            {"max_rows": max_rows, "basket_type": basket_type},
+            f"SELECT * FROM {self.pantry_schema}.pantry_index "
+            "WHERE CONVERT(nvarchar(MAX), basket_type) = :basket_type "
+            "LIMIT :max_rows OFFSET :offset",
+            {"max_rows": max_rows, "basket_type": basket_type,
+             "offset": offset},
         )
         result = [list(row) for row in result]
 
@@ -761,7 +770,8 @@ class IndexSQL(IndexABC):
         )
         return ind_df
 
-    def get_baskets_of_label(self, basket_label, max_rows=1000, **kwargs):
+    def get_baskets_of_label(self, basket_label, max_rows=1000,
+                             offset=0, **kwargs):
         """Returns a pandas dataframe containing baskets with label.
 
         Parameters
@@ -770,6 +780,8 @@ class IndexSQL(IndexABC):
             The label to filter for.
         max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+        offset: int (default=0)
+            Offset from the beginning of the index to begin the query
 
         **kwargs unused for this function.
 
@@ -778,9 +790,11 @@ class IndexSQL(IndexABC):
         pandas.DataFrame containing the manifest data of baskets with the label
         """
         result, columns = self.execute_sql(
-            f"SELECT TOP (:max_rows) * FROM {self.pantry_schema}.pantry_index "
-            "WHERE CONVERT(nvarchar(MAX), label) = :basket_label",
-            {"max_rows": max_rows, "basket_label": basket_label},
+            f"SELECT * FROM {self.pantry_schema}.pantry_index "
+            "WHERE CONVERT(nvarchar(MAX), label) = :basket_label"
+            "LIMIT :max_rows OFFSET :offset",
+            {"max_rows": max_rows, "basket_label": basket_label,
+             "offset": offset},
         )
         result = [list(row) for row in result]
 
@@ -794,7 +808,7 @@ class IndexSQL(IndexABC):
         return ind_df
 
     def get_baskets_by_upload_time(self, start_time=None, end_time=None,
-                                   max_rows=1000, **kwargs):
+                                   max_rows=1000, offset=0, **kwargs):
         """Returns a pandas dataframe of baskets uploaded between two times.
 
         Parameters
@@ -807,6 +821,8 @@ class IndexSQL(IndexABC):
             to the current datetime.
         max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+        offset: int (default=0)
+            Offset from the beginning of the index to begin the query
 
         **kwargs unused for this function.
 
@@ -817,34 +833,40 @@ class IndexSQL(IndexABC):
         """
         super().get_baskets_by_upload_time(start_time, end_time)
         if start_time is None and end_time is None:
-            return self.to_pandas_df(max_rows=max_rows)
+            return self.to_pandas_df(max_rows=max_rows, offset=offset)
 
         if start_time and end_time:
             start_time = int(datetime.timestamp(start_time))
             end_time = int(datetime.timestamp(end_time))
             results, columns = self.execute_sql(
-                f"""SELECT TOP (:max_rows) *
+                f"""SELECT *
                 FROM {self.pantry_schema}.pantry_index
                 WHERE upload_time >= :start_time AND upload_time <= :end_time
+                LIMIT :max_rows OFFSET :offset
                 """,
                 {"max_rows": max_rows,
+                 "offset": offset,
                  "start_time": start_time,
                  "end_time": end_time
                 })
         elif start_time:
             start_time = int(datetime.timestamp(start_time))
             results, columns = self.execute_sql(
-                f"""SELECT TOP (:max_rows) *
+                f"""SELECT *
                 FROM {self.pantry_schema}.pantry_index
                 WHERE upload_time >= :start_time
-                """, {"max_rows": max_rows, "start_time": start_time})
+                LIMIT :max_rows OFFSET :offset
+                """, {"max_rows": max_rows, "offset": offset,
+                      "start_time": start_time})
         elif end_time:
             end_time = int(datetime.timestamp(end_time))
             results, columns = self.execute_sql(
-                f"""SELECT TOP (:max_rows) *
+                f"""SELECT  *
                 FROM {self.pantry_schema}.pantry_index
                 WHERE upload_time <= :end_time
-                """, {"max_rows": max_rows, "end_time": end_time})
+                LIMIT :max_rows OFFSET :offset
+                """, {"max_rows": max_rows, "offset": offset,
+                      "end_time": end_time})
 
         results = [list(row) for row in results]
 
