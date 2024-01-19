@@ -366,12 +366,12 @@ class IndexSQL(IndexABC):
             Returns a dataframe of the manifest data of the baskets in the
             pantry.
         """
-        query = "SELECT * " \
-                "FROM (" \
-                    "SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum " \
-                    f"FROM {self.pantry_schema}.pantry_index" \
-                ") AS Derived " \
-                "WHERE Derived.RowNum BETWEEN (:start_idx) AND (:end_idx)"
+        query = f"""SELECT *
+                FROM (
+                    SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum
+                    FROM {self.pantry_schema}.pantry_index
+                ) AS Derived
+                WHERE Derived.RowNum BETWEEN (:start_idx) AND (:end_idx)"""
 
         # Get the rows from the index as a list of lists, then get the columns.
         result, columns = self.execute_sql(
@@ -759,13 +759,13 @@ class IndexSQL(IndexABC):
         ----------
         pandas.DataFrame containing the manifest data of baskets of the type.
         """
-        query = "SELECT * " \
-            "FROM (" \
-                "SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum " \
-                f"FROM {self.pantry_schema}.pantry_index " \
-                 "WHERE CONVERT(nvarchar(MAX), basket_type) = :basket_type " \
-            ") AS Derived " \
-            "WHERE Derived.RowNum BETWEEN (:start_idx) AND (:end_idx)"
+        query = f"""SELECT *
+            FROM (
+                SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum
+                FROM {self.pantry_schema}.pantry_index
+                WHERE CONVERT(nvarchar(MAX), basket_type) = :basket_type
+            ) AS Derived
+            WHERE Derived.RowNum BETWEEN (:start_idx) AND (:end_idx)"""
         result, columns = self.execute_sql(
             query,
             {"start_idx": offset, "basket_type": basket_type,
@@ -802,13 +802,13 @@ class IndexSQL(IndexABC):
         ----------
         pandas.DataFrame containing the manifest data of baskets with the label
         """
-        query = "SELECT * " \
-            "FROM (" \
-                "SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum " \
-                f"FROM {self.pantry_schema}.pantry_index " \
-                "WHERE CONVERT(nvarchar(MAX), label) = :basket_label" \
-            ") AS Derived " \
-            "WHERE Derived.RowNum BETWEEN (:start_idx) AND (:end_idx)"
+        query = f"""SELECT *
+                FROM (
+                    SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum
+                    FROM {self.pantry_schema}.pantry_index
+                    WHERE CONVERT(nvarchar(MAX), label) = :basket_label
+                ) AS Derived
+                WHERE Derived.RowNum BETWEEN (:start_idx) AND (:end_idx)"""
 
         result, columns = self.execute_sql(
             query,
@@ -855,12 +855,12 @@ class IndexSQL(IndexABC):
         if start_time is None and end_time is None:
             return self.to_pandas_df(max_rows=max_rows, offset=offset)
 
-        pre_query = "SELECT * " \
-            "FROM (" \
-                "SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum " \
-                f"FROM {self.pantry_schema}.pantry_index "
-        post_query = ") AS Derived " \
-            "WHERE Derived.RowNum BETWEEN (:start_idx) AND (:end_idx)"
+        pre_query = f"""SELECT *
+            FROM (
+                SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum
+                FROM {self.pantry_schema}.pantry_index"""
+        post_query = """) AS Derived
+            WHERE Derived.RowNum BETWEEN (:start_idx) AND (:end_idx)"""
 
         if start_time and end_time:
             start_time = int(datetime.timestamp(start_time))
