@@ -758,10 +758,10 @@ class IndexSQL(IndexABC):
         """
         ## Increment offset because row_number() starts counting at 1
         # result, columns = self.execute_sql(
-        #     f"""SELECT * 
-        #     FROM {self.pantry_schema}.pantry_index 
-        #     ORDER BY UUID 
-        #     OFFSET (:offset) ROWS 
+        #     f"""SELECT *
+        #     FROM {self.pantry_schema}.pantry_index
+        #     ORDER BY UUID
+        #     OFFSET (:offset) ROWS
         #     FETCH FIRST (:max_rows) ROWS ONLY""",
         #     {"offset": offset, "max_rows": max_rows},
         # )
@@ -788,7 +788,7 @@ class IndexSQL(IndexABC):
         result = [list(row) for row in result]
 
         ind_df = pd.DataFrame(result, columns=columns)
-        ind_df = ind_df.drop('RowNum', axis=1)
+        # ind_df = ind_df.drop('RowNum', axis=1)
         ind_df["parent_uuids"] = ind_df["parent_uuids"].apply(ast.literal_eval)
         ind_df["upload_time"] = pd.to_datetime(
             ind_df["upload_time"],
@@ -817,24 +817,25 @@ class IndexSQL(IndexABC):
         pandas.DataFrame containing the manifest data of baskets with the label
         """
         ## Increment offset because row_number() starts counting at 1
-        offset += 1
-        query = f"""SELECT *
-                FROM (
-                    SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum
-                    FROM {self.pantry_schema}.pantry_index
-                    WHERE CONVERT(nvarchar(MAX), label) = :basket_label
-                ) AS Derived
-                WHERE Derived.RowNum BETWEEN (:start_idx) AND (:end_idx)"""
+        # offset += 1
+
 
         result, columns = self.execute_sql(
-            query,
-            {"start_idx": offset, "basket_label": basket_label,
-             "end_idx": offset+max_rows},
+            f"""SELECT *
+                FROM {self.pantry_schema}.pantry_index
+                WHERE CONVERT(nvarchar(MAX), label) = :basket_label
+                ORDER BY UUID
+                OFFSET (:offset) ROWS
+                FETCH FIRST (:max_rows) ROWS ONLY""",
+            {"offset": offset, "max_rows": max_rows,
+             "basket_label": basket_label},
+            # {"start_idx": offset, "basket_label": basket_label,
+             # "end_idx": offset+max_rows},
         )
         result = [list(row) for row in result]
 
         ind_df = pd.DataFrame(result, columns=columns)
-        ind_df = ind_df.drop('RowNum', axis=1)
+        # ind_df = ind_df.drop('RowNum', axis=1)
         ind_df["parent_uuids"] = ind_df["parent_uuids"].apply(ast.literal_eval)
         ind_df["upload_time"] = pd.to_datetime(
             ind_df["upload_time"],
