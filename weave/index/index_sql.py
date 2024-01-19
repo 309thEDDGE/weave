@@ -858,7 +858,7 @@ class IndexSQL(IndexABC):
         pre_query = f"""SELECT *
             FROM (
                 SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum
-                FROM {self.pantry_schema}.pantry_index"""
+                FROM {self.pantry_schema}.pantry_index """
         post_query = """) AS Derived
             WHERE Derived.RowNum BETWEEN (:start_idx) AND (:end_idx)"""
 
@@ -876,7 +876,7 @@ class IndexSQL(IndexABC):
                 })
         elif start_time:
             start_time = int(datetime.timestamp(start_time))
-            query = "WHERE upload_time >= :start_time"
+            query = "WHERE upload_time >= :start_time "
             results, columns = self.execute_sql(
                 pre_query + query + post_query,
                 {"start_idx": offset,
@@ -885,7 +885,7 @@ class IndexSQL(IndexABC):
                 })
         elif end_time:
             end_time = int(datetime.timestamp(end_time))
-            query = "WHERE upload_time <= :end_time"
+            query = "WHERE upload_time <= :end_time "
             results, columns = self.execute_sql(
                 pre_query + query + post_query,
                 {"start_idx": offset,
