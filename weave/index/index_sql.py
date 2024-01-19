@@ -370,7 +370,7 @@ class IndexSQL(IndexABC):
                 "FROM (" \
                     "SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum " \
                     "FROM {self.pantry_schema}.pantry_index" \
-                ") AS Derived" \
+                ") AS Derived " \
                 "WHERE Derived.RowNum BETWEEN (:start_idx) AND (:end_idx)"
 
         # query = f"SELECT * FROM {self.pantry_schema}.pantry_index "
