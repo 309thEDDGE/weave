@@ -366,6 +366,8 @@ class IndexSQL(IndexABC):
             Returns a dataframe of the manifest data of the baskets in the
             pantry.
         """
+        ## Increment offset because row_number() starts counting at 1
+        offset += 1
         query = f"""SELECT *
                 FROM (
                     SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum
@@ -759,6 +761,8 @@ class IndexSQL(IndexABC):
         ----------
         pandas.DataFrame containing the manifest data of baskets of the type.
         """
+        ## Increment offset because row_number() starts counting at 1
+        offset += 1
         query = f"""SELECT *
             FROM (
                 SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum
@@ -802,6 +806,8 @@ class IndexSQL(IndexABC):
         ----------
         pandas.DataFrame containing the manifest data of baskets with the label
         """
+        ## Increment offset because row_number() starts counting at 1
+        offset += 1
         query = f"""SELECT *
                 FROM (
                     SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum
@@ -855,6 +861,8 @@ class IndexSQL(IndexABC):
         if start_time is None and end_time is None:
             return self.to_pandas_df(max_rows=max_rows, offset=offset)
 
+        ## Increment offset because row_number() starts counting at 1
+        offset += 1
         pre_query = f"""SELECT *
             FROM (
                 SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum
