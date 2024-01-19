@@ -371,14 +371,14 @@ class IndexSQL(IndexABC):
                     "SELECT *, ROW_NUMBER() OVER (ORDER BY ID) AS RowNum" \
                     "FROM {self.pantry_schema}.pantry_index" \
                 ") AS Derived" \
-                "WHERE Derived.RowNum BETWEEN (:offset) AND (:offset+max_rows)"
+                "WHERE Derived.RowNum BETWEEN (:start_idx) AND (:end_idx)"
 
         # query = f"SELECT * FROM {self.pantry_schema}.pantry_index "
                 # "OFFSET (:offset) ROWS FETCH NEXT (:max_rows) ROWS ONLY",
         # Get the rows from the index as a list of lists, then get the columns.
         result, columns = self.execute_sql(
             query,
-            {"max_rows": max_rows, "offset": offset},
+            {"start_idx": offset, "end_idx": offset+max_rows},
         )
 
         result = [list(row) for row in result]
