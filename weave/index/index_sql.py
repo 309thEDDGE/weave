@@ -366,10 +366,10 @@ class IndexSQL(IndexABC):
             Returns a dataframe of the manifest data of the baskets in the
             pantry.
         """
-        query = f"SELECT * " \
+        query = "SELECT * " \
                 "FROM (" \
                     "SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum " \
-                    "FROM {self.pantry_schema}.pantry_index" \
+                    f"FROM {self.pantry_schema}.pantry_index" \
                 ") AS Derived " \
                 "WHERE Derived.RowNum BETWEEN (:start_idx) AND (:end_idx)"
 
