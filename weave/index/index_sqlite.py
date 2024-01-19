@@ -178,7 +178,7 @@ class IndexSQLite(IndexABC):
             [info[1] for info in
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
         )
-        query = "SELECT * FROM pantry_index LIMIT ? OFFSET ?"
+        query = "SELECT * FROM pantry_index ORDER BY UUID LIMIT ? OFFSET ?"
         ind_df = pd.DataFrame(
             self.cur.execute(query, (max_rows,offset,))
             .fetchall(),
@@ -520,8 +520,8 @@ class IndexSQLite(IndexABC):
             [info[1] for info in
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
         )
-        query="""SELECT * FROM pantry_index
-                WHERE basket_type = ? LIMIT ? OFFSET ?"""
+        query="""SELECT * FROM pantry_index WHERE basket_type = ?
+                 ORDER BY UUID LIMIT ? OFFSET ?"""
         ind_df = pd.DataFrame(
             self.cur.execute(
                 query, (basket_type, max_rows, offset)
@@ -559,8 +559,8 @@ class IndexSQLite(IndexABC):
             [info[1] for info in
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
         )
-        query = """SELECT * FROM pantry_index
-                WHERE label = ? LIMIT ? OFFSET ?"""
+        query = """SELECT * FROM pantry_index WHERE label = ?
+                   ORDER BY UUID LIMIT ? OFFSET ?"""
         ind_df = pd.DataFrame(
             self.cur.execute(
                 query, (basket_label, max_rows, offset)
@@ -614,19 +614,19 @@ class IndexSQLite(IndexABC):
             results = self.cur.execute(
                 """SELECT * FROM pantry_index
                 WHERE upload_time >= ? AND upload_time <= ?
-                LIMIT ? OFFSET ?
+                ORDER BY UUID LIMIT ? OFFSET ?
                 """, (start_time, end_time, max_rows, offset)).fetchall()
         elif start_time:
             start_time = int(datetime.timestamp(start_time))
             results = self.cur.execute(
                 """SELECT * FROM pantry_index
-                WHERE upload_time >= ? LIMIT ? OFFSET ?
+                WHERE upload_time >= ? ORDER BY UUID LIMIT ? OFFSET ?
                 """, (start_time, max_rows, offset)).fetchall()
         elif end_time:
             end_time = int(datetime.timestamp(end_time))
             results = self.cur.execute(
                 """SELECT * FROM pantry_index
-                WHERE upload_time <= ? LIMIT ? OFFSET ?
+                WHERE upload_time <= ? ORDER BY UUID LIMIT ? OFFSET ?
                 """, (end_time, max_rows, offset)).fetchall()
 
         ind_df = pd.DataFrame(
