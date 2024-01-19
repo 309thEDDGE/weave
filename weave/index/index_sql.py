@@ -384,6 +384,7 @@ class IndexSQL(IndexABC):
         result = [list(row) for row in result]
 
         ind_df = pd.DataFrame(result, columns=columns)
+        ind_df = ind_df.drop('RowNum', axis=1)
         ind_df["parent_uuids"] = ind_df["parent_uuids"].apply(ast.literal_eval)
         ind_df["upload_time"] = pd.to_datetime(
             ind_df["upload_time"],
