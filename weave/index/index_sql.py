@@ -366,29 +366,14 @@ class IndexSQL(IndexABC):
             Returns a dataframe of the manifest data of the baskets in the
             pantry.
         """
-        ## Increment offset because row_number() starts counting at 1
-        # ORDER BY Title OFFSET 0 ROWS FETCH FIRST 100 ROWS ONLY;
-        # offset += 1
-        # query = f"""SELECT *
-        #         FROM (
-        #             SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum
-        #             FROM {self.pantry_schema}.pantry_index
-        #         ) AS Derived
-        #         WHERE Derived.RowNum BETWEEN (:start_idx) AND (:end_idx)"""
-
-        query = f"""
-                SELECT * 
-                FROM {self.pantry_schema}.pantry_index 
-                ORDER BY UUID 
-                OFFSET (:offset) ROWS 
-                FETCH FIRST (:max_rows) ROWS ONLY
-                """
-
         # Get the rows from the index as a list of lists, then get the columns.
         result, columns = self.execute_sql(
-            query,
+             f"""SELECT *
+                 FROM {self.pantry_schema}.pantry_index
+                 ORDER BY UUID
+                 OFFSET (:offset) ROWS
+                 FETCH FIRST (:max_rows) ROWS ONLY""",
             {"offset": offset, "max_rows": max_rows},
-            # {"start_idx": offset, "end_idx": offset+max_rows},
         )
 
         result = [list(row) for row in result]
@@ -772,18 +757,33 @@ class IndexSQL(IndexABC):
         pandas.DataFrame containing the manifest data of baskets of the type.
         """
         ## Increment offset because row_number() starts counting at 1
-        offset += 1
-        query = f"""SELECT *
-            FROM (
-                SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum
+        # result, columns = self.execute_sql(
+        #     f"""SELECT * 
+        #     FROM {self.pantry_schema}.pantry_index 
+        #     ORDER BY UUID 
+        #     OFFSET (:offset) ROWS 
+        #     FETCH FIRST (:max_rows) ROWS ONLY""",
+        #     {"offset": offset, "max_rows": max_rows},
+        # )
+        # offset += 1
+        # query = f"""SELECT *
+        #     FROM (
+        #         SELECT *, ROW_NUMBER() OVER (ORDER BY UUID) AS RowNum
+        #         FROM {self.pantry_schema}.pantry_index
+        #         WHERE CONVERT(nvarchar(MAX), basket_type) = :basket_type
+        #     ) AS Derived
+        #     WHERE Derived.RowNum BETWEEN (:start_idx) AND (:end_idx)"""
+        result, columns = self.execute_sql(
+            f"""SELECT *
                 FROM {self.pantry_schema}.pantry_index
                 WHERE CONVERT(nvarchar(MAX), basket_type) = :basket_type
-            ) AS Derived
-            WHERE Derived.RowNum BETWEEN (:start_idx) AND (:end_idx)"""
-        result, columns = self.execute_sql(
-            query,
-            {"start_idx": offset, "basket_type": basket_type,
-             "end_idx": offset+max_rows},
+                ORDER BY UUID
+                OFFSET (:offset) ROWS
+                FETCH FIRST (:max_rows) ROWS ONLY""",
+            {"offset": offset, "max_rows": max_rows,
+             "basket_type": basket_type},
+            # {"start_idx": offset, "basket_type": basket_type,
+            #  "end_idx": offset+max_rows},
         )
         result = [list(row) for row in result]
 
