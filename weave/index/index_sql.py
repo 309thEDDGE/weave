@@ -381,7 +381,7 @@ class IndexSQL(IndexABC):
                 FROM {self.pantry_schema}.pantry_index 
                 ORDER BY UUID 
                 OFFSET (:offset) ROWS 
-                FETCH FIRST (:max_rows) ROWS ONLY;
+                FETCH FIRST (:max_rows) ROWS ONLY
                 """
 
         # Get the rows from the index as a list of lists, then get the columns.
@@ -394,7 +394,6 @@ class IndexSQL(IndexABC):
         result = [list(row) for row in result]
 
         ind_df = pd.DataFrame(result, columns=columns)
-        ind_df = ind_df.drop('RowNum', axis=1)
         print(ind_df.uuid)
         ind_df["parent_uuids"] = ind_df["parent_uuids"].apply(ast.literal_eval)
         ind_df["upload_time"] = pd.to_datetime(
