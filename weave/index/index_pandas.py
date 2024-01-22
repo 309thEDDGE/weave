@@ -124,13 +124,15 @@ class IndexPandas(IndexABC):
         path = str(path)
         return int(os.path.basename(path).replace("-index.json",""))
 
-    def to_pandas_df(self, max_rows=1000, **kwargs):
+    def to_pandas_df(self, max_rows=1000, offset=0, **kwargs):
         """Returns the pandas dataframe representation of the index.
 
         Parameters
         ----------
         max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+        offset: int (default=0)
+            Offset from the beginning of the index to begin the query
 
         **kwargs unused for this class.
 
@@ -142,7 +144,7 @@ class IndexPandas(IndexABC):
         """
 
         self._sync_if_needed()
-        return self.index_df.head(max_rows)
+        return self.index_df.iloc[offset:offset+max_rows]
 
     def clean_up_indices(self, n_keep=20):
         """Deletes any index basket except the latest n index baskets.
@@ -498,7 +500,8 @@ class IndexPandas(IndexABC):
                       ]
         return rows
 
-    def get_baskets_of_type(self, basket_type, max_rows=1000, **kwargs):
+    def get_baskets_of_type(self, basket_type, max_rows=1000,
+                            offset=0, **kwargs):
         """Returns a pandas dataframe containing baskets of basket_type.
 
         Parameters
@@ -507,6 +510,8 @@ class IndexPandas(IndexABC):
             The basket type to filter for.
         max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+        offset: int (default=0)
+            Offset from the beginning of the index to begin the query
 
        **kwargs unused for this class.
 
@@ -519,9 +524,10 @@ class IndexPandas(IndexABC):
 
         return self.index_df[
             self.index_df["basket_type"] == basket_type
-        ].head(max_rows)
+        ].iloc[offset:offset+max_rows]
 
-    def get_baskets_of_label(self, basket_label, max_rows=1000, **kwargs):
+    def get_baskets_of_label(self, basket_label, max_rows=1000,
+                             offset=0, **kwargs):
         """Returns a pandas dataframe containing baskets with label.
 
         Parameters
@@ -530,6 +536,8 @@ class IndexPandas(IndexABC):
             The label to filter for.
         max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+        offset: int (default=0)
+            Offset from the beginning of the index to begin the query
 
         **kwargs unused for this class.
 
@@ -543,10 +551,10 @@ class IndexPandas(IndexABC):
 
         return self.index_df[
             self.index_df["label"] == basket_label
-        ].head(max_rows)
+        ].iloc[offset:offset+max_rows]
 
     def get_baskets_by_upload_time(self, start_time=None, end_time=None,
-                                   max_rows=1000, **kwargs):
+                                   max_rows=1000, offset=0, **kwargs):
         """Returns a pandas dataframe of baskets uploaded between two times.
 
         Parameters
@@ -559,6 +567,8 @@ class IndexPandas(IndexABC):
             to the current datetime.
         max_rows: int (default=1000)
             Max rows returned in the pandas dataframe.
+        offset: int (default=0)
+            Offset from the beginning of the index to begin the query
 
        **kwargs unused for this class.
 
@@ -570,22 +580,24 @@ class IndexPandas(IndexABC):
 
         super().get_baskets_by_upload_time(start_time, end_time)
         if start_time is None and end_time is None:
-            return self.to_pandas_df(max_rows, **kwargs)
+            return self.to_pandas_df(max_rows=max_rows,
+                                     offset=offset,
+                                     **kwargs)
 
         self._sync_if_needed()
 
         if start_time is None:
             return self.index_df[
                 self.index_df["upload_time"] <= end_time
-            ].head(max_rows)
+            ].iloc[offset:offset+max_rows]
         if end_time is None:
             return self.index_df[
                 self.index_df["upload_time"] >= start_time
-            ].head(max_rows)
+            ].iloc[offset:offset+max_rows]
         return self.index_df[
             (self.index_df["upload_time"] >= start_time)
              & (self.index_df["upload_time"] <= end_time)
-            ].head(max_rows)
+            ].iloc[offset:offset+max_rows]
 
     def query(self, expr, **kwargs):
         """Returns a pandas dataframe of the results of the query.

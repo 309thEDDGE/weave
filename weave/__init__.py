@@ -27,7 +27,7 @@ from .index.index_posgtresql import IndexPostgreSQL
 from .pantry import Pantry
 from .metadata_db import load_mongo
 
-__version__ = "1.4.5"
+__version__ = "1.5.0"
 
 __all__ = [
     "Basket",
