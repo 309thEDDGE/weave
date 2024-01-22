@@ -726,3 +726,18 @@ def test_upload_basket_read_only():
                 upload_items=[{"path":tmp_file.name, "stub":False}],
                 basket_type="read_only",
             )
+
+def test_s3fs_no_connection_error():
+    """Create an s3fs object with a bad address and verify that the correct
+    error message is thrown"""
+    s3fs = s3fs.S3FileSystem(
+    client_kwargs={"endpoint_url": os.environ["bad_endpoint"]}
+    )
+
+    error_msg = "Connection to s3fs failed."
+    with pytest.raises(ConnectionError, match=error_msg)
+        pantry = weave.Pantry(
+            index=weave.IndexPandas,
+            file_system=s3fs,
+            pantry_path="fake-pantry",
+        )
