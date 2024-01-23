@@ -48,32 +48,12 @@ jobs:
         mongodb-version: 6.0.5
         mongodb-username: testusername
         mongodb-password: testpassword
-#     - name: Install ODBC Driver for SQL Server
-#       run: |
-#         if ! [[ "18.04 20.04 22.04 23.04" == *"$(lsb_release -rs)"* ]];
-#         then
-#             echo "Ubuntu $(lsb_release -rs) is not currently supported.";
-#             exit;
-#         fi
-#         curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
-#         curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
-#         sudo apt-get update
-#         sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
-#         # optional: for bcp and sqlcmd
-#         sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18
-#         echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> ~/.bashrc
-#         source ~/.bashrc
-#         # optional: for unixODBC development headers
-#         sudo apt-get install -y unixodbc-dev
-
-#         sqlcmd -S localhost -U sa -P Testpassword1 -Q "CREATE DATABASE weave_db"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install pytest
         pip install .[extras]
     - name: Test with pytest
-      # MSSQL_USERNAME is set to default System Administrator name ('sa')
       run: |
         export WEAVE_SQL_HOST=postgres
         export WEAVE_SQL_USERNAME=postgres
@@ -86,6 +66,9 @@ jobs:
         export AWS_SECRET_ACCESS_KEY=minioadmin
         export S3_ENDPOINT=http://172.17.0.1:9000/
         pytest -vv weave/tests/test_postgres.py
+      env:
+          POSTGRES_HOST: postgres
+          POSTGRES_PORT: 5432
 
   ruff:
     runs-on: ubuntu-latest
