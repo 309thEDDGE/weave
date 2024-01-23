@@ -23,7 +23,6 @@ from .basket import Basket
 from .index.index_pandas import IndexPandas
 from .index.index_sqlite import IndexSQLite
 from .index.index_sql import IndexSQL
-from .index.index_posgtresql import IndexPostgreSQL
 from .pantry import Pantry
 from .metadata_db import load_mongo
 
@@ -34,7 +33,6 @@ __all__ = [
     "IndexPandas",
     "IndexSQLite",
     "IndexSQL",
-    "IndexPostgreSQL",
     "Pantry",
     "load_mongo",
 ]

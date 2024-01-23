@@ -10,11 +10,10 @@ from datetime import datetime
 import ast
 import dateutil
 import pandas as pd
+import numpy as np
 # Try-Except required to make pyodbc/sqlalchemy an optional dependency.
 try:
     # pylint: disable=unused-import
-    # pyodbc is imported here because sqlalchemy requires it.
-    import pyodbc # noqa: F401
     import sqlalchemy as sqla # noqa: F401
     # pylint: enable=unused-import
 except ImportError:
@@ -54,19 +53,19 @@ class IndexSQL(IndexABC):
                               "'sqlalchemy' are required to use this class")
 
         # Check that the required environment variables are set.
-        try:
-            # We want to fail early if these are not set, so we check them here
-            # even though they are not used until we connect.
-            # Pylint thinks this is pointless, so pylint is getting ignored.
-            # pylint: disable=pointless-statement
-            os.environ["MSSQL_HOST"]
-            os.environ["MSSQL_USERNAME"]
-            os.environ["MSSQL_PASSWORD"]
-            # pylint: enable=pointless-statement
-        except KeyError as key_error:
-            raise KeyError("The following environment variables must be set "
-                           "to use this class: MSSQL_HOST, MSSQL_USERNAME, "
-                           "MSSQL_PASSWORD.") from key_error
+        # try:
+        #     # We want to fail early if these are not set, so we check them here
+        #     # even though they are not used until we connect.
+        #     # Pylint thinks this is pointless, so pylint is getting ignored.
+        #     # pylint: disable=pointless-statement
+        #     os.environ["MSSQL_HOST"]
+        #     os.environ["MSSQL_USERNAME"]
+        #     os.environ["MSSQL_PASSWORD"]
+        #     # pylint: enable=pointless-statement
+        # except KeyError as key_error:
+        #     raise KeyError("The following environment variables must be set "
+        #                    "to use this class: MSSQL_HOST, MSSQL_USERNAME, "
+        #                    "MSSQL_PASSWORD.") from key_error
 
         self._file_system = file_system
         self._pantry_path = pantry_path
@@ -84,18 +83,21 @@ class IndexSQL(IndexABC):
             d_schema_name = "weave"
         self._pantry_schema = kwargs.get("pantry_schema", d_schema_name)
 
-        self._engine = sqla.create_engine(sqla.engine.url.URL(
-            drivername="mssql+pyodbc",
-            username=os.environ["MSSQL_USERNAME"],
-            password=os.environ["MSSQL_PASSWORD"],
-            host=os.environ["MSSQL_HOST"],
-            database=self.database_name,
-            query={
-                "driver": kwargs.get("odbc_driver",
-                                     "ODBC Driver 18 for SQL Server"),
-                "Encrypt": "yes" if kwargs.get("encrypt", False) else "no",
-            },
-            port=os.environ.get("MSSQL_PORT", "1433"),
+
+        username = "postgres"
+        password = "postgres"
+        database = self.database_name
+        host = "localhost"
+        port = "5432"
+        self._engine = engine = sqla.create_engine(sqla.engine.url.URL(
+            # drivername="postgresql+psycopg2",
+            drivername="postgresql",
+            username=username,
+            password=password,
+            host=host,
+            database=database,
+            query={},
+            port=port,
         ))
 
         self._create_schema()
@@ -171,60 +173,46 @@ class IndexSQL(IndexABC):
 
     def _create_schema(self):
         """Create the schema if it does not already exist."""
-        # Check if self.pantry_schema exists.
-        results, _ = self.execute_sql(
-            "SELECT * FROM sys.schemas WHERE name = :pantry_schema;",
-            {"pantry_schema": self.pantry_schema}
-        )
-        # If it does not exist, create it.
-        if not results:
-            self.execute_sql(f"CREATE SCHEMA {self.pantry_schema};",
-                             commit=True)
+        with self._engine.connect() as connection:
+            if not connection.dialect.has_schema(connection, 'pantry'):
+                self.execute_sql(f"CREATE SCHEMA {self.pantry_schema};",
+                                commit=True)
 
     def _create_tables(self):
         """Create the required tables if they do not already exist."""
         # THIS NEEDS TO BE UPDATED MANUALLY IF NEW COLUMNS ARE ADDED TO INDEX.
         # THE INSERT IN OTHER FUNCTIONS USE config.index_schema(), BUT THAT
         # CAN'T BE USED HERE AS TYPE NEEDS TO BE SPECIFIED.
-        self.execute_sql(
-            f"""
-            IF NOT EXISTS (
-                SELECT * FROM sys.tables t
-                JOIN sys.schemas s ON (t.schema_id = s.schema_id)
-                WHERE s.name = '{self.pantry_schema}'
-                AND t.name = 'pantry_index'
+        if not sqla.inspect(self._engine).has_table("pantry_index", 
+                                                    self.pantry_schema):
+            self.execute_sql(
+                f"""
+                CREATE TABLE {self.pantry_schema}.pantry_index (
+                    uuid varchar(64),
+                    upload_time INT,
+                    parent_uuids TEXT,
+                    basket_type TEXT,
+                    label TEXT,
+                    weave_version TEXT,
+                    address TEXT,
+                    storage_type TEXT,
+                    PRIMARY KEY(uuid),
+                    UNIQUE(uuid)
+                );
+                """, commit=True
             )
-            CREATE TABLE {self.pantry_schema}.pantry_index (
-                uuid varchar(64),
-                upload_time INT,
-                parent_uuids TEXT,
-                basket_type TEXT,
-                label TEXT,
-                weave_version TEXT,
-                address TEXT,
-                storage_type TEXT,
-                PRIMARY KEY(uuid),
-                UNIQUE(uuid)
-            );
-            """, commit=True
-        )
-
-        self.execute_sql(
-            f"""
-            IF NOT EXISTS (
-                SELECT * FROM sys.tables t
-                JOIN sys.schemas s ON (t.schema_id = s.schema_id)
-                WHERE s.name = '{self.pantry_schema}'
-                AND t.name = 'parent_uuids'
+        if not sqla.inspect(self._engine).has_table("parent_uuids", 
+                                                    self.pantry_schema):
+            self.execute_sql(
+                f"""
+                CREATE TABLE {self.pantry_schema}.parent_uuids (
+                    uuid varchar(64),
+                    parent_uuid varchar(64),
+                    PRIMARY KEY(uuid, parent_uuid),
+                    UNIQUE(uuid, parent_uuid)
+                );
+                """, commit=True
             )
-            CREATE TABLE {self.pantry_schema}.parent_uuids (
-                uuid varchar(64),
-                parent_uuid varchar(64),
-                PRIMARY KEY(uuid, parent_uuid),
-                UNIQUE(uuid, parent_uuid)
-            );
-            """, commit=True
-        )
 
     @property
     def file_system(self):
@@ -249,8 +237,10 @@ class IndexSQL(IndexABC):
             Returns a dictionary of the metadata.
         """
         return {
-            "database_host": os.environ["MSSQL_HOST"],
-            "database_port": os.environ.get("MSSQL_PORT", "1433"),
+            # "database_host": os.environ["MSSQL_HOST"],
+            # "database_port": os.environ.get("MSSQL_PORT", "1433"),
+            "database_host": "localhost",
+            "database_port": "5432",
             "database_name": self.database_name,
             "database_schema": self.pantry_schema,
         }
@@ -402,7 +392,7 @@ class IndexSQL(IndexABC):
         parent_uuids = entry_df["parent_uuids"]
 
         # Convert the parent_uuids to a string, and the upload_time to an int.
-        entry_df["parent_uuids"] = entry_df["parent_uuids"].astype(str)
+        entry_df.loc[:,"parent_uuids"] = entry_df["parent_uuids"].astype(str)
         entry_df["upload_time"] = (
             entry_df["upload_time"].astype(int) // 1e9
         ).astype(int)
@@ -461,11 +451,9 @@ class IndexSQL(IndexABC):
         if self.file_system.exists(os.fspath(basket_address[0])):
             uuids, _ = self.execute_sql(sqla.text(
                 f"SELECT uuid FROM {self.pantry_schema}.pantry_index "
-                "WHERE CONVERT(nvarchar(MAX), address) IN "
-                "(SELECT CONVERT(nvarchar(MAX), value) "
-                "FROM STRING_SPLIT(:basket_address, ','))"),
+                f"({','.join(['?']*len(basket_address))})",
                 {"basket_address": ','.join(basket_address)}
-            )
+            ))
             uuids = [uuid[0] for uuid in uuids]
         else:
             uuids = basket_address
@@ -473,12 +461,13 @@ class IndexSQL(IndexABC):
         # Delete from pantry_index.
         query = (
             f"DELETE FROM {self.pantry_schema}.pantry_index WHERE "
-            "CONVERT(nvarchar(MAX), uuid) IN "
-            "(SELECT CONVERT(nvarchar(MAX), value) "
-            "FROM STRING_SPLIT(:uuids, ','))"
+            "uuid IN (:uuids)"
         )
         rowcount = self.execute_sql(
-            query,
+            sqla.text(
+                f"DELETE FROM {self.pantry_schema}.pantry_index WHERE "
+                "uuid IN (:uuids)"
+            ),
             {"uuids": ','.join(uuids)},
             commit=True,
         )
@@ -494,9 +483,7 @@ class IndexSQL(IndexABC):
         # Delete from parent_uuids.
         query = (
             f"DELETE FROM {self.pantry_schema}.parent_uuids WHERE "
-            "CONVERT(nvarchar(MAX), uuid) IN "
-            "(SELECT CONVERT(nvarchar(MAX), value) "
-            "FROM STRING_SPLIT(:uuids, ','))"
+            "uuid IN (:uuids)"
         )
         self.execute_sql(query, {"uuids": ','.join(uuids)}, commit=True)
 
@@ -523,17 +510,13 @@ class IndexSQL(IndexABC):
             id_column = "address"
         else:
             id_column = "uuid"
-
+        
+        baskets = ["'{}'".format(e) for e in basket_address]
         query = (
             f"SELECT * FROM {self.pantry_schema}.pantry_index "
-            f"WHERE CONVERT(nvarchar(MAX), {id_column}) IN "
-            "(SELECT CONVERT(nvarchar(MAX), value) "
-            "FROM STRING_SPLIT(:basket_address, ','))"
+            f"WHERE {id_column} IN ({','.join(baskets)});"
         )
-        results, columns = self.execute_sql(
-            query,
-            {"basket_address": ','.join(basket_address)},
-        )
+        results, columns = self.execute_sql(query,)
         results = [list(row) for row in results]
 
         ind_df = pd.DataFrame(
@@ -758,7 +741,7 @@ class IndexSQL(IndexABC):
         result, columns = self.execute_sql(
             f"""SELECT *
                 FROM {self.pantry_schema}.pantry_index
-                WHERE CONVERT(nvarchar(MAX), basket_type) = :basket_type
+                WHERE basket_type = :basket_type
                 ORDER BY UUID
                 OFFSET (:offset) ROWS
                 FETCH FIRST (:max_rows) ROWS ONLY""",
@@ -798,7 +781,7 @@ class IndexSQL(IndexABC):
         result, columns = self.execute_sql(
             f"""SELECT *
                 FROM {self.pantry_schema}.pantry_index
-                WHERE CONVERT(nvarchar(MAX), label) = :basket_label
+                WHERE label = :basket_label
                 ORDER BY UUID
                 OFFSET (:offset) ROWS
                 FETCH FIRST (:max_rows) ROWS ONLY""",
@@ -863,7 +846,7 @@ class IndexSQL(IndexABC):
                 })
         elif start_time:
             start_time = int(datetime.timestamp(start_time))
-            query = "WHERE upload_time >= :start_time "
+            query = f"WHERE upload_time >= :start_time "
             results, columns = self.execute_sql(
                 pre_query + query + post_query,
                 {"offset": offset,
