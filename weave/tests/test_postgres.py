@@ -1,7 +1,7 @@
 import sqlalchemy as sqla
 
 
-def test_validate_no_metadata_file(test_validate):
+def test_validate_no_metadata_file():
     engine = sqla.create_engine(sqla.engine.url.URL(
         drivername="postgresql",
         username="postgres",
