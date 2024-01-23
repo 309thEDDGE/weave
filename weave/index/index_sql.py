@@ -80,13 +80,7 @@ class IndexSQL(IndexABC):
             d_schema_name = "weave"
         self._pantry_schema = kwargs.get("pantry_schema", d_schema_name)
 
-
-        username = "postgres"
-        password = "postgres"
-        database = self.database_name
-        host = "localhost"
-        port = "5432"
-        self._engine = engine = sqla.create_engine(sqla.engine.url.URL(
+        self._engine = sqla.create_engine(sqla.engine.url.URL(
             drivername="postgresql",
             username=self._sql_username,
             password=self._sql_password,
