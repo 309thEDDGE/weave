@@ -543,7 +543,8 @@ def test_basket_pantry_name_does_not_exist(test_pantry):
                 file_system=test_pantry.file_system)
             pantry.index.generate_index()
     else:
-        error_msg = f"Invalid pantry Path. Pantry does not exist at: {pantry_path}"
+        error_msg = f"Invalid pantry Path. Pantry does not exist at: "
+        f"{pantry_path}"
         with pytest.raises(ValueError, match=error_msg):
             pantry = Pantry(IndexPandas,
                 pantry_path=pantry_path,

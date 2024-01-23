@@ -266,7 +266,8 @@ def test_pantry_fails_with_bad_path(test_pantry):
             file_system=test_pantry.file_system
         )
     else:
-        error_msg = f"Invalid pantry Path. Pantry does not exist at: {bad_path}"
+        error_msg = f"Invalid pantry Path. Pantry does not exist at: "
+        f"{bad_path}"
         with pytest.raises(ValueError, match=error_msg):
             Pantry(
                 IndexPandas,
@@ -745,7 +746,7 @@ def test_s3fs_no_connection_error():
 
     error_msg = "Connection to s3fs failed."
     with pytest.raises(ConnectionError, match=error_msg):
-        pantry = Pantry(
+        Pantry(
             index=IndexPandas,
             file_system=s3f,
             pantry_path="fake-pantry",
