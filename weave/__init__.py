@@ -26,9 +26,7 @@ from .index.index_sql import IndexSQL
 from .pantry import Pantry
 from .metadata_db import load_mongo
 
-
 __version__ = "1.5.1"
-
 
 __all__ = [
     "Basket",

@@ -40,7 +40,7 @@ class Pantry():
         """
 
         self.file_system = kwargs.pop("file_system", get_file_system())
-        if isinstance(self.file_system,s3fs.S3FileSystem):
+        if isinstance(self.file_system, s3fs.S3FileSystem):
             try:
                 self.file_system.ls(pantry_path)
             except Exception as exc:
