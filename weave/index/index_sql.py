@@ -56,7 +56,7 @@ class IndexSQL(IndexABC):
             self._sql_host = os.environ["WEAVE_SQL_HOST"]
             self._sql_username = os.environ["WEAVE_SQL_USERNAME"]
             self._sql_password = os.environ["WEAVE_SQL_PASSWORD"]
-            self._sql_port = os.environ["WEAVE_SQL_PORT", 5432]
+            self._sql_port = os.environ.get("WEAVE_SQL_PORT", 5432)
             # pylint: enable=pointless-statement
         except KeyError as key_error:
             raise KeyError("The following environment variables must be set "
