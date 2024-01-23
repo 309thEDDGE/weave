@@ -6,7 +6,7 @@ def test_validate_no_metadata_file():
         drivername="postgresql",
         username="postgres",
         password="postgres",
-        host="postgres",
+        host="localhost",
         database="postgres",
         query={},
         port="5432",
