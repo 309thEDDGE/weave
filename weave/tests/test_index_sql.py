@@ -75,7 +75,7 @@ def test_index_sql_no_env_vars():
     are not set.
     """
     with pytest.raises(KeyError) as err:
-        IndexSQL(LocalFileSystem(), "weave-test-pantry")
+        IndexSQL(LocalFileSystem(), "weave-test-pantry", database_name="postgres")
 
     assert (
         str(err.value) == "'The following environment variables must be set to"
@@ -99,7 +99,7 @@ def test_index_sql_properties_are_read_only():
         f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
     )
 
-    ind = IndexSQL(LocalFileSystem(), pantry_path)
+    ind = IndexSQL(LocalFileSystem(), pantry_path, database_name="postgres")
 
     original_db_name = "weave_db"
     original_schema_name = pantry_path.replace("-", "_")
@@ -131,8 +131,8 @@ def test_index_sql_tracks_different_pantries():
         f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
     )
 
-    ind_1 = IndexSQL(LocalFileSystem(), pantry_path + "_1")
-    ind_2 = IndexSQL(LocalFileSystem(), pantry_path + "_2")
+    ind_1 = IndexSQL(LocalFileSystem(), pantry_path + "_1", database_name="postgres")
+    ind_2 = IndexSQL(LocalFileSystem(), pantry_path + "_2", database_name="postgres")
 
     # Perform tracks and untracks on both indices, and ensure they are correct.
     ind_1.track_basket(sample_basket_df)
