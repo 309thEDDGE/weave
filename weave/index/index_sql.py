@@ -14,6 +14,7 @@ import numpy as np
 # Try-Except required to make pyodbc/sqlalchemy an optional dependency.
 try:
     # pylint: disable=unused-import
+    import psycopg2
     import sqlalchemy as sqla # noqa: F401
     # pylint: enable=unused-import
 except ImportError:
@@ -36,43 +37,39 @@ class IndexSQL(IndexABC):
             The fsspec object which hosts the pantry we desire to index.
         pantry_path: str
             Path to the pantry root which we want to index.
-        **database_name: str (default='weave_db')
+        **database_name: str (default='jupyterhub')
             DB to be used. If none is set, defaults to 'weave_db'.
-        **encrypt: bool (default=False)
-            Whether or not to encrypt the database (disabled by default, due
-            to the fact that it requires additional configuration).
-        **odbc_driver: str (default='ODBC Driver 18 for SQL Server')
-            Driver to be used for the connection. Usually similar to:
-            'ODBC Driver <18, 17, 13...> for SQL Server'.
         **pantry_schema: str (default=<pantry_path>)
             The schema to use for the pantry. If none is set, defaults to the
             pantry path (with _ replacements when necessary).
         """
         if not _HAS_REQUIRED_DEPS:
-            raise ImportError("Missing Dependencies. The packages: "
+            raise ImportError("Missing Dependencies. The packages: 'psycopg2'"
                               "'sqlalchemy' are required to use this class")
 
-        # Check that the required environment variables are set.
-        # try:
-        #     # We want to fail early if these are not set, so we check them here
-        #     # even though they are not used until we connect.
-        #     # Pylint thinks this is pointless, so pylint is getting ignored.
-        #     # pylint: disable=pointless-statement
-        #     os.environ["MSSQL_HOST"]
-        #     os.environ["MSSQL_USERNAME"]
-        #     os.environ["MSSQL_PASSWORD"]
-        #     # pylint: enable=pointless-statement
-        # except KeyError as key_error:
-        #     raise KeyError("The following environment variables must be set "
-        #                    "to use this class: MSSQL_HOST, MSSQL_USERNAME, "
-        #                    "MSSQL_PASSWORD.") from key_error
+        Check that the required environment variables are set.
+        try:
+            # We want to fail early if these are not set, so we check them here
+            # even though they are not used until we connect.
+            # Pylint thinks this is pointless, so pylint is getting ignored.
+            # pylint: disable=pointless-statement
+            self._sql_host = os.environ["WEAVE_SQL_HOST"]
+            self._sql_username = os.environ["WEAVE_SQL_USERNAME"]
+            self._sql_password = os.environ["WEAVE_SQL_PASSWORD"]
+            self._sql_port = os.environ["WEAVE_SQL_PORT", 5432]
+            # pylint: enable=pointless-statement
+        except KeyError as key_error:
+            raise KeyError("The following environment variables must be set "
+                           "to use this class: WEAVE_SQL_HOST, "
+                           "WEAVE_SQL_USERNAME, WEAVE_SQL_PASSWORD."
+                          ) from key_error
 
         self._file_system = file_system
         self._pantry_path = pantry_path
 
         # Set the database name (defaults to weave_db). DATABASE MUST ALREADY
         # EXIST. If it does not, the user must create it manually.
-        self._database_name = kwargs.get("database_name", "weave_db")\
+        self._database_name = kwargs.get("database_name", "jupyterhub")\
             .replace("-", "_")
 
         # Set the schema name (defaults to pantry_path). If the schema does not
@@ -90,14 +87,13 @@ class IndexSQL(IndexABC):
         host = "localhost"
         port = "5432"
         self._engine = engine = sqla.create_engine(sqla.engine.url.URL(
-            # drivername="postgresql+psycopg2",
             drivername="postgresql",
-            username=username,
-            password=password,
-            host=host,
-            database=database,
+            username=self._sql_username,
+            password=self._sql_password,
+            host=self._sql_host,
+            database=self.database_name,
             query={},
-            port=port,
+            port=self._sql_port,
         ))
 
         self._create_schema()
@@ -201,7 +197,7 @@ class IndexSQL(IndexABC):
                 );
                 """, commit=True
             )
-        if not sqla.inspect(self._engine).has_table("parent_uuids", 
+        if not sqla.inspect(self._engine).has_table("parent_uuids",
                                                     self.pantry_schema):
             self.execute_sql(
                 f"""
@@ -237,10 +233,8 @@ class IndexSQL(IndexABC):
             Returns a dictionary of the metadata.
         """
         return {
-            # "database_host": os.environ["MSSQL_HOST"],
-            # "database_port": os.environ.get("MSSQL_PORT", "1433"),
-            "database_host": "localhost",
-            "database_port": "5432",
+            "database_host": self._sql_host,
+            "database_port": self._sql_port,
             "database_name": self.database_name,
             "database_schema": self.pantry_schema,
         }
@@ -510,7 +504,7 @@ class IndexSQL(IndexABC):
             id_column = "address"
         else:
             id_column = "uuid"
-        
+
         baskets = ["'{}'".format(e) for e in basket_address]
         query = (
             f"SELECT * FROM {self.pantry_schema}.pantry_index "
@@ -557,7 +551,7 @@ class IndexSQL(IndexABC):
 
         basket_uuid, _ = self.execute_sql(
             f"SELECT uuid FROM {self.pantry_schema}.pantry_index "
-            f"WHERE CONVERT(nvarchar(MAX), {id_column}) = :basket_address",
+            f"WHERE CONVERT(varchar, {id_column}) = :basket_address",
             {"basket_address": basket_address}
         )
 
@@ -569,17 +563,17 @@ class IndexSQL(IndexABC):
 
         results, columns = self.execute_sql(
             f"""
-            WITH child_record AS (
+            WITH RECURSIVE child_record AS (
                 SELECT
                     0 AS level,
-                    CAST(:basket_uuid AS nvarchar(max)) AS id,
-                    CAST(:basket_uuid AS nvarchar(max)) AS path
+                    CAST(:basket_uuid AS varchar) AS id,
+                    CAST(:basket_uuid AS varchar) AS path
                 UNION ALL
                 SELECT
                     child_record.level + 1,
-                    CAST(parent_uuids.parent_uuid AS nvarchar(max)) AS id,
+                    CAST(parent_uuids.parent_uuid AS varchar) AS id,
                     CAST(child_record.path + '/' + parent_uuids.parent_uuid
-                        AS nvarchar(max)) AS path
+                        AS varchar) AS path
                 FROM {self.pantry_schema}.parent_uuids
                 JOIN child_record ON parent_uuids.uuid = child_record.id
                 WHERE 
@@ -592,7 +586,7 @@ class IndexSQL(IndexABC):
             SELECT pantry_index.*, child_record.level, child_record.path
             FROM {self.pantry_schema}.pantry_index as pantry_index
             JOIN child_record ON pantry_index.uuid = child_record.id
-            ORDER BY child_record.level ASC OPTION (MAXRECURSION 0);
+            ORDER BY child_record.level ASC;
             """,
             {"basket_uuid": basket_uuid, "max_gen_level": max_gen_level}
         )
@@ -652,7 +646,7 @@ class IndexSQL(IndexABC):
 
         basket_uuid, _ = self.execute_sql(
             f"SELECT uuid FROM {self.pantry_schema}.pantry_index "
-            f"WHERE CONVERT(nvarchar(MAX), {id_column}) = :basket_address",
+            f"WHERE CONVERT(varchar, {id_column}) = :basket_address",
             {"basket_address": basket_address}
         )
 
@@ -664,17 +658,17 @@ class IndexSQL(IndexABC):
 
         results, columns = self.execute_sql(
             f"""
-            WITH child_record AS (
+            WITH RECURSIVE child_record AS (
                 SELECT
                     0 AS level,
-                    CAST(:basket_uuid AS nvarchar(max)) AS id,
-                    CAST(:basket_uuid AS nvarchar(max)) AS path
+                    CAST(:basket_uuid AS varchar) AS id,
+                    CAST(:basket_uuid AS varchar) AS path
                 UNION ALL
                 SELECT 
                     child_record.level - 1,
-                    CAST(parent_uuids.uuid AS nvarchar(max)) AS id,
+                    CAST(parent_uuids.uuid AS varchar) AS id,
                     CAST(child_record.path + '/' + parent_uuids.uuid
-                        AS nvarchar(max)) AS path
+                        AS varchar) AS path
                 FROM {self.pantry_schema}.parent_uuids
                 JOIN child_record ON parent_uuids.parent_uuid = child_record.id
                 WHERE 
@@ -686,7 +680,7 @@ class IndexSQL(IndexABC):
             SELECT pantry_index.*, child_record.level, child_record.path
             FROM {self.pantry_schema}.pantry_index as pantry_index
             JOIN child_record ON pantry_index.uuid = child_record.id
-            ORDER BY child_record.level DESC OPTION (MAXRECURSION 0);
+            ORDER BY child_record.level DESC;
             """,
             {"basket_uuid": basket_uuid, "min_gen_level": min_gen_level}
         )
