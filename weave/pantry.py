@@ -43,9 +43,9 @@ class Pantry():
         if isinstance(self.file_system,s3fs.S3FileSystem):
             try:
                 self.file_system.ls(pantry_path)
-            except Exception as exc:
+            except:
                 raise ConnectionError(
-                    print("Connection to s3fs failed.") from exc
+                    f"Connection to s3fs failed."
                 )
         elif not self.file_system.exists(pantry_path):
             raise ValueError(
