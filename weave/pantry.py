@@ -40,11 +40,9 @@ class Pantry():
         """
 
         self.file_system = kwargs.pop("file_system", get_file_system())
-        if self.file_system == s3fs.S3FileSystem(
-            client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-            ):
+        if isinstance(self.file_system,s3fs.S3FileSystem):
             try:
-                self.file_system.du(pantry_path)
+                self.file_system.ls(pantry_path)
             except:
                 raise ConnectionError(
                     f"Connection to s3fs failed."
