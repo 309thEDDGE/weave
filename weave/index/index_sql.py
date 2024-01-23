@@ -47,7 +47,7 @@ class IndexSQL(IndexABC):
             raise ImportError("Missing Dependencies. The packages: 'psycopg2'"
                               "'sqlalchemy' are required to use this class")
 
-        Check that the required environment variables are set.
+        # Check that the required environment variables are set.
         try:
             # We want to fail early if these are not set, so we check them here
             # even though they are not used until we connect.
