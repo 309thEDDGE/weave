@@ -11,8 +11,8 @@ try:
     # Pylint ignore the next unused-import pylint warning.
     # Also inline ruff ignore unused import (F401)
     # pylint: disable=unused-import
-    # pyodbc is imported here because sqlalchemy requires it.
-    import pyodbc # noqa: F401
+    # psycopg2 is imported here because sqlalchemy requires it.
+    import psycopg2 # noqa: F401
     import sqlalchemy as sqla # noqa: F401
     # pylint: enable=unused-import
 except ImportError:
@@ -64,9 +64,9 @@ def fixture_test_index(request):
 # Skip tests if sqlalchemy is not installed.
 @pytest.mark.skipif(
     not _HAS_REQUIRED_DEPS
-    or not os.environ.get("MSSQL_PASSWORD", False),
-    reason="Modules: 'pyodbc', 'sqlalchemy' required for this test "
-    "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
+    or not os.environ.get("WEAVE_SQL_PASSWORD", False),
+    reason="Modules: 'psycopg2', 'sqlalchemy' required for this test "
+    "AND env variables: 'WEAVE_SQL_HOST', 'WEAVE_SQL_PASSWORD'",
 )
 # Mock the environment variables for the test.
 @mock.patch.dict(os.environ, {}, clear=True)
@@ -79,16 +79,16 @@ def test_index_sql_no_env_vars():
 
     assert (
         str(err.value) == "'The following environment variables must be set to"
-        " use this class: MSSQL_HOST, MSSQL_USERNAME, MSSQL_PASSWORD.'"
+        " use this class: WEAVE_SQL_HOST, WEAVE_SQL_USERNAME, WEAVE_SQL_PASSWORD.'"
     )
 
 
 # Skip tests if sqlalchemy is not installed.
 @pytest.mark.skipif(
     not _HAS_REQUIRED_DEPS
-    or not os.environ.get("MSSQL_PASSWORD", False),
-    reason="Modules: 'pyodbc', 'sqlalchemy' required for this test "
-    "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
+    or not os.environ.get("WEAVE_SQL_PASSWORD", False),
+    reason="Modules: 'psycopg2', 'sqlalchemy' required for this test "
+    "AND env variables: 'WEAVE_SQL_HOST', 'WEAVE_SQL_PASSWORD'",
 )
 def test_index_sql_properties_are_read_only():
     """Test that the properties of the SQL Index (database_name, pantry_schema)
@@ -117,9 +117,9 @@ def test_index_sql_properties_are_read_only():
 # Skip tests if sqlalchemy is not installed.
 @pytest.mark.skipif(
     not _HAS_REQUIRED_DEPS
-    or not os.environ.get("MSSQL_PASSWORD", False),
-    reason="Modules: 'pyodbc', 'sqlalchemy' required for this test "
-    "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
+    or not os.environ.get("WEAVE_SQL_PASSWORD", False),
+    reason="Modules: 'psycopg2', 'sqlalchemy' required for this test "
+    "AND env variables: 'WEAVE_SQL_HOST', 'WEAVE_SQL_PASSWORD'",
 )
 def test_index_sql_tracks_different_pantries():
     """Test that the SQL Index will track different baskets using schemas."""
@@ -169,9 +169,9 @@ def test_index_sql_tracks_different_pantries():
 # Skip tests if sqlalchemy is not installed.
 @pytest.mark.skipif(
     not _HAS_REQUIRED_DEPS
-    or not os.environ.get("MSSQL_PASSWORD", False),
-    reason="Modules: 'pyodbc', 'sqlalchemy' required for this test "
-    "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
+    or not os.environ.get("WEAVE_SQL_PASSWORD", False),
+    reason="Modules: 'psycopg2', 'sqlalchemy' required for this test "
+    "AND env variables: 'WEAVE_SQL_HOST', 'WEAVE_SQL_PASSWORD'",
 )
 def test_index_sql_track_basket_adds_to_parent_uuids(test_index):
     """Test that track_basket adds necessary rows to the parent_uuids table."""
