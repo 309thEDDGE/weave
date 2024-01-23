@@ -56,7 +56,7 @@ jobs:
         pip install .[extras]
     - name: Test with pytest
       run: |
-        export WEAVE_SQL_HOST=postgres
+        export WEAVE_SQL_HOST=localhost
         export WEAVE_SQL_USERNAME=postgres
         export WEAVE_SQL_PASSWORD=postgres
         export WEAVE_SQL_PORT=5432
