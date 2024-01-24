@@ -164,7 +164,7 @@ class IndexSQL(IndexABC):
     def _create_schema(self):
         """Create the schema if it does not already exist."""
         with self._engine.connect() as connection:
-            if not connection.dialect.has_schema(connection, 'pantry'):
+            if not connection.dialect.has_schema(connection, self.pantry_schema):
                 self.execute_sql(f"CREATE SCHEMA {self.pantry_schema};",
                                 commit=True)
 
@@ -375,10 +375,29 @@ class IndexSQL(IndexABC):
 
         **kwargs unused for this function.
         """
-        # Save off the original uuid and parent_uuids columns.
-        uuids = entry_df["uuid"]
-        parent_uuids = entry_df["parent_uuids"]
+        # Insert the parent_uuids.
+        sql = sqla.text(
+            f"INSERT INTO {self.pantry_schema}.parent_uuids "
+            "(uuid, parent_uuid) "
+            "SELECT :uuid, :parent_uuid "
+            "WHERE NOT EXISTS "
+            f"(SELECT 1 FROM {self.pantry_schema}.parent_uuids "
+            "WHERE uuid = :uuid AND parent_uuid = :parent_uuid);"
+        )
 
+        # Loop all uuids and parent uuids (list of lists).
+        for _, entry in entry_df[["uuid", "parent_uuids"]].iterrows():
+            # Loop all parent uuids (now a list of strings)
+            for parent_uuid in entry.parent_uuids:
+                self.execute_sql(
+                    sql,
+                    {
+                        "uuid": entry.uuid,
+                        "parent_uuid": parent_uuid,
+                    },
+                    commit=True,
+                )
+        
         # Convert the parent_uuids to a string, and the upload_time to an int.
         entry_df.loc[:,"parent_uuids"] = entry_df["parent_uuids"].astype(str)
         entry_df["upload_time"] = (
@@ -398,28 +417,6 @@ class IndexSQL(IndexABC):
                 "WHERE uuid = :uuid);"
             )
             self.execute_sql(sql, basket_dict, commit=True)
-
-            # Insert into parent_uuids.
-            sql = sqla.text(
-                f"INSERT INTO {self.pantry_schema}.parent_uuids "
-                "(uuid, parent_uuid) "
-                "SELECT :uuid, :parent_uuid "
-                "WHERE NOT EXISTS "
-                f"(SELECT 1 FROM {self.pantry_schema}.parent_uuids "
-                "WHERE uuid = :uuid AND parent_uuid = :parent_uuid);"
-            )
-            # Loop all uuids and parent uuids (list of lists).
-            for uuid, parent_uuids in zip(uuids, parent_uuids):
-                # Loop all parent uuids (now a list of strings)
-                for parent_uuid in parent_uuids:
-                    self.execute_sql(
-                        sql,
-                        {
-                            "uuid": uuid,
-                            "parent_uuid": parent_uuid,
-                        },
-                        commit=True,
-                    )
 
     def untrack_basket(self, basket_address, **kwargs):
         """Remove a basket from being tracked of given UUID or path.
@@ -545,7 +542,7 @@ class IndexSQL(IndexABC):
 
         basket_uuid, _ = self.execute_sql(
             f"SELECT uuid FROM {self.pantry_schema}.pantry_index "
-            f"WHERE CONVERT(varchar, {id_column}) = :basket_address",
+            f"WHERE CAST({id_column} as varchar) = :basket_address",
             {"basket_address": basket_address}
         )
 
@@ -566,7 +563,7 @@ class IndexSQL(IndexABC):
                 SELECT
                     child_record.level + 1,
                     CAST(parent_uuids.parent_uuid AS varchar) AS id,
-                    CAST(child_record.path + '/' + parent_uuids.parent_uuid
+                    CAST(child_record.path || '/' || parent_uuids.parent_uuid
                         AS varchar) AS path
                 FROM {self.pantry_schema}.parent_uuids
                 JOIN child_record ON parent_uuids.uuid = child_record.id
@@ -640,7 +637,7 @@ class IndexSQL(IndexABC):
 
         basket_uuid, _ = self.execute_sql(
             f"SELECT uuid FROM {self.pantry_schema}.pantry_index "
-            f"WHERE CONVERT(varchar, {id_column}) = :basket_address",
+            f"WHERE CAST({id_column} AS varchar) = :basket_address",
             {"basket_address": basket_address}
         )
 
@@ -661,7 +658,7 @@ class IndexSQL(IndexABC):
                 SELECT 
                     child_record.level - 1,
                     CAST(parent_uuids.uuid AS varchar) AS id,
-                    CAST(child_record.path + '/' + parent_uuids.uuid
+                    CAST(child_record.path || '/' || parent_uuids.uuid
                         AS varchar) AS path
                 FROM {self.pantry_schema}.parent_uuids
                 JOIN child_record ON parent_uuids.parent_uuid = child_record.id
