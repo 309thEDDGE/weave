@@ -482,7 +482,7 @@ class IndexSQL(IndexABC):
 
         basket_uuid, _ = self.execute_sql(
             f"SELECT uuid FROM {self.pantry_schema}.pantry_index "
-            "WHERE CAST(:id_column as varchar) = :basket_address",
+            "WHERE :id_column = CAST(:basket_address AS text)",
             {"basket_address": basket_address, "id_column": id_column}
         )
 
@@ -507,7 +507,7 @@ class IndexSQL(IndexABC):
                         AS varchar) AS path
                 FROM {self.pantry_schema}.parent_uuids
                 JOIN child_record ON parent_uuids.uuid = child_record.id
-                WHERE 
+                WHERE
                     path NOT LIKE CONCAT(parent_uuids.parent_uuid, '/%')
                     AND path NOT LIKE CONCAT('%', parent_uuids.parent_uuid)
                     AND path NOT LIKE
