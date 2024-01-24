@@ -479,8 +479,8 @@ class IndexSQL(IndexABC):
 
         basket_uuid, _ = self.execute_sql(
             f"SELECT uuid FROM {self.pantry_schema}.pantry_index "
-            f"WHERE CAST({id_column} as varchar) = :basket_address",
-            {"basket_address": basket_address}
+            "WHERE CAST(:id_column as varchar) = :basket_address",
+            {"basket_address": basket_address, "id_column", id_column}
         )
 
         if basket_uuid is None or len(basket_uuid) == 0:
@@ -574,8 +574,8 @@ class IndexSQL(IndexABC):
 
         basket_uuid, _ = self.execute_sql(
             f"SELECT uuid FROM {self.pantry_schema}.pantry_index "
-            f"WHERE CAST({id_column} AS varchar) = :basket_address",
-            {"basket_address": basket_address}
+            f"WHERE CAST(:id_column AS varchar) = :basket_address",
+            {"basket_address": basket_address, "id_column": id_column}
         )
 
         if basket_uuid is None or len(basket_uuid) == 0:
