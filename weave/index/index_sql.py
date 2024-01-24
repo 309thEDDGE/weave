@@ -316,7 +316,7 @@ class IndexSQL(IndexABC):
             "SELECT :uuid, :parent_uuid "
             "WHERE NOT EXISTS "
             f"(SELECT 1 FROM {self.pantry_schema}.parent_uuids "
-            "WHERE uuid = CAST(:uuid AS text) AND parent_uuid = CAST(:parent_uuid AS text) ;"
+            "WHERE uuid = :uuid AND parent_uuid = :parent_uuid;"
         )
 
         # Loop all uuids and parent uuids (list of lists).
@@ -348,7 +348,7 @@ class IndexSQL(IndexABC):
                 f"{', '.join([f':{column}' for column in index_columns])} "
                 "WHERE NOT EXISTS "
                 f"(SELECT 1 FROM {self.pantry_schema}.pantry_index "
-                "WHERE uuid = CAST(:uuid as varchar));"
+                "WHERE uuid = :uuid);"
             )
             self.execute_sql(sql, basket_dict, commit=True)
 
