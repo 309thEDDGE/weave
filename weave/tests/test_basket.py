@@ -8,7 +8,7 @@ import shutil
 from pathlib import Path
 
 import pytest
-import s3fs as s3
+import s3fs
 import pandas as pd
 import fsspec
 from fsspec.implementations.local import LocalFileSystem
@@ -35,7 +35,7 @@ from weave.tests.pytest_resources import PantryForTest
 # point in the future the two need to be differentiated.
 # pylint: disable=duplicate-code
 
-s3fs = s3.S3FileSystem(
+s3 = s3fs.S3FileSystem(
     client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
 )
 local_fs = LocalFileSystem()
@@ -44,7 +44,7 @@ local_fs = LocalFileSystem()
 # Test with two different fsspec file systems (above).
 @pytest.fixture(
     name="test_pantry",
-    params=[s3fs, local_fs],
+    params=[s3, local_fs],
     ids=["S3FileSystem", "LocalFileSystem"],
 )
 def fixture_test_pantry(request, tmpdir):
@@ -535,7 +535,7 @@ def test_basket_pantry_name_does_not_exist(test_pantry):
     uuid = "0000"
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
     pantry_path = "the wrong pantry 007"
-    if isinstance(test_pantry.file_system, s3.S3FileSystem):
+    if isinstance(test_pantry.file_system, s3fs.S3FileSystem):
         error_msg = "Connection to s3fs failed."
         with pytest.raises(ConnectionError, match=error_msg):
             pantry = Pantry(IndexPandas,

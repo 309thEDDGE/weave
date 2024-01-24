@@ -67,7 +67,7 @@ class UploadForTest(PantryForTest):
         return upload_path
 
 
-s3fs = s3fs.S3FileSystem(
+s3 = s3fs.S3FileSystem(
     client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
 )
 local_fs = LocalFileSystem()
@@ -75,7 +75,7 @@ local_fs = LocalFileSystem()
 
 # Test with two different fsspec file systems (above).
 @pytest.fixture(
-    params=[s3fs, local_fs],
+    params=[s3, local_fs],
     ids=["S3FileSystem", "LocalFileSystem"],
 )
 def set_up_tu(request, tmpdir):
@@ -509,7 +509,7 @@ def test_derive_integrity_data_max_byte_count_exact(tmp_path):
 
 
 # Test with two different fsspec file systems (top of file).
-@pytest.fixture(params=[s3fs, local_fs])
+@pytest.fixture(params=[s3, local_fs])
 def test_basket(request, tmpdir):
     """Sets up pytest fixture."""
     file_system = request.param
@@ -1396,15 +1396,15 @@ def test_upload_from_s3fs(test_basket):
     if test_basket.file_system == local_fs:
         minio_path = "test-source-file-system"
         try:
-            s3fs.mkdir(minio_path)
+            s3.mkdir(minio_path)
         except FileExistsError:
-            s3fs.rm(minio_path,recursive=True)
-            s3fs.mkdir(minio_path)
+            s3.rm(minio_path,recursive=True)
+            s3.mkdir(minio_path)
         file_to_move = os.path.join(minio_path, "test.txt")
 
     # Must upload a file because Minio will remove empty directories
     if test_basket.file_system == local_fs:
-        s3fs.upload(str(tmp_txt_file.realpath()), file_to_move)
+        s3.upload(str(tmp_txt_file.realpath()), file_to_move)
     else:
         test_basket.file_system.upload(str(tmp_txt_file.realpath()),
                                        file_to_move)
@@ -1423,12 +1423,12 @@ def test_upload_from_s3fs(test_basket):
     )
     basket_uuid = pantry_1.upload_basket(
                            upload_items=[{'path': file_to_move,'stub':False}],
-                           source_file_system=s3fs,
+                           source_file_system=s3,
                            basket_type="test_s3fs_upload"
                            )["uuid"][0]
     basket_uuid2 = pantry_2.upload_basket(
                        upload_items=[{'path': file_to_move,'stub':False}],
-                       source_file_system=s3fs,
+                       source_file_system=s3,
                        basket_type="test_s3fs_upload"
                        )["uuid"][0]
     basket = pantry_1.get_basket(basket_uuid)
@@ -1439,7 +1439,7 @@ def test_upload_from_s3fs(test_basket):
     else:
         assert (basket.ls()[0].endswith('test.txt') and
                 basket2.ls()[0].endswith('test.txt'))
-        s3fs.rm(minio_path,recursive=True)
+        s3.rm(minio_path,recursive=True)
         remove_path = pantry_2.index.db_path
         if local_fs.exists(remove_path):
             local_fs.rm(remove_path)
