@@ -2,13 +2,11 @@
 # Pylint doesn't like the similarity between this file and the SQLite file, but
 # it doesn't make sense to write shared functions for them. So ignore pylint.
 # pylint: disable=duplicate-code
-import json
 import os
 import warnings
 from datetime import datetime
 
 import ast
-import dateutil
 import pandas as pd
 # Try-Except required to make psycopg2/sqlalchemy an optional dependency.
 try:
@@ -23,8 +21,7 @@ else:
     _HAS_REQUIRED_DEPS = True
 
 from .index_abc import IndexABC
-from .list_baskets import _get_list_of_basket_jsons
-from .validate_basket import validate_basket_dict
+from .create_index import create_index_from_fs
 
 class IndexSQL(IndexABC):
     """Concrete implementation of Index, using SQL."""
@@ -246,6 +243,7 @@ class IndexSQL(IndexABC):
         ----------
         **kwargs unused for this function.
         """
+
         if not isinstance(self.pantry_path, str):
             raise TypeError("'pantry_path' must be a string: "
                             f"'{self.pantry_path}'")
@@ -254,81 +252,14 @@ class IndexSQL(IndexABC):
             raise FileNotFoundError("'pantry_path' does not exist: "
                                     f"'{self.pantry_path}'")
 
-        basket_jsons = _get_list_of_basket_jsons(
-            self.pantry_path,
-            self.file_system,
-        )
+        basket_jsons = [x for x in self.file_system.find(self.pantry_path)
+            if x.endswith("basket_manifest.json")
+        ]
 
-        bad_baskets = []
         for basket_json_address in basket_jsons:
-            with self.file_system.open(basket_json_address, "rb") as file:
-                basket_dict = json.load(file)
-
-                # If the basket is invalid, add it to a list, then skip it.
-                if not validate_basket_dict(basket_dict):
-                    bad_baskets.append(os.path.dirname(basket_json_address))
-                    continue
-                # Skip baskets that are indexes.
-                if basket_dict["basket_type"] == "index":
-                    continue
-
-                absolute_path = os.path.dirname(basket_json_address)
-                relative_path = (
-                    absolute_path[absolute_path.find(self.pantry_path):]
-                )
-                basket_dict["address"] = relative_path
-                basket_dict["storage_type"] = (
-                    self.file_system.__class__.__name__
-                )
-                basket_dict["upload_time"] = int(
-                    datetime.timestamp(
-                        dateutil.parser.parse(basket_dict["upload_time"])
-                    )
-                )
-
-                parent_uuids = basket_dict["parent_uuids"]
-                basket_dict["parent_uuids"] = str(basket_dict["parent_uuids"])
-
-                if "weave_version" not in basket_dict.keys():
-                    basket_dict["weave_version"] = "<0.13.0"
-
-                # Insert into pantry_index.
-                index_columns = list(basket_dict.keys())
-                sql = sqla.text(
-                    f"INSERT INTO {self.pantry_schema}.pantry_index ("
-                    f"{', '.join([f'{column}' for column in index_columns])}) "
-                    "SELECT "
-                    f"{', '.join([f':{column}' for column in index_columns])} "
-                    "WHERE NOT EXISTS "
-                    f"(SELECT 1 FROM {self.pantry_schema}.pantry_index "
-                    "WHERE uuid = :uuid);"
-                )
-                self.execute_sql(sql, basket_dict, commit=True)
-
-                # Insert into parent_uuids.
-                sql = sqla.text(
-                    f"INSERT INTO {self.pantry_schema}.parent_uuids "
-                    "(uuid, parent_uuid) "
-                    "SELECT :uuid, :parent_uuid "
-                    "WHERE NOT EXISTS "
-                    f"(SELECT 1 FROM {self.pantry_schema}.parent_uuids "
-                    "WHERE uuid = :uuid AND parent_uuid = :parent_uuid);"
-                )
-                # Loop all uuids and parent uuids.
-                for parent_uuid in parent_uuids:
-                    self.execute_sql(
-                        sql,
-                        {
-                            "uuid": basket_dict["uuid"],
-                            "parent_uuid": parent_uuid,
-                        },
-                        commit=True,
-                    )
-
-        if len(bad_baskets) != 0:
-            warnings.warn("baskets found in the following locations "
-                          "do not follow specified weave schema:\n"
-                          f"{bad_baskets}")
+            entry = create_index_from_fs(basket_json_address,
+                                         file_system=self.file_system)
+            self.track_basket(entry)
 
     def to_pandas_df(self, max_rows=1000, offset=0, **kwargs):
         """Returns the pandas dataframe representation of the index.
@@ -385,7 +316,7 @@ class IndexSQL(IndexABC):
             "SELECT :uuid, :parent_uuid "
             "WHERE NOT EXISTS "
             f"(SELECT 1 FROM {self.pantry_schema}.parent_uuids "
-            "WHERE uuid = CAST(:uuid AS varchar) AND parent_uuid = :parent_uuid);"
+            "WHERE uuid = :uuid AND parent_uuid = :parent_uuid);"
         )
 
         # Loop all uuids and parent uuids (list of lists).
@@ -417,7 +348,7 @@ class IndexSQL(IndexABC):
                 f"{', '.join([f':{column}' for column in index_columns])} "
                 "WHERE NOT EXISTS "
                 f"(SELECT 1 FROM {self.pantry_schema}.pantry_index "
-                "WHERE uuid = CAST(:uuid AS varchar);"
+                "WHERE uuid = :uuid);"
             )
             self.execute_sql(sql, basket_dict, commit=True)
 
