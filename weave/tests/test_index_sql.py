@@ -205,8 +205,6 @@ def test_index_sql_track_basket_adds_to_parent_uuids(test_index):
         f"SELECT * FROM {test_index.index.pantry_schema}.parent_uuids"
     )
 
-    print(rows)
-
     # Check we have the expected values.
     assert len(rows) == 3
     assert str(rows[0]) == str(("1000", "0001"))
