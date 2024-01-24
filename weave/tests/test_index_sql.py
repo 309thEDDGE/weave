@@ -27,19 +27,6 @@ s3fs = s3fs.S3FileSystem(
 )
 local_fs = LocalFileSystem()
 
-# def test_validate_no_metadata_file():
-#     engine = sqla.create_engine(sqla.engine.url.URL(
-#         drivername="postgresql",
-#         username="postgres",
-#         password="postgres",
-#         host="localhost",
-#         database="postgres",
-#         query={},
-#         port="5432",
-#     ))
-
-#     conn = engine.connect()
-
 
 # Test with two different fsspec file systems (above).
 @pytest.fixture(
@@ -63,8 +50,7 @@ def fixture_test_pantry(request, tmpdir):
 def fixture_test_index(request):
     """Sets up test index for the tests"""
     index_constructor = request.param
-    test_index = IndexForTest(index_constructor, local_fs,
-                              database_name='postgres')
+    test_index = IndexForTest(index_constructor, local_fs)
     yield test_index
     test_index.cleanup_index()
 
@@ -83,9 +69,7 @@ def test_index_sql_no_env_vars():
     are not set.
     """
     with pytest.raises(KeyError) as err:
-        IndexSQL(LocalFileSystem(),
-                 "weave-test-pantry",
-                 database_name="postgres")
+        IndexSQL(LocalFileSystem(), "weave-test-pantry")
 
     msg = "'The following environment variables must be set to" \
           " use this class: WEAVE_SQL_HOST, WEAVE_SQL_USERNAME, " \
@@ -111,7 +95,7 @@ def test_index_sql_properties_are_read_only():
         f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
     )
 
-    ind = IndexSQL(LocalFileSystem(), pantry_path, database_name="postgres")
+    ind = IndexSQL(LocalFileSystem(), pantry_path)
 
     original_db_name = "postgres"
     original_schema_name = pantry_path.replace("-", "_")
@@ -143,10 +127,8 @@ def test_index_sql_tracks_different_pantries():
         f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
     )
 
-    ind_1 = IndexSQL(LocalFileSystem(), pantry_path + "_1",
-                     database_name="postgres")
-    ind_2 = IndexSQL(LocalFileSystem(), pantry_path + "_2",
-                     database_name="postgres")
+    ind_1 = IndexSQL(LocalFileSystem(), pantry_path + "_1")
+    ind_2 = IndexSQL(LocalFileSystem(), pantry_path + "_2")
 
     # Perform tracks and untracks on both indices, and ensure they are correct.
     ind_1.track_basket(sample_basket_df)

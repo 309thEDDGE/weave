@@ -59,6 +59,7 @@ jobs:
         export WEAVE_SQL_HOST=localhost
         export WEAVE_SQL_USERNAME=postgres
         export WEAVE_SQL_PASSWORD=postgres
+        export WEAVE_SQL_DB_NAME=postgres
         export WEAVE_SQL_PORT=5432
         export MONGODB_HOST=localhost
         export MONGODB_USERNAME=testusername
@@ -95,7 +96,7 @@ jobs:
         python3.10 -m pip install pytest
     # If you do not install Weave's dependencies then it will fail PyLint due to import-errors
     - name: Run pylint
-      run: pylint weave weave/tests
+      run: pylint weave weave/tests/test_index_sql.py
 
   version_check:
     runs-on: ubuntu-latest

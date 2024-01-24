@@ -68,8 +68,11 @@ class IndexSQL(IndexABC):
 
         # Set the database name (defaults to weave_db). DATABASE MUST ALREADY
         # EXIST. If it does not, the user must create it manually.
-        self._database_name = kwargs.get("database_name", "jupyterhub")\
-            .replace("-", "_")
+        self._database_name = kwargs.get(
+            "database_name",
+            os.environ.get("WEAVE_SQL_DB_NAME", "weave_db"),
+        )
+        self._database_name = self._database_name.replace("-", "_")
 
         # Set the schema name (defaults to pantry_path). If the schema does not
         # exist, it will be created.
