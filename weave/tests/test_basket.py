@@ -8,7 +8,7 @@ import shutil
 from pathlib import Path
 
 import pytest
-import s3fs
+import s3fs as s3
 import pandas as pd
 import fsspec
 from fsspec.implementations.local import LocalFileSystem
@@ -35,7 +35,7 @@ from weave.tests.pytest_resources import PantryForTest
 # point in the future the two need to be differentiated.
 # pylint: disable=duplicate-code
 
-s3fs = s3fs.S3FileSystem(
+s3fs = s3.S3FileSystem(
     client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
 )
 local_fs = LocalFileSystem()
@@ -534,15 +534,22 @@ def test_basket_pantry_name_does_not_exist(test_pantry):
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     uuid = "0000"
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
-
     pantry_path = "the wrong pantry 007"
-    error_msg = f'Invalid pantry Path. Pantry does not exist at: {pantry_path}'
-    with pytest.raises(ValueError, match=error_msg):
-        pantry = Pantry(IndexPandas,
+    if isinstance(test_pantry.file_system, s3.S3FileSystem):
+        error_msg = "Connection to s3fs failed."
+        with pytest.raises(ConnectionError, match=error_msg):
+            pantry = Pantry(IndexPandas,
                 pantry_path=pantry_path,
                 file_system=test_pantry.file_system)
-        pantry.index.generate_index()
-
+            pantry.index.generate_index()
+    else:
+        error_msg = f"Invalid pantry Path. Pantry does not exist at: " \
+            f"{pantry_path}"
+        with pytest.raises(ValueError, match=error_msg):
+            pantry = Pantry(IndexPandas,
+                pantry_path=pantry_path,
+                file_system=test_pantry.file_system)
+            pantry.index.generate_index()
 
 def test_basket_from_uuid_with_many_baskets(test_pantry):
     """Test that many baskets can be initialized using UUIDs."""

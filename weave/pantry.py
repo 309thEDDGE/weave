@@ -5,6 +5,7 @@ Index baskets.
 
 import json
 import os
+import s3fs
 
 from .basket import Basket
 from .config import get_file_system
@@ -39,7 +40,12 @@ class Pantry():
         """
 
         self.file_system = kwargs.pop("file_system", get_file_system())
-        if not self.file_system.exists(pantry_path):
+        if isinstance(self.file_system, s3fs.S3FileSystem):
+            try:
+                self.file_system.ls(pantry_path)
+            except Exception as exc:
+                raise ConnectionError("Connection to s3fs failed.") from exc
+        elif not self.file_system.exists(pantry_path):
             raise ValueError(
                 f"Invalid pantry Path. Pantry does not exist at: "
                 f"{pantry_path}"
