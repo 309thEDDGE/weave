@@ -63,7 +63,8 @@ def fixture_test_pantry(request, tmpdir):
 def fixture_test_index(request):
     """Sets up test index for the tests"""
     index_constructor = request.param
-    test_index = IndexForTest(index_constructor, local_fs)
+    test_index = IndexForTest(index_constructor, local_fs,
+                              database_name='postgres')
     yield test_index
     test_index.cleanup_index()
 

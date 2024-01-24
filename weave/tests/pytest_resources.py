@@ -127,7 +127,8 @@ class PantryForTest:
 # pylint: disable-next=too-few-public-methods
 class IndexForTest:
     """Creates an index for testing."""
-    def __init__(self, index_constructor, file_system, pantry_path=None):
+    def __init__(self, index_constructor, file_system,
+                 pantry_path=None, **kwargs):
         self.file_system = file_system
         self.pantry_path = pantry_path
 
@@ -145,6 +146,7 @@ class IndexForTest:
             file_system=self.file_system,
             pantry_path=self.pantry_path,
             db_path=self.db_path,
+            **kwargs,
         )
 
     def cleanup_index(self):
