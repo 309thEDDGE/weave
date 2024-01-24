@@ -164,7 +164,8 @@ class IndexSQL(IndexABC):
     def _create_schema(self):
         """Create the schema if it does not already exist."""
         with self._engine.connect() as connection:
-            if not connection.dialect.has_schema(connection, 'pantry'):
+            if not connection.dialect.has_schema(connection,
+                                                 self.pantry_schema):
                 self.execute_sql(f"CREATE SCHEMA {self.pantry_schema};",
                                 commit=True)
 
