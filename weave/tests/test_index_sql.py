@@ -6,15 +6,9 @@ from unittest import mock
 
 # Try-Except required to make sqlalchemy an optional dependency.
 try:
-    # For the sake of explicitly showing that sqlalchemy is optional, import
-    # it here, even though it is not currently used in this file.
-    # Pylint ignore the next unused-import pylint warning.
-    # Also inline ruff ignore unused import (F401)
-    # pylint: disable=unused-import
-    # psycopg2 is imported here because sqlalchemy requires it.
-    import psycopg2 # noqa: F401
-    import sqlalchemy as sqla # noqa: F401
-    # pylint: enable=unused-import
+    import importlib
+    assert importlib.util.find_spec('psycopg2')
+    assert importlib.util.find_spec('sqlalchemy')
 except ImportError:
     _HAS_REQUIRED_DEPS = False
 else:
@@ -32,6 +26,19 @@ s3fs = s3fs.S3FileSystem(
     client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
 )
 local_fs = LocalFileSystem()
+
+# def test_validate_no_metadata_file():
+#     engine = sqla.create_engine(sqla.engine.url.URL(
+#         drivername="postgresql",
+#         username="postgres",
+#         password="postgres",
+#         host="localhost",
+#         database="postgres",
+#         query={},
+#         port="5432",
+#     ))
+
+#     conn = engine.connect()
 
 
 # Test with two different fsspec file systems (above).
@@ -75,11 +82,15 @@ def test_index_sql_no_env_vars():
     are not set.
     """
     with pytest.raises(KeyError) as err:
-        IndexSQL(LocalFileSystem(), "weave-test-pantry", database_name="postgres")
+        IndexSQL(LocalFileSystem(),
+                 "weave-test-pantry",
+                 database_name="postgres")
 
+    msg = "'The following environment variables must be set to" \
+          " use this class: WEAVE_SQL_HOST, WEAVE_SQL_USERNAME, " \
+          "WEAVE_SQL_PASSWORD.'"
     assert (
-        str(err.value) == "'The following environment variables must be set to"
-        " use this class: WEAVE_SQL_HOST, WEAVE_SQL_USERNAME, WEAVE_SQL_PASSWORD.'"
+        str(err.value) == msg
     )
 
 
@@ -131,8 +142,10 @@ def test_index_sql_tracks_different_pantries():
         f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
     )
 
-    ind_1 = IndexSQL(LocalFileSystem(), pantry_path + "_1", database_name="postgres")
-    ind_2 = IndexSQL(LocalFileSystem(), pantry_path + "_2", database_name="postgres")
+    ind_1 = IndexSQL(LocalFileSystem(), pantry_path + "_1",
+                     database_name="postgres")
+    ind_2 = IndexSQL(LocalFileSystem(), pantry_path + "_2",
+                     database_name="postgres")
 
     # Perform tracks and untracks on both indices, and ensure they are correct.
     ind_1.track_basket(sample_basket_df)

@@ -10,11 +10,11 @@ from datetime import datetime
 import ast
 import dateutil
 import pandas as pd
-import numpy as np
-# Try-Except required to make pyodbc/sqlalchemy an optional dependency.
+# Try-Except required to make psycopg2/sqlalchemy an optional dependency.
 try:
     # pylint: disable=unused-import
-    import psycopg2
+    import importlib
+    assert importlib.util.find_spec('psycopg2')
     import sqlalchemy as sqla # noqa: F401
     # pylint: enable=unused-import
 except ImportError:
@@ -53,10 +53,12 @@ class IndexSQL(IndexABC):
             # even though they are not used until we connect.
             # Pylint thinks this is pointless, so pylint is getting ignored.
             # pylint: disable=pointless-statement
-            self._sql_host = os.environ["WEAVE_SQL_HOST"]
-            self._sql_username = os.environ["WEAVE_SQL_USERNAME"]
-            self._sql_password = os.environ["WEAVE_SQL_PASSWORD"]
-            self._sql_port = os.environ.get("WEAVE_SQL_PORT", 5432)
+            self._sql_connection = {
+                'host': os.environ["WEAVE_SQL_HOST"],
+                'username': os.environ["WEAVE_SQL_USERNAME"],
+                'password': os.environ["WEAVE_SQL_PASSWORD"],
+                'port': os.environ.get("WEAVE_SQL_PORT", 5432),
+            }
             # pylint: enable=pointless-statement
         except KeyError as key_error:
             raise KeyError("The following environment variables must be set "
@@ -82,12 +84,12 @@ class IndexSQL(IndexABC):
 
         self._engine = sqla.create_engine(sqla.engine.url.URL(
             drivername="postgresql",
-            username=self._sql_username,
-            password=self._sql_password,
-            host=self._sql_host,
+            username=self._sql_connection['username'],
+            password=self._sql_connection['password'],
+            host=self._sql_connection['host'],
             database=self.database_name,
             query={},
-            port=self._sql_port,
+            port=self._sql_connection['port'],
         ))
 
         self._create_schema()
@@ -165,6 +167,7 @@ class IndexSQL(IndexABC):
         """Create the schema if it does not already exist."""
         with self._engine.connect() as connection:
             if not connection.dialect.has_schema(connection,
+                                                 self.pantry_schema):
                 self.execute_sql(f"CREATE SCHEMA {self.pantry_schema};",
                                 commit=True)
 
@@ -173,7 +176,7 @@ class IndexSQL(IndexABC):
         # THIS NEEDS TO BE UPDATED MANUALLY IF NEW COLUMNS ARE ADDED TO INDEX.
         # THE INSERT IN OTHER FUNCTIONS USE config.index_schema(), BUT THAT
         # CAN'T BE USED HERE AS TYPE NEEDS TO BE SPECIFIED.
-        if not sqla.inspect(self._engine).has_table("pantry_index", 
+        if not sqla.inspect(self._engine).has_table("pantry_index",
                                                     self.pantry_schema):
             self.execute_sql(
                 f"""
@@ -227,8 +230,8 @@ class IndexSQL(IndexABC):
             Returns a dictionary of the metadata.
         """
         return {
-            "database_host": self._sql_host,
-            "database_port": self._sql_port,
+            "database_host": self._sql_connection['host'],
+            "database_port": self._sql_connection['port'],
             "database_name": self.database_name,
             "database_schema": self.pantry_schema,
         }
@@ -397,7 +400,7 @@ class IndexSQL(IndexABC):
                     },
                     commit=True,
                 )
-        
+
         # Convert the parent_uuids to a string, and the upload_time to an int.
         entry_df.loc[:,"parent_uuids"] = entry_df["parent_uuids"].astype(str)
         entry_df["upload_time"] = (
@@ -434,11 +437,13 @@ class IndexSQL(IndexABC):
             basket_address = [basket_address]
 
         if self.file_system.exists(os.fspath(basket_address[0])):
-            uuids, _ = self.execute_sql(sqla.text(
-                f"SELECT uuid FROM {self.pantry_schema}.pantry_index "
-                f"({','.join(['?']*len(basket_address))})",
+            uuids, _ = self.execute_sql(
+                sqla.text(
+                    f"SELECT uuid FROM {self.pantry_schema}.pantry_index "
+                    f"({','.join(['?']*len(basket_address))})"
+                ),
                 {"basket_address": ','.join(basket_address)}
-            ))
+            )
             uuids = [uuid[0] for uuid in uuids]
         else:
             uuids = basket_address
@@ -496,7 +501,7 @@ class IndexSQL(IndexABC):
         else:
             id_column = "uuid"
 
-        baskets = ["'{}'".format(e) for e in basket_address]
+        baskets = [f"'{e}'" for e in basket_address]
         query = (
             f"SELECT * FROM {self.pantry_schema}.pantry_index "
             f"WHERE {id_column} IN ({','.join(baskets)});"
@@ -831,7 +836,7 @@ class IndexSQL(IndexABC):
                 })
         elif start_time:
             start_time = int(datetime.timestamp(start_time))
-            query = f"WHERE upload_time >= :start_time "
+            query = "WHERE upload_time >= :start_time "
             results, columns = self.execute_sql(
                 pre_query + query + post_query,
                 {"offset": offset,
