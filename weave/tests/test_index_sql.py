@@ -113,7 +113,7 @@ def test_index_sql_properties_are_read_only():
 
     ind = IndexSQL(LocalFileSystem(), pantry_path, database_name="postgres")
 
-    original_db_name = "weave_db"
+    original_db_name = "postgres"
     original_schema_name = pantry_path.replace("-", "_")
 
     with pytest.raises(AttributeError):
