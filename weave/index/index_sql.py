@@ -375,7 +375,7 @@ class IndexSQL(IndexABC):
             uuids, _ = self.execute_sql(
                 sqla.text(
                     f"SELECT uuid FROM {self.pantry_schema}.pantry_index "
-                    f"WHERE address in ({','.join(['?']*len(basket_address))})"
+                    f"WHERE address IN (:basket_address)"
                 ),
                 {"basket_address": ','.join(basket_address)}
             )
