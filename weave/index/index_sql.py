@@ -316,7 +316,7 @@ class IndexSQL(IndexABC):
             "SELECT :uuid, :parent_uuid "
             "WHERE NOT EXISTS "
             f"(SELECT 1 FROM {self.pantry_schema}.parent_uuids "
-            "WHERE uuid = :uuid AND parent_uuid = :parent_uuid;"
+            "WHERE uuid = :uuid AND parent_uuid = :parent_uuid)"
         )
 
         # Loop all uuids and parent uuids (list of lists).
