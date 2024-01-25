@@ -384,18 +384,18 @@ class IndexSQL(IndexABC):
             uuids = basket_address
 
         # Delete from pantry_index.
-        query = (
-            f"DELETE FROM {self.pantry_schema}.pantry_index WHERE "
-            "uuid IN (:uuids)"
+        query = sqla.text(
+            f"DELETE FROM {self.pantry_schema}.pantry_index "
+            " WHERE uuid IN ( "
+                " SELECT unnest(CAST(:uuids AS text[]))"
+            ");"
         )
         rowcount = self.execute_sql(
-            sqla.text(
-                f"DELETE FROM {self.pantry_schema}.pantry_index WHERE "
-                "uuid IN (:uuids)"
-            ),
-            {"uuids": ','.join(uuids)},
-            commit=True,
+            query,
+            {"uuids": uuids},
+            commit=True
         )
+
         if rowcount != len(uuids):
             warnings.warn(
                 UserWarning(
@@ -407,10 +407,12 @@ class IndexSQL(IndexABC):
 
         # Delete from parent_uuids.
         query = (
-            f"DELETE FROM {self.pantry_schema}.parent_uuids WHERE "
-            "uuid IN (:uuids)"
+            f"DELETE FROM {self.pantry_schema}.parent_uuids "
+            " WHERE uuid IN ( "
+                " SELECT unnest(CAST(:uuids AS text[]))"
+            ");"
         )
-        self.execute_sql(query, {"uuids": ','.join(uuids)}, commit=True)
+        self.execute_sql(query, {"uuids": uuids}, commit=True)
 
     def get_rows(self, basket_address, **kwargs):
         """Returns a pd.DataFrame row information of given UUID or path.
