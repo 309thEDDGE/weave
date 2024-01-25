@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import pandas as pd
 import pytest
-import s3fs as s3
+import s3fs
 import fsspec
 from fsspec.implementations.local import LocalFileSystem
 
@@ -42,7 +42,7 @@ from weave.__init__ import __version__ as weave_version
 # point in the future there is a need to differentiate the two.
 # pylint: disable=duplicate-code
 
-s3fs = s3.S3FileSystem(
+s3 = s3fs.S3FileSystem(
     client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
 )
 local_fs = LocalFileSystem()
@@ -51,7 +51,7 @@ local_fs = LocalFileSystem()
 # Test with two different fsspec file systems (above).
 @pytest.fixture(
     name="test_pantry",
-    params=[s3fs, local_fs],
+    params=[s3, local_fs],
     ids=["S3FileSystem", "LocalFileSystem"],
 )
 def fixture_test_pantry(request, tmpdir):
@@ -134,7 +134,7 @@ def test_correct_index(test_pantry):
 # Test with two different fsspec file systems (top of file).
 @pytest.fixture(
     name="set_up_malformed_baskets",
-    params=[s3fs, local_fs],
+    params=[s3, local_fs],
 )
 def fixture_set_up_malformed_baskets(request, tmpdir):
     """Upload a basket with a basket_details.json with incorrect keys."""
@@ -257,7 +257,7 @@ def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
 def test_pantry_fails_with_bad_path(test_pantry):
     """Tests the pantry will fail if a bad path is given."""
     bad_path = 'BadPath'
-    if isinstance(test_pantry.file_system, s3.S3FileSystem):
+    if isinstance(test_pantry.file_system, s3fs.S3FileSystem):
         error_msg = "Connection to s3fs failed."
         with pytest.raises(ConnectionError, match=error_msg):
             Pantry(
@@ -740,7 +740,7 @@ def test_upload_basket_read_only():
 def test_s3fs_no_connection_error():
     """Create an s3fs object with a bad address and verify that the correct
     error message is thrown"""
-    s3f = s3.S3FileSystem(
+    s3f = s3fs.S3FileSystem(
     client_kwargs={"endpoint_url": "bad_endpoint"}
     )
 
