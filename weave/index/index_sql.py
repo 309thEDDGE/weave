@@ -484,9 +484,10 @@ class IndexSQL(IndexABC):
 
         basket_uuid, _ = self.execute_sql(
             f"SELECT uuid FROM {self.pantry_schema}.pantry_index "
-            "WHERE :id_column = CAST(:basket_address AS text)",
+            f"WHERE {id_column} = :basket_address",
             {"basket_address": basket_address, "id_column": id_column}
         )
+        print(basket_uuid)
 
         if basket_uuid is None or len(basket_uuid) == 0:
             raise FileNotFoundError(
@@ -579,7 +580,7 @@ class IndexSQL(IndexABC):
 
         basket_uuid, _ = self.execute_sql(
             f"SELECT uuid FROM {self.pantry_schema}.pantry_index "
-            f"WHERE CAST(:id_column AS varchar) = :basket_address",
+            f"WHERE {:id_column} = :basket_address",
             {"basket_address": basket_address, "id_column": id_column}
         )
 
