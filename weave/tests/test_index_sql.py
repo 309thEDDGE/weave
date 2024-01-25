@@ -186,6 +186,7 @@ def test_index_sql_track_basket_adds_to_parent_uuids(test_index):
     rows, _ = ind.execute_sql(
         f"SELECT * FROM {test_index.index.pantry_schema}.parent_uuids"
     )
+    print(rows)
 
     # Check we have the expected values.
     assert len(rows) == 3
