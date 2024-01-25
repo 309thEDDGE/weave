@@ -580,7 +580,7 @@ class IndexSQL(IndexABC):
 
         basket_uuid, _ = self.execute_sql(
             f"SELECT uuid FROM {self.pantry_schema}.pantry_index "
-            f"WHERE {:id_column} = :basket_address",
+            f"WHERE {id_column} = :basket_address",
             {"basket_address": basket_address, "id_column": id_column}
         )
 
