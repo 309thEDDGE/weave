@@ -42,7 +42,7 @@ from weave.__init__ import __version__ as weave_version
 # point in the future there is a need to differentiate the two.
 # pylint: disable=duplicate-code
 
-s3fs = s3fs.S3FileSystem(
+s3 = s3fs.S3FileSystem(
     client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
 )
 local_fs = LocalFileSystem()
@@ -51,7 +51,7 @@ local_fs = LocalFileSystem()
 # Test with two different fsspec file systems (above).
 @pytest.fixture(
     name="test_pantry",
-    params=[s3fs, local_fs],
+    params=[s3, local_fs],
     ids=["S3FileSystem", "LocalFileSystem"],
 )
 def fixture_test_pantry(request, tmpdir):
@@ -134,7 +134,7 @@ def test_correct_index(test_pantry):
 # Test with two different fsspec file systems (top of file).
 @pytest.fixture(
     name="set_up_malformed_baskets",
-    params=[s3fs, local_fs],
+    params=[s3, local_fs],
 )
 def fixture_set_up_malformed_baskets(request, tmpdir):
     """Upload a basket with a basket_details.json with incorrect keys."""
@@ -257,13 +257,23 @@ def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
 def test_pantry_fails_with_bad_path(test_pantry):
     """Tests the pantry will fail if a bad path is given."""
     bad_path = 'BadPath'
-    error_msg = f"Invalid pantry Path. Pantry does not exist at: {bad_path}"
-    with pytest.raises(ValueError, match=error_msg):
-        Pantry(
-            IndexPandas,
-            pantry_path=bad_path,
-            file_system=test_pantry.file_system
-        )
+    if isinstance(test_pantry.file_system, s3fs.S3FileSystem):
+        error_msg = "Connection to s3fs failed."
+        with pytest.raises(ConnectionError, match=error_msg):
+            Pantry(
+                IndexPandas,
+                pantry_path=bad_path,
+                file_system=test_pantry.file_system
+            )
+    else:
+        error_msg = f"Invalid pantry Path. Pantry does not exist at: "\
+            f"{bad_path}"
+        with pytest.raises(ValueError, match=error_msg):
+            Pantry(
+                IndexPandas,
+                pantry_path=bad_path,
+                file_system=test_pantry.file_system
+            )
 
 
 def test_delete_basket_stays_in_pantry(test_pantry):
@@ -726,3 +736,18 @@ def test_upload_basket_read_only():
                 upload_items=[{"path":tmp_file.name, "stub":False}],
                 basket_type="read_only",
             )
+
+def test_s3fs_no_connection_error():
+    """Create an s3fs object with a bad address and verify that the correct
+    error message is thrown"""
+    s3f = s3fs.S3FileSystem(
+    client_kwargs={"endpoint_url": "bad_endpoint"}
+    )
+
+    error_msg = "Connection to s3fs failed."
+    with pytest.raises(ConnectionError, match=error_msg):
+        Pantry(
+            index=IndexPandas,
+            file_system=s3f,
+            pantry_path="fake-pantry",
+        )

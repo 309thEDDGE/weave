@@ -180,7 +180,7 @@ class ValidateForTest(PantryForTest):
 # point in the future the two need to differentiated.
 # pylint: disable=duplicate-code
 
-s3fs = s3fs.S3FileSystem(
+s3 = s3fs.S3FileSystem(
     client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
 )
 local_fs = LocalFileSystem()
@@ -189,7 +189,7 @@ local_fs = LocalFileSystem()
 # Test with two different fsspec file systems (above).
 @pytest.fixture(
     name="test_validate",
-    params=[s3fs, local_fs],
+    params=[s3, local_fs],
     ids=["S3FileSystem", "LocalFileSystem"],
 )
 def fixture_test_validate(request, tmpdir):

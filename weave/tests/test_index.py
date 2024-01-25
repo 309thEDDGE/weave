@@ -48,11 +48,11 @@ from weave.tests.pytest_resources import cleanup_sql_index
 
 
 # Create fsspec objects to be tested, and add to file_systems list.
-s3fs = s3fs.S3FileSystem(
+s3 = s3fs.S3FileSystem(
     client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
 )
 local_fs = LocalFileSystem()
-file_systems = [s3fs, local_fs]
+file_systems = [s3, local_fs]
 
 # Create Index CONSTRUCTORS of Indexes to be tested, and add to indexes list.
 indexes = [IndexPandas, IndexSQLite]
