@@ -63,7 +63,7 @@ def test_weave_pytest_suffix(set_up_tb_no_cleanup):
 # Skip tests if psycopg2 is not installed.
 @pytest.mark.skipif(
     "psycopg2" not in sys.modules or not _HAS_PSYCOPG
-    or not os.environ["WEAVE_SQL_PASSWORD"] 
+    or not os.environ["WEAVE_SQL_PASSWORD"]
     or not os.environ["WEAVE_SQL_HOST"],
     reason="Module 'psycopg2' required for this test "
     "AND env variables: 'WEAVE_SQL_HOST', 'WEAVE_SQL_PASSWORD'",
@@ -74,7 +74,7 @@ def test_github_cicd_sql_server():
     # so we ignore that here.
     # pylint: disable-next=c-extension-no-member
     conn = psycopg2.connect(
-        dbname=os.environ.get("WEAVE_SQL_DB_NAME", "weave_db"), 
+        dbname=os.environ.get("WEAVE_SQL_DB_NAME", "weave_db"),
         host= os.environ["WEAVE_SQL_HOST"],
         user= os.environ["WEAVE_SQL_USERNAME"],
         password= os.environ["WEAVE_SQL_PASSWORD"],
