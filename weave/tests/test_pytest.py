@@ -83,12 +83,7 @@ def test_github_cicd_sql_server():
 
     # Create a temporary table for testing.
     cur.execute("""
-    IF NOT EXISTS (
-        SELECT * FROM sys.tables t
-        JOIN sys.schemas s ON (t.schema_id = s.schema_id)
-        WHERE s.name = 'dbo' AND t.name = 'test_table'
-    )
-    CREATE TABLE dbo.test_table (
+    CREATE TABLE IF NOT EXISTS dbo.test_table (
         uuid varchar(64),
         num int
     );
