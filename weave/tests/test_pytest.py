@@ -82,7 +82,7 @@ def test_github_cicd_sql_server():
         ).cursor()
 
     # Create a temporary table for testing.
-    cur.execute("CREATE SCHEMA dbo;").commit()
+    cur.execute("CREATE SCHEMA dbo;")
     cur.execute("""
     CREATE TABLE IF NOT EXISTS dbo.test_table (
         uuid varchar(64),
