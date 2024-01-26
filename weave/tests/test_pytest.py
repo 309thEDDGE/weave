@@ -88,7 +88,7 @@ def test_github_cicd_sql_server():
         uuid varchar(64),
         num int
     );
-    """).commit()
+    """)
 
     # Insert a test value, and then check we can retrieve the value.
     cur.execute("""
