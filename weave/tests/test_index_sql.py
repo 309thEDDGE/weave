@@ -97,7 +97,8 @@ def test_index_sql_properties_are_read_only():
 
     ind = IndexSQL(LocalFileSystem(), pantry_path)
 
-    original_db_name = ind._database_name
+    # Disabling protected access because we want to test this variable
+    original_db_name = ind._database_name # pylint: disable=W0212
     original_schema_name = pantry_path.replace("-", "_")
 
     with pytest.raises(AttributeError):
