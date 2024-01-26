@@ -34,8 +34,9 @@ class IndexSQL(IndexABC):
             The fsspec object which hosts the pantry we desire to index.
         pantry_path: str
             Path to the pantry root which we want to index.
-        **database_name: str (default='jupyterhub')
-            DB to be used. If none is set, defaults to 'weave_db'.
+        **database_name: str (default='weave_db')
+            DB to be used. If none is set, the environment variable
+            WEAVE_SQL_DB_NAME is check. If not set, default to weave_db.
         **pantry_schema: str (default=<pantry_path>)
             The schema to use for the pantry. If none is set, defaults to the
             pantry path (with _ replacements when necessary).
@@ -487,7 +488,6 @@ class IndexSQL(IndexABC):
             f"WHERE {id_column} = :basket_address",
             {"basket_address": basket_address, "id_column": id_column}
         )
-        print(basket_uuid)
 
         if basket_uuid is None or len(basket_uuid) == 0:
             raise FileNotFoundError(

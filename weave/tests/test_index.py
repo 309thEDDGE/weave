@@ -88,7 +88,6 @@ def fixture_test_pantry(request, tmpdir):
         index_constructor=index_constructor,
         file_system=file_system,
         pantry_path=pantry_path,
-        database_name="postgres",
     )
     index = test_index.index
 

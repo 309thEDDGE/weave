@@ -97,7 +97,7 @@ def test_index_sql_properties_are_read_only():
 
     ind = IndexSQL(LocalFileSystem(), pantry_path)
 
-    original_db_name = "postgres"
+    original_db_name = ind._database_name
     original_schema_name = pantry_path.replace("-", "_")
 
     with pytest.raises(AttributeError):
@@ -186,7 +186,6 @@ def test_index_sql_track_basket_adds_to_parent_uuids(test_index):
     rows, _ = ind.execute_sql(
         f"SELECT * FROM {test_index.index.pantry_schema}.parent_uuids"
     )
-    print(rows)
 
     # Check we have the expected values.
     assert len(rows) == 3
