@@ -73,13 +73,14 @@ def test_github_cicd_sql_server():
     # Pylint has a problem recognizing 'connect' as a valid member function
     # so we ignore that here.
     # pylint: disable-next=c-extension-no-member
-    cur = psycopg2.connect(
+    conn = psycopg2.connect(
         dbname=os.environ.get("WEAVE_SQL_DB_NAME", "weave_db"), 
         host= os.environ["WEAVE_SQL_HOST"],
         user= os.environ["WEAVE_SQL_USERNAME"],
         password= os.environ["WEAVE_SQL_PASSWORD"],
         port= os.environ.get("WEAVE_SQL_PORT", 5432),
-        ).cursor()
+        )
+    cur = conn.cursor()
 
     # Create a temporary table for testing.
     cur.execute("CREATE SCHEMA dbo;")
@@ -89,18 +90,19 @@ def test_github_cicd_sql_server():
         num int
     );
     """)
+    conn.commit()
 
     # Insert a test value, and then check we can retrieve the value.
     cur.execute("""
         INSERT INTO dbo.test_table (uuid, num) VALUES ('0001', 1);
     """)
-    cur.commit()
+    conn.commit()
     assert cur.execute("SELECT * FROM dbo.test_table").fetchall() != []
 
     # Delete the test value, and then check it was actually deleted.
     cur.execute("""DELETE FROM dbo.test_table WHERE uuid = '0001';""")
-    cur.commit()
+    conn.commit()
     assert cur.execute("SELECT * FROM dbo.test_table;").fetchall() == []
 
     cur.execute("""DROP TABLE dbo.test_table;""")
-    cur.commit()
+    conn.commit()
