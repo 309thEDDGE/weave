@@ -73,14 +73,13 @@ def test_github_cicd_sql_server():
     # Pylint has a problem recognizing 'connect' as a valid member function
     # so we ignore that here.
     # pylint: disable-next=c-extension-no-member
-    conn = psycopg2.connect(
+    cur = psycopg2.connect(
         dbname=os.environ.get("WEAVE_SQL_DB_NAME", "weave_db"), 
         host= os.environ["WEAVE_SQL_HOST"],
-        username= os.environ["WEAVE_SQL_USERNAME"],
+        user= os.environ["WEAVE_SQL_USERNAME"],
         password= os.environ["WEAVE_SQL_PASSWORD"],
         port= os.environ.get("WEAVE_SQL_PORT", 5432),
-        )
-    cur = con.cursor()
+        ).cursor()
 
     # Create a temporary table for testing.
     cur.execute("""
