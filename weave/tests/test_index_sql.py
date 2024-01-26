@@ -176,7 +176,7 @@ def test_index_sql_track_basket_adds_to_parent_uuids(test_index):
     sample_basket_df["uuid"] = uuid
 
     # Add uuids to the parent_uuids of the df.
-    sample_basket_df.iloc[0].parent_uuids = ["0001", "0002", "0003"]
+    sample_basket_df.parent_uuids = [["0001", "0002", "0003"]]
 
     # Track the basket.
     test_index.index.track_basket(sample_basket_df)
