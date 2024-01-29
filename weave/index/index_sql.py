@@ -17,6 +17,8 @@ try:
     # pylint: enable=unused-import
 except ImportError:
     _HAS_REQUIRED_DEPS = False
+except AssertionError:
+    _HAS_REQUIRED_DEPS = False
 else:
     _HAS_REQUIRED_DEPS = True
 
