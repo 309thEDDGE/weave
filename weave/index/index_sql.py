@@ -11,10 +11,13 @@ import pandas as pd
 # Try-Except required to make psycopg2/sqlalchemy an optional dependency.
 try:
     # pylint: disable=unused-import
-    import psycopg2
+    import importlib
+    assert importlib.util.find_spec('psycopg2')
     import sqlalchemy as sqla # noqa: F401
     # pylint: enable=unused-import
 except ImportError:
+    _HAS_REQUIRED_DEPS = False
+except AssertionError:
     _HAS_REQUIRED_DEPS = False
 else:
     _HAS_REQUIRED_DEPS = True
