@@ -59,7 +59,7 @@ indexes = [IndexPandas, IndexSQLite]
 indexes_ids = ["Pandas", "SQLite"]
 
 # Only add IndexSQL if the env variables are set and dependencies are present.
-if "MSSQL_HOST" in os.environ and "sqlalchemy" in sys.modules:
+if "WEAVE_SQL_HOST" in os.environ and "sqlalchemy" in sys.modules:
     indexes.append(IndexSQL)
     indexes_ids.append("SQL")
 
@@ -87,7 +87,7 @@ def fixture_test_pantry(request, tmpdir):
     test_index = IndexForTest(
         index_constructor=index_constructor,
         file_system=file_system,
-        pantry_path=pantry_path
+        pantry_path=pantry_path,
     )
     index = test_index.index
 

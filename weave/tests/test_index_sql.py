@@ -6,15 +6,9 @@ from unittest import mock
 
 # Try-Except required to make sqlalchemy an optional dependency.
 try:
-    # For the sake of explicitly showing that sqlalchemy is optional, import
-    # it here, even though it is not currently used in this file.
-    # Pylint ignore the next unused-import pylint warning.
-    # Also inline ruff ignore unused import (F401)
-    # pylint: disable=unused-import
-    # pyodbc is imported here because sqlalchemy requires it.
-    import pyodbc # noqa: F401
-    import sqlalchemy as sqla # noqa: F401
-    # pylint: enable=unused-import
+    import importlib
+    assert importlib.util.find_spec('psycopg2')
+    assert importlib.util.find_spec('sqlalchemy')
 except ImportError:
     _HAS_REQUIRED_DEPS = False
 else:
@@ -64,9 +58,9 @@ def fixture_test_index(request):
 # Skip tests if sqlalchemy is not installed.
 @pytest.mark.skipif(
     not _HAS_REQUIRED_DEPS
-    or not os.environ.get("MSSQL_PASSWORD", False),
-    reason="Modules: 'pyodbc', 'sqlalchemy' required for this test "
-    "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
+    or not os.environ.get("WEAVE_SQL_PASSWORD", False),
+    reason="Modules: 'psycopg2', 'sqlalchemy' required for this test "
+    "AND env variables: 'WEAVE_SQL_HOST', 'WEAVE_SQL_PASSWORD'",
 )
 # Mock the environment variables for the test.
 @mock.patch.dict(os.environ, {}, clear=True)
@@ -77,18 +71,20 @@ def test_index_sql_no_env_vars():
     with pytest.raises(KeyError) as err:
         IndexSQL(LocalFileSystem(), "weave-test-pantry")
 
+    msg = "'The following environment variables must be set to" \
+          " use this class: WEAVE_SQL_HOST, WEAVE_SQL_USERNAME, " \
+          "WEAVE_SQL_PASSWORD.'"
     assert (
-        str(err.value) == "'The following environment variables must be set to"
-        " use this class: MSSQL_HOST, MSSQL_USERNAME, MSSQL_PASSWORD.'"
+        str(err.value) == msg
     )
 
 
 # Skip tests if sqlalchemy is not installed.
 @pytest.mark.skipif(
     not _HAS_REQUIRED_DEPS
-    or not os.environ.get("MSSQL_PASSWORD", False),
-    reason="Modules: 'pyodbc', 'sqlalchemy' required for this test "
-    "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
+    or not os.environ.get("WEAVE_SQL_PASSWORD", False),
+    reason="Modules: 'psycopg2', 'sqlalchemy' required for this test "
+    "AND env variables: 'WEAVE_SQL_HOST', 'WEAVE_SQL_PASSWORD'",
 )
 def test_index_sql_properties_are_read_only():
     """Test that the properties of the SQL Index (database_name, pantry_schema)
@@ -101,7 +97,8 @@ def test_index_sql_properties_are_read_only():
 
     ind = IndexSQL(LocalFileSystem(), pantry_path)
 
-    original_db_name = "weave_db"
+    # Disabling protected access because we want to test this variable
+    original_db_name = ind._database_name # pylint: disable=W0212
     original_schema_name = pantry_path.replace("-", "_")
 
     with pytest.raises(AttributeError):
@@ -117,9 +114,9 @@ def test_index_sql_properties_are_read_only():
 # Skip tests if sqlalchemy is not installed.
 @pytest.mark.skipif(
     not _HAS_REQUIRED_DEPS
-    or not os.environ.get("MSSQL_PASSWORD", False),
-    reason="Modules: 'pyodbc', 'sqlalchemy' required for this test "
-    "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
+    or not os.environ.get("WEAVE_SQL_PASSWORD", False),
+    reason="Modules: 'psycopg2', 'sqlalchemy' required for this test "
+    "AND env variables: 'WEAVE_SQL_HOST', 'WEAVE_SQL_PASSWORD'",
 )
 def test_index_sql_tracks_different_pantries():
     """Test that the SQL Index will track different baskets using schemas."""
@@ -169,9 +166,9 @@ def test_index_sql_tracks_different_pantries():
 # Skip tests if sqlalchemy is not installed.
 @pytest.mark.skipif(
     not _HAS_REQUIRED_DEPS
-    or not os.environ.get("MSSQL_PASSWORD", False),
-    reason="Modules: 'pyodbc', 'sqlalchemy' required for this test "
-    "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
+    or not os.environ.get("WEAVE_SQL_PASSWORD", False),
+    reason="Modules: 'psycopg2', 'sqlalchemy' required for this test "
+    "AND env variables: 'WEAVE_SQL_HOST', 'WEAVE_SQL_PASSWORD'",
 )
 def test_index_sql_track_basket_adds_to_parent_uuids(test_index):
     """Test that track_basket adds necessary rows to the parent_uuids table."""
@@ -180,7 +177,7 @@ def test_index_sql_track_basket_adds_to_parent_uuids(test_index):
     sample_basket_df["uuid"] = uuid
 
     # Add uuids to the parent_uuids of the df.
-    sample_basket_df["parent_uuids"] = [["0001", "0002", "0003"]]
+    sample_basket_df.parent_uuids = [["0001", "0002", "0003"]]
 
     # Track the basket.
     test_index.index.track_basket(sample_basket_df)
@@ -190,8 +187,6 @@ def test_index_sql_track_basket_adds_to_parent_uuids(test_index):
     rows, _ = ind.execute_sql(
         f"SELECT * FROM {test_index.index.pantry_schema}.parent_uuids"
     )
-
-    print(rows)
 
     # Check we have the expected values.
     assert len(rows) == 3

@@ -71,7 +71,7 @@ saved in the basket as a .json file.
 
 Weave can be installed by running `pip install .` from the root directory.
 Optional dependencies can be included by running `pip install .[extras]` instead.
-Optional dependencies currently include: pymongo, pyodbc, sqlalchemy.
+Optional dependencies currently include: pymongo, psycopg2, sqlalchemy.
 Useful functions are available after running `import weave`.
 Weave was built with the intention of connecting to an S3 pantry with an
 `s3fs.S3FileSystem` object and also supports a LocalFileSystem. Any filesystem
@@ -90,11 +90,12 @@ required to establish a MongoClient connection:
 - MONGODB_PASSWORD
 
 If the IndexSQL backend is intended to be used, the following environment
-variables are required to establish a MS SQL Server Connection:
-- MSSQL_HOST
-- MSSQL_USERNAME
-- MSSQL_PASSWORD
-- MSSQL_PORT (optional, defaults to 1433)
+variables are required to establish a Postgres SQL Connection:
+- WEAVE_SQL_HOST
+- WEAVE_SQL_USERNAME
+- WEAVE_SQL_PASSWORD
+- WEAVE_SQL_DB_NAME (postgres, defaults to weave_db)
+- WEAVE_SQL_PORT (optional, defaults to 5432)
 
 ### Initializing FileSystem
 
@@ -218,7 +219,7 @@ index provides information about each basket, including its uuid, upload time,
 parent uuids, basket type, label, address and storage type. An index is created
 by passing an Index object as the first argument to the Pantry constructor.
 
-Weave supports a Pandas, SQLite, and MS SQL Server implementation for the index backend.
+Weave supports a Pandas, SQLite, and Postgres SQL implementation for the index backend.
 Example code to create this index:
 ```python
 from weave.pantry import Pantry

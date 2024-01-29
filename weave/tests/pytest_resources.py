@@ -127,7 +127,8 @@ class PantryForTest:
 # pylint: disable-next=too-few-public-methods
 class IndexForTest:
     """Creates an index for testing."""
-    def __init__(self, index_constructor, file_system, pantry_path=None):
+    def __init__(self, index_constructor, file_system,
+                 pantry_path=None, **kwargs):
         self.file_system = file_system
         self.pantry_path = pantry_path
 
@@ -145,6 +146,7 @@ class IndexForTest:
             file_system=self.file_system,
             pantry_path=self.pantry_path,
             db_path=self.db_path,
+            **kwargs,
         )
 
     def cleanup_index(self):
@@ -161,30 +163,15 @@ def cleanup_sql_index(index):
     if index.__class__.__name__ == "IndexSQL":
         # Drop the pantry_index (User Table) if it exists.
         index.execute_sql(f"""
-            IF OBJECT_ID('{index.pantry_schema}.pantry_index', 'U')
-            IS NOT NULL
-            BEGIN
-                DROP TABLE {index.pantry_schema}.pantry_index;
-            END
+            DROP TABLE IF EXISTS {index.pantry_schema}.pantry_index;
         """, commit=True)
 
         # Drop the parent_uuids (User Table) if it exists.
         index.execute_sql(f"""
-            IF OBJECT_ID('{index.pantry_schema}.parent_uuids', 'U')
-            IS NOT NULL
-            BEGIN
-                DROP TABLE {index.pantry_schema}.parent_uuids;
-            END
+            DROP TABLE IF EXISTS {index.pantry_schema}.parent_uuids;
         """, commit=True)
 
         # Drop the pantry_schema (Schema) if it exists.
         index.execute_sql(f"""
-            IF EXISTS (
-                SELECT schema_name
-                FROM information_schema.schemata
-                WHERE schema_name = '{index.pantry_schema}'
-            )
-            BEGIN
-                DROP SCHEMA {index.pantry_schema};
-            END
+            DROP SCHEMA IF EXISTS {index.pantry_schema};
         """, commit=True)

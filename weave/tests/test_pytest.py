@@ -5,15 +5,15 @@ import os
 import sys
 
 from fsspec.implementations.local import LocalFileSystem
-# Try-Except required to make pyodbc an optional dependency.
+# Try-Except required to make psycopg2 an optional dependency.
 # Ignore pylint. This is used to explicitly show the optional dependency.
 # pylint: disable=duplicate-code
 try:
-    import pyodbc
+    import psycopg2
 except ImportError:
-    _HAS_PYODBC = False
+    _HAS_PSYCOPG = False
 else:
-    _HAS_PYODBC = True
+    _HAS_PSYCOPG = True
 import pytest
 import s3fs
 
@@ -60,60 +60,51 @@ def test_weave_pytest_suffix(set_up_tb_no_cleanup):
     )
 
 
-# Skip tests if pyodbc is not installed.
+# Skip tests if psycopg2 is not installed.
 @pytest.mark.skipif(
-    "pyodbc" not in sys.modules or not _HAS_PYODBC
-    or not os.environ["MSSQL_PASSWORD"] or not os.environ["MSSQL_HOST"],
-    reason="Module 'pyodbc' required for this test "
-    "AND env variables: 'MSSQL_HOST', 'MSSQL_PASSWORD'",
+    "psycopg2" not in sys.modules or not _HAS_PSYCOPG
+    or not os.environ["WEAVE_SQL_PASSWORD"]
+    or not os.environ["WEAVE_SQL_HOST"],
+    reason="Module 'psycopg2' required for this test "
+    "AND env variables: 'WEAVE_SQL_HOST', 'WEAVE_SQL_PASSWORD'",
 )
 def test_github_cicd_sql_server():
-    """Test that the MS SQL Server is properly setup in CICD."""
-    # Documentation for mssql container:
-    # https://hub.docker.com/_/microsoft-mssql-server
-    # Default System Administrator username is "sa"
-    username = "sa"
-    mssql_password = os.environ["MSSQL_PASSWORD"]
-    server = os.environ["MSSQL_HOST"]
-    database = "tempdb"
-
+    """Test that the Postgres SQL Server is properly setup in CICD."""
     # Pylint has a problem recognizing 'connect' as a valid member function
     # so we ignore that here.
     # pylint: disable-next=c-extension-no-member
-    con = pyodbc.connect(
-        "DRIVER={ODBC Driver 18 for SQL Server};"
-        f"SERVER={server};"
-        f"DATABASE={database};"
-        f"UID={username};"
-        f"PWD={mssql_password};"
-        f"Encrypt=no;"
-    )
-    cur = con.cursor()
+    conn = psycopg2.connect(
+        dbname=os.environ.get("WEAVE_SQL_DB_NAME", "weave_db"),
+        host= os.environ["WEAVE_SQL_HOST"],
+        user= os.environ["WEAVE_SQL_USERNAME"],
+        password= os.environ["WEAVE_SQL_PASSWORD"],
+        port= os.environ.get("WEAVE_SQL_PORT", 5432),
+        )
+    cur = conn.cursor()
 
     # Create a temporary table for testing.
+    cur.execute("CREATE SCHEMA dbo;")
     cur.execute("""
-    IF NOT EXISTS (
-        SELECT * FROM sys.tables t
-        JOIN sys.schemas s ON (t.schema_id = s.schema_id)
-        WHERE s.name = 'dbo' AND t.name = 'test_table'
-    )
-    CREATE TABLE dbo.test_table (
+    CREATE TABLE IF NOT EXISTS dbo.test_table (
         uuid varchar(64),
         num int
     );
     """)
+    conn.commit()
 
     # Insert a test value, and then check we can retrieve the value.
     cur.execute("""
         INSERT INTO dbo.test_table (uuid, num) VALUES ('0001', 1);
     """)
-    cur.commit()
-    assert cur.execute("SELECT * FROM dbo.test_table").fetchall() != []
+    conn.commit()
+    cur.execute("SELECT * FROM dbo.test_table")
+    assert cur.fetchall() != []
 
     # Delete the test value, and then check it was actually deleted.
     cur.execute("""DELETE FROM dbo.test_table WHERE uuid = '0001';""")
-    cur.commit()
-    assert cur.execute("SELECT * FROM dbo.test_table;").fetchall() == []
+    conn.commit()
+    cur.execute("SELECT * FROM dbo.test_table;")
+    assert cur.fetchall() == []
 
     cur.execute("""DROP TABLE dbo.test_table;""")
-    cur.commit()
+    conn.commit()
