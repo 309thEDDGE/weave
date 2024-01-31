@@ -11,6 +11,8 @@ try:
     assert importlib.util.find_spec('sqlalchemy')
 except ImportError:
     _HAS_REQUIRED_DEPS = False
+except AssertionError:
+    _HAS_REQUIRED_DEPS = False
 else:
     _HAS_REQUIRED_DEPS = True
 import pytest
