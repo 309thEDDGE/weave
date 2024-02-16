@@ -99,10 +99,7 @@ def fixture_test_index_only(request):
     type checking tests, etc.)
     """
     index_constructor = request.param
-    try:
-        file_system = weave.config.get_file_system()
-    except Exception:
-        file_system = LocalFileSystem()
+    file_system = LocalFileSystem()
     pantry_path = (
         "pytest-temp-pantry" f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
     )
