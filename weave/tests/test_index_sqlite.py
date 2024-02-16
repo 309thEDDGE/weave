@@ -27,17 +27,21 @@ from weave.tests.pytest_resources import PantryForTest
 # point in the future the two need to be differentiated.
 # pylint: disable=duplicate-code
 
-s3 = s3fs.S3FileSystem(
-    client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-)
-local_fs = LocalFileSystem()
+file_systems = [LocalFileSystem()]
+file_systems_ids = ["LocalFileSystem"]
+if "S3_ENDPOINT" in os.environ:
+    s3 = s3fs.S3FileSystem(
+        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+    )
+    file_systems.append(s3)
+    file_systems_ids.append("S3FileSystem")
 
 
 # Test with two different fsspec file systems (above).
 @pytest.fixture(
     name="test_pantry",
-    params=[s3, local_fs],
-    ids=["S3FileSystem", "LocalFileSystem"],
+    params=file_systems,
+    ids=file_systems_ids,
 )
 def fixture_test_pantry(request, tmpdir):
     """Sets up test pantry for the tests"""
@@ -55,7 +59,7 @@ def fixture_test_pantry(request, tmpdir):
 def fixture_test_index(request):
     """Sets up test index for the tests"""
     index_constructor = request.param
-    test_index = IndexForTest(index_constructor, local_fs)
+    test_index = IndexForTest(index_constructor, file_systems[0])
     yield test_index
     test_index.cleanup_index()
 

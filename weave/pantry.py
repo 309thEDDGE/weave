@@ -39,7 +39,9 @@ class Pantry():
             config.
         """
 
-        self.file_system = kwargs.pop("file_system", get_file_system())
+        self.file_system = kwargs.pop("file_system", None)
+        if self.file_system is None:
+            self.file_system = get_file_system()
         if isinstance(self.file_system, s3fs.S3FileSystem):
             try:
                 self.file_system.ls(pantry_path)

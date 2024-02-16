@@ -42,17 +42,21 @@ from weave.__init__ import __version__ as weave_version
 # point in the future there is a need to differentiate the two.
 # pylint: disable=duplicate-code
 
-s3 = s3fs.S3FileSystem(
-    client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-)
-local_fs = LocalFileSystem()
+file_systems = [LocalFileSystem()]
+file_systems_ids = ["LocalFileSystem"]
+if "S3_ENDPOINT" in os.environ:
+    s3 = s3fs.S3FileSystem(
+        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+    )
+    file_systems.append(s3)
+    file_systems_ids.append("S3FileSystem")
 
 
 # Test with two different fsspec file systems (above).
 @pytest.fixture(
     name="test_pantry",
-    params=[s3, local_fs],
-    ids=["S3FileSystem", "LocalFileSystem"],
+    params=file_systems,
+    ids=file_systems_ids,
 )
 def fixture_test_pantry(request, tmpdir):
     """Sets up test pantry for the tests."""
@@ -134,7 +138,8 @@ def test_correct_index(test_pantry):
 # Test with two different fsspec file systems (top of file).
 @pytest.fixture(
     name="set_up_malformed_baskets",
-    params=[s3, local_fs],
+    params=file_systems,
+    ids=file_systems_ids,
 )
 def fixture_set_up_malformed_baskets(request, tmpdir):
     """Upload a basket with a basket_details.json with incorrect keys."""
@@ -685,7 +690,7 @@ def test_validate_path_does_not_start_with_pantry_path(test_pantry):
 def test_validate_path_does_not_backtrack_from_pantry_path(tmpdir):
     """Tests the validate path does not navigate out of the pantry."""
 
-    test_pantry = PantryForTest(tmpdir, local_fs)
+    test_pantry = PantryForTest(tmpdir, file_systems[0])
     pantry = Pantry(
         IndexPandas,
         pantry_path=test_pantry.pantry_path,
