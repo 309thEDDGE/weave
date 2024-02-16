@@ -1,10 +1,8 @@
 """This script contains tests that test that pytest is deleting baskets
 correctly."""
-
 import os
 import sys
 
-from fsspec.implementations.local import LocalFileSystem
 # Try-Except required to make psycopg2 an optional dependency.
 # Ignore pylint. This is used to explicitly show the optional dependency.
 # pylint: disable=duplicate-code
@@ -15,23 +13,15 @@ except ImportError:
 else:
     _HAS_PSYCOPG = True
 import pytest
-import s3fs
 
-from weave.tests.pytest_resources import PantryForTest
-
-
-file_systems = [LocalFileSystem()]
-file_systems_ids = ["LocalFileSystem"]
-if "S3_ENDPOINT" in os.environ:
-    s3 = s3fs.S3FileSystem(
-        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-    )
-    file_systems.append(s3)
-    file_systems_ids.append("S3FileSystem")
+from weave.tests.pytest_resources import PantryForTest, get_file_systems
 
 
+# Create fsspec objects to be tested, and add to file_systems list.
+file_systems, file_systems_ids = get_file_systems()
 
-# Test with two different fsspec file systems (above).
+
+# Test with different fsspec file systems (above).
 @pytest.fixture(
     name="set_up_tb_no_cleanup",
     params=file_systems,

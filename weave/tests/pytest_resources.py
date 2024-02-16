@@ -5,8 +5,23 @@ import os
 import io
 
 import pandas as pd
+import s3fs
+from fsspec.implementations.local import LocalFileSystem
 
 from weave.upload import UploadBasket
+
+
+def get_file_systems():
+    """Returns a list of file systems and their display names."""
+    file_systems = [LocalFileSystem()]
+    file_systems_ids = ["LocalFileSystem"]
+    if "S3_ENDPOINT" in os.environ:
+        s3 = s3fs.S3FileSystem(
+            client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+        )
+        file_systems.append(s3)
+        file_systems_ids.append("S3FileSystem")
+    return (file_systems, file_systems_ids)
 
 
 def get_sample_basket_df():

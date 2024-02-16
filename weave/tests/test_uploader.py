@@ -14,6 +14,7 @@ from fsspec.implementations.local import LocalFileSystem
 import weave
 from weave import Pantry, IndexPandas, IndexSQLite
 from weave.tests.pytest_resources import PantryForTest, file_path_in_list
+from weave.tests.pytest_resources import get_file_systems
 from weave.upload import (
     UploadBasket,
     derive_integrity_data,
@@ -67,18 +68,11 @@ class UploadForTest(PantryForTest):
         return upload_path
 
 
-file_systems = [LocalFileSystem()]
-file_systems_ids = ["LocalFileSystem"]
-if "S3_ENDPOINT" in os.environ:
-    s3 = s3fs.S3FileSystem(
-        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-    )
-    file_systems.append(s3)
-    file_systems_ids.append("S3FileSystem")
+# Create fsspec objects to be tested, and add to file_systems list.
+file_systems, file_systems_ids = get_file_systems()
 
 
-
-# Test with two different fsspec file systems (above).
+# Test with different fsspec file systems (above).
 @pytest.fixture(
     params=file_systems,
     ids=file_systems_ids,
@@ -1395,6 +1389,9 @@ def test_upload_from_s3fs(test_basket):
     """
     pantry_path = os.path.join(test_basket.pantry_path, "test-pantry-1")
     local_fs = LocalFileSystem()
+    s3 = s3fs.S3FileSystem(
+        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+    )
 
     test_basket.file_system.mkdir(pantry_path)
 
@@ -1404,7 +1401,7 @@ def test_upload_from_s3fs(test_basket):
     nested_path = os.path.join(pantry_path, "text.txt")
     file_to_move = os.path.join(test_basket.pantry_path, "text.txt")
 
-    if test_basket.file_system == LocalFileSystem():
+    if test_basket.file_system == local_fs:
         minio_path = "test-source-file-system"
         try:
             s3.mkdir(minio_path)

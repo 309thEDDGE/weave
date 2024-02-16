@@ -17,7 +17,7 @@ from weave import Basket
 from weave.index.create_index import create_index_from_fs
 from weave.index.index_pandas import IndexPandas
 from weave.pantry import Pantry
-from weave.tests.pytest_resources import PantryForTest
+from weave.tests.pytest_resources import PantryForTest, get_file_systems
 from weave.__init__ import __version__ as weave_version
 
 
@@ -42,17 +42,11 @@ from weave.__init__ import __version__ as weave_version
 # point in the future there is a need to differentiate the two.
 # pylint: disable=duplicate-code
 
-file_systems = [LocalFileSystem()]
-file_systems_ids = ["LocalFileSystem"]
-if "S3_ENDPOINT" in os.environ:
-    s3 = s3fs.S3FileSystem(
-        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-    )
-    file_systems.append(s3)
-    file_systems_ids.append("S3FileSystem")
+# Create fsspec objects to be tested, and add to file_systems list.
+file_systems, file_systems_ids = get_file_systems()
 
 
-# Test with two different fsspec file systems (above).
+# Test with different fsspec file systems (above).
 @pytest.fixture(
     name="test_pantry",
     params=file_systems,
