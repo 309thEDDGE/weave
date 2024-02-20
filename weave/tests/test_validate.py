@@ -5,13 +5,11 @@ import os
 from pathlib import Path
 
 import pytest
-import s3fs
-from fsspec.implementations.local import LocalFileSystem
 
 from weave import validate
 from weave.pantry import Pantry
 from weave.index.index_pandas import IndexPandas
-from weave.tests.pytest_resources import PantryForTest
+from weave.tests.pytest_resources import PantryForTest, get_file_systems
 
 # This module is long and has many tests. Pylint is complaining that it is too
 # long, and has too many local variables throughout each test.
@@ -180,17 +178,15 @@ class ValidateForTest(PantryForTest):
 # point in the future the two need to differentiated.
 # pylint: disable=duplicate-code
 
-s3 = s3fs.S3FileSystem(
-    client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-)
-local_fs = LocalFileSystem()
+# Create fsspec objects to be tested, and add to file_systems list.
+file_systems, file_systems_ids = get_file_systems()
 
 
-# Test with two different fsspec file systems (above).
+# Test with different fsspec file systems (above).
 @pytest.fixture(
     name="test_validate",
-    params=[s3, local_fs],
-    ids=["S3FileSystem", "LocalFileSystem"],
+    params=file_systems,
+    ids=file_systems_ids,
 )
 def fixture_test_validate(request, tmpdir):
     """Pytest fixture for testing validate."""

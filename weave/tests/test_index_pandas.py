@@ -3,12 +3,10 @@ import os
 import re
 
 import pytest
-import s3fs
-from fsspec.implementations.local import LocalFileSystem
 
 from weave.pantry import Pantry
 from weave.index.index_pandas import IndexPandas
-from weave.tests.pytest_resources import PantryForTest
+from weave.tests.pytest_resources import PantryForTest, get_file_systems
 
 
 ###############################################################################
@@ -26,17 +24,15 @@ from weave.tests.pytest_resources import PantryForTest
 # point in the future the two need to be differentiated.
 # pylint: disable=duplicate-code
 
-s3 = s3fs.S3FileSystem(
-    client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-)
-local_fs = LocalFileSystem()
+# Create fsspec objects to be tested, and add to file_systems list.
+file_systems, file_systems_ids = get_file_systems()
 
 
-# Test with two different fsspec file systems (above).
+# Test with different fsspec file systems (above).
 @pytest.fixture(
     name="test_pantry",
-    params=[s3, local_fs],
-    ids=["S3FileSystem", "LocalFileSystem"],
+    params=file_systems,
+    ids=file_systems_ids,
 )
 def fixture_test_pantry(request, tmpdir):
     """Sets up test pantry for the tests"""

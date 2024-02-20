@@ -256,7 +256,10 @@ class UploadBasket:
         # I think it is wise to ignore pylint here because we should only
         # set self.file_system *after* we have sanitized it.
         # pylint: disable-next=attribute-defined-outside-init
-        self.file_system = self.kwargs.get("file_system", get_file_system())
+        self.file_system = self.kwargs.get("file_system", None)
+        if self.file_system is None:
+            # pylint: disable-next=attribute-defined-outside-init
+            self.file_system = get_file_system()
         # pylint: disable-next=attribute-defined-outside-init
         self.source_file_system = self.kwargs.get(
             "source_file_system", LocalFileSystem()

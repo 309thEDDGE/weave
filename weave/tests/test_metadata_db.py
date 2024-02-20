@@ -5,11 +5,9 @@ import sys
 
 import pandas as pd
 import pytest
-import s3fs
-from fsspec.implementations.local import LocalFileSystem
 
 import weave
-from weave.tests.pytest_resources import PantryForTest
+from weave.tests.pytest_resources import PantryForTest, get_file_systems
 
 
 class MongoForTest(PantryForTest):
@@ -47,16 +45,14 @@ class MongoForTest(PantryForTest):
         self.mongodb[self.test_collection].drop()
 
 
-s3 = s3fs.S3FileSystem(
-    client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-)
-local_fs = LocalFileSystem()
+# Create fsspec objects to be tested, and add to file_systems list.
+file_systems, file_systems_ids = get_file_systems()
 
 
-# Test with two different fsspec file systems (above).
+# Test with different fsspec file systems (above).
 @pytest.fixture(
-    params=[s3, local_fs],
-    ids=["S3FileSystem", "LocalFileSystem"],
+    params=file_systems,
+    ids=file_systems_ids,
 )
 def set_up(request, tmpdir):
     """Sets up the fixture for testing usage."""

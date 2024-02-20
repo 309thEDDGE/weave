@@ -64,7 +64,9 @@ def load_mongo(index_table, collection="metadata", **kwargs):
             raise ValueError("Invalid index_table: missing "
                              f"{required_column} column")
 
-    file_system = kwargs.get("file_system", get_file_system())
+    file_system = kwargs.get("file_system", None)
+    if file_system is None:
+        file_system = get_file_system()
     database = get_mongo_db().mongo_metadata
 
     for _, row in index_table.iterrows():

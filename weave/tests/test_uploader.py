@@ -14,6 +14,7 @@ from fsspec.implementations.local import LocalFileSystem
 import weave
 from weave import Pantry, IndexPandas, IndexSQLite
 from weave.tests.pytest_resources import PantryForTest, file_path_in_list
+from weave.tests.pytest_resources import get_file_systems
 from weave.upload import (
     UploadBasket,
     derive_integrity_data,
@@ -67,16 +68,14 @@ class UploadForTest(PantryForTest):
         return upload_path
 
 
-s3 = s3fs.S3FileSystem(
-    client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-)
-local_fs = LocalFileSystem()
+# Create fsspec objects to be tested, and add to file_systems list.
+file_systems, file_systems_ids = get_file_systems()
 
 
-# Test with two different fsspec file systems (above).
+# Test with different fsspec file systems (above).
 @pytest.fixture(
-    params=[s3, local_fs],
-    ids=["S3FileSystem", "LocalFileSystem"],
+    params=file_systems,
+    ids=file_systems_ids,
 )
 def set_up_tu(request, tmpdir):
     """Sets up the test uploader."""
@@ -509,7 +508,7 @@ def test_derive_integrity_data_max_byte_count_exact(tmp_path):
 
 
 # Test with two different fsspec file systems (top of file).
-@pytest.fixture(params=[s3, local_fs])
+@pytest.fixture(params=file_systems, ids=file_systems_ids)
 def test_basket(request, tmpdir):
     """Sets up pytest fixture."""
     file_system = request.param
@@ -1379,11 +1378,20 @@ def test_upload_basket_no_files(test_basket):
     ):
         pantry.upload_basket(upload_items=[], basket_type="no_files",)
 
+
+@pytest.mark.skipif(
+    os.environ.get("S3_ENDPOINT", None) is None,
+    reason="S3_ENDPOINT must be set to run this test.",
+)
 def test_upload_from_s3fs(test_basket):
     """Test that a basket can be uploaded from s3fs to the local file
     system or s3fs.
     """
     pantry_path = os.path.join(test_basket.pantry_path, "test-pantry-1")
+    local_fs = LocalFileSystem()
+    s3 = s3fs.S3FileSystem(
+        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+    )
 
     test_basket.file_system.mkdir(pantry_path)
 

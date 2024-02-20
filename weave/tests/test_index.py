@@ -11,7 +11,6 @@ from datetime import datetime, timedelta, timezone
 import numpy as np
 import pandas as pd
 import pytest
-import s3fs
 import fsspec
 from fsspec.implementations.local import LocalFileSystem
 
@@ -22,7 +21,7 @@ from weave import Pantry
 from weave.index.index_pandas import IndexPandas
 from weave.index.create_index import create_index_from_fs
 from weave.tests.pytest_resources import PantryForTest, IndexForTest
-from weave.tests.pytest_resources import cleanup_sql_index
+from weave.tests.pytest_resources import cleanup_sql_index, get_file_systems
 
 
 ###############################################################################
@@ -48,11 +47,7 @@ from weave.tests.pytest_resources import cleanup_sql_index
 
 
 # Create fsspec objects to be tested, and add to file_systems list.
-s3 = s3fs.S3FileSystem(
-    client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-)
-local_fs = LocalFileSystem()
-file_systems = [s3, local_fs]
+file_systems, _ = get_file_systems()
 
 # Create Index CONSTRUCTORS of Indexes to be tested, and add to indexes list.
 indexes = [IndexPandas, IndexSQLite]
@@ -104,7 +99,7 @@ def fixture_test_index_only(request):
     type checking tests, etc.)
     """
     index_constructor = request.param
-    file_system = weave.config.get_file_system()
+    file_system = LocalFileSystem()
     pantry_path = (
         "pytest-temp-pantry" f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
     )
