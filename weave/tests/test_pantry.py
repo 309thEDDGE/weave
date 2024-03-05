@@ -1,10 +1,12 @@
 """Pytest tests for the index directory."""
 import json
 import os
+import re
 import shutil
 import tempfile
 import uuid as uuid_lib
 import warnings
+from pathlib import Path
 from unittest.mock import patch
 
 import pandas as pd
@@ -123,7 +125,7 @@ def test_correct_index(test_pantry):
     # Check the addresses are the same, ignoring any FS dependent prefixes.
     assert all(
         (
-            actual_index["address"].iloc[i].endswith(addr)
+            Path(actual_index["address"].iloc[i]).match(addr)
             for i, addr in enumerate(addresses)
         )
     )
@@ -153,9 +155,11 @@ def fixture_set_up_malformed_baskets(request, tmpdir):
             bad_addresses.append(address)
 
             basket_dict = {}
-            manifest_address = (
-                f"{test_pantry.pantry_path}/test_basket/"
-                f"000{i}/basket_manifest.json"
+            manifest_address = os.path.join(
+                test_pantry.pantry_path,
+                "test_basket",
+                f"000{i}",
+                "basket_manifest.json"
             )
 
             with test_pantry.file_system.open(
@@ -215,7 +219,7 @@ def test_create_index_with_malformed_basket_works(set_up_malformed_baskets):
     # Check the addresses are the same, ignoring any FS dependent prefixes.
     assert all(
         (
-            actual_index["address"].iloc[i].endswith(addr)
+            Path(actual_index["address"].iloc[i]).match(addr)
             for i, addr in enumerate(good_addresses)
         )
     )
@@ -247,7 +251,7 @@ def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
         )
         assert all(
             (
-                a_addr.endswith(e_addr)
+                Path(a_addr).match(e_addr)
                 for a_addr, e_addr in zip(warning_addrs_list, bad_addresses)
             )
         )
@@ -302,9 +306,9 @@ def test_delete_basket_stays_in_pantry(test_pantry):
     pantry.index.track_basket(index)
 
     error_msg = f"Attempting to access basket outside of pantry: {new_address}"
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(ValueError, match=re.escape(error_msg)):
         pantry.delete_basket(index.iloc[0].uuid)
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(ValueError, match=re.escape(error_msg)):
         pantry.delete_basket(index.iloc[0].address)
 
 def test_delete_basket_deletes_basket(test_pantry):
@@ -343,7 +347,7 @@ def test_delete_basket_deletes_basket(test_pantry):
     assert check_path not in fs_baskets
     # Verify the correct basket was deleted from the Pantry
     error_msg = "Basket does not exist: 0002"
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(ValueError, match=re.escape(error_msg)):
         pantry.get_basket("0002")
 
 
@@ -368,7 +372,7 @@ def test_pantry_delete_basket_with_parents(test_pantry):
     error_msg = ("The provided value for basket_uuid 0001 is listed as a "
                  "parent UUID for another basket. Please delete that basket "
                  "before deleting its parent basket.")
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(ValueError, match=re.escape(error_msg)):
         pantry.delete_basket(basket_address="0001")
 
 
@@ -489,7 +493,7 @@ def test_index_get_basket_works_correctly(test_pantry):
         txt_file_name,
     )
 
-    assert retrieved_basket.ls(tmp_basket_name)[0].endswith(expected_file_path)
+    assert Path(retrieved_basket.ls(tmp_basket_name)[0]).match(expected_file_path)
 
     assert expected_basket.manifest_path == retrieved_basket.manifest_path
     assert expected_basket.supplement_path == retrieved_basket.supplement_path
@@ -545,9 +549,9 @@ def test_get_basket_stays_in_pantry(test_pantry):
     pantry.index.track_basket(index)
 
     error_msg = f"Attempting to access basket outside of pantry: {new_address}"
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(ValueError, match=re.escape(error_msg)):
         pantry.get_basket(index.iloc[0].uuid)
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(ValueError, match=re.escape(error_msg)):
         pantry.get_basket(index.iloc[0].address)
 
 
@@ -677,7 +681,7 @@ def test_validate_path_does_not_start_with_pantry_path(test_pantry):
     new_address = (os.path.sep).join(address)
 
     error_msg = f"Attempting to access basket outside of pantry: {new_address}"
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(ValueError, match=re.escape(error_msg)):
         pantry.validate_path_in_pantry(new_address)
 
 
@@ -702,7 +706,7 @@ def test_validate_path_does_not_backtrack_from_pantry_path(tmpdir):
     new_address = (os.path.sep).join(address)
 
     error_msg = f"Attempting to access basket outside of pantry: {new_address}"
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(ValueError, match=re.escape(error_msg)):
         pantry.validate_path_in_pantry(new_address)
 
 
@@ -730,7 +734,7 @@ def test_upload_basket_read_only():
                                   file_system=read_only_fs)
 
         error_msg = "Unable to upload a basket to a read-only file system."
-        with pytest.raises(ValueError, match=error_msg):
+        with pytest.raises(ValueError, match=re.escape(error_msg)):
             read_only_pantry.upload_basket(
                 upload_items=[{"path":tmp_file.name, "stub":False}],
                 basket_type="read_only",

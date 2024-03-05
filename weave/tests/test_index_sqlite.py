@@ -96,6 +96,10 @@ def test_index_two_pantries_with_same_name(test_pantry):
     assert pantry_1.index.db_path != pantry_2.index.db_path
 
     # Remove the .db files that are not cleaned up with 'test_pantry'
+    pantry_1.index.cur.close()
+    pantry_1.index.con.close()
+    pantry_2.index.cur.close()
+    pantry_2.index.con.close()
     os.remove(pantry_1.index.db_path)
     os.remove(pantry_2.index.db_path)
 
@@ -158,6 +162,10 @@ def test_index_uploaded_basket_not_found_in_another_index(test_pantry):
     assert "0001" not in pantry_1_index["uuid"].values
 
     # Remove the .db files that are not cleaned up with 'test_pantry'
+    pantry_1.index.cur.close()
+    pantry_1.index.con.close()
+    pantry_2.index.cur.close()
+    pantry_2.index.con.close()
     os.remove(pantry_1.index.db_path)
     os.remove(pantry_2.index.db_path)
 

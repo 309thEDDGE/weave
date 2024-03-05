@@ -1,6 +1,5 @@
 """ This module is for handling the pandas based backend of the Index object.
 """
-
 import os
 import tempfile
 import warnings
@@ -38,7 +37,6 @@ class IndexPandas(IndexABC):
             A bool that flags if the current working file system is read-only
             or not.
         """
-
         super().__init__(file_system=file_system,
                          pantry_path=pantry_path,
                          **kwargs
@@ -78,7 +76,6 @@ class IndexPandas(IndexABC):
         ----------
         Returns a boolean indicating if the index was updated.
         """
-
         if self.sync and not self.is_index_current():
             self.sync_index()
         elif self.index_df is None:
@@ -94,14 +91,14 @@ class IndexPandas(IndexABC):
         ----------
         **kwargs unused for this class.
         """
-
         super().generate_metadata(**kwargs)
         return self.metadata
 
     def sync_index(self):
         """Gets index from latest index basket."""
-        index_paths = self.file_system.glob(f"{self.index_basket_dir_path}"
-                                            "/**/*-index.json")
+        index_paths = self.file_system.glob(
+            os.path.join(self.index_basket_dir_path, "**", "*-index.json")
+        )
         if len(index_paths) == 0:
             self.generate_index()
             return
@@ -120,7 +117,6 @@ class IndexPandas(IndexABC):
 
     def _get_index_time_from_path(self, path):
         """Returns time as int from index_json path."""
-
         path = str(path)
         return int(os.path.basename(path).replace("-index.json",""))
 
@@ -142,7 +138,6 @@ class IndexPandas(IndexABC):
             Returns a dataframe of the manifest data of the baskets in the
             pantry.
         """
-
         self._sync_if_needed()
         return self.index_df.iloc[offset:offset+max_rows]
 
@@ -154,10 +149,10 @@ class IndexPandas(IndexABC):
         n_keep: int (default=20)
             n is the number of latest index baskets to keep.
         """
-
         n_keep = int(n_keep)
-        index_paths = self.file_system.glob(f"{self.index_basket_dir_path}"
-                                            "/**/*-index.json")
+        index_paths = self.file_system.glob(
+            os.path.join(self.index_basket_dir_path, "**", "*-index.json")
+        )
         if len(index_paths) <= n_keep:
             return
         index_time_list = [self._get_index_time_from_path(i)
@@ -168,11 +163,14 @@ class IndexPandas(IndexABC):
             if index_time not in index_times_to_keep:
                 try:
                     path = self.file_system.glob(
-                        f"{self.index_basket_dir_path}/**/" +
-                        f"{index_time}-index.json"
+                        os.path.join(
+                            self.index_basket_dir_path,
+                            "**",
+                            f"{index_time}-index.json"
+                        )
                     )[0]
-                    parent_path = path.rsplit(os.path.sep,1)[0]
-                    self.file_system.rm(parent_path,recursive = True)
+                    parent_path = os.path.split(path)[0]
+                    self.file_system.rm(parent_path, recursive=True)
                 except ValueError as error:
                     warnings.warn(error)
 
@@ -181,9 +179,9 @@ class IndexPandas(IndexABC):
 
         Returns True if index in memory is up to date, else False.
         """
-
-        index_paths = self.file_system.glob(f"{self.index_basket_dir_path}"
-                                            "/**/*-index.json")
+        index_paths = self.file_system.glob(
+            os.path.join(self.index_basket_dir_path, "**", "*-index.json")
+        )
         if len(index_paths) == 0:
             return False
         index_times = [self._get_index_time_from_path(i)
@@ -200,7 +198,6 @@ class IndexPandas(IndexABC):
         ----------
         **kwargs unused for this class.
         """
-
         index = create_index_from_fs(self.pantry_path, self.file_system)
         self._upload_index(index=index)
 
@@ -235,7 +232,6 @@ class IndexPandas(IndexABC):
         **upload_index: bool (optional)
             Flag to upload the new index to the file system.
         """
-
         upload_index = kwargs.get("upload_index", True)
         if not isinstance(basket_address, list):
             basket_address = [basket_address]
@@ -292,7 +288,6 @@ class IndexPandas(IndexABC):
         basket given, along with all the previous parents
         of the previous calls.
         """
-
         # Collect info from kwargs
         max_gen_level = kwargs.get("max_gen_level", 999)
         gen_level = kwargs.get("gen_level", 1)
@@ -390,7 +385,6 @@ class IndexPandas(IndexABC):
         basket, along with all the previous children
         of the previous calls.
         """
-
         # Collect info from kwargs
         min_gen_level = kwargs.get("min_gen_level", -999)
         gen_level = kwargs.get("gen_level", -1)
@@ -490,7 +484,6 @@ class IndexPandas(IndexABC):
         rows: pd.DataFrame
             Manifest information for the requested basket.
         """
-
         self._sync_if_needed()
 
         if not isinstance(basket_address, list):
@@ -519,7 +512,6 @@ class IndexPandas(IndexABC):
         ----------
         pandas.DataFrame containing the manifest data of baskets of the type.
         """
-
         self._sync_if_needed()
 
         return self.index_df[
@@ -546,7 +538,6 @@ class IndexPandas(IndexABC):
         pandas.DataFrame containing the manifest data of baskets with the
         label.
         """
-
         self._sync_if_needed()
 
         return self.index_df[
@@ -577,7 +568,6 @@ class IndexPandas(IndexABC):
         pandas.DataFrame containing the manifest data of baskets uploaded
         between the start and end times.
         """
-
         super().get_baskets_by_upload_time(start_time, end_time)
         if start_time is None and end_time is None:
             return self.to_pandas_df(max_rows=max_rows,
@@ -613,6 +603,5 @@ class IndexPandas(IndexABC):
         ----------
         pandas.DataFrame of the resulting query.
         """
-
         self._sync_if_needed()
         return self.index_df.query(expr)

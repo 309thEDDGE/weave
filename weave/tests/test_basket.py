@@ -116,7 +116,7 @@ def test_make_basket_with_uuid_stays_in_pantry(test_pantry):
     pantry.index.track_basket(index)
 
     error_msg = f"Attempting to access basket outside of pantry: {new_address}"
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.raises(ValueError, match=re.escape(error_msg)):
         Basket(index.iloc[0].uuid, pantry=pantry)
 
 
@@ -137,9 +137,9 @@ def test_basket_no_manifest_file(test_pantry):
     # Attempt to create a Basket from the malformed basket (missing manifest)
     with pytest.raises(
         FileNotFoundError,
-        match=(
+        match=re.escape(
             "Invalid Basket, basket_manifest.json "
-            + f"does not exist: {manifest_path}"
+            f"does not exist: {manifest_path}"
         ),
     ):
         Basket(
@@ -165,9 +165,9 @@ def test_basket_no_supplement_file(test_pantry):
     # Attempt to create a Basket from the malformed basket (missing supplement)
     with pytest.raises(
         FileNotFoundError,
-        match=(
+        match=re.escape(
             "Invalid Basket, basket_supplement.json "
-            + f"does not exist: {supplement_path}"
+            f"does not exist: {supplement_path}"
         ),
     ):
         Basket(
@@ -372,8 +372,8 @@ def test_basket_ls(test_pantry):
         file_system=test_pantry.file_system
     )
 
-    uploaded_dir_path = f"{basket_path}/{tmp_basket_dir_name}"
-    assert basket.ls()[0].endswith(uploaded_dir_path)
+    uploaded_dir_path = os.path.join(basket_path, tmp_basket_dir_name)
+    assert Path(basket.ls()[0]).match(uploaded_dir_path)
 
 
 def test_basket_ls_relpath(test_pantry):
@@ -388,8 +388,8 @@ def test_basket_ls_relpath(test_pantry):
         file_system=test_pantry.file_system
     )
 
-    uploaded_file_path = f"{basket_path}/{tmp_basket_dir_name}/test.txt"
-    assert basket.ls(Path(tmp_basket_dir_name))[0].endswith(uploaded_file_path)
+    uploaded_file_path = os.path.join(basket_path, tmp_basket_dir_name, "test.txt")
+    assert Path(basket.ls(tmp_basket_dir_name)[0]).match(uploaded_file_path)
 
 
 def test_basket_ls_relpath_period(test_pantry):
@@ -406,8 +406,8 @@ def test_basket_ls_relpath_period(test_pantry):
         file_system=test_pantry.file_system
     )
 
-    uploaded_dir_path = f"{basket_path}/{tmp_basket_dir_name}"
-    assert basket.ls(".")[0].endswith(uploaded_dir_path)
+    uploaded_dir_path = os.path.join(basket_path, tmp_basket_dir_name)
+    assert Path(basket.ls(".")[0]).match(uploaded_dir_path)
 
 
 def test_basket_ls_is_pathlike(test_pantry):
@@ -475,7 +475,7 @@ def test_basket_ls_after_find(test_pantry):
     # prefixes or conventions, ie in local file systems, the path to where
     # the script was called might be prepended, clean up stuff like that here)
     actual_bdp = [
-        x.endswith(z)
+        Path(x).match(z)
         for x, z in zip(ls_test, expected_base_dir_paths, strict=True)
     ]
 
@@ -500,8 +500,8 @@ def test_basket_init_from_uuid(test_pantry):
         basket_address=uuid,
         pantry=pantry,
     )
-    assert test_basket.ls("basket_one")[0].endswith(
-        f"{test_pantry.pantry_path}/test_basket/0000/basket_one/test.txt"
+    assert Path(test_basket.ls("basket_one")[0]).match(
+        os.path.join(test_pantry.pantry_path, "test_basket", "0000", "basket_one", "test.txt")
     )
 
 
@@ -568,9 +568,9 @@ def test_basket_from_uuid_with_many_baskets(test_pantry):
         basket_address=uuid,
         pantry=pantry,
     )
-    assert test_basket.ls(f"temp_basket_{uuid}")[0].endswith(
-        f"{test_pantry.pantry_path}/test_basket/{uuid}"
-        f"/temp_basket_{uuid}/test.txt"
+    assert Path(test_basket.ls(f"temp_basket_{uuid}")[0]).match(
+        os.path.join(test_pantry.pantry_path, "test_basket", uuid,
+            f"temp_basket_{uuid}", "test.txt")
     )
 
 
@@ -707,22 +707,22 @@ def test_read_only_get_data():
         tmp_pantry = Pantry(IndexPandas,
                             pantry_path=tmpdir,
                             file_system=LocalFileSystem())
-        with tempfile.NamedTemporaryFile() as tmp_file:
+        with open(os.path.join(tmpdir, "temp_basket.txt"), "w") as tmp_file:
             basket_uuid = tmp_pantry.upload_basket(
-                upload_items=[{"path":tmp_file.name, "stub":False}],
+                upload_items=[{"path":os.path.join(tmpdir, "temp_basket.txt"), "stub":False}],
                 basket_type="read_only",
             )["uuid"][0]
 
-        zip_path = shutil.make_archive(os.path.join(tmpdir, "test_pantry"),
-                                       "zip",
-                                       tmpdir)
+        zip_path = shutil.make_archive(
+            os.path.join(tmpdir, "test_pantry"), "zip", tmpdir
+        )
 
         read_only_fs = fsspec.filesystem("zip", fo=zip_path, mode="r")
         read_only_pantry = Pantry(IndexPandas,
                                   pantry_path="",
                                   file_system=read_only_fs)
 
-        my_basket = Basket(os.path.join("read_only", basket_uuid),
+        my_basket = Basket(basket_uuid,
                            pantry=read_only_pantry)
 
         # Check that manifest and supplement are returned and metadata is empty

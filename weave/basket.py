@@ -47,9 +47,9 @@ class BasketInitializer:
                                "is not in kwargs.") from error
             self.set_up_basket_from_uuid(basket_address, kwargs["pantry"])
 
-        self.manifest_path = f"{self.basket_path}/basket_manifest.json"
-        self.supplement_path = f"{self.basket_path}/basket_supplement.json"
-        self.metadata_path = f"{self.basket_path}/basket_metadata.json"
+        self.manifest_path = os.path.join(self.basket_path, "basket_manifest.json")
+        self.supplement_path = os.path.join(self.basket_path, "basket_supplement.json")
+        self.metadata_path = os.path.join(self.basket_path, "basket_metadata.json")
         self.validate()
 
     def _set_up_basket_from_path(self, basket_address):

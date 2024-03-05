@@ -1495,7 +1495,7 @@ def test_validate_bad_manifest_and_supplement_schema(test_validate):
     warn_supplement = warn_supplement[0]
     # Check that the second warning raised is correct with the correct
     # invalid basket path (disregarding FS prefix)
-    assert warn_supplement.args[1].endswith(os.path.join(basket_path,
+    assert Path(warn_supplement.args[1]).match(os.path.join(basket_path,
                                                    "bad_sup_and_man_schema",
                                                    "basket_supplement.json"))
 
@@ -1551,7 +1551,7 @@ def test_validate_bad_metadata_and_supplement_schema_with_nested_basket(
     assert warning_1.args[0] == (
         "Invalid Basket. Metadata could not be loaded into json at: "
     )
-    assert warning_1.args[1].endswith(os.path.join(basket_path,
+    assert Path(warning_1.args[1]).match(os.path.join(basket_path,
                                                    "my_basket",
                                                    "basket_metadata.json"))
 
@@ -1560,7 +1560,7 @@ def test_validate_bad_metadata_and_supplement_schema_with_nested_basket(
     assert warning_2.args[0] == (
         "Invalid Basket. Supplement could not be loaded into json at: "
     )
-    assert warning_2.args[1].endswith(os.path.join(basket_path,
+    assert Path(warning_2.args[1]).match(os.path.join(basket_path,
                                                    "my_basket",
                                                    "basket_supplement.json"))
 
@@ -1569,7 +1569,7 @@ def test_validate_bad_metadata_and_supplement_schema_with_nested_basket(
     assert warning_3.args[0] == (
         "Invalid Basket. Manifest File found in sub directory of basket at: "
     )
-    assert warning_3.args[1].endswith(os.path.join(basket_path, "my_basket"))
+    assert Path(warning_3.args[1]).match(os.path.join(basket_path, "my_basket"))
 
 
 def test_validate_check_parent_uuids_missing_basket(test_validate):
@@ -1657,7 +1657,7 @@ def test_validate_file_not_in_supplement(test_validate):
 
     assert warning_msg == ("File found in the file system is not listed in "
                            "the basket_supplement.json: ")
-    assert warning_path.endswith(upload_file_path)
+    assert Path(warning_path).match(upload_file_path)
 
 
 def test_validate_file_not_in_file_system(test_validate):
@@ -1731,14 +1731,14 @@ def test_validate_file_not_in_file_system(test_validate):
 
     assert warning_msg_1 == ("File listed in the basket_supplement.json does "
                              "not exist in the file system: ")
-    assert warning_path_1.endswith(error_file_path)
+    assert Path(warning_path_1).match(error_file_path)
 
     warning_msg_2 = warning_list[0].args[0]
     warning_path_2 = warning_list[0].args[1]
 
     assert warning_msg_2 == ("File listed in the basket_supplement.json does "
                              "not exist in the file system: ")
-    assert warning_path_2.endswith(error_file_path_2)
+    assert Path(warning_path_2).match(error_file_path_2)
 
 
 def test_validate_check_metadata_only_basket(test_validate):
