@@ -103,7 +103,8 @@ class IndexSQLite(IndexABC):
         for basket_json_address in basket_jsons:
             entry = create_index_from_fs(basket_json_address,
                                          file_system=self.file_system)
-            self.track_basket(entry, _commit_db=False)
+            if len(self.get_rows(entry['uuid'].iloc[0])) == 0:
+                self.track_basket(entry, _commit_db=False)
 
         self.con.commit()
 
