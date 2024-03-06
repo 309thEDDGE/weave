@@ -13,6 +13,7 @@ from ..config import get_index_column_names
 from .index_abc import IndexABC
 from .list_baskets import _get_list_of_basket_jsons
 from .validate_basket import validate_basket_dict
+from .create_index import create_index_from_fs
 
 
 class IndexSQLite(IndexABC):
@@ -98,61 +99,11 @@ class IndexSQLite(IndexABC):
 
         basket_jsons = _get_list_of_basket_jsons(self.pantry_path,
                                                  self.file_system)
-
-        storage_type = self.file_system.__class__.__name__
-
-        index_columns = get_index_column_names()
-        num_index_columns = len(index_columns)
-        index_columns = ", ".join(index_columns)
-
-        bad_baskets = []
+        
         for basket_json_address in basket_jsons:
-            with self.file_system.open(basket_json_address, "rb") as file:
-                basket_dict = json.load(file)
-
-                # If the basket is invalid, add it to a list, then skip it.
-                if not validate_basket_dict(basket_dict):
-                    bad_baskets.append(os.path.dirname(basket_json_address))
-                    continue
-                # Skip baskets that are indexes.
-                if basket_dict["basket_type"] == "index":
-                    continue
-
-                absolute_path = os.path.dirname(basket_json_address)
-                relative_path = (
-                    absolute_path[absolute_path.find(self.pantry_path):]
-                )
-                basket_dict["address"] = relative_path
-                basket_dict["storage_type"] = storage_type
-
-                basket_dict["upload_time"] = int(
-                    datetime.timestamp(
-                        dateutil.parser.parse(basket_dict["upload_time"])
-                    )
-                )
-
-                parent_uuids = basket_dict["parent_uuids"]
-                basket_dict["parent_uuids"] = str(basket_dict["parent_uuids"])
-
-                if 'weave_version' not in basket_dict.keys():
-                    basket_dict['weave_version'] = "<0.13.0"
-
-                sql = (
-                    f"INSERT OR IGNORE INTO pantry_index({index_columns}) "
-                    f"VALUES({','.join(['?']*num_index_columns)}) "
-                )
-
-                self.cur.execute(sql, tuple(basket_dict.values()))
-
-                sql = """INSERT OR IGNORE INTO parent_uuids(
-                uuid, parent_uuid) VALUES(?,?)"""
-                for parent_uuid in parent_uuids:
-                    self.cur.execute(sql, (basket_dict['uuid'], parent_uuid))
-
-        if len(bad_baskets) != 0:
-            warnings.warn('baskets found in the following locations '
-                          'do not follow specified weave schema:\n'
-                          f'{bad_baskets}')
+            entry = create_index_from_fs(basket_json_address,
+                                         file_system=self.file_system)
+            self.track_basket(entry, _commit_db=False)
 
         self.con.commit()
 
@@ -200,8 +151,10 @@ class IndexSQLite(IndexABC):
         entry_df: pd.DataFrame
             Uploaded baskets' manifest data to append to the index.
 
-        **kwargs unused for this function.
+        **_commit_db: bool (default=True)
+            Commit the SQL database. Argument is to facilitate generate_index()
         """
+        _commit_db = kwargs.get("_commit_db", True)
         uuids = entry_df["uuid"]
         parent_uuids = entry_df["parent_uuids"]
 
@@ -223,7 +176,8 @@ class IndexSQLite(IndexABC):
             for parent_uuid in parent_uuids:
                 # Add the uuid, parent_uuid combo to the parent_uuids table.
                 self.cur.execute(sql, (uuid, parent_uuid))
-        self.con.commit()
+        if _commit_db:
+            self.con.commit()
 
     def untrack_basket(self, basket_address, **kwargs):
         """Remove a basket from being tracked of given UUID or path.
