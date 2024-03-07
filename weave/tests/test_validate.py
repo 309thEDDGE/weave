@@ -1142,7 +1142,7 @@ def test_validate_nested_basket(test_validate):
         "Invalid Basket. Manifest File found in sub directory of basket at: "
     )
     # Check the invalid basket path is what is expected (ignoring FS prefix)
-    assert warning_1.args[1].endswith(basket_path)
+    assert Path(warning_1.args[1]).match(basket_path)
 
 
 def test_validate_deeply_nested(test_validate):
@@ -1197,7 +1197,7 @@ def test_validate_deeply_nested(test_validate):
         "Invalid Basket. Manifest File found in sub directory of basket at: "
     )
     # Check the invalid basket path is what is expected (ignoring FS prefix)
-    assert warning_1.args[1].endswith(basket_path)
+    assert Path(warning_1.args[1]).match(basket_path)
 
 
 def test_validate_no_files_or_dirs(test_validate):
@@ -1301,7 +1301,7 @@ def test_validate_twenty_baskets_invalid(test_validate):
         "Invalid Basket. Manifest File found in sub directory of basket at: "
     )
     # Check the invalid basket path is what is expect (ignoring FS prefix)
-    assert warning_1.args[1].endswith(invalid_basket_path)
+    assert Path(warning_1.args[1]).match(invalid_basket_path)
 
 
 def test_validate_twenty_baskets_valid(test_validate):

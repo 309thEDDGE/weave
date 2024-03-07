@@ -389,13 +389,13 @@ def _validate_supplement_files(basket_dir, data, pantry):
     sys_file_list = pantry.file_system.find(path=basket_dir, withdirs=False)
 
     # Grab all the files, but remove manifest, supplement, and metadata
-    remove_tuple = (
-        'basket_manifest.json', 
-        'basket_supplement.json', 
-        'basket_metadata.json'
-    )
+    manifest_path = os.path.join(basket_dir, "basket_manifest.json")
+    supplement_path = os.path.join(basket_dir, "basket_supplement.json")
+    metadata_path = os.path.join(basket_dir, "basket_metadata.json")
+    ignores = [manifest_path, supplement_path, metadata_path]
     system_file_list = [
-        file for file in sys_file_list if not file.endswith(remove_tuple)
+        file for file in sys_file_list 
+        if not any([Path(file).match(p) for p in ignores])
     ]
 
     supp_file_list = [file["upload_path"] for file in data["integrity_data"]]
