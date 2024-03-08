@@ -1796,11 +1796,12 @@ def test_read_only_generate_index(test_pantry):
                             pantry_path=tmpdir,
                             file_system=LocalFileSystem())
 
-        with tempfile.NamedTemporaryFile() as tmp_file:
+        tmp_file_path = os.path.join(tmpdir, "temp_basket.txt")
+        with open(tmp_file_path, "w") as tmp_file:
             tmp_pantry.upload_basket(
                 upload_items=[{"path":tmp_file.name, "stub":False}],
                 basket_type="read_only",
-            )
+            )["uuid"][0]
 
         zip_path = shutil.make_archive(os.path.join(tmpdir, "test_pantry"),
                                        "zip",
@@ -1817,11 +1818,16 @@ def test_read_only_generate_index(test_pantry):
 
         remove_path = str(tmpdir).replace('/','-')
 
-        if os.path.exists(f"weave-{remove_path}.db"):
-            os.remove(f"weave-{remove_path}.db")
-            os.remove(f"weave-{read_only_pantry.pantry_path}.db")
-
         cleanup_sql_index(tmp_pantry.index)
         cleanup_sql_index(read_only_pantry.index)
 
         assert len(read_only_index) == 1
+
+        read_only_pantry_path = read_only_pantry.pantry_path
+        del read_only_pantry
+        del read_only_fs
+        
+    if os.path.exists(f"weave-{remove_path}.db"):
+        os.remove(f"weave-{remove_path}.db")
+    if os.path.exists(f"weave-{read_only_pantry_path}.db"):
+        os.remove(f"weave-{read_only_pantry_path}.db")

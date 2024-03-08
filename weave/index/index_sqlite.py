@@ -41,6 +41,10 @@ class IndexSQLite(IndexABC):
         self.cur = self.con.cursor()
         self._create_tables()
 
+    def __del__(self):
+        """Close the database connection before closing."""
+        self.con.close()
+
     def _create_tables(self):
         """Create the required DB tables if they do not already exist."""
         # THIS NEEDS TO BE UPDATED MANUALLY IF NEW COLUMNS ARE ADDED TO INDEX.

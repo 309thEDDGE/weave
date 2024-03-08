@@ -718,11 +718,12 @@ def test_upload_basket_read_only():
         tmp_pantry = Pantry(IndexPandas,
                             pantry_path=tmpdir,
                             file_system=LocalFileSystem())
-        with tempfile.NamedTemporaryFile() as tmp_file:
+        tmp_file_path = os.path.join(tmpdir, "temp_basket.txt")
+        with open(tmp_file_path, "w") as tmp_file:
             tmp_pantry.upload_basket(
                 upload_items=[{"path":tmp_file.name, "stub":False}],
                 basket_type="read_only",
-            )
+            )["uuid"][0]
 
         zip_path = shutil.make_archive(os.path.join(tmpdir, "test_pantry"),
                                        "zip",
@@ -739,6 +740,8 @@ def test_upload_basket_read_only():
                 upload_items=[{"path":tmp_file.name, "stub":False}],
                 basket_type="read_only",
             )
+        del read_only_pantry
+        del read_only_fs
 
 def test_s3fs_no_connection_error():
     """Create an s3fs object with a bad address and verify that the correct
