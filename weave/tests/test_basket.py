@@ -729,3 +729,7 @@ def test_read_only_get_data():
         assert my_basket.get_manifest()
         assert my_basket.get_supplement()
         assert my_basket.get_metadata() == {}
+
+        del read_only_pantry
+        del read_only_fs
+        del my_basket
