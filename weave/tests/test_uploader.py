@@ -1451,6 +1451,5 @@ def test_upload_from_s3fs(test_basket):
         assert (basket.ls()[0].endswith('test.txt') and
                 basket2.ls()[0].endswith('test.txt'))
         s3.rm(minio_path,recursive=True)
-        remove_path = pantry_2.index.db_path
-        if local_fs.exists(remove_path):
-            local_fs.rm(remove_path)
+    if local_fs.exists(pantry_2.index.db_path):
+        local_fs.rm(pantry_2.index.db_path)
