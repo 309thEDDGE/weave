@@ -721,8 +721,8 @@ def test_upload_basket_read_only():
                             pantry_path=tmpdir,
                             file_system=LocalFileSystem())
         tmp_file_path = os.path.join(tmpdir, "temp_basket.txt")
-        with open(tmp_file_path, "w") as tmp_file:
-            tmp_pantry.upload_basket(
+        with open(tmp_file_path, "w", encoding="utf-8") as tmp_file:
+            _ = tmp_pantry.upload_basket(
                 upload_items=[{"path":tmp_file.name, "stub":False}],
                 basket_type="read_only",
             )["uuid"][0]

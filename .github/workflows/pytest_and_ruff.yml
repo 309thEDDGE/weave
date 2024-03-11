@@ -79,15 +79,6 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: "3.10"
-    - name: Install minio
-      run: |
-        wget https://dl.min.io/server/minio/release/linux-amd64/archive/minio_20230518000536.0.0_amd64.deb -O minio.deb
-        sudo dpkg -i minio.deb
-    - name: Launch minio
-      continue-on-error: true
-      run: |
-        mkdir ~/minio
-        minio server ~/minio --console-address :9090 &!
     - name: Start MongoDB
       uses: supercharge/mongodb-github-action@1.8.0
       with:
@@ -104,9 +95,6 @@ jobs:
         export MONGODB_HOST=localhost
         export MONGODB_USERNAME=testusername
         export MONGODB_PASSWORD=testpassword
-        export AWS_ACCESS_KEY_ID=minioadmin
-        export AWS_SECRET_ACCESS_KEY=minioadmin
-        export S3_ENDPOINT=http://172.17.0.1:9000/
         pytest -vv weave/tests/
 
   ruff:

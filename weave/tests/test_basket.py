@@ -710,12 +710,10 @@ def test_read_only_get_data():
         tmp_pantry = Pantry(IndexPandas,
                             pantry_path=tmpdir,
                             file_system=LocalFileSystem())
-        with open(os.path.join(tmpdir, "temp_basket.txt"), "w"):
+        tmp_file_path = os.path.join(tmpdir, "temp_basket.txt")
+        with open(tmp_file_path, "w", encoding="utf-8") as tmp_file:
             basket_uuid = tmp_pantry.upload_basket(
-                upload_items=[
-                    {"path":os.path.join(tmpdir, "temp_basket.txt"),
-                     "stub":False}
-                ],
+                upload_items=[{"path":tmp_file.name, "stub":False}],
                 basket_type="read_only",
             )["uuid"][0]
 

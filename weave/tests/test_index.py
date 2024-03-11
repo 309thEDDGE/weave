@@ -1797,8 +1797,8 @@ def test_read_only_generate_index(test_pantry):
                             file_system=LocalFileSystem())
 
         tmp_file_path = os.path.join(tmpdir, "temp_basket.txt")
-        with open(tmp_file_path, "w") as tmp_file:
-            tmp_pantry.upload_basket(
+        with open(tmp_file_path, "w", encoding="utf-8") as tmp_file:
+            _ = tmp_pantry.upload_basket(
                 upload_items=[{"path":tmp_file.name, "stub":False}],
                 basket_type="read_only",
             )["uuid"][0]
@@ -1826,7 +1826,7 @@ def test_read_only_generate_index(test_pantry):
         read_only_pantry_path = read_only_pantry.pantry_path
         del read_only_pantry
         del read_only_fs
-        
+
     if os.path.exists(f"weave-{remove_path}.db"):
         os.remove(f"weave-{remove_path}.db")
     if os.path.exists(f"weave-{read_only_pantry_path}.db"):
