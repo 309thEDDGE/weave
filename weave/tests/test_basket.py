@@ -722,7 +722,7 @@ def test_read_only_get_data():
                                   pantry_path="",
                                   file_system=read_only_fs)
 
-        my_basket = Basket(basket_uuid,
+        my_basket = Basket(os.path.join("read_only", basket_uuid),
                            pantry=read_only_pantry)
 
         # Check that manifest and supplement are returned and metadata is empty
