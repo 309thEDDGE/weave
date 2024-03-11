@@ -1,18 +1,14 @@
 """Wherein is contained the concrete SQLite implementation of the Index."""
-import json
 import os
 import sqlite3
 import warnings
 from datetime import datetime
 
 import ast
-import dateutil
 import pandas as pd
 
-from ..config import get_index_column_names
 from .index_abc import IndexABC
 from .list_baskets import _get_list_of_basket_jsons
-from .validate_basket import validate_basket_dict
 from .create_index import create_index_from_fs
 
 
@@ -103,7 +99,7 @@ class IndexSQLite(IndexABC):
 
         basket_jsons = _get_list_of_basket_jsons(self.pantry_path,
                                                  self.file_system)
-        
+
         for basket_json_address in basket_jsons:
             entry = create_index_from_fs(basket_json_address,
                                          file_system=self.file_system)

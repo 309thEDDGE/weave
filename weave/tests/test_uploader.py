@@ -1121,7 +1121,7 @@ def test_upload_basket_check_existing_upload_path(test_basket):
 
     with pytest.raises(
         FileExistsError,
-        match=f"'upload_directory' already exists: ",
+        match="'upload_directory' already exists: ",
     ):
         UploadBasket(
             upload_items=upload_items,

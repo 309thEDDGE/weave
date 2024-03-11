@@ -388,7 +388,9 @@ def test_basket_ls_relpath(test_pantry):
         file_system=test_pantry.file_system
     )
 
-    uploaded_file_path = os.path.join(basket_path, tmp_basket_dir_name, "test.txt")
+    uploaded_file_path = os.path.join(basket_path,
+                                      tmp_basket_dir_name,
+                                      "test.txt")
     assert Path(basket.ls(tmp_basket_dir_name)[0]).match(uploaded_file_path)
 
 
@@ -501,7 +503,8 @@ def test_basket_init_from_uuid(test_pantry):
         pantry=pantry,
     )
     assert Path(test_basket.ls("basket_one")[0]).match(
-        os.path.join(test_pantry.pantry_path, "test_basket", "0000", "basket_one", "test.txt")
+        os.path.join(test_pantry.pantry_path, "test_basket",
+                     "0000", "basket_one", "test.txt")
     )
 
 
@@ -707,9 +710,12 @@ def test_read_only_get_data():
         tmp_pantry = Pantry(IndexPandas,
                             pantry_path=tmpdir,
                             file_system=LocalFileSystem())
-        with open(os.path.join(tmpdir, "temp_basket.txt"), "w") as tmp_file:
+        with open(os.path.join(tmpdir, "temp_basket.txt"), "w"):
             basket_uuid = tmp_pantry.upload_basket(
-                upload_items=[{"path":os.path.join(tmpdir, "temp_basket.txt"), "stub":False}],
+                upload_items=[
+                    {"path":os.path.join(tmpdir, "temp_basket.txt"),
+                     "stub":False}
+                ],
                 basket_type="read_only",
             )["uuid"][0]
 

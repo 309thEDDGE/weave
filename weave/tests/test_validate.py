@@ -1569,7 +1569,9 @@ def test_validate_bad_metadata_and_supplement_schema_with_nested_basket(
     assert warning_3.args[0] == (
         "Invalid Basket. Manifest File found in sub directory of basket at: "
     )
-    assert Path(warning_3.args[1]).match(os.path.join(basket_path, "my_basket"))
+    assert Path(warning_3.args[1]).match(
+        os.path.join(basket_path, "my_basket")
+    )
 
 
 def test_validate_check_parent_uuids_missing_basket(test_validate):

@@ -493,7 +493,9 @@ def test_index_get_basket_works_correctly(test_pantry):
         txt_file_name,
     )
 
-    assert Path(retrieved_basket.ls(tmp_basket_name)[0]).match(expected_file_path)
+    assert Path(
+        retrieved_basket.ls(tmp_basket_name)[0]
+    ).match(expected_file_path)
 
     assert expected_basket.manifest_path == retrieved_basket.manifest_path
     assert expected_basket.supplement_path == retrieved_basket.supplement_path
