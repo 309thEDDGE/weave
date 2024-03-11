@@ -1796,7 +1796,7 @@ def test_read_only_generate_index(test_pantry):
     if os.name == "nt":
         test_dir = "."
 
-    with tempfile.TemporaryDirectory(dir=test_dir as tmpdir:
+    with tempfile.TemporaryDirectory(dir=test_dir) as tmpdir:
         tmp_pantry = Pantry(type(index),
                             pantry_path=tmpdir,
                             file_system=LocalFileSystem())
