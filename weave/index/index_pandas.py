@@ -464,7 +464,10 @@ class IndexPandas(IndexABC):
         """
         if not self._sync_if_needed():
             self._upload_index(
-                pd.concat([self.index_df, entry_df], ignore_index=True)
+                pd.concat(
+                    [df for df in [self.index_df, entry_df] if len(df) > 0],
+                    ignore_index=True
+                )
             )
 
     def get_rows(self, basket_address, **kwargs):

@@ -716,7 +716,7 @@ def test_upload_basket_read_only():
     """Instantiate a .zip file as a file system in a tmp directory, check that
     an error is thrown when trying to upload a basket.
     """
-    with tempfile.TemporaryDirectory() as tmpdir:
+    with tempfile.TemporaryDirectory(dir=".") as tmpdir:
         tmp_pantry = Pantry(IndexPandas,
                             pantry_path=tmpdir,
                             file_system=LocalFileSystem())

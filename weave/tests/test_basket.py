@@ -706,7 +706,7 @@ def test_read_only_get_data():
     """Make a read-only pantry, retrieve a basket, and check that you can read
     the data
     """
-    with tempfile.TemporaryDirectory() as tmpdir:
+    with tempfile.TemporaryDirectory(dir=".") as tmpdir:
         tmp_pantry = Pantry(IndexPandas,
                             pantry_path=tmpdir,
                             file_system=LocalFileSystem())
