@@ -1791,7 +1791,12 @@ def test_read_only_generate_index(test_pantry):
     """Show that weave is able to generate an index when using a read-only fs
     """
     _, index = test_pantry
-    with tempfile.TemporaryDirectory(dir="." + os.path.sep) as tmpdir:
+
+    test_dir = None
+    if os.name == "nt":
+        test_dir = "."
+
+    with tempfile.TemporaryDirectory(dir=test_dir as tmpdir:
         tmp_pantry = Pantry(type(index),
                             pantry_path=tmpdir,
                             file_system=LocalFileSystem())
