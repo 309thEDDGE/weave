@@ -7,6 +7,7 @@ import warnings
 import shutil
 import tempfile
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -212,7 +213,7 @@ def test_index_abc_to_pandas_df_works(test_pantry):
         ind_df.iloc[0]["parent_uuids"] == [] and
         ind_df.iloc[0]["basket_type"] == basket_type and
         ind_df.iloc[0]["label"] == label and
-        ind_df.iloc[0]["address"].endswith(up_dir) and
+        Path(ind_df.iloc[0]["address"]).match(up_dir) and
         ind_df.iloc[0]["storage_type"] == \
             test_pantry.file_system.__class__.__name__
     ), "Retrieved manifest values do not match."
@@ -248,7 +249,7 @@ def test_index_abc_to_pandas_df_works(test_pantry):
         ind_df.iloc[1]["parent_uuids"] == parent_ids and
         ind_df.iloc[1]["basket_type"] == basket_type and
         ind_df.iloc[1]["label"] == label and
-        ind_df.iloc[1]["address"].endswith(up_dir) and
+        Path(ind_df.iloc[1]["address"]).match(up_dir) and
         ind_df.iloc[1]["storage_type"] == \
             test_pantry.file_system.__class__.__name__
     ), "Retrieved manifest values do not match."
@@ -530,7 +531,7 @@ def test_index_abc_get_rows_single_address_works(test_pantry):
         first_row_df.iloc[0]["parent_uuids"] == parent_ids[0] and
         first_row_df.iloc[0]["basket_type"] == basket_type and
         first_row_df.iloc[0]["label"] == labels[0] and
-        first_row_df.iloc[0]["address"].endswith(up_dir1) and
+        Path(first_row_df.iloc[0]["address"]).match(up_dir1) and
         first_row_df.iloc[0]["storage_type"] == \
             test_pantry.file_system.__class__.__name__
     ), "Retrieved manifest values do not match first record."
@@ -543,7 +544,7 @@ def test_index_abc_get_rows_single_address_works(test_pantry):
         second_row_df.iloc[0]["parent_uuids"] == parent_ids[1] and
         second_row_df.iloc[0]["basket_type"] == basket_type and
         second_row_df.iloc[0]["label"] == labels[1] and
-        second_row_df.iloc[0]["address"].endswith(up_dir2) and
+        Path(second_row_df.iloc[0]["address"]).match(up_dir2) and
         second_row_df.iloc[0]["storage_type"] == \
             test_pantry.file_system.__class__.__name__
     ), "Retrieved manifest values do not match second record."
@@ -597,7 +598,7 @@ def test_index_abc_get_rows_multiple_address_works(test_pantry):
         rows_df.iloc[0]["parent_uuids"] == parent_ids1 and
         rows_df.iloc[0]["basket_type"] == basket_type and
         rows_df.iloc[0]["label"] == label1 and
-        rows_df.iloc[0]["address"].endswith(up_dir1) and
+        Path(rows_df.iloc[0]["address"]).match(up_dir1) and
         rows_df.iloc[0]["storage_type"] == \
             test_pantry.file_system.__class__.__name__
     ), "Retrieved manifest values do not match first record."
@@ -607,7 +608,7 @@ def test_index_abc_get_rows_multiple_address_works(test_pantry):
         rows_df.iloc[1]["parent_uuids"] == parent_ids2 and
         rows_df.iloc[1]["basket_type"] == basket_type and
         rows_df.iloc[1]["label"] == label2 and
-        rows_df.iloc[1]["address"].endswith(up_dir2) and
+        Path(rows_df.iloc[1]["address"]).match(up_dir2) and
         rows_df.iloc[1]["storage_type"] == \
             test_pantry.file_system.__class__.__name__
     ), "Retrieved manifest values do not match second record."
@@ -1790,16 +1791,22 @@ def test_read_only_generate_index(test_pantry):
     """Show that weave is able to generate an index when using a read-only fs
     """
     _, index = test_pantry
-    with tempfile.TemporaryDirectory() as tmpdir:
+
+    test_dir = None
+    if os.name == "nt":
+        test_dir = "."
+
+    with tempfile.TemporaryDirectory(dir=test_dir) as tmpdir:
         tmp_pantry = Pantry(type(index),
                             pantry_path=tmpdir,
                             file_system=LocalFileSystem())
 
-        with tempfile.NamedTemporaryFile() as tmp_file:
-            tmp_pantry.upload_basket(
+        tmp_file_path = os.path.join(tmpdir, "temp_basket.txt")
+        with open(tmp_file_path, "w", encoding="utf-8") as tmp_file:
+            _ = tmp_pantry.upload_basket(
                 upload_items=[{"path":tmp_file.name, "stub":False}],
                 basket_type="read_only",
-            )
+            )["uuid"][0]
 
         zip_path = shutil.make_archive(os.path.join(tmpdir, "test_pantry"),
                                        "zip",
@@ -1816,11 +1823,16 @@ def test_read_only_generate_index(test_pantry):
 
         remove_path = str(tmpdir).replace('/','-')
 
-        if os.path.exists(f"weave-{remove_path}.db"):
-            os.remove(f"weave-{remove_path}.db")
-            os.remove(f"weave-{read_only_pantry.pantry_path}.db")
-
         cleanup_sql_index(tmp_pantry.index)
         cleanup_sql_index(read_only_pantry.index)
 
         assert len(read_only_index) == 1
+
+        read_only_pantry_path = read_only_pantry.pantry_path
+        del read_only_pantry
+        del read_only_fs
+
+    if os.path.exists(f"weave-{remove_path}.db"):
+        os.remove(f"weave-{remove_path}.db")
+    if os.path.exists(f"weave-{read_only_pantry_path}.db"):
+        os.remove(f"weave-{read_only_pantry_path}.db")

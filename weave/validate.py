@@ -3,6 +3,7 @@
 import json
 import os
 import warnings
+from pathlib import Path
 
 import jsonschema
 from jsonschema import validate
@@ -384,27 +385,28 @@ def _validate_supplement_files(basket_dir, data, pantry):
     pantry: weave.Pantry
         The pantry to validate.
     """
-    pantry_path = pantry.pantry_path
     sys_file_list = pantry.file_system.find(path=basket_dir, withdirs=False)
 
-    manifest_path = os.path.join(basket_dir, "basket_manifest.json")
-    supplement_path = os.path.join(basket_dir, "basket_supplement.json")
-    metadata_path = os.path.join(basket_dir, "basket_metadata.json")
-
     # Grab all the files, but remove manifest, supplement, and metadata
+    ignores = [
+        os.path.join(basket_dir, "basket_manifest.json"),
+        os.path.join(basket_dir, "basket_supplement.json"),
+        os.path.join(basket_dir, "basket_metadata.json")
+    ]
     system_file_list = [
-        file for file in sys_file_list if file not in [manifest_path,
-                                                       supplement_path,
-                                                       metadata_path]
+        file for file in sys_file_list
+        if not any(Path(file).match(p) for p in ignores)
     ]
 
     supp_file_list = [file["upload_path"] for file in data["integrity_data"]]
 
     # Remove path up until the pantry directory in both lists
     system_file_list = [
-        file[file.find(pantry_path):] for file in system_file_list
+        Path(file[file.find(pantry.pantry_path):]) for file in system_file_list
     ]
-    supp_file_list = [file[file.find(pantry_path):] for file in supp_file_list]
+    supp_file_list = [
+        Path(file[file.find(pantry.pantry_path):]) for file in supp_file_list
+    ]
 
     system_file_set = set(system_file_list)
     supp_file_set = set(supp_file_list)

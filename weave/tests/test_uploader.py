@@ -5,6 +5,7 @@ import os
 import time
 import uuid
 from datetime import datetime
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -1087,7 +1088,9 @@ def test_upload_basket_no_metadata(test_basket):
     )
 
     # Assert metadata.json was not written
-    assert not test_basket.file_system.exists(f"{upload_path}/metadata.json")
+    assert not test_basket.file_system.exists(
+        os.path.join(upload_path, "metadata.json")
+    )
 
 
 def test_upload_basket_check_existing_upload_path(test_basket):
@@ -1118,7 +1121,7 @@ def test_upload_basket_check_existing_upload_path(test_basket):
 
     with pytest.raises(
         FileExistsError,
-        match=f"'upload_directory' already exists: '{upload_path}''",
+        match="'upload_directory' already exists: ",
     ):
         UploadBasket(
             upload_items=upload_items,
@@ -1128,9 +1131,9 @@ def test_upload_basket_check_existing_upload_path(test_basket):
             file_system=test_basket.file_system,
         )
 
-    assert test_basket.file_system.ls(
+    assert Path(test_basket.file_system.ls(
         os.path.join(test_basket.pantry_path, f"{basket_type}")
-    )[0].endswith(upload_path)
+    )[0]).match(upload_path)
 
 
 def test_upload_basket_check_unallowed_file_names(test_basket):
@@ -1448,6 +1451,5 @@ def test_upload_from_s3fs(test_basket):
         assert (basket.ls()[0].endswith('test.txt') and
                 basket2.ls()[0].endswith('test.txt'))
         s3.rm(minio_path,recursive=True)
-        remove_path = pantry_2.index.db_path
-        if local_fs.exists(remove_path):
-            local_fs.rm(remove_path)
+    if local_fs.exists(pantry_2.index.db_path):
+        local_fs.rm(pantry_2.index.db_path)
