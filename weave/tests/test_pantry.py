@@ -736,6 +736,7 @@ def test_upload_basket_read_only():
                 basket_type="read_only",
             )
 
+
 def test_s3fs_no_connection_error():
     """Create an s3fs object with a bad address and verify that the correct
     error message is thrown"""
@@ -750,3 +751,55 @@ def test_s3fs_no_connection_error():
             file_system=s3f,
             pantry_path="fake-pantry",
         )
+
+
+def test_check_file_already_exists(test_pantry):
+    """Make a file, upload it to the pantry, check if that file already exists.
+    """
+    print()
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system
+    )
+
+    with tempfile.NamedTemporaryFile() as tmp_file:
+        tmp_file.write(b"This is my temporary file that we will hash")
+        tmp_file.flush()
+        pantry.upload_basket(
+            upload_items=[{"path":tmp_file.name, "stub":False}],
+            basket_type="file_exists"
+        )
+
+        print('does file exist: ', pantry.does_file_exist(tmp_file.name))
+
+
+def test_check_file_doesnt_exist(test_pantry):
+    """Make a file, upload it. Make a different file, check if exists already.
+    """
+    print()
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system
+    )
+
+    with tempfile.NamedTemporaryFile() as tmp_file_1:
+        tmp_file_1.write(b"My first fake file")
+        tmp_file_1.flush()
+        pantry.upload_basket(
+            upload_items=[{"path":tmp_file_1.name, "stub":False}],
+            basket_type="file_exists"
+        )
+        hash1 = pantry.does_file_exist(tmp_file_1.name)
+
+    with tempfile.NamedTemporaryFile(suffix='.txt') as tmp_file_2:
+        tmp_file_2.write(b"My second fake file")
+        tmp_file_2.flush()
+        pantry.upload_basket(
+            upload_items=[{"path":tmp_file_2.name, "stub":False}],
+            basket_type="file_exists"
+        )
+        hash2 = pantry.does_file_exist(tmp_file_2.name)
+
+    print('is hash1 and hash2 equal? ', hash1 == hash2)

@@ -8,10 +8,10 @@ import os
 import s3fs
 
 from .basket import Basket
-from .config import get_file_system
+from .config import get_file_system, get_mongo_db
 from .index.create_index import create_index_from_fs
 from .index.index_abc import IndexABC
-from .upload import UploadBasket
+from .upload import UploadBasket, derive_integrity_data
 from .validate import validate_pantry
 
 class Pantry():
@@ -231,3 +231,30 @@ class Pantry():
             raise ValueError(f"Basket does not exist: {basket_address}")
         self.validate_path_in_pantry(row.iloc[0].address)
         return Basket(row.iloc[0].address, pantry=self)
+    
+    def does_file_exist(self, file_path):
+        """Check if a file already exists inside the pantry and return
+        the uuids where it does.
+        
+        Parameters
+        ----------
+        
+        Returns
+        ----------
+        bool returning True if a file exists, false if it doesn't exist.
+        """
+        
+        mongo_db = get_mongo_db()
+        
+        mongo_db.mongo_supplement["supplement"]
+        
+        # print('file path: ', file_path)
+        # print('does file exist: ', os.path.exists(file_path))
+        integrity_data = derive_integrity_data(file_path)
+        # print('integrity data: ', integrity_data)
+        for i in integrity_data:
+            print(i, integrity_data[i])
+        print('file hash: ', integrity_data["hash"])
+        # print()
+        
+        return integrity_data["hash"]
