@@ -246,7 +246,12 @@ class Pantry():
         
         mongo_db = get_mongo_db()
         
-        mongo_db.mongo_supplement["supplement"]
+        # mongo_db.mongo_supplement["supplement"]
+        supp_db = mongo_db.mongo_supplement["supplement"]
+        supp_db.find({})
+        
+        #This is a nested list comprehension that is insane
+#         [x for xs in [[k['hash'] for k in f["integrity_data"]] for f in mylist] for x in xs]
         
         # print('file path: ', file_path)
         # print('does file exist: ', os.path.exists(file_path))
