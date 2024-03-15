@@ -115,7 +115,6 @@ def test_load_mongo_manifest(set_up):
     index_table = weave.index.create_index.create_index_from_fs(
         set_up.pantry_path, set_up.file_system
     )
-    collection = "test_manifest"
     mongo_instance = MongoDB(
         index_table=index_table,
         database=set_up.database,
