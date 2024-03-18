@@ -47,7 +47,7 @@ def load_mongo(index_table, collection="metadata", **kwargs):
     file_system = kwargs.get("file_system", None)
     mongo_db = MongoDB(index_table=index_table,
                        database="mongo_metadata",
-                       file_system)
+                       file_system=file_system)
 
     mongo_db.load_mongo_metadata(collection=collection)
     mongo_db.load_mongo_manifest(collection="manifest")
