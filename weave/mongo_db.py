@@ -23,6 +23,9 @@ from .basket import Basket
 from .config import get_file_system, get_mongo_db
 
 class MongoDB():
+    """Initializes mongo class. Creates a Mongo DB and facilitates the
+    uploading of files to mongo collections.
+    """
 
     def __init__(self, index_table, database="mongo_db", **kwargs):
         """Creates the mongo database and checks for any errors that could
