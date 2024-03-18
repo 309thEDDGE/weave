@@ -82,7 +82,7 @@ class MongoDB():
             Metadata will be added to the Mongo collection specified.
         """
         if not isinstance(collection, str):
-            raise TypeError("Invalid datatype for collection: "
+            raise TypeError("Invalid datatype for metadata collection: "
                             "must be a string")
 
         database = get_mongo_db()[self.database]
@@ -120,7 +120,7 @@ class MongoDB():
             Manifest will be added to the Mongo collection specified.
         """
         if not isinstance(collection, str):
-            raise TypeError("Invalid datatype for collection: "
+            raise TypeError("Invalid datatype for manifest collection: "
                             "must be a string")
 
         database = get_mongo_db()[self.database]
@@ -153,7 +153,7 @@ class MongoDB():
             Supplement will be added to the Mongo collection specified.
         """
         if not isinstance(collection, str):
-            raise TypeError("Invalid datatype for collection: "
+            raise TypeError("Invalid datatype for supplement collection: "
                             "must be a string")
 
         database = get_mongo_db()[self.database]
@@ -175,3 +175,26 @@ class MongoDB():
                 collection
             ].count_documents({"uuid": manifest["uuid"]}):
                 database[collection].insert_one(mongo_supplement)
+
+
+    def load_mongo(self, **kwargs):
+        """Load metadata, manifest, and supplement from baskets into the
+        mongo database.
+
+        Parameters
+        ----------
+        **metadata_collection: str (default="metadata")
+            Metadata will be added to the Mongo collection specified.
+        **manifest_collection: str (default="manifest")
+            Manifest will be added to the Mongo collection specified.
+        **supplement_collection: str (default="supplement")
+            Supplement will be added to the Mongo collection specified.
+        """
+        metadata_collection = kwargs.get("metadata_collection", "metadata")
+        manifest_collection = kwargs.get("manifest_collection", "manifest")
+        supplement_collection = kwargs.get("supplement_collection",
+                                           "supplement")
+
+        self.load_mongo_metadata(collection=metadata_collection)
+        self.load_mongo_manifest(collection=manifest_collection)
+        self.load_mongo_supplement(collection=supplement_collection)

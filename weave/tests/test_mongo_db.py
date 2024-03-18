@@ -178,9 +178,8 @@ def test_load_mongo_supplement(set_up):
     reason="Pymongo required for this test",
 )
 def test_load_mongo_functions(set_up):
-    """Test that all the load_mongo functions (load_mongo_metadata,
-    load_mongo_manifest, load_mongo_supplement) can be successfully uploaded
-    at the same time.
+    """Test that load_mongo successfully loads valid metadata, manifest, and
+    supplement to the set_up.
     """
     index_table = weave.index.create_index.create_index_from_fs(
         set_up.pantry_path, set_up.file_system
@@ -190,9 +189,11 @@ def test_load_mongo_functions(set_up):
         database=set_up.database,
         file_system=set_up.file_system
     )
-    mongo_instance.load_mongo_metadata(set_up.metadata_collection)
-    mongo_instance.load_mongo_manifest(set_up.manifest_collection)
-    mongo_instance.load_mongo_supplement(set_up.supplement_collection)
+    mongo_instance.load_mongo(
+        metadata_collection=set_up.metadata_collection,
+        manifest_collection=set_up.manifest_collection,
+        supplement_collection=set_up.supplement_collection
+    )
 
     metadata_truth_db = [
         {"uuid": "1234", "basket_type": "test_basket", "key1": "value1"},
@@ -267,7 +268,8 @@ def test_load_mongo_metadata_check_collection_for_string(set_up):
     """
 
     with pytest.raises(
-        TypeError, match="Invalid datatype for collection: " "must be a string"
+        TypeError, match="Invalid datatype for metadata collection: "
+                         "must be a string"
     ):
         mongo_instance = MongoDB(
             index_table=pd.DataFrame(
