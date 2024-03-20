@@ -35,6 +35,6 @@ __all__ = [
     "IndexSQLite",
     "IndexSQL",
     "Pantry",
-    "load_mongo"
+    "load_mongo",
     "MongoDB"
 ]

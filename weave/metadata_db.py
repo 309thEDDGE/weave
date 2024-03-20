@@ -1,5 +1,6 @@
 """Contains scripts concerning MongoDB functionality."""
 
+from .config import get_file_system
 from .mongo_db import MongoDB
 
 
@@ -38,4 +39,4 @@ def load_mongo(index_table, collection="metadata", **kwargs):
         file_system=file_system
     )
 
-    mongo.load_mongo_metadata(collection="metadata")
+    mongo.load_mongo_metadata(collection=collection)

@@ -85,7 +85,11 @@ def test_load_mongo_from_metadata_db(set_up):
     index_table = weave.index.create_index.create_index_from_fs(
         set_up.pantry_path, set_up.file_system
     )
-    load_mongo(index_table, set_up.metadata_collection, database=self.database)
+    load_mongo(
+        index_table,
+        set_up.metadata_collection,
+        database=set_up.database
+    )
 
     truth_db = [
         {"uuid": "1234", "basket_type": "test_basket", "key1": "value1"},
