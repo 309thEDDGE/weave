@@ -46,7 +46,7 @@ class MongoDB():
             The file system to retrieve the baskets' metadata from.
         """
         self.index_table = index_table
-        self.database = database
+        self.database = get_mongo_db()[database]
         if not _HAS_PYMONGO:
             raise ImportError("Missing Dependency. The package 'pymongo' "
                               "is required to use this function")
@@ -85,8 +85,6 @@ class MongoDB():
             raise TypeError("Invalid datatype for metadata collection: "
                             "must be a string")
 
-        database = get_mongo_db()[self.database]
-
         for _, row in self.index_table.iterrows():
             basket = Basket(row["address"], file_system=self.file_system)
             metadata = basket.get_metadata()
@@ -100,10 +98,10 @@ class MongoDB():
 
             # If the UUID already has metadata loaded in MongoDB,
             # the metadata should not be loaded to MongoDB again.
-            if 0 == database[
+            if 0 == self.database[
                 collection
             ].count_documents({"uuid": manifest["uuid"]}):
-                database[collection].insert_one(mongo_metadata)
+                self.database[collection].insert_one(mongo_metadata)
 
 
     def load_mongo_manifest(self, collection="manifest"):
@@ -123,8 +121,6 @@ class MongoDB():
             raise TypeError("Invalid datatype for manifest collection: "
                             "must be a string")
 
-        database = get_mongo_db()[self.database]
-
         for _, row in self.index_table.iterrows():
             basket = Basket(row["address"], file_system=self.file_system)
             mongo_manifest = basket.get_manifest()
@@ -133,10 +129,10 @@ class MongoDB():
 
             # If the UUID already has the manifest loaded in MongoDB,
             # the manifest should not be loaded to MongoDB again.
-            if 0 == database[
+            if 0 == self.database[
                 collection
             ].count_documents({"uuid": mongo_manifest["uuid"]}):
-                database[collection].insert_one(mongo_manifest)
+                self.database[collection].insert_one(mongo_manifest)
 
 
     def load_mongo_supplement(self, collection="supplement"):
@@ -156,8 +152,6 @@ class MongoDB():
             raise TypeError("Invalid datatype for supplement collection: "
                             "must be a string")
 
-        database = get_mongo_db()[self.database]
-
         for _, row in self.index_table.iterrows():
             basket = Basket(row["address"], file_system=self.file_system)
             supplement = basket.get_supplement()
@@ -171,10 +165,10 @@ class MongoDB():
 
             # If the UUID already has metadata loaded in MongoDB,
             # the metadata should not be loaded to MongoDB again.
-            if 0 == database[
+            if 0 == self.database[
                 collection
             ].count_documents({"uuid": manifest["uuid"]}):
-                database[collection].insert_one(mongo_supplement)
+                self.database[collection].insert_one(mongo_supplement)
 
 
     def load_mongo(self, **kwargs):

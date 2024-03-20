@@ -7,6 +7,7 @@ import pandas as pd
 import pytest
 
 import weave
+from weave.metadata_db import load_mongo
 from weave.mongo_db import MongoDB
 from weave.tests.pytest_resources import PantryForTest, get_file_systems
 
@@ -73,6 +74,32 @@ def set_up(request, tmpdir):
 # pylint: disable=redefined-outer-name
 
 # Skip tests if pymongo is not installed.
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+    reason="Pymongo required for this test",
+)
+def test_load_mongo_from_metadata_db(set_up):
+    """Test that load_mongo successfully loads valid metadata to
+    the set_up.
+    """
+    index_table = weave.index.create_index.create_index_from_fs(
+        set_up.pantry_path, set_up.file_system
+    )
+    load_mongo(index_table, set_up.metadata_collection, database=self.database)
+
+    truth_db = [
+        {"uuid": "1234", "basket_type": "test_basket", "key1": "value1"},
+        {"uuid": "4321", "basket_type": "test_basket", "key2": "value2"},
+    ]
+
+    db_data = list(set_up.mongodb[set_up.metadata_collection].find({}))
+    compared_data = []
+    for item in db_data:
+        item.pop("_id")
+        compared_data.append(item)
+    assert truth_db == compared_data
+
+
 @pytest.mark.skipif(
     "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
     reason="Pymongo required for this test",
@@ -177,7 +204,7 @@ def test_load_mongo_supplement(set_up):
     "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
     reason="Pymongo required for this test",
 )
-def test_load_mongo_functions(set_up):
+def test_load_mongo(set_up):
     """Test that load_mongo successfully loads valid metadata, manifest, and
     supplement to the set_up.
     """
