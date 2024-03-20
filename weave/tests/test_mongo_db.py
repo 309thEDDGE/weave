@@ -88,7 +88,8 @@ def test_load_mongo_from_metadata_db(set_up):
     load_mongo(
         index_table,
         set_up.metadata_collection,
-        database=set_up.database
+        database=set_up.database,
+        file_system=set_up.file_system
     )
 
     truth_db = [
