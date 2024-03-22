@@ -58,8 +58,8 @@ def test_weave_pytest_suffix(set_up_tb_no_cleanup):
 # Skip tests if psycopg2 is not installed.
 @pytest.mark.skipif(
     "psycopg2" not in sys.modules or not _HAS_PSYCOPG
-    or not os.environ["WEAVE_SQL_PASSWORD"]
-    or not os.environ["WEAVE_SQL_HOST"],
+    or not os.environ.get("WEAVE_SQL_PASSWORD", False)
+    or not os.environ.get("WEAVE_SQL_HOST",False),
     reason="Module 'psycopg2' required for this test "
     "AND env variables: 'WEAVE_SQL_HOST', 'WEAVE_SQL_PASSWORD'",
 )

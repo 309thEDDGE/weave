@@ -3,6 +3,7 @@
 import json
 import os
 import io
+from pathlib import Path
 
 import pandas as pd
 import s3fs
@@ -62,7 +63,7 @@ def file_path_in_list(search_path, search_list):
     """
     search_path = str(search_path)
     for file_path in search_list:
-        if str(file_path).endswith(search_path):
+        if Path(file_path).match(search_path):
             return True
 
     return False
@@ -167,6 +168,8 @@ class IndexForTest:
     def cleanup_index(self):
         """Clean up any artifacts created by index implementations."""
         if self.index.__class__.__name__ == "IndexSQLite":
+            self.index.cur.close()
+            self.index.con.close()
             # Remove SQLite db file.
             if os.path.exists(self.db_path):
                 os.remove(self.db_path)

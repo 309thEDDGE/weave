@@ -85,8 +85,10 @@ class Pantry():
         path: str
             Path to verify.
         """
-        valid = path.startswith(self.pantry_path + os.path.sep)
-        if valid:
+        valid = True
+        if self.pantry_path:
+            valid = path.startswith(self.pantry_path + os.path.sep)
+        if valid and "zip" not in str(type(self.file_system)):
             bad_str = os.path.sep + ".." + os.path.sep
             valid = bad_str not in path
 

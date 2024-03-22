@@ -46,10 +46,20 @@ class BasketInitializer:
                 raise KeyError("pantry, required to set up basket from UUID,"
                                "is not in kwargs.") from error
             self.set_up_basket_from_uuid(basket_address, kwargs["pantry"])
-
-        self.manifest_path = f"{self.basket_path}/basket_manifest.json"
-        self.supplement_path = f"{self.basket_path}/basket_supplement.json"
-        self.metadata_path = f"{self.basket_path}/basket_metadata.json"
+        if "zip" in str(type(self.file_system)) and os.name == "nt":
+            self.manifest_path = '/'.join([self.basket_path,
+                                           "basket_manifest.json"])
+            self.supplement_path = '/'.join([self.basket_path,
+                                             "basket_supplement.json"])
+            self.metadata_path = '/'.join([self.basket_path,
+                                           "basket_metadata.json"])
+        else:
+            self.manifest_path = os.path.join(self.basket_path,
+                                              "basket_manifest.json")
+            self.supplement_path = os.path.join(self.basket_path,
+                                                "basket_supplement.json")
+            self.metadata_path = os.path.join(self.basket_path,
+                                              "basket_metadata.json")
         self.validate()
 
     def _set_up_basket_from_path(self, basket_address):
@@ -64,6 +74,8 @@ class BasketInitializer:
         """
 
         self.basket_path = os.fspath(basket_address)
+        if "zip" in str(type(self.file_system)) and os.name == "nt":
+            self.basket_path = Path(basket_address).as_posix()
         self.validate_basket_path()
 
     def set_up_basket_from_uuid(self, basket_address, pantry):

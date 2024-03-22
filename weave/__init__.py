@@ -25,8 +25,9 @@ from .index.index_sqlite import IndexSQLite
 from .index.index_sql import IndexSQL
 from .pantry import Pantry
 from .metadata_db import load_mongo
+from .mongo_db import MongoDB
 
-__version__ = "1.6.4"
+__version__ = "1.7.1"
 
 __all__ = [
     "Basket",
@@ -35,4 +36,5 @@ __all__ = [
     "IndexSQL",
     "Pantry",
     "load_mongo",
+    "MongoDB"
 ]
