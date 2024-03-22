@@ -10,6 +10,17 @@ import weave
 from weave.tests.pytest_resources import PantryForTest, get_file_systems
 
 
+
+
+
+from weave.upload import derive_integrity_data
+from weave import Pantry, IndexPandas
+import tempfile
+
+
+
+
+
 class MongoForTest(PantryForTest):
     """Extend the PantryForTest class to support mongodb and custom data
     loader.
@@ -211,3 +222,43 @@ def test_load_mongo_check_for_duplicate_uuid(set_up):
         {"uuid": test_uuid}
     )
     assert count == 1, "duplicate uuid inserted"
+
+    
+# @pytest.mark.skipif(
+#     "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+#     reason="Pymongo required for this test",
+# )
+def test_check_file_already_exists(set_up):
+    """Make a file, upload it to the pantry, check if that file already exists.
+    """
+    
+    
+    print()
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=set_up.pantry_path,
+        file_system=set_up.file_system
+    )
+    print('\n\n test collection: ', set_up.test_collection)
+    
+    index_table = weave.index.create_index.create_index_from_fs(
+        set_up.pantry_path, set_up.file_system
+    )
+    weave.load_mongo(
+        index_table,
+        file_system=set_up.file_system,
+        collection=set_up.test_collection,
+    )
+    
+    print('\n\n mongodb: ', set_up.mongodb['test_collection'].find_one({}))
+
+#     with tempfile.NamedTemporaryFile() as tmp_file:
+#         tmp_file.write(b"This is my temporary file that we will hash")
+#         tmp_file.flush()
+#         print('before upload: ', derive_integrity_data(tmp_file.name))
+#         pantry.upload_basket(
+#             upload_items=[{"path":tmp_file.name, "stub":False}],
+#             basket_type="file_exists"
+#         )
+
+#         print('does file exist: ', pantry.does_file_exist(tmp_file.name))

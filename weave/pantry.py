@@ -244,22 +244,39 @@ class Pantry():
         bool returning True if a file exists, false if it doesn't exist.
         """
         
-        mongo_db = get_mongo_db()
+
+        integrity_data = derive_integrity_data(file_path)['hash']
+        print('integ datat; ', integrity_data)
         
-        # mongo_db.mongo_supplement["supplement"]
-        supp_db = mongo_db.mongo_supplement["supplement"]
-        supp_db.find({})
+        
+
+        db = get_mongo_db()
+        print('\n\ndb names: \n', db.list_database_names())
+        uuids = [f['uuid'] for f in db.mongo_supplement['supplement'].find(
+            {'integrity_data.hash': {'$in': [integrity_data]}},
+            {'uuid':1, '_id':0}
+        )]
+        
+        
+        if uuids:
+            return f"File was found in pantry in baskets: {uuids}"
+        else:
+            return f"That file was not found in the pantry."
+        print('uuids', uuids)
+        
+        
+        return True
         
         #This is a nested list comprehension that is insane
 #         [x for xs in [[k['hash'] for k in f["integrity_data"]] for f in mylist] for x in xs]
         
         # print('file path: ', file_path)
         # print('does file exist: ', os.path.exists(file_path))
-        integrity_data = derive_integrity_data(file_path)
-        # print('integrity data: ', integrity_data)
-        for i in integrity_data:
-            print(i, integrity_data[i])
-        print('file hash: ', integrity_data["hash"])
-        # print()
         
-        return integrity_data["hash"]
+        # print('integrity data: ', integrity_data)
+#         for i in integrity_data:
+#             print(i, integrity_data[i])
+#         print('file hash: ', integrity_data["hash"])
+#         # print()
+        
+#         return integrity_data["hash"]
