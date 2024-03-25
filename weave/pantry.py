@@ -5,12 +5,13 @@ Index baskets.
 
 import json
 import os
-import s3fs
 import sys
+
+import s3fs
 
 from .mongo_db import MongoDB
 from .basket import Basket
-from .config import get_file_system, get_mongo_db
+from .config import get_file_system
 from .index.create_index import create_index_from_fs
 from .index.index_abc import IndexABC
 from .upload import UploadBasket, derive_integrity_data
