@@ -237,14 +237,17 @@ class Pantry():
         self.validate_path_in_pantry(row.iloc[0].address)
         return Basket(row.iloc[0].address, pantry=self)
 
-    def does_file_exist(self, file_path):
+    def does_file_exist(self, file_path, **kwargs):
         """Check if a file already exists inside the pantry and return
         the uuids where it does.
 
         Parameters
         ----------
         file_path: str
-            local path to file being checked
+            Local path to file being checked
+        **load_mongo: bool (default=false)
+            If true, the mongo supplement will be reloaded to get current
+            pantry contents.
 
         Returns
         ----------
@@ -253,17 +256,21 @@ class Pantry():
         """
         integrity_data = derive_integrity_data(file_path)['hash']
 
+        load_mongo = kwargs.get('load_mongo', False)
+
         # If running pytest, point to the correct mongo database
         if "pytest" in sys.modules:
             mongo = MongoDB(index_table=self.index.to_pandas_df(),
                             database="test_mongo_db",
                             file_system=self.file_system)
-            mongo.load_mongo_supplement(collection='test_supplement')
+            if load_mongo:
+                mongo.load_mongo_supplement(collection='test_supplement')
             db = mongo.database['test_supplement']
         else:
             mongo = MongoDB(index_table=self.index.to_pandas_df(),
                             file_system=self.file_system)
-            mongo.load_mongo_supplement()
+            if load_mongo:
+                mongo.load_mongo_supplement()
             db = mongo.database['supplement']
 
         uuids = [f['uuid'] for f in db.find(
