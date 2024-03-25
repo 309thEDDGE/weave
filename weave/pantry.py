@@ -6,7 +6,9 @@ Index baskets.
 import json
 import os
 import s3fs
+import sys
 
+from .mongo_db import MongoDB
 from .basket import Basket
 from .config import get_file_system, get_mongo_db
 from .index.create_index import create_index_from_fs
@@ -233,52 +235,39 @@ class Pantry():
             raise ValueError(f"Basket does not exist: {basket_address}")
         self.validate_path_in_pantry(row.iloc[0].address)
         return Basket(row.iloc[0].address, pantry=self)
-    
+
     def does_file_exist(self, file_path):
         """Check if a file already exists inside the pantry and return
         the uuids where it does.
-        
+
         Parameters
         ----------
-        
+        file_path: str
+            local path to file being checked
+
         Returns
         ----------
-        bool returning True if a file exists, false if it doesn't exist.
+        list of basket uuids of where the file exists if it does. If file does
+        not exist in the pantry, an empty list is returned.
         """
-        
-
         integrity_data = derive_integrity_data(file_path)['hash']
-        print('integ datat; ', integrity_data)
-        
-        
 
-        db = get_mongo_db()
-        print('\n\ndb names: \n', db.list_database_names())
-        uuids = [f['uuid'] for f in db.mongo_supplement['supplement'].find(
+        # If running pytest, point to the correct mongo database
+        if "pytest" in sys.modules:
+            mongo = MongoDB(index_table=self.index.to_pandas_df(),
+                            database="test_mongo_db",
+                            file_system=self.file_system)
+            mongo.load_mongo_supplement(collection='test_supplement')
+            db = mongo.database['test_supplement']
+        else:
+            mongo = MongoDB(index_table=self.index.to_pandas_df(),
+                            file_system=self.file_system)
+            mongo.load_mongo_supplement()
+            db = mongo.database['supplement']
+
+        uuids = [f['uuid'] for f in db.find(
             {'integrity_data.hash': {'$in': [integrity_data]}},
             {'uuid':1, '_id':0}
         )]
-        
-        
-        if uuids:
-            return f"File was found in pantry in baskets: {uuids}"
-        else:
-            return f"That file was not found in the pantry."
-        print('uuids', uuids)
-        
-        
-        return True
-        
-        #This is a nested list comprehension that is insane
-#         [x for xs in [[k['hash'] for k in f["integrity_data"]] for f in mylist] for x in xs]
-        
-        # print('file path: ', file_path)
-        # print('does file exist: ', os.path.exists(file_path))
-        
-        # print('integrity data: ', integrity_data)
-#         for i in integrity_data:
-#             print(i, integrity_data[i])
-#         print('file hash: ', integrity_data["hash"])
-#         # print()
-        
-#         return integrity_data["hash"]
+
+        return uuids

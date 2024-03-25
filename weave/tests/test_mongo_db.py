@@ -2,11 +2,13 @@
 
 import os
 import sys
+import tempfile
 
 import pandas as pd
 import pytest
 
 import weave
+from weave import Pantry, IndexPandas
 from weave.metadata_db import load_mongo
 from weave.mongo_db import MongoDB
 from weave.tests.pytest_resources import PantryForTest, get_file_systems
@@ -278,7 +280,6 @@ def test_load_mongo(set_up):
 def test_mongodb_check_for_dataframe(set_up):
     """Test that MongoDB prevents loading data with an invalid index_table.
     """
-
     with pytest.raises(
         TypeError,
         match="Invalid datatype for index_table: " "must be Pandas DataFrame",
@@ -298,7 +299,6 @@ def test_load_mongo_metadata_check_collection_for_string(set_up):
     """Test that load_mongo_metadata prevents loading data with an invalid
     set_up collection.
     """
-
     with pytest.raises(
         TypeError, match="Invalid datatype for metadata collection: "
                          "must be a string"
@@ -321,7 +321,6 @@ def test_load_mongo_metadata_check_collection_for_string(set_up):
 def test_mongodb_check_dataframe_for_uuid(set_up):
     """Test that MongoDB prevents loading data with missing uuid.
     """
-
     with pytest.raises(
         ValueError, match="Invalid index_table: " "missing uuid column"
     ):
@@ -375,7 +374,6 @@ def test_mongodb_check_dataframe_for_basket_type(set_up):
 def test_load_mongo_metadata_check_for_duplicate_uuid(set_up):
     """Test duplicate metadata won't be uploaded to mongoDB, based on the UUID.
     """
-
     test_uuid = "1234"
 
     # Load metadata twice and ensure there's only one instance
@@ -403,7 +401,6 @@ def test_load_mongo_metadata_check_for_duplicate_uuid(set_up):
 def test_load_mongo_manifest_check_for_duplicate_uuid(set_up):
     """Test duplicate manifest won't be uploaded to mongoDB, based on the UUID.
     """
-
     test_uuid = "1234"
 
     # Load manifest twice and ensure there's only one instance
@@ -432,7 +429,6 @@ def test_load_mongo_supplement_check_for_duplicate_uuid(set_up):
     """Test duplicate supplement won't be uploaded to mongoDB, based on the
     UUID.
     """
-
     test_uuid = "1234"
 
     # Load supplement twice and ensure there's only one instance
@@ -451,3 +447,40 @@ def test_load_mongo_supplement_check_for_duplicate_uuid(set_up):
         {"uuid": test_uuid}
     )
     assert count == 1, "duplicate uuid inserted"
+
+
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+    reason="Pymongo required for this test",
+)
+def test_check_file_already_exists(set_up):
+    """Make a file, upload it to the pantry, check if that file already exists.
+    """
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=set_up.pantry_path,
+        file_system=set_up.file_system
+    )
+
+    with tempfile.NamedTemporaryFile() as tmp_file:
+        tmp_file.write(b'This is my temporary file that we will hash')
+        tmp_file.flush()
+        pantry.upload_basket(
+            upload_items=[{'path':tmp_file.name, 'stub':False}],
+            basket_type='filealreadyexists',
+            unique_id='file_already_exists_uuid',
+        )
+
+        index_table = weave.index.create_index.create_index_from_fs(
+            set_up.pantry_path, set_up.file_system
+        )
+        mongo_instance = MongoDB(
+            index_table=index_table,
+            database=set_up.database,
+            file_system=set_up.file_system
+        )
+        mongo_instance.load_mongo_supplement(set_up.supplement_collection)
+        uuids = pantry.does_file_exist(tmp_file.name)
+
+    assert len(uuids) == 1
+    assert uuids[0] == 'file_already_exists_uuid'
