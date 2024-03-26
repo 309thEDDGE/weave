@@ -745,6 +745,7 @@ def test_upload_basket_read_only():
         del read_only_pantry
         del read_only_fs
 
+
 def test_s3fs_no_connection_error():
     """Create an s3fs object with a bad address and verify that the correct
     error message is thrown"""
