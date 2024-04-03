@@ -84,7 +84,7 @@ def test_github_cicd_sql_server():
             WHERE schema_name = 'dbo';
         """)
         print("Try SCHEMA")
-        if not len(cur.fetchall()) == 0:
+        if cur.fetchall() == []:
             print("Make SCHEMA")
             cur.execute("CREATE SCHEMA dbo;")
     cur.execute("""
