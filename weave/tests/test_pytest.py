@@ -78,7 +78,15 @@ def test_github_cicd_sql_server():
     cur = conn.cursor()
 
     # Create a temporary table for testing.
-    cur.execute("CREATE SCHEMA dbo;")
+    for _ in range(2):
+        cur.execute("""
+            SELECT schema_name FROM information_schema.schemata
+            WHERE schema_name = 'dbo';
+        """)
+        print("Try SCHEMA")
+        if not len(cur.fetchall()) == 0:
+            print("Make SCHEMA")
+            cur.execute("CREATE SCHEMA dbo;")
     cur.execute("""
     CREATE TABLE IF NOT EXISTS dbo.test_table (
         uuid varchar(64),
