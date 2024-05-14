@@ -483,7 +483,7 @@ class IndexSQLite(IndexABC):
         )
         query = """SELECT * FROM pantry_index WHERE basket_type = ?
                  ORDER BY UUID"""
-        params = (basket_type)
+        params = (basket_type,)
         if max_rows:
             query += " LIMIT ? OFFSET ?"
             params = (basket_type, max_rows, offset)
@@ -527,7 +527,7 @@ class IndexSQLite(IndexABC):
         )
         query = """SELECT * FROM pantry_index WHERE label = ?
                    ORDER BY UUID"""
-        params = (basket_label)
+        params = (basket_label,)
         if max_rows:
             query += " LIMIT ? OFFSET ?"
             params = (basket_label, max_rows, offset)

@@ -569,7 +569,7 @@ class IndexPandas(IndexABC):
         self._sync_if_needed()
 
         return slice_df(
-            self.index_df[self.index_df["label"] == basket_type],
+            self.index_df[self.index_df["label"] == basket_label],
             max_rows,
             offset)
 
