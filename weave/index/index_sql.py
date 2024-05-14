@@ -787,7 +787,7 @@ class IndexSQL(IndexABC):
             return self.to_pandas_df(max_rows=max_rows, offset=offset)
 
         pre_query = f"SELECT * FROM {self.pantry_schema}.pantry_index "
-        post_query = """ORDER BY UUID"""
+        post_query = """ORDER BY UUID """
         limit_query = """OFFSET (:offset) ROWS
                         FETCH FIRST (:max_rows) ROWS ONLY"""
 
