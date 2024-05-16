@@ -791,6 +791,7 @@ class IndexSQL(IndexABC):
         limit_query = """OFFSET (:offset) ROWS
                         FETCH FIRST (:max_rows) ROWS ONLY"""
 
+        columns = None
         if start_time and end_time:
             start_time = int(datetime.timestamp(start_time))
             end_time = int(datetime.timestamp(end_time))

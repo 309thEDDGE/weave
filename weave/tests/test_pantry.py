@@ -578,6 +578,7 @@ def test_pantry_save_metadata(test_pantry):
     )
     pantry.save_metadata()
 
+    file_metadata = None
     if pantry.file_system.exists(pantry.metadata_path):
         with pantry.file_system.open(pantry.metadata_path, "rb") as file:
             file_metadata = json.load(file)

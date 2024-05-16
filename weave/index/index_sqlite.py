@@ -584,6 +584,7 @@ class IndexSQLite(IndexABC):
             limit_query = " LIMIT ? OFFSET ?"
             limit_params = (max_rows, offset)
 
+        results = None
         if start_time and end_time:
             start_time = int(datetime.timestamp(start_time))
             end_time = int(datetime.timestamp(end_time))
