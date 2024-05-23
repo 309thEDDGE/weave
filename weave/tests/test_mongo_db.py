@@ -84,6 +84,7 @@ def test_load_mongo_from_metadata_db(set_up):
     """Test that load_mongo successfully loads valid metadata to
     the set_up.
     """
+    breakpoint()
     index_table = weave.index.create_index.create_index_from_fs(
         set_up.pantry_path, set_up.file_system
     )

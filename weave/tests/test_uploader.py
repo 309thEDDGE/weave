@@ -1468,8 +1468,7 @@ def test_upload_basket_mongo(test_basket):
     pantry_path = test_basket.pantry_path
 
     pantry = Pantry(IndexPandas,pantry_path=pantry_path,file_system=fs)
-    uuid = pantry.upload_basket(
-                                upload_items=[{'path':ch10_path,
+    uuid = pantry.upload_basket(upload_items=[{'path':ch10_path,
                                 'stub':False}], basket_type="test-1",
                                 metadata = {'Data Type':'ch10'}
                                ).values.tolist()[0][0]
@@ -1480,7 +1479,7 @@ def test_upload_basket_mongo(test_basket):
     query = {'uuid': uuid}
 
     for e in collections:
-        assert(uuid == mongo_db[e].find_one(query,{'_id':0,'uuid':1})['uuid'])
+        assert uuid == mongo_db[e].find_one(query,{'_id':0,'uuid':1})['uuid']
         mongo_db[e].delete_one(query)
 
 def test_delete_basket_mongo(test_basket):
@@ -1498,7 +1497,7 @@ def test_delete_basket_mongo(test_basket):
                     file_system=fs)
 
     uuid = pantry.upload_basket(
-                                upload_items=[{'path':ch10_path,
+                    upload_items=[{'path':ch10_path,
                                'stub':False}], basket_type="test-1",
                                 metadata = {'Data Type':'ch10'}
                                ).values.tolist()[0][0]
@@ -1511,6 +1510,4 @@ def test_delete_basket_mongo(test_basket):
     query = {'uuid': uuid}
 
     for e in collections:
-        assert (mongo_db[e].find_one(query) is None)
-
-
+        assert mongo_db[e].find_one(query) is None
