@@ -1466,8 +1466,9 @@ def test_upload_basket_mongo(test_basket):
     pantry_path = test_basket.pantry_path
 
     pantry = Pantry(IndexPandas,pantry_path=pantry_path,file_system=fs)
-    uuid = pantry.upload_basket(upload_items=[{'path':ch10_path, 'stub':False}],
-            basket_type="test-1", metadata = {'Data Type':'ch10'}).values.tolist()[0][0]
+    uuid = pantry.upload_basket(upload_items=[{'path':ch10_path,
+                                'stub':False}], basket_type="test-1",
+                                metadata = {'Data Type':'ch10'}).values.tolist()[0][0]
 
     collections = ("test_supplement", "test_metadata", "test_manifest")
     mongo_client = get_mongo_db()
@@ -1480,14 +1481,17 @@ def test_upload_basket_mongo(test_basket):
 
 def test_delete_basket_mongo(test_basket):
     """
-    Testing pantry.delete_basket(), expected to update the collections in mongodb
+    Testing pantry.delete_basket(), expected to update
+    the collections in mongodb
     """
     file_name = "652200104150842.ch10"
     ch10_path = str(resources.files(test_data) / file_name)
     fs = test_basket.file_system
     pantry_path = test_basket.pantry_path
 
-    pantry = Pantry(IndexPandas,pantry_path=pantry_path,file_system=fs)
+    pantry = Pantry(IndexPandas,
+                    pantry_path=pantry_path,
+                    file_system=fs)
 
     uuid = pantry.upload_basket(upload_items=[{'path':ch10_path, 'stub':False}],
             basket_type="test-1", metadata = {'Data Type':'ch10'}).values.tolist()[0][0]

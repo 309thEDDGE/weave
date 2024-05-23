@@ -226,7 +226,8 @@ class MongoDB():
     @staticmethod
     def append_document (index : IndexABC, file_system):
         """
-        Append a document using an Index in the supplement, manifest, and metadata collections
+        Append a document using an Index in the supplement, manifest,
+        and metadata collections
 
           Parameters
         ----------
@@ -246,5 +247,6 @@ class MongoDB():
         mongo_db = MongoDB(index_table=index,
                             database=mongodb_name,file_system=file_system)
 
-        mongo_db.load_mongo(metadata_collection=collections[1], manifest_collection=collections[2],
+        mongo_db.load_mongo(metadata_collection=collections[1],
+                            manifest_collection=collections[2],
                             supplement_collection=collections[0])
