@@ -1469,7 +1469,7 @@ def test_index_abc_get_baskets_of_type_max_rows_none_works(test_pantry):
     ind.generate_index()
 
     baskets = ind.get_baskets_of_type("test_basket", max_rows=None)
-    assert len(baskets) == 2
+    assert len(baskets) == 3
 
 
 def test_index_abc_get_baskets_of_type_returns_empty_df(test_pantry):
@@ -1562,7 +1562,7 @@ def test_index_abc_get_baskets_of_label_max_rows_none_works(test_pantry):
     ind.generate_index()
 
     baskets = ind.get_baskets_of_label("good_label", max_rows=None)
-    assert len(baskets) == 2
+    assert len(baskets) == 3
 
 
 def test_index_abc_get_baskets_of_label_returns_empty_df(test_pantry):

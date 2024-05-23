@@ -32,8 +32,7 @@ def slice_df(df, max_rows=None, offset=0):
     """
     if max_rows is None:
         return df
-    else:
-        return df.iloc[offset:offset+max_rows]
+    return df.iloc[offset:offset+max_rows]
 
 
 class IndexPandas(IndexABC):
