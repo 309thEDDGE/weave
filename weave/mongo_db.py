@@ -198,7 +198,7 @@ class MongoDB():
 
     @staticmethod
     def remove_document (uuid : str):
-        """git
+        """
         Delete a document using the uuid in the supplement,
         manifest, and metadata collections.
 
