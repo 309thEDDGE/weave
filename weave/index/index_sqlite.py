@@ -113,7 +113,7 @@ class IndexSQLite(IndexABC):
 
         Parameters
         ----------
-        max_rows: int (default=1000)
+        max_rows: int or None (default=1000)
             Max rows returned in the pandas dataframe. If None, all rows will
             be returned.
         offset: int (default=0)
@@ -465,7 +465,7 @@ class IndexSQLite(IndexABC):
         ----------
         basket_type: str
             The basket type to filter for.
-        max_rows: int (default=1000)
+        max_rows: int or None (default=1000)
             Max rows returned in the pandas dataframe. If None, all rows will
             be returned.
         offset: int (default=0)
@@ -509,7 +509,7 @@ class IndexSQLite(IndexABC):
         ----------
         basket_label: str
             The label to filter for.
-        max_rows: int (default=1000)
+        max_rows: int or None (default=1000)
             Max rows returned in the pandas dataframe. If None, all rows will
             be returned.
         offset: int (default=0)
@@ -557,7 +557,7 @@ class IndexSQLite(IndexABC):
         end_time: datetime.datetime (optional)
             The end datetime object to filter between. If None, will filter
             to the current datetime.
-        max_rows: int (default=1000)
+        max_rows: int or None (default=1000)
             Max rows returned in the pandas dataframe.
         offset: int (default=0)
             Offset from the beginning of the index to begin the query

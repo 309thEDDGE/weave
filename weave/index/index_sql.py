@@ -273,7 +273,7 @@ class IndexSQL(IndexABC):
 
         Parameters
         ----------
-        max_rows: int (default=1000)
+        max_rows: int or None (default=1000)
             Max rows returned in the pandas dataframe. If None, all rows will
             be returned.
         offset: int (default=0)
@@ -287,7 +287,12 @@ class IndexSQL(IndexABC):
             pantry.
         """
         # Get the rows from the index as a list of lists, then get the columns.
-        if max_rows > 0:
+        if max_rows is None:
+            result, columns = self.execute_sql(
+                 f"""SELECT *
+                     FROM {self.pantry_schema}.pantry_index
+                     ORDER BY UUID""")
+        else:
             result, columns = self.execute_sql(
              f"""SELECT *
                  FROM {self.pantry_schema}.pantry_index
@@ -296,11 +301,6 @@ class IndexSQL(IndexABC):
                  FETCH FIRST (:max_rows) ROWS ONLY""",
             {"offset": offset, "max_rows": max_rows},
         )
-        else:
-            result, columns = self.execute_sql(
-                 f"""SELECT *
-                     FROM {self.pantry_schema}.pantry_index
-                     ORDER BY UUID""")
 
         result = [list(row) for row in result]
 
@@ -665,7 +665,7 @@ class IndexSQL(IndexABC):
         ----------
         basket_type: str
             The basket type to filter for.
-        max_rows: int (default=1000)
+        max_rows: int or None (default=1000)
             Max rows returned in the pandas dataframe. If None, all rows will
             be returned.
         offset: int (default=0)
@@ -677,7 +677,15 @@ class IndexSQL(IndexABC):
         ----------
         pandas.DataFrame containing the manifest data of baskets of the type.
         """
-        if max_rows > 0:
+        if max_rows is None:
+            result, columns = self.execute_sql(
+                f"""SELECT *
+                    FROM {self.pantry_schema}.pantry_index
+                    WHERE basket_type = :basket_type
+                    ORDER BY UUID""",
+                {"basket_type": basket_type},
+            )
+        else:
             result, columns = self.execute_sql(
                 f"""SELECT *
                     FROM {self.pantry_schema}.pantry_index
@@ -687,14 +695,6 @@ class IndexSQL(IndexABC):
                     FETCH FIRST (:max_rows) ROWS ONLY""",
                 {"offset": offset, "max_rows": max_rows,
                  "basket_type": basket_type},
-            )
-        else:
-            result, columns = self.execute_sql(
-                f"""SELECT *
-                    FROM {self.pantry_schema}.pantry_index
-                    WHERE basket_type = :basket_type
-                    ORDER BY UUID""",
-                {"basket_type": basket_type},
             )
         result = [list(row) for row in result]
 
@@ -715,7 +715,7 @@ class IndexSQL(IndexABC):
         ----------
         basket_label: str
             The label to filter for.
-        max_rows: int (default=1000)
+        max_rows: int or None (default=1000)
             Max rows returned in the pandas dataframe. If None, all rows will
             be returned.
         offset: int (default=0)
@@ -727,7 +727,15 @@ class IndexSQL(IndexABC):
         ----------
         pandas.DataFrame containing the manifest data of baskets with the label
         """
-        if max_rows > 0:
+        if max_rows is None:
+            result, columns = self.execute_sql(
+                f"""SELECT *
+                    FROM {self.pantry_schema}.pantry_index
+                    WHERE label = :basket_label
+                    ORDER BY UUID""",
+                {"basket_label": basket_label},
+            )
+        else:
             result, columns = self.execute_sql(
                 f"""SELECT *
                     FROM {self.pantry_schema}.pantry_index
@@ -737,14 +745,6 @@ class IndexSQL(IndexABC):
                     FETCH FIRST (:max_rows) ROWS ONLY""",
                 {"offset": offset, "max_rows": max_rows,
                  "basket_label": basket_label},
-            )
-        else:
-            result, columns = self.execute_sql(
-                f"""SELECT *
-                    FROM {self.pantry_schema}.pantry_index
-                    WHERE label = :basket_label
-                    ORDER BY UUID""",
-                {"basket_label": basket_label},
             )
         result = [list(row) for row in result]
 
@@ -769,7 +769,7 @@ class IndexSQL(IndexABC):
         end_time: datetime.datetime (optional)
             The end datetime object to filter between. If None, will filter
             to the current datetime.
-        max_rows: int (default=1000)
+        max_rows: int or None (default=1000)
             Max rows returned in the pandas dataframe. If None, all rows will
             be returned.
         offset: int (default=0)

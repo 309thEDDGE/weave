@@ -71,7 +71,7 @@ class IndexABC(abc.ABC):
 
         Parameters
         ----------
-        max_rows: int (default=1000)
+        max_rows: int or None (default=1000)
             Max rows returned in the pandas dataframe. If None, all rows will
             be returned.
         offset: int (default=0)
@@ -170,7 +170,7 @@ class IndexABC(abc.ABC):
         ----------
         basket_type: str
             The basket type to filter for.
-        max_rows: int (default=1000)
+        max_rows: int or None (default=1000)
             Max rows returned in the pandas dataframe. If None, all rows will
             be returned.
         offset: int (default=0)
@@ -192,7 +192,7 @@ class IndexABC(abc.ABC):
         ----------
         basket_label: str
             The label to filter for.
-        max_rows: int (default=1000)
+        max_rows: int or None (default=1000)
             Max rows returned in the pandas dataframe. If None, all rows will
             be returned.
         offset: int (default=0)
@@ -219,7 +219,7 @@ class IndexABC(abc.ABC):
         end_time: datetime.datetime (default=None)
             The end datetime object to filter between. If None, will filter
             to the current datetime.
-        max_rows: int (default=1000)
+        max_rows: int or None (default=1000)
             Max rows returned in the pandas dataframe. If None, all rows will
             be returned.
         offset: int (default=0)

@@ -30,7 +30,10 @@ def slice_df(df, max_rows=None, offset=0):
     pandas.DataFrame
         Returns a slice of the dataframe.
     """
-    return df.iloc[offset:offset+max_rows] if max_rows > 0 else df
+    if max_rows is None:
+        return df
+    else:
+        return df.iloc[offset:offset+max_rows]
 
 
 class IndexPandas(IndexABC):
@@ -146,7 +149,7 @@ class IndexPandas(IndexABC):
 
         Parameters
         ----------
-        max_rows: int (default=1000)
+        max_rows: int or None (default=1000)
             Max rows returned in the pandas dataframe. If None, all rows will
             be returned.
         offset: int (default=0)
@@ -528,7 +531,7 @@ class IndexPandas(IndexABC):
         ----------
         basket_type: str
             The basket type to filter for.
-        max_rows: int (default=1000)
+        max_rows: int or None (default=1000)
             Max rows returned in the pandas dataframe. If None, all rows will
             be returned.
         offset: int (default=0)
@@ -555,7 +558,7 @@ class IndexPandas(IndexABC):
         ----------
         basket_label: str
             The label to filter for.
-        max_rows: int (default=1000)
+        max_rows: int or None (default=1000)
             Max rows returned in the pandas dataframe. If None, all rows will
             be returned.
         offset: int (default=0)
@@ -587,7 +590,7 @@ class IndexPandas(IndexABC):
         end_time: datetime.datetime (optional)
             The end datetime object to filter between. If None, will filter
             to the current datetime.
-        max_rows: int (default=1000)
+        max_rows: int or None (default=1000)
             Max rows returned in the pandas dataframe. If None, all rows will
             be returned.
         offset: int (default=0)
