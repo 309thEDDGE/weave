@@ -1,4 +1,4 @@
-"""This class builds the user-facing Index class. It pulls from the _Index 
+"""This class builds the user-facing Index class. It pulls from the _Index
 class which uses Pandas as it's backend to build and interface with the on disk
 Index baskets.
 """
@@ -134,7 +134,6 @@ class Pantry():
 
     def delete_basket(self, basket_address, **kwargs):
         """Deletes basket of given UUID or path.
-
         Note that the given basket will not be deleted if the basket is listed
         as the parent uuid for any of the baskets in the index.
 
@@ -145,8 +144,11 @@ class Pantry():
             directory, or the UUID of the basket.
         **kwargs:
             Additional parameters to pass to the index
-        """
 
+        Appended OPAL-455 5/2024:
+                Removes a document in mongo from the supplement, metadata,
+           and manifest collections
+        """
         basket_address = str(basket_address)
         remove_item = self.index.get_rows(basket_address)
 
@@ -156,6 +158,8 @@ class Pantry():
                 "is listed as a parent UUID for another basket. Please " +
                 "delete that basket before deleting its parent basket."
             )
+
+        MongoDB.remove_document(remove_item.iloc[0].uuid)
 
         self.validate_path_in_pantry(remove_item.iloc[0].address)
         self.index.untrack_basket(remove_item.iloc[0].address, **kwargs)
@@ -188,6 +192,10 @@ class Pantry():
             and stored in the basket in upload file_system.
         **label: str (optional)
             Optional user friendly label associated with the basket.
+
+         Appended OPAL-455 5/2024:
+                Append a document to mongo in the supplement, metadata,
+           and manifest collections
         """
         # Check if file system is read-only. If so, raise error.
         if self.is_read_only:
@@ -212,6 +220,8 @@ class Pantry():
 
         single_indice_index = create_index_from_fs(up_dir, self.file_system)
         self.index.track_basket(single_indice_index)
+        MongoDB.append_document(single_indice_index, self.file_system)
+
         return single_indice_index
 
     def get_basket(self, basket_address):

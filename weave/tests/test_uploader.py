@@ -7,10 +7,11 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import patch
-
+from importlib import resources
 import pytest
 import s3fs
 from fsspec.implementations.local import LocalFileSystem
+import test_data
 
 import weave
 from weave import Pantry, IndexPandas, IndexSQLite
@@ -21,6 +22,7 @@ from weave.upload import (
     derive_integrity_data,
     validate_upload_item,
 )
+from weave.config import get_mongo_db
 
 # This module is long and has many tests. Pylint is complaining that it is too
 # long. This isn't necessarily bad in this case, as the alternative
@@ -909,6 +911,7 @@ def test_upload_basket_parent_ids_list_str(test_basket):
 
     # Create a temporary basket with a test file.
     tmp_basket_dir_name = "test_basket_tmp_dir"
+    #tmp_basket_dir = test_basket.set_up_basket(tmtest_basketp_basket_dir_name)
     tmp_basket_dir = test_basket.set_up_basket(tmp_basket_dir_name)
 
     upload_items = [
@@ -1058,7 +1061,7 @@ def test_upload_basket_label_is_string(test_basket):
 
 
 def test_upload_basket_no_metadata(test_basket):
-    """Test that no metadata is created if no metadata is passed to 
+    """Test that no metadata is created if no metadata is passed to
     upload_pantry.
     """
 
@@ -1453,3 +1456,50 @@ def test_upload_from_s3fs(test_basket):
         s3.rm(minio_path,recursive=True)
     if local_fs.exists(pantry_2.index.db_path):
         local_fs.rm(pantry_2.index.db_path)
+
+def test_upload_basket_mongo(test_basket):
+    """
+    Testing pantry.upload_basket(), expected to update the collections in mongodb
+    """
+    ch10_path = str(resources.files(test_data) / "652200104150842.ch10")
+    fs = test_basket.file_system
+    pantry_path = test_basket.pantry_path
+
+    pantry = Pantry(IndexPandas,pantry_path=pantry_path,file_system=fs)
+    uuid = pantry.upload_basket(upload_items=[{'path':ch10_path, 'stub':False}],
+            basket_type="test-1", metadata = {'Data Type':'ch10'}).values.tolist()[0][0]
+
+    collections = ("test_supplement", "test_metadata", "test_manifest")
+    mongo_client = get_mongo_db()
+    mongo_db = mongo_client["test_mongo_db"]
+    query = {'uuid': uuid}
+
+    for e in collections:
+        assert(uuid == mongo_db[e].find_one(query,{'_id':0,'uuid':1})['uuid'])
+        mongo_db[e].delete_one(query)
+
+def test_delete_basket_mongo(test_basket):
+    """
+    Testing pantry.delete_basket(), expected to update the collections in mongodb
+    """
+    file_name = "652200104150842.ch10"
+    ch10_path = str(resources.files(test_data) / file_name)
+    fs = test_basket.file_system
+    pantry_path = test_basket.pantry_path
+
+    pantry = Pantry(IndexPandas,pantry_path=pantry_path,file_system=fs)
+
+    uuid = pantry.upload_basket(upload_items=[{'path':ch10_path, 'stub':False}],
+            basket_type="test-1", metadata = {'Data Type':'ch10'}).values.tolist()[0][0]
+
+    pantry.delete_basket(uuid)
+
+    mongo_client = get_mongo_db()
+    collections = ("test_supplement", "test_metadata", "test_manifest")
+    mongo_db = mongo_client["test_mongo_db"]
+    query = {'uuid': uuid}
+
+    for e in collections:
+        assert (mongo_db[e].find_one(query) is None)
+
+

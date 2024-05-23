@@ -1,5 +1,6 @@
 """Contains scripts concerning MongoDB functionality."""
 
+import sys
 import pandas as pd
 # Try-Except required to make pymongo an optional dependency.
 
@@ -21,6 +22,7 @@ else:
 
 from .basket import Basket
 from .config import get_file_system, get_mongo_db
+from .index.index_abc import IndexABC
 
 class MongoDB():
     """Initializes mongo class. Creates a Mongo DB and facilitates the
@@ -192,3 +194,57 @@ class MongoDB():
         self.load_mongo_metadata(collection=metadata_collection)
         self.load_mongo_manifest(collection=manifest_collection)
         self.load_mongo_supplement(collection=supplement_collection)
+
+
+    @staticmethod
+    def remove_document (uuid : str):
+        """git
+        Delete a document using the uuid in the supplement,
+        manifest, and metadata collections.
+
+         Parameters
+        ----------
+        **uuid: str
+            "uuid" will be used to locate and remove the document from MongoDB
+             in the supplement, manifest, and metadat collections.
+        """
+
+        if "pytest" in sys.modules:
+            collections = ("test_supplement", "test_metadata", "test_manifest")
+            mongodb_name = "test_mongo_db"
+        else:
+            collections = ("supplement", "metadata", "manifest")
+            mongodb_name = "mongo_metadata"
+
+        mongo_client = get_mongo_db()
+        query = {'uuid': uuid}
+
+        for e in collections:
+            mongo_client[mongodb_name][e].delete_one(query)
+
+
+    @staticmethod
+    def append_document (index : IndexABC, file_system):
+        """
+        Append a document using an Index in the supplement, manifest, and metadata collections
+
+          Parameters
+        ----------
+        **index: IndexABC
+                Index will be used to append a document to MongoDB in the
+                supplement, manifest, and metadata collections.
+        **file_system : str
+                The file system that the pantry is stored.
+        """
+        if "pytest" in sys.modules:
+            collections = ("test_supplement", "test_metadata", "test_manifest")
+            mongodb_name = "test_mongo_db"
+        else:
+            collections = ("supplement", "metadata", "manifest")
+            mongodb_name = "mongo_metadata"
+
+        mongo_db = MongoDB(index_table=index,
+                            database=mongodb_name,file_system=file_system)
+
+        mongo_db.load_mongo(metadata_collection=collections[1], manifest_collection=collections[2],
+                            supplement_collection=collections[0])
