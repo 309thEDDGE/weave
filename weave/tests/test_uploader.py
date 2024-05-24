@@ -23,7 +23,7 @@ from weave.upload import (
     validate_upload_item,
 )
 from weave.config import get_mongo_db
-from pymongo import MongoClient
+from pymongo # noqa: F401
 # This module is long and has many tests. Pylint is complaining that it is too
 # long. This isn't necessarily bad in this case, as the alternative
 # would be to write the tests continuuing in a different script, which would
@@ -1468,7 +1468,8 @@ def test_upload_basket_mongo(test_basket):
     pantry_path = test_basket.pantry_path
 
     pantry = Pantry(IndexPandas,pantry_path=pantry_path,file_system=fs)
-    uuid = pantry.upload_basket(upload_items=[{'path':ch10_path,
+    uuid = pantry.upload_basket(
+                                upload_items=[{'path':ch10_path,
                                 'stub':False}], basket_type="test-1",
                                 metadata = {'Data Type':'ch10'}
                                ).values.tolist()[0][0]
