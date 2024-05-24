@@ -246,7 +246,6 @@ class MongoDB():
 
         mongo_db = MongoDB(index_table=index,
                             database=mongodb_name,file_system=file_system)
-
         mongo_db.load_mongo(metadata_collection=collections[1],
                             manifest_collection=collections[2],
                             supplement_collection=collections[0])

@@ -1503,7 +1503,6 @@ def test_delete_basket_mongo(test_basket):
                                ).values.tolist()[0][0]
 
     pantry.delete_basket(uuid)
-
     mongo_client = get_mongo_db()
     collections = ("test_supplement", "test_metadata", "test_manifest")
     mongo_db = mongo_client["test_mongo_db"]
