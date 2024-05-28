@@ -6,6 +6,7 @@ import re
 import tempfile
 import shutil
 from pathlib import Path
+import sys
 
 import pytest
 import s3fs

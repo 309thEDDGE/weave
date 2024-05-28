@@ -1,5 +1,6 @@
 """Pytest tests for the sqlite index."""
 import os
+import sys
 
 import pytest
 

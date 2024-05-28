@@ -8,6 +8,7 @@ import uuid as uuid_lib
 import warnings
 from pathlib import Path
 from unittest.mock import patch
+import sys
 
 import pandas as pd
 import pytest
