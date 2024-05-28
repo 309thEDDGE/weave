@@ -120,7 +120,7 @@ jobs:
     if: github.ref != 'refs/heads/main'
     steps:
     - uses: actions/checkout@v3
-      with: 
+      with:
         ref: 'main'
     - name: Main Version
       run: echo "MAIN_VERSION=$(python setup.py --version)" >> $GITHUB_ENV
