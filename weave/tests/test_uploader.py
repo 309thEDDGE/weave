@@ -1356,7 +1356,11 @@ def test_upload_correct_version_number(test_basket):
 
     assert manifest_dict["weave_version"] == weave.__version__
 
-
+# Skip tests if pymongo is not installed.
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+    reason="Pymongo required for this test",
+)
 def test_upload_metadata_only_basket(test_basket):
     """Try to upload a valid metadata-only basket
     """

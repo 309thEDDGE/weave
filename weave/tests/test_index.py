@@ -1786,7 +1786,11 @@ def test_index_abc_columns_in_df_are_same_as_config_index_columns(test_pantry):
 
     assert ind_df_columns == index_columns
 
-
+# Skip tests if pymongo is not installed.
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+    reason="Pymongo required for this test",
+)
 def test_read_only_generate_index(test_pantry):
     """Show that weave is able to generate an index when using a read-only fs
     """

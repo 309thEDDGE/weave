@@ -103,7 +103,11 @@ def test_index_two_pantries_with_same_name(test_pantry):
     os.remove(pantry_1.index.db_path)
     os.remove(pantry_2.index.db_path)
 
-
+# Skip tests if pymongo is not installed.
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+    reason="Pymongo required for this test",
+)
 def test_index_uploaded_basket_not_found_in_another_index(test_pantry):
     """Validate that a basket uploaded to one pantry does not show up in
     another pantry.

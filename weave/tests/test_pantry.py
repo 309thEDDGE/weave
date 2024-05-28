@@ -278,7 +278,11 @@ def test_pantry_fails_with_bad_path(test_pantry):
                 file_system=test_pantry.file_system
             )
 
-
+# Skip tests if pymongo is not installed.
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+    reason="Pymongo required for this test",
+)
 def test_delete_basket_stays_in_pantry(test_pantry):
     """Tests the pantry does not delete baskets outside of itself."""
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
@@ -311,6 +315,11 @@ def test_delete_basket_stays_in_pantry(test_pantry):
     with pytest.raises(ValueError, match=re.escape(error_msg)):
         pantry.delete_basket(index.iloc[0].address)
 
+# Skip tests if pymongo is not installed.
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+    reason="Pymongo required for this test",
+)
 def test_delete_basket_deletes_basket(test_pantry):
     """Tests Pantry.delete_basket to make sure it does, in fact, delete the
     basket.
@@ -375,7 +384,11 @@ def test_pantry_delete_basket_with_parents(test_pantry):
     with pytest.raises(ValueError, match=re.escape(error_msg)):
         pantry.delete_basket(basket_address="0001")
 
-
+# Skip tests if pymongo is not installed.
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+    reason="Pymongo required for this test",
+)
 def test_upload_basket_updates_the_pantry(test_pantry):
     """In this test the pantry already exists with one basket inside of it.
     This test will add another basket using Pantry.upload_basket, and then
@@ -606,7 +619,11 @@ def test_pantry_get_metadata_existing_data(test_pantry):
     assert pantry2.metadata['test'] == 'test'
     assert pantry2.index.metadata['test'] == 'test'
 
-
+# Skip tests if pymongo is not installed.
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+    reason="Pymongo required for this test",
+)
 def test_upload_basket_works_on_empty_basket(test_pantry):
     """In this test the Pantry object will upload a basket to a pantry that
     does not have any baskets yet. This test will make sure that this
@@ -711,7 +728,11 @@ def test_validate_path_does_not_backtrack_from_pantry_path(tmpdir):
     with pytest.raises(ValueError, match=re.escape(error_msg)):
         pantry.validate_path_in_pantry(new_address)
 
-
+# Skip tests if pymongo is not installed.
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+    reason="Pymongo required for this test",
+)
 def test_upload_basket_read_only():
     """Instantiate a .zip file as a file system in a tmp directory, check that
     an error is thrown when trying to upload a basket.

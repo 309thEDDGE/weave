@@ -701,7 +701,11 @@ def test_basket_time_is_utc(test_pantry):
     match_iso8601 = re.compile(regex).match
     assert match_iso8601(str(manifest_dict['upload_time'])) is not None
 
-
+# Skip tests if pymongo is not installed.
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+    reason="Pymongo required for this test",
+)
 def test_read_only_get_data():
     """Make a read-only pantry, retrieve a basket, and check that you can read
     the data
