@@ -104,8 +104,7 @@ def test_load_mongo_from_metadata_db(set_up):
         item.pop("_id")
         compared_data.append(item)
 
-    for e in truth_db:
-        assert e in compared_data
+    assert e in compared_data
 
 
 @pytest.mark.skipif(
