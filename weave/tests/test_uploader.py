@@ -25,7 +25,7 @@ from weave.upload import (
 )
 from weave.config import get_mongo_db
 
-if "pymongo" in sys.module:
+if "pymongo" in sys.modules:
     import pymongo #noqa: F401
 # This module is long and has many tests. Pylint is complaining that it is too
 # long. This isn't necessarily bad in this case, as the alternative
