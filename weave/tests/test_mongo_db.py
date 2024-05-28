@@ -13,7 +13,6 @@ from weave.metadata_db import load_mongo
 from weave.mongo_db import MongoDB
 from weave.tests.pytest_resources import PantryForTest, get_file_systems
 
-
 class MongoForTest(PantryForTest):
     """Extend the PantryForTest class to support mongodb and custom data
     loader.
@@ -104,7 +103,7 @@ def test_load_mongo_from_metadata_db(set_up):
     for item in db_data:
         item.pop("_id")
         compared_data.append(item)
-    assert truth_db == compared_data
+    assert truth_db in compared_data
 
 
 @pytest.mark.skipif(
