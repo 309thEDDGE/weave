@@ -26,7 +26,7 @@ from weave.upload import (
 from weave.config import get_mongo_db
 
 if "pymongo" in sys.modules:
-    import pymongo #noqa: F401
+    import pymongo #noqa: F401 # pylint: disable=unused-import
 # This module is long and has many tests. Pylint is complaining that it is too
 # long. This isn't necessarily bad in this case, as the alternative
 # would be to write the tests continuuing in a different script, which would
