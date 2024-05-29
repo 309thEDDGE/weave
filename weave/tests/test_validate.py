@@ -368,6 +368,8 @@ def test_validate_manifest_schema_missing_field(test_validate):
     with test_validate.file_system.open(supplement_path, "rb",) as file:
         supplement_dict = json.load(file)
 
+    nested_supp_path = None
+    test_txt_path = None
     for integrity_data in supplement_dict["integrity_data"]:
         if integrity_data["upload_path"].endswith("basket_supplement.json"):
             nested_supp_path = integrity_data["upload_path"]
@@ -454,6 +456,8 @@ def test_validate_manifest_schema_additional_field(test_validate):
     with test_validate.file_system.open(supplement_path, "rb",) as file:
         supplement_dict = json.load(file)
 
+    nested_supp_path = None
+    test_txt_path = None
     for integrity_data in supplement_dict["integrity_data"]:
         if integrity_data["upload_path"].endswith("basket_supplement.json"):
             nested_supp_path = integrity_data["upload_path"]
@@ -1065,6 +1069,8 @@ def test_validate_invalid_metadata_json(test_validate):
     with test_validate.file_system.open(supplement_path, "rb",) as file:
         supplement_dict = json.load(file)
 
+    nested_supp_path = None
+    test_txt_path = None
     for integrity_data in supplement_dict["integrity_data"]:
         if integrity_data["upload_path"].endswith("basket_supplement.json"):
             nested_supp_path = integrity_data["upload_path"]
