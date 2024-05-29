@@ -1,5 +1,6 @@
 """Pytests for the uploader functionality."""
 
+import sys
 import json
 import os
 import time
@@ -12,7 +13,6 @@ import pytest
 import s3fs
 from fsspec.implementations.local import LocalFileSystem
 import test_data
-import sys
 
 import weave
 from weave import Pantry, IndexPandas, IndexSQLite
