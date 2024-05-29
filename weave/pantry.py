@@ -11,7 +11,7 @@ import s3fs
 
 from .mongo_db import MongoDB
 from .basket import Basket
-from .config import get_file_system
+from .config import get_file_system, get_mongo_db
 from .index.create_index import create_index_from_fs
 from .index.index_abc import IndexABC
 from .upload import UploadBasket, derive_integrity_data
@@ -159,7 +159,7 @@ class Pantry():
                 "delete that basket before deleting its parent basket."
             )
 
-        MongoDB.remove_document(remove_item.iloc[0].uuid)
+        Pantry.remove_document(remove_item.iloc[0].uuid)
 
         self.validate_path_in_pantry(remove_item.iloc[0].address)
         self.index.untrack_basket(remove_item.iloc[0].address, **kwargs)
@@ -220,7 +220,7 @@ class Pantry():
 
         single_indice_index = create_index_from_fs(up_dir, self.file_system)
         self.index.track_basket(single_indice_index)
-        MongoDB.append_document(single_indice_index, self.file_system)
+        Pantry.append_document(single_indice_index, self)
 
         return single_indice_index
 
@@ -289,3 +289,56 @@ class Pantry():
         )]
 
         return uuids
+
+    @staticmethod
+    def append_document (index : IndexABC, pantry : 'Pantry'):
+        """
+        Append a document using an Index in the supplement, manifest,
+        and metadata collections
+
+          Parameters
+        ----------
+        **index: IndexABC
+                Index will be used to append a document to MongoDB in the
+                supplement, manifest, and metadata collections.
+        **pantry : Pantry
+                The Pantry of interest.
+        """
+        if "pytest" in sys.modules:
+            collections = ("test_supplement", "test_metadata", "test_manifest")
+            mongodb_name = "test_mongo_db"
+        else:
+            collections = ("supplement", "metadata", "manifest")
+            mongodb_name = "mongo_metadata"
+
+        mongo_db = MongoDB(index_table=index,
+                            database=mongodb_name,file_system=pantry.file_system)
+        mongo_db.load_mongo(metadata_collection=collections[1],
+                            manifest_collection=collections[2],
+                            supplement_collection=collections[0])
+
+    @staticmethod
+    def remove_document (uuid : str):
+        """
+        Delete a document using the uuid in the supplement,
+        manifest, and metadata collections.
+
+         Parameters
+        ----------
+        **uuid: str
+            "uuid" will be used to locate and remove the document from MongoDB
+             in the supplement, manifest, and metadat collections.
+        """
+
+        if "pytest" in sys.modules:
+            collections = ("test_supplement", "test_metadata", "test_manifest")
+            mongodb_name = "test_mongo_db"
+        else:
+            collections = ("supplement", "metadata", "manifest")
+            mongodb_name = "mongo_metadata"
+
+        mongo_client = get_mongo_db()
+        query = {'uuid': uuid}
+
+        for e in collections:
+            mongo_client[mongodb_name][e].delete_one(query)

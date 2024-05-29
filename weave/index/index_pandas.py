@@ -309,6 +309,7 @@ class IndexPandas(IndexABC):
         if gen_level > max_gen_level:
             return data
 
+        current_uuid = None
         if self.file_system.exists(basket_address):
             current_uuid = self.index_df["uuid"].loc[
                 self.index_df["address"].str.endswith(basket_address)
@@ -405,7 +406,7 @@ class IndexPandas(IndexABC):
         # to return our data
         if gen_level < min_gen_level:
             return data
-
+        current_uuid = None
         if self.file_system.exists(basket_address):
             current_uuid = self.index_df["uuid"].loc[
                 self.index_df["address"].str.endswith(basket_address)
