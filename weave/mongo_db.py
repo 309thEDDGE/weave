@@ -27,7 +27,7 @@ class MongoDB():
     uploading of files to mongo collections.
     """
 
-    def __init__(self, index_table, database="mongo_db", **kwargs):
+    def __init__(self, index_table, database_name, **kwargs):
         """Creates the mongo database and checks for any errors that could
         occur when creating the database.
 
@@ -39,14 +39,13 @@ class MongoDB():
                 uuid
                 basket_type
                 address
-        database: str (default=mongo_db)
-            The name of the database you want to upload to. The default name
-            of the database is mongo_db
+        database_name: str
+            The database name to reference. Should be the pantry_path in most cases.
         **file_system: fsspec object (optional)
             The file system to retrieve the baskets' metadata from.
         """
         self.index_table = index_table
-        self.database = get_mongo_db()[database]
+        self.database = get_mongo_db()[database_name]
         if not _HAS_PYMONGO:
             raise ImportError("Missing Dependency. The package 'pymongo' "
                               "is required to use this function")

@@ -25,17 +25,17 @@ def load_mongo(index_table, collection="metadata", **kwargs):
         Metadata will be added to the Mongo collection specified.
     **file_system: fsspec object (required)
         The file system to retrieve the baskets' metadata from.
-    **database: str (default="mongo_metadata")
+    **database_name: str (default="weave")
     """
     file_system = kwargs.get("file_system", None)
     if file_system is None:
         file_system = get_file_system()
 
-    database = kwargs.get("database", "mongo_metadata")
+    database = kwargs.get("database_name", "weave")
 
     mongo = MongoDB(
         index_table=index_table,
-        database=database,
+        database_name=database_name,
         file_system=file_system
     )
 

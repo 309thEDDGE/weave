@@ -258,22 +258,14 @@ class Pantry():
 
         load_mongo = kwargs.get('load_mongo', False)
 
-        # If running pytest, point to the correct mongo database
-        if "pytest" in sys.modules:
-            mongo = MongoDB(index_table=self.index.to_pandas_df(),
-                            database="test_mongo_db",
-                            file_system=self.file_system)
-            if load_mongo:
-                mongo.load_mongo_supplement(collection='test_supplement')
-            db = mongo.database['test_supplement']
-        else:
-            mongo = MongoDB(index_table=self.index.to_pandas_df(),
-                            file_system=self.file_system)
-            if load_mongo:
-                mongo.load_mongo_supplement()
-            db = mongo.database['supplement']
+        mongo = MongoDB(index_table=self.index.to_pandas_df(),
+                        database_name=self.pantry_path,
+                        file_system=self.file_system)
+        if load_mongo:
+            mongo.load_mongo_supplement()
+        supplement_collection = mongo.database['supplement']
 
-        uuids = [f['uuid'] for f in db.find(
+        uuids = [f['uuid'] for f in supplement_collection.find(
             {'integrity_data.hash': {'$in': [integrity_data]}},
             {'uuid':1, '_id':0}
         )]

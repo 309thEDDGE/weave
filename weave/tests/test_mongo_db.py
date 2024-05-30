@@ -21,11 +21,11 @@ class MongoForTest(PantryForTest):
 
     def __init__(self, tmpdir, file_system):
         super().__init__(tmpdir, file_system)
-        self.database = "test_mongo_db"
+        self.database_name = "test_mongo_db"
         self.metadata_collection = "test_metadata"
         self.manifest_collection = "test_manifest"
         self.supplement_collection = "test_supplement"
-        self.mongodb = weave.config.get_mongo_db()[self.database]
+        self.mongodb = weave.config.get_mongo_db()[self.database_name]
         self.load_data()
 
     def load_data(self):
@@ -51,7 +51,6 @@ class MongoForTest(PantryForTest):
         self.cleanup_pantry()
         for collection in self.mongodb.list_collection_names():
             self.mongodb[collection].drop()
-        # self.mongodb[self.col].drop()
 
 
 # Create fsspec objects to be tested, and add to file_systems list.
@@ -90,7 +89,7 @@ def test_load_mongo_from_metadata_db(set_up):
     load_mongo(
         index_table,
         set_up.metadata_collection,
-        database=set_up.database,
+        database_name=set_up.database_name,
         file_system=set_up.file_system
     )
 
@@ -120,7 +119,7 @@ def test_load_mongo_metadata(set_up):
     )
     mongo_instance = MongoDB(
         index_table=index_table,
-        database=set_up.database,
+        database_name=set_up.database_name,
         file_system=set_up.file_system
     )
     mongo_instance.load_mongo_metadata(set_up.metadata_collection)
@@ -151,7 +150,7 @@ def test_load_mongo_manifest(set_up):
     )
     mongo_instance = MongoDB(
         index_table=index_table,
-        database=set_up.database,
+        database_name=set_up.database_name,
         file_system=set_up.file_system
     )
     mongo_instance.load_mongo_manifest(set_up.manifest_collection)
@@ -187,7 +186,7 @@ def test_load_mongo_supplement(set_up):
     )
     mongo_instance = MongoDB(
         index_table=index_table,
-        database=set_up.database,
+        database_name=set_up.database_name,
         file_system=set_up.file_system
     )
     mongo_instance.load_mongo_supplement(set_up.supplement_collection)
@@ -220,7 +219,7 @@ def test_load_mongo(set_up):
     )
     mongo_instance = MongoDB(
         index_table=index_table,
-        database=set_up.database,
+        database_name=set_up.database_name,
         file_system=set_up.file_system
     )
     mongo_instance.load_mongo(
@@ -286,7 +285,7 @@ def test_mongodb_check_for_dataframe(set_up):
     ):
         MongoDB(
             index_table="",
-            database=set_up.database,
+            database_name=set_up.database_name,
             file_system=set_up.file_system
         )
 
@@ -308,7 +307,7 @@ def test_load_mongo_metadata_check_collection_for_string(set_up):
                 {"uuid": ["1234"], "basket_type": ["type"],
                  "address": ["path"]}
             ),
-            database=set_up.database,
+            database_name=set_up.database_name,
             file_system=set_up.file_system
         )
         mongo_instance.load_mongo_metadata(collection=1)
@@ -328,7 +327,7 @@ def test_mongodb_check_dataframe_for_uuid(set_up):
             index_table=pd.DataFrame(
                 {"basket_type": ["type"], "address": ["path"]}
             ),
-            database=set_up.database,
+            database_name=set_up.database_name,
             file_system=set_up.file_system
         )
 
@@ -346,7 +345,7 @@ def test_mongodb_check_dataframe_for_address(set_up):
             index_table=pd.DataFrame(
                 {"uuid": ["1234"], "basket_type": ["type"]}
             ),
-            database=set_up.database,
+            database_name=set_up.database_name,
             file_system=set_up.file_system
         )
 
@@ -362,7 +361,7 @@ def test_mongodb_check_dataframe_for_basket_type(set_up):
     ):
         MongoDB(
             index_table=pd.DataFrame({"uuid": ["1234"], "address": ["path"]}),
-            database=set_up.database,
+            database_name=set_up.database_name,
             file_system=set_up.file_system,
         )
 
@@ -382,7 +381,7 @@ def test_load_mongo_metadata_check_for_duplicate_uuid(set_up):
     )
     mongo_instance = MongoDB(
         index_table=index_table,
-        database=set_up.database,
+        database_name=set_up.database_name,
         file_system=set_up.file_system
     )
     mongo_instance.load_mongo_metadata(set_up.metadata_collection)
@@ -409,7 +408,7 @@ def test_load_mongo_manifest_check_for_duplicate_uuid(set_up):
     )
     mongo_instance = MongoDB(
         index_table=index_table,
-        database=set_up.database,
+        database_name=set_up.database_name,
         file_system=set_up.file_system
     )
     mongo_instance.load_mongo_manifest(set_up.manifest_collection)
@@ -437,7 +436,7 @@ def test_load_mongo_supplement_check_for_duplicate_uuid(set_up):
     )
     mongo_instance = MongoDB(
         index_table=index_table,
-        database=set_up.database,
+        database_name=set_up.database_name,
         file_system=set_up.file_system
     )
     mongo_instance.load_mongo_supplement(set_up.supplement_collection)
@@ -476,7 +475,7 @@ def test_check_file_already_exists(set_up):
         )
         mongo_instance = MongoDB(
             index_table=index_table,
-            database=set_up.database,
+            database_name=set_up.database_name,
             file_system=set_up.file_system
         )
         mongo_instance.load_mongo_supplement(set_up.supplement_collection)
@@ -484,3 +483,50 @@ def test_check_file_already_exists(set_up):
 
     assert len(uuids) == 1
     assert uuids[0] == 'file_already_exists_uuid'
+
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+    reason="Pymongo required for this test",
+)
+def test_check_pantries_have_discrete_mongodbs(set_up):
+
+    pantry1_name = (
+        "pytest-temp-pantry"
+        f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
+        "-test1"
+    )
+    pantry1 = Pantry(
+        IndexPandas,
+        pantry_path=pantry1_name,
+        file_system=set_up.file_system,
+    )
+
+    p1_mongo = MongoDB(
+        index_table=pd.DataFrame(
+            {"uuid": ["1234"], "basket_type": ["type"]}
+        ),
+        database_name=pantry1.pantry_path,
+        file_system=set_up.file_system
+    )
+
+    pantry2_name = (
+        "pytest-temp-pantry"
+        f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
+        "-test2"
+    )
+    pantry2 = Pantry(
+        IndexPandas,
+        pantry_path=pantry2_name,
+        file_system=set_up.file_system,
+    )
+
+    p2_mongo = MongoDB(
+        index_table=pd.DataFrame(
+            {"uuid": ["4321"], "basket_type": ["type"]}
+        ),
+        database_name=pantry2.pantry_path,
+        file_system=set_up.file_system
+    )
+    
+    for collection in self.mongodb.list_collection_names():
+            self.mongodb[collection].drop()
