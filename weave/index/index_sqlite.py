@@ -563,6 +563,7 @@ class IndexSQLite(IndexABC):
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
         )
 
+        results = None
         if start_time and end_time:
             start_time = int(datetime.timestamp(start_time))
             end_time = int(datetime.timestamp(end_time))
