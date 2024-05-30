@@ -4,19 +4,19 @@ import json
 import os
 import sys
 import time
+import uuid
+
+from datetime import datetime
 from importlib import resources
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 import s3fs
-import uuid
-
-from datetime import datetime
 import test_data
-from fsspec.implementations.local import LocalFileSystem
-
 import weave
+
+from fsspec.implementations.local import LocalFileSystem
 from weave import Pantry,IndexPandas, IndexSQLite
 from weave.tests.pytest_resources import PantryForTest, file_path_in_list
 from weave.tests.pytest_resources import get_file_systems
