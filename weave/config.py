@@ -136,7 +136,8 @@ class MongoNames(Enum):
     """
         Holds collections and database names in mongo database
     """
-    PYTEST_COLLECTIONS_NAMES = ("test_supplement", "test_metadata", "test_manifest")
+    PYTEST_COLLECTIONS_NAMES = ("test_supplement",
+                                "test_metadata", "test_manifest")
     COLLECTIONS_NAMES = ("supplement", "metadata", "manifest")
     PYTEST_DATABASE = "test_mongo_db"
     DATABASE = "mongo_db"

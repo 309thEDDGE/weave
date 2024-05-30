@@ -1464,10 +1464,10 @@ def test_upload_from_s3fs(test_basket):
         local_fs.rm(pantry_2.index.db_path)
 
 # Skip tests if pymongo is not installed.
-# @pytest.mark.skipif(
-#     "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-#     reason="Pymongo required for this test",
-# )
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+    reason="Pymongo required for this test",
+)
 def test_upload_basket_mongo(test_basket):
     """
     Testing pantry.upload_basket(), expected
@@ -1496,10 +1496,10 @@ def test_upload_basket_mongo(test_basket):
         mongo_db[e].delete_one(query)
 
 # Skip tests if pymongo is not installed.
-# @pytest.mark.skipif(
-#     "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-#     reason="Pymongo required for this test",
-# )
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+    reason="Pymongo required for this test",
+)
 def test_delete_basket_mongo(test_basket):
     """
     Testing pantry.delete_basket(), expected to update
