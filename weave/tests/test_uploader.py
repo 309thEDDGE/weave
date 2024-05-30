@@ -1474,17 +1474,17 @@ def test_upload_basket_mongo(test_basket):
     Testing pantry.upload_basket(), expected
     to update the collections in mongodb
     """
-    ch10_path = str(resources.files(test_data) /
-                    "652200104150842.ch10")
+    file_path = str(resources.files(test_data) /
+                    "testfile")
     fs = test_basket.file_system
     pantry_path = test_basket.pantry_path
 
     pantry = Pantry(IndexPandas,pantry_path=pantry_path,file_system=fs)
 
     uuid = pantry.upload_basket(
-                                upload_items=[{'path':ch10_path,
+                                upload_items=[{'path':file_path,
                                 'stub':False}], basket_type="test-1",
-                                metadata = {'Data Type':'ch10'}
+                                metadata = {'Data Type':'text'}
                                ).values.tolist()[0][0]
 
     collections = ("test_supplement", "test_metadata", "test_manifest")
@@ -1506,8 +1506,8 @@ def test_delete_basket_mongo(test_basket):
     Testing pantry.delete_basket(), expected to update
     the collections in mongodb
     """
-    file_name = "652200104150842.ch10"
-    ch10_path = str(resources.files(test_data) / file_name)
+    file_name = "testfile"
+    file_path = str(resources.files(test_data) / file_name)
     fs = test_basket.file_system
     pantry_path = test_basket.pantry_path
 
@@ -1516,9 +1516,9 @@ def test_delete_basket_mongo(test_basket):
                     file_system=fs)
 
     uuid = pantry.upload_basket(
-                    upload_items=[{'path':ch10_path,
+                    upload_items=[{'path':file_path,
                                'stub':False}], basket_type="test-1",
-                                metadata = {'Data Type':'ch10'}
+                                metadata = {'Data Type':'text'}
                                ).values.tolist()[0][0]
 
     pantry.delete_basket(uuid)
