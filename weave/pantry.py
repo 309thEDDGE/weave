@@ -133,9 +133,10 @@ class Pantry():
 
     def delete_basket(self, basket_address, **kwargs):
         """Deletes basket of given UUID or path.
-        Note that the given basket will not be deleted if the basket is listed
-        as the parent uuid for any of the baskets in the index. Removes a document
-        in mongo from the supplement, metadata, and manifest collections
+        Note that the given basket will not be deleted if the basket
+        is listed as the parent uuid for any of the baskets in the index.
+        Removes a document in mongo from the supplement, metadata,
+        and manifest collections
 
         Parameters:
         -----------
