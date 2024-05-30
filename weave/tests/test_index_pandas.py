@@ -234,12 +234,14 @@ def test_index_updated_after_new_pantry_basket_upload(test_pantry):
         file_system=test_pantry.file_system,
         sync=True,
     )
-    # Create temp file for uploading basket
-    with tempfile.NamedTemporaryFile() as tf:
-        print()
-        pantry.upload_basket(upload_items=[{'path':tf.name, 'stub':False}],
-                             basket_type="test-1")
-
+    # Create temp directory for uploading basket
+    with tempfile.TemporaryDirectory(dir=".") as tmpdir:
+        tmp_file_path = os.path.join(tmpdir, "temp_basket.txt")
+        with open(tmp_file_path, "w", encoding="utf-8") as tmp_file:
+            _ = pantry.upload_basket(
+                upload_items=[{"path":tmp_file.name, "stub":False}],
+                basket_type="test-1",
+            )["uuid"][0]
     # Create second index
     pantry2 = Pantry(
         IndexPandas,
@@ -247,9 +249,12 @@ def test_index_updated_after_new_pantry_basket_upload(test_pantry):
         file_system=test_pantry.file_system,
         sync=True,
     )
-    # Create temp file and upload another basket
-    with tempfile.NamedTemporaryFile() as tf:
-        print()
-        pantry2.upload_basket(upload_items=[{'path':tf.name, 'stub':False}],
-                             basket_type="test-1")
+    # Upload basket with new index
+    with tempfile.TemporaryDirectory(dir=".") as tmpdir:
+        tmp_file_path = os.path.join(tmpdir, "temp_basket.txt")
+        with open(tmp_file_path, "w", encoding="utf-8") as tmp_file:
+            _ = pantry2.upload_basket(
+                upload_items=[{"path":tmp_file.name, "stub":False}],
+                basket_type="test-1",
+            )["uuid"][0]
     assert len(pantry2.index.to_pandas_df()) == 2

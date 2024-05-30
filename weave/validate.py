@@ -318,6 +318,9 @@ def _check_metadata_only(files_in_basket, pantry):
     pantry: weave.Pantry
         Pantry object representing the pantry to validate.
     """
+    meta_data = None
+    supp_data = None
+    man_data = None
     for file in files_in_basket:
         if file.endswith("basket_manifest.json"):
             man_data = json.load(pantry.file_system.open(file))
@@ -332,9 +335,6 @@ def _check_metadata_only(files_in_basket, pantry):
     # 1. metadata is not empty
     # 2. Basket has parent_uuids
     # 3. No files were uploaded (this is checked twice)
-    meta_data = None
-    supp_data = None
-    man_data = None
     if not (meta_data and
             not supp_data["integrity_data"] and
             man_data["parent_uuids"]):
