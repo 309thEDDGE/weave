@@ -1,6 +1,5 @@
 """Contains scripts concerning MongoDB functionality."""
 
-import sys
 import pandas as pd
 # Try-Except required to make pymongo an optional dependency.
 
@@ -21,7 +20,7 @@ else:
     _HAS_PYMONGO = True
 
 from .basket import Basket
-from .config import get_file_system, get_mongo_db
+from .config import get_file_system, get_mongo_db, MongoNames
 from .index.index_abc import IndexABC
 
 class MongoDB():
@@ -209,18 +208,14 @@ class MongoDB():
         **pantry : Pantry
                 The Pantry of interest.
         """
-        if "pytest" in sys.modules:
-            collections = ("test_supplement", "test_metadata", "test_manifest")
-            mongodb_name = "test_mongo_db"
-        else:
-            collections = ("supplement", "metadata", "manifest")
-            mongodb_name = "mongo_metadata"
+        supplement, metadata, manifest = MongoNames.get_collections_names()
 
         mongo_db = MongoDB(index_table=index,
-                            database=mongodb_name,file_system=pantry.file_system)
-        mongo_db.load_mongo(metadata_collection=collections[1],
-                            manifest_collection=collections[2],
-                            supplement_collection=collections[0])
+                            database=MongoNames.get_database_names(),
+                           file_system=pantry.file_system)
+        mongo_db.load_mongo(metadata_collection=metadata,
+                            manifest_collection=manifest,
+                            supplement_collection=supplement)
 
     @staticmethod
     def remove_document (uuid : str):
@@ -234,16 +229,5 @@ class MongoDB():
             "uuid" will be used to locate and remove the document from MongoDB
              in the supplement, manifest, and metadat collections.
         """
-
-        if "pytest" in sys.modules:
-            collections = ("test_supplement", "test_metadata", "test_manifest")
-            mongodb_name = "test_mongo_db"
-        else:
-            collections = ("supplement", "metadata", "manifest")
-            mongodb_name = "mongo_metadata"
-
-        mongo_client = get_mongo_db()
-        query = {'uuid': uuid}
-
-        for e in collections:
-            mongo_client[mongodb_name][e].delete_one(query)
+        for e in MongoNames.get_collections_names():
+            get_mongo_db()[MongoNames.get_database_names()][e].delete_one({'uuid':uuid})

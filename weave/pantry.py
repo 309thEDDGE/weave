@@ -6,7 +6,6 @@ Index baskets.
 import json
 import os
 import sys
-
 import s3fs
 
 from .mongo_db import MongoDB
