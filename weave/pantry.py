@@ -134,7 +134,8 @@ class Pantry():
     def delete_basket(self, basket_address, **kwargs):
         """Deletes basket of given UUID or path.
         Note that the given basket will not be deleted if the basket is listed
-        as the parent uuid for any of the baskets in the index.
+        as the parent uuid for any of the baskets in the index. Removes a document
+        in mongo from the supplement, metadata, and manifest collections
 
         Parameters:
         -----------
@@ -143,10 +144,6 @@ class Pantry():
             directory, or the UUID of the basket.
         **kwargs:
             Additional parameters to pass to the index
-
-        Appended OPAL-455 5/2024:
-                Removes a document in mongo from the supplement, metadata,
-           and manifest collections
         """
         basket_address = str(basket_address)
         remove_item = self.index.get_rows(basket_address)
@@ -166,6 +163,8 @@ class Pantry():
 
     def upload_basket(self, upload_items, basket_type, **kwargs):
         """Upload a basket to the same pantry referenced by the Index
+           Append a document to mongo in the supplement, metadata,
+           and manifest collections.
 
         Parameters
         ----------
@@ -191,10 +190,6 @@ class Pantry():
             and stored in the basket in upload file_system.
         **label: str (optional)
             Optional user friendly label associated with the basket.
-
-         Appended OPAL-455 5/2024:
-                Append a document to mongo in the supplement, metadata,
-           and manifest collections
         """
         # Check if file system is read-only. If so, raise error.
         if self.is_read_only:

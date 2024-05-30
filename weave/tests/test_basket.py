@@ -5,8 +5,8 @@ import os
 import re
 import tempfile
 import shutil
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import pytest
 import s3fs

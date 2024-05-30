@@ -211,7 +211,7 @@ class MongoDB():
         supplement, metadata, manifest = MongoNames.get_collections_names()
 
         mongo_db = MongoDB(index_table=index,
-                            database=MongoNames.get_database_names(),
+                           database=MongoNames.get_database_names(),
                            file_system=pantry.file_system)
         mongo_db.load_mongo(metadata_collection=metadata,
                             manifest_collection=manifest,

@@ -1,20 +1,21 @@
 """Pytests for the uploader functionality."""
 
-import sys
 import json
 import os
-import time
-import uuid
-from datetime import datetime
-from pathlib import Path
-from unittest.mock import patch
-from importlib import resources
 import pytest
 import s3fs
-from fsspec.implementations.local import LocalFileSystem
+import sys
 import test_data
-
+import time
+import uuid
 import weave
+
+from datetime import datetime
+from fsspec.implementations.local import LocalFileSystem
+from importlib import resources
+from pathlib import Path
+from unittest.mock import patch
+
 from weave import Pantry,IndexPandas, IndexSQLite
 from weave.tests.pytest_resources import PantryForTest, file_path_in_list
 from weave.tests.pytest_resources import get_file_systems
@@ -913,7 +914,6 @@ def test_upload_basket_parent_ids_list_str(test_basket):
 
     # Create a temporary basket with a test file.
     tmp_basket_dir_name = "test_basket_tmp_dir"
-    #tmp_basket_dir = test_basket.set_up_basket(tmtest_basketp_basket_dir_name)
     tmp_basket_dir = test_basket.set_up_basket(tmp_basket_dir_name)
 
     upload_items = [
