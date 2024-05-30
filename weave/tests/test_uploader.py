@@ -18,6 +18,7 @@ import test_data
 
 import weave
 from weave import Pantry,IndexPandas, IndexSQLite
+from weave.config import get_mongo_db
 from weave.tests.pytest_resources import PantryForTest, file_path_in_list
 from weave.tests.pytest_resources import get_file_systems
 from weave.upload import (
@@ -25,7 +26,6 @@ from weave.upload import (
     derive_integrity_data,
     validate_upload_item,
 )
-from weave.config import get_mongo_db
 
 if "pymongo" in sys.modules:
     import pymongo #noqa: F401 # pylint: disable=unused-import
