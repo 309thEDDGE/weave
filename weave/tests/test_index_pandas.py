@@ -224,10 +224,10 @@ def test_is_index_current(test_pantry):
     assert pantry.index.is_index_current() is False
 
 def test_index_updated_after_new_pantry_basket_upload(test_pantry):
-    """Tests basket_upload updates the index after creating new IndexPandas
-    object when another IndexPandas object exists."""
+    """Tests basket_upload updates the index after creating IndexPandas pantry
+    object when another IndexPandas index exists."""
 
-    # Create first index
+    # Create first pantry
     pantry = Pantry(
         IndexPandas,
         pantry_path=test_pantry.pantry_path,
@@ -238,11 +238,11 @@ def test_index_updated_after_new_pantry_basket_upload(test_pantry):
     with tempfile.TemporaryDirectory(dir=".") as tmpdir:
         tmp_file_path = os.path.join(tmpdir, "temp_basket.txt")
         with open(tmp_file_path, "w", encoding="utf-8") as tmp_file:
-            _ = pantry.upload_basket(
+            pantry.upload_basket(
                 upload_items=[{"path":tmp_file.name, "stub":False}],
                 basket_type="test-1",
-            )["uuid"][0]
-    # Create second index
+            )
+    # Create second pantry
     pantry2 = Pantry(
         IndexPandas,
         pantry_path=test_pantry.pantry_path,
@@ -253,8 +253,8 @@ def test_index_updated_after_new_pantry_basket_upload(test_pantry):
     with tempfile.TemporaryDirectory(dir=".") as tmpdir:
         tmp_file_path = os.path.join(tmpdir, "temp_basket.txt")
         with open(tmp_file_path, "w", encoding="utf-8") as tmp_file:
-            _ = pantry2.upload_basket(
+            pantry2.upload_basket(
                 upload_items=[{"path":tmp_file.name, "stub":False}],
                 basket_type="test-1",
-            )["uuid"][0]
+            )
     assert len(pantry2.index.to_pandas_df()) == 2
