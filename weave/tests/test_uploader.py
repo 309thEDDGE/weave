@@ -7,10 +7,10 @@ import time
 import uuid
 
 from datetime import datetime
-from fsspec.implementations.local import LocalFileSystem
 from importlib import resources
 from pathlib import Path
 from unittest.mock import patch
+from fsspec.implementations.local import LocalFileSystem
 
 import pytest
 import s3fs
