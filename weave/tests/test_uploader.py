@@ -1494,7 +1494,8 @@ def test_upload_basket_mongo(test_basket):
 
 # Skip tests if pymongo is not installed.
 # @pytest.mark.skipif(
-#     "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+#     "pymongo" not in sys.modules or
+#not os.environ.get("MONGODB_HOST", False),
 #     reason="Pymongo required for this test",
 # )
 def test_delete_basket_mongo(test_basket):
@@ -1508,7 +1509,7 @@ def test_delete_basket_mongo(test_basket):
                     pantry_path=pantry_path,
                     file_system=fs)
 
-    with tempfile.NamedTemporaryFile() as temp_file:
+    with tempfile.NamedTemporaryFile(mode = 'w') as temp_file:
         uuid = pantry.upload_basket(
             upload_items=[{'path':temp_file.name,'stub':False}],
                 basket_type="test-1",
