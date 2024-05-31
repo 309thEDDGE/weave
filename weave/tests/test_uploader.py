@@ -1501,7 +1501,6 @@ def test_delete_basket_mongo(test_basket):
     """Testing pantry.delete_basket(), expected to update
     the collections in mongodb
     """
-    temp_file = tempfile.NamedTemporaryFile()
     fs = test_basket.file_system
     pantry_path = test_basket.pantry_path
 
@@ -1509,7 +1508,7 @@ def test_delete_basket_mongo(test_basket):
                     pantry_path=pantry_path,
                     file_system=fs)
 
-    with tempfile.NamedTemporaryFile() as temp:
+    with tempfile.NamedTemporaryFile() as temp_file:
         uuid = pantry.upload_basket(
             upload_items=[{'path':temp_file.name,'stub':False}],
                 basket_type="test-1",
