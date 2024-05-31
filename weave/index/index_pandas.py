@@ -309,6 +309,7 @@ class IndexPandas(IndexABC):
         if gen_level > max_gen_level:
             return data
 
+        current_uuid = None
         if self.file_system.exists(basket_address):
             current_uuid = self.index_df["uuid"].loc[
                 self.index_df["address"].str.endswith(basket_address)
@@ -406,6 +407,7 @@ class IndexPandas(IndexABC):
         if gen_level < min_gen_level:
             return data
 
+        current_uuid = None
         if self.file_system.exists(basket_address):
             current_uuid = self.index_df["uuid"].loc[
                 self.index_df["address"].str.endswith(basket_address)
@@ -453,7 +455,7 @@ class IndexPandas(IndexABC):
         return data
 
     def track_basket(self, entry_df, **kwargs):
-        """Track a basket to from the pantry referenced by the Index.
+        """Track a basket from the pantry referenced by the Index.
 
         Parameters
         ----------
@@ -462,6 +464,11 @@ class IndexPandas(IndexABC):
 
         **kwargs unused for this class.
         """
+        index_paths = self.file_system.glob(
+            os.path.join(self.index_basket_dir_path, "**", "*-index.json")
+        )
+        if len(index_paths) > 0:
+            self._sync_if_needed()
         if not self._sync_if_needed():
             self._upload_index(
                 pd.concat(
