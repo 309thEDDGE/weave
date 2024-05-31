@@ -1472,20 +1472,16 @@ def test_upload_basket_mongo(test_basket):
     """Testing pantry.upload_basket(), expected
     to update the collections in mongodb
     """
-    temp_file = tempfile.NamedTemporaryFile()
     fs = test_basket.file_system
     pantry_path = test_basket.pantry_path
-
     pantry = Pantry(IndexPandas,pantry_path=pantry_path,file_system=fs)
 
-    try:
+    with tempfile.NamedTemporaryFile() as temp_file:
         uuid = pantry.upload_basket(
             upload_items=[{'path':temp_file.name,'stub':False}],
                 basket_type="test-1",
                 metadata = {'Data Type':'text'}
                 ).values.tolist()[0][0]
-    finally:
-        temp_file.close
 
     collections = ("test_supplement", "test_metadata", "test_manifest")
     mongo_client = get_mongo_db()
@@ -1512,14 +1508,13 @@ def test_delete_basket_mongo(test_basket):
     pantry = Pantry(IndexPandas,
                     pantry_path=pantry_path,
                     file_system=fs)
-    try:
+
+    with tempfile.NamedTemporaryFile() as temp:
         uuid = pantry.upload_basket(
             upload_items=[{'path':temp_file.name,'stub':False}],
                 basket_type="test-1",
                 metadata = {'Data Type':'text'}
                 ).values.tolist()[0][0]
-    finally:
-        temp_file.close
 
     pantry.delete_basket(uuid)
     mongo_client = get_mongo_db()
