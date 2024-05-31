@@ -1509,18 +1509,19 @@ def test_delete_basket_mongo(test_basket):
                     pantry_path=pantry_path,
                     file_system=fs)
 
-    with tempfile.NamedTemporaryFile(mode = 'w') as temp_file:
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
         uuid = pantry.upload_basket(
             upload_items=[{'path':temp_file.name,'stub':False}],
                 basket_type="test-1",
                 metadata = {'Data Type':'text'}
                 ).values.tolist()[0][0]
-
+    print("\nTemp file : ",temp_file.name)
     pantry.delete_basket(uuid)
     mongo_client = get_mongo_db()
     collections = ("test_supplement", "test_metadata", "test_manifest")
     mongo_db = mongo_client["test_mongo_db"]
     query = {'uuid': uuid}
-
+    temp_file.close()
+    os.unlink(temp_file.name)
     for e in collections:
         assert mongo_db[e].find_one(query) is None
