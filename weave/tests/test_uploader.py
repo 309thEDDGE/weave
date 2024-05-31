@@ -1493,10 +1493,10 @@ def test_upload_basket_mongo(test_basket):
         mongo_db[e].delete_one(query)
 
 # Skip tests if pymongo is not installed.
-@pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-    reason="Pymongo required for this test",
-)
+# @pytest.mark.skipif(
+#     "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+#     reason="Pymongo required for this test",
+# )
 def test_delete_basket_mongo(test_basket):
     """Testing pantry.delete_basket(), expected to update
     the collections in mongodb
