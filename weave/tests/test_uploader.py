@@ -3,18 +3,17 @@
 import json
 import os
 import sys
+import tempfile
 import time
 import uuid
 
 from datetime import datetime
-from importlib import resources
+#from importlib import resources
 from pathlib import Path
 from unittest.mock import patch
 from fsspec.implementations.local import LocalFileSystem
-
 import pytest
 import s3fs
-import test_data
 
 import weave
 from weave import Pantry,IndexPandas, IndexSQLite
@@ -1470,22 +1469,23 @@ def test_upload_from_s3fs(test_basket):
     reason="Pymongo required for this test",
 )
 def test_upload_basket_mongo(test_basket):
-    """
-    Testing pantry.upload_basket(), expected
+    """Testing pantry.upload_basket(), expected
     to update the collections in mongodb
     """
-    file_path = str(resources.files(test_data) /
-                    "testfile")
+    temp_file = tempfile.NamedTemporaryFile()
     fs = test_basket.file_system
     pantry_path = test_basket.pantry_path
 
     pantry = Pantry(IndexPandas,pantry_path=pantry_path,file_system=fs)
 
-    uuid = pantry.upload_basket(
-                                upload_items=[{'path':file_path,
-                                'stub':False}], basket_type="test-1",
-                                metadata = {'Data Type':'text'}
-                               ).values.tolist()[0][0]
+    try:
+        uuid = pantry.upload_basket(
+            upload_items=[{'path':temp_file.name,'stub':False}],
+                basket_type="test-1",
+                metadata = {'Data Type':'text'}
+                ).values.tolist()[0][0]
+    finally:
+        temp_file.close
 
     collections = ("test_supplement", "test_metadata", "test_manifest")
     mongo_client = get_mongo_db()
@@ -1502,24 +1502,24 @@ def test_upload_basket_mongo(test_basket):
     reason="Pymongo required for this test",
 )
 def test_delete_basket_mongo(test_basket):
-    """
-    Testing pantry.delete_basket(), expected to update
+    """Testing pantry.delete_basket(), expected to update
     the collections in mongodb
     """
-    file_name = "testfile"
-    file_path = str(resources.files(test_data) / file_name)
+    temp_file = tempfile.NamedTemporaryFile()
     fs = test_basket.file_system
     pantry_path = test_basket.pantry_path
 
     pantry = Pantry(IndexPandas,
                     pantry_path=pantry_path,
                     file_system=fs)
-
-    uuid = pantry.upload_basket(
-                    upload_items=[{'path':file_path,
-                               'stub':False}], basket_type="test-1",
-                                metadata = {'Data Type':'text'}
-                               ).values.tolist()[0][0]
+    try:
+        uuid = pantry.upload_basket(
+            upload_items=[{'path':temp_file.name,'stub':False}],
+                basket_type="test-1",
+                metadata = {'Data Type':'text'}
+                ).values.tolist()[0][0]
+    finally:
+        temp_file.close
 
     pantry.delete_basket(uuid)
     mongo_client = get_mongo_db()

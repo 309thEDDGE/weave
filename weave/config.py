@@ -133,9 +133,7 @@ def get_mongo_db():
     return client
 
 class MongoNames(Enum):
-    """
-        Holds collections and database names in mongo database
-    """
+    """Holds collections and database names in mongo database"""
     PYTEST_COLLECTIONS_NAMES = ("test_supplement",
                                 "test_metadata", "test_manifest")
     COLLECTIONS_NAMES = ("supplement", "metadata", "manifest")
@@ -144,12 +142,11 @@ class MongoNames(Enum):
 
     # pylint: disable=locally-disabled, no-method-argument
     def get_collections_names():
-        """
-        Returns a tuple with names of mongo database collections.
-        If runnig a pytest, the returned collection :
-            ("test_supplement", "test_metadata", "test_manifest")
+        """Returns a tuple with names of mongo database collections.
+        If executing a pytest, the returned collection :
+        ("test_supplement", "test_metadata", "test_manifest")
         else the returned collection :
-            ("supplement", "metadata", "manifest")
+        ("supplement", "metadata", "manifest")
         """
         if "pytest" in sys.modules:
             return MongoNames.PYTEST_COLLECTIONS_NAMES.value
@@ -157,10 +154,9 @@ class MongoNames(Enum):
 
     # pylint: disable=locally-disabled, no-method-argument
     def get_database_names():
-        """
-            Returns the name of a mongo database.
-            If running a pytest : "test_mongo_db"
-            else : "mongo_db"
+        """Returns the name of a mongo database.
+        If executing a pytest : "test_mongo_db"
+        else : "mongo_db"
         """
         if "pytest" in sys.modules:
             return MongoNames.PYTEST_DATABASE.value

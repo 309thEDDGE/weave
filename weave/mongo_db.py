@@ -196,17 +196,16 @@ class MongoDB():
 
     @staticmethod
     def append_document (index : IndexABC, pantry):
-        """
-        Append a document using an Index in the supplement, manifest,
+        """Append a document using an Index in the supplement, manifest,
         and metadata collections
 
-          Parameters
+        Parameters
         ----------
-        **index: IndexABC
-                Index will be used to append a document to MongoDB in the
-                supplement, manifest, and metadata collections.
-        **pantry : Pantry
-                The Pantry of interest.
+        index: IndexABC
+            Index will be used to append a document to MongoDB in the
+            supplement, manifest, and metadata collections.
+        pantry : Pantry
+            The Pantry of interest.
         """
         supplement, metadata, manifest = MongoNames.get_collections_names()
 
@@ -219,15 +218,14 @@ class MongoDB():
 
     @staticmethod
     def remove_document (uuid : str):
-        """
-        Delete a document using the uuid in the supplement,
+        """Delete a document using the uuid in the supplement,
         manifest, and metadata collections.
 
-         Parameters
+        Parameters
         ----------
-        **uuid: str
+        uuid: str
             "uuid" will be used to locate and remove the document from MongoDB
-             in the supplement, manifest, and metadat collections.
+            in the supplement, manifest, and metadata collections.
         """
         for e in MongoNames.get_collections_names():
             get_mongo_db()[MongoNames.get_database_names()][e].delete_one({'uuid':uuid})
