@@ -13,6 +13,9 @@ from weave.metadata_db import load_mongo
 from weave.mongo_db import MongoDB
 from weave.tests.pytest_resources import PantryForTest, get_file_systems
 
+if "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False):
+    pytestmark = pytest.mark.skip
+
 class MongoForTest(PantryForTest):
     """Extend the PantryForTest class to support mongodb and custom data
     loader.
@@ -56,11 +59,6 @@ class MongoForTest(PantryForTest):
 # Create fsspec objects to be tested, and add to file_systems list.
 file_systems, file_systems_ids = get_file_systems()
 
-
-@pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-    reason="Pymongo required for this test",
-)
 # Test with different fsspec file systems (above).
 @pytest.fixture(
     params=file_systems,
@@ -78,11 +76,7 @@ def set_up(request, tmpdir):
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
 
-# Skip tests if pymongo is not installed.
-# @pytest.mark.skipif(
-#     "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-#     reason="Pymongo required for this test",
-# )
+
 def test_load_mongo_from_metadata_db(set_up):
     """Test that load_mongo successfully loads valid metadata to
     the set_up.
@@ -112,10 +106,6 @@ def test_load_mongo_from_metadata_db(set_up):
         assert e in compared_data
 
 
-@pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-    reason="Pymongo required for this test",
-)
 def test_load_mongo_metadata(set_up):
     """Test that load_mongo_metadata successfully loads valid metadata to
     the set_up.
@@ -145,10 +135,6 @@ def test_load_mongo_metadata(set_up):
         assert e in compared_data
 
 
-@pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-    reason="Pymongo required for this test",
-)
 def test_load_mongo_manifest(set_up):
     """Test that load_mongo_manifest successfully loads valid manifest to
     the set_up.
@@ -181,10 +167,6 @@ def test_load_mongo_manifest(set_up):
     assert truth_db == compared_data
 
 
-@pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-    reason="Pymongo required for this test",
-)
 def test_load_mongo_supplement(set_up):
     """Test that load_mongo_supplement successfully loads valid supplement to
     the set_up.
@@ -214,10 +196,6 @@ def test_load_mongo_supplement(set_up):
     assert truth_db == compared_data
 
 
-@pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-    reason="Pymongo required for this test",
-)
 def test_load_mongo(set_up):
     """Test that load_mongo successfully loads valid metadata, manifest, and
     supplement to the set_up.
@@ -280,10 +258,6 @@ def test_load_mongo(set_up):
     assert supplement_truth_db == compared_supplement
 
 
-@pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-    reason="Pymongo required for this test",
-)
 def test_mongodb_check_for_dataframe(set_up):
     """Test that MongoDB prevents loading data with an invalid index_table.
     """
@@ -298,10 +272,6 @@ def test_mongodb_check_for_dataframe(set_up):
         )
 
 
-@pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-    reason="Pymongo required for this test",
-)
 def test_load_mongo_metadata_check_collection_for_string(set_up):
     """Test that load_mongo_metadata prevents loading data with an invalid
     set_up collection.
@@ -321,10 +291,6 @@ def test_load_mongo_metadata_check_collection_for_string(set_up):
         mongo_instance.load_mongo_metadata(collection=1)
 
 
-@pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-    reason="Pymongo required for this test",
-)
 def test_mongodb_check_dataframe_for_uuid(set_up):
     """Test that MongoDB prevents loading data with missing uuid.
     """
@@ -340,10 +306,6 @@ def test_mongodb_check_dataframe_for_uuid(set_up):
         )
 
 
-@pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-    reason="Pymongo required for this test",
-)
 def test_mongodb_check_dataframe_for_address(set_up):
     """Test that MongoDB prevents loading data with missing address."""
     with pytest.raises(
@@ -358,10 +320,6 @@ def test_mongodb_check_dataframe_for_address(set_up):
         )
 
 
-@pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-    reason="Pymongo required for this test",
-)
 def test_mongodb_check_dataframe_for_basket_type(set_up):
     """Test that MongoDB prevents loading data with missing basket type."""
     with pytest.raises(
@@ -374,10 +332,6 @@ def test_mongodb_check_dataframe_for_basket_type(set_up):
         )
 
 
-@pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-    reason="Pymongo required for this test",
-)
 def test_load_mongo_metadata_check_for_duplicate_uuid(set_up):
     """Test duplicate metadata won't be uploaded to mongoDB, based on the UUID.
     """
@@ -401,10 +355,6 @@ def test_load_mongo_metadata_check_for_duplicate_uuid(set_up):
     assert count == 1, "duplicate uuid inserted"
 
 
-@pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-    reason="Pymongo required for this test",
-)
 def test_load_mongo_manifest_check_for_duplicate_uuid(set_up):
     """Test duplicate manifest won't be uploaded to mongoDB, based on the UUID.
     """
@@ -428,10 +378,6 @@ def test_load_mongo_manifest_check_for_duplicate_uuid(set_up):
     assert count == 1, "duplicate uuid inserted"
 
 
-@pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-    reason="Pymongo required for this test",
-)
 def test_load_mongo_supplement_check_for_duplicate_uuid(set_up):
     """Test duplicate supplement won't be uploaded to mongoDB, based on the
     UUID.
@@ -456,10 +402,6 @@ def test_load_mongo_supplement_check_for_duplicate_uuid(set_up):
     assert count == 1, "duplicate uuid inserted"
 
 
-@pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-    reason="Pymongo required for this test",
-)
 def test_check_file_already_exists(set_up):
     """Make a file, upload it to the pantry, check if that file already exists.
     """
