@@ -132,10 +132,10 @@ class IndexSQLite(IndexABC):
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
         )
         query = "SELECT * FROM pantry_index ORDER BY UUID"
-        params = None
+        params = tuple()
         if max_rows:
             query += " LIMIT ? OFFSET ?"
-            params = (max_rows,offset)
+            params = (max_rows, offset)
         ind_df = pd.DataFrame(
             self.cur.execute(query, params)
             .fetchall(),
