@@ -28,6 +28,7 @@ from weave.upload import (
 
 if "pymongo" in sys.modules:
     import pymongo #noqa: F401 # pylint: disable=unused-import
+
 # This module is long and has many tests. Pylint is complaining that it is too
 # long. This isn't necessarily bad in this case, as the alternative
 # would be to write the tests continuuing in a different script, which would
@@ -1357,10 +1358,10 @@ def test_upload_correct_version_number(test_basket):
     assert manifest_dict["weave_version"] == weave.__version__
 
 # Skip tests if pymongo is not installed.
-@pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-    reason="Pymongo required for this test",
-)
+# @pytest.mark.skipif(
+#     "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+#     reason="Pymongo required for this test",
+# )
 def test_upload_metadata_only_basket(test_basket):
     """Try to upload a valid metadata-only basket
     """
@@ -1474,14 +1475,20 @@ def test_upload_basket_mongo(test_basket):
     """
     fs = test_basket.file_system
     pantry_path = test_basket.pantry_path
-    pantry = Pantry(IndexPandas,pantry_path=pantry_path,file_system=fs)
+    pantry = Pantry(IndexPandas,
+                    pantry_path=pantry_path,
+                    mongo_db=True,
+                    file_system=fs)
 
-    with tempfile.NamedTemporaryFile() as temp_file:
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
         uuid = pantry.upload_basket(
             upload_items=[{'path':temp_file.name,'stub':False}],
                 basket_type="test-1",
                 metadata = {'Data Type':'text'}
                 ).values.tolist()[0][0]
+
+        temp_file.close()
+        os.unlink(temp_file.name)
 
     collections = ("test_supplement", "test_metadata", "test_manifest")
     mongo_client = get_mongo_db()
@@ -1493,11 +1500,10 @@ def test_upload_basket_mongo(test_basket):
         mongo_db[e].delete_one(query)
 
 # Skip tests if pymongo is not installed.
-# @pytest.mark.skipif(
-#     "pymongo" not in sys.modules or
-#not os.environ.get("MONGODB_HOST", False),
-#     reason="Pymongo required for this test",
-# )
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+    reason="Pymongo required for this test",
+)
 def test_delete_basket_mongo(test_basket):
     """Testing pantry.delete_basket(), expected to update
     the collections in mongodb
@@ -1507,6 +1513,7 @@ def test_delete_basket_mongo(test_basket):
 
     pantry = Pantry(IndexPandas,
                     pantry_path=pantry_path,
+                    mongo_db=True,
                     file_system=fs)
 
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:

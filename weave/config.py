@@ -1,9 +1,6 @@
 """Provides configuration settings used by Weave."""
 
 import os
-import sys
-from enum import Enum
-
 import s3fs
 
 # Try-Except required to make pymongo an optional dependency.
@@ -131,33 +128,3 @@ def get_mongo_db():
             "mongodb", username="root", password="example"
         )
     return client
-
-class MongoNames(Enum):
-    """Holds collections and database names in mongo database"""
-    PYTEST_COLLECTIONS_NAMES = ("test_supplement",
-                                "test_metadata", "test_manifest")
-    COLLECTIONS_NAMES = ("supplement", "metadata", "manifest")
-    PYTEST_DATABASE = "test_mongo_db"
-    DATABASE = "mongo_db"
-
-    # pylint: disable=locally-disabled, no-method-argument
-    def get_collections_names():
-        """Returns a tuple with names of mongo database collections.
-        If executing a pytest, the returned collection :
-        ("test_supplement", "test_metadata", "test_manifest")
-        else the returned collection :
-        ("supplement", "metadata", "manifest")
-        """
-        if "pytest" in sys.modules:
-            return MongoNames.PYTEST_COLLECTIONS_NAMES.value
-        return MongoNames.COLLECTIONS_NAMES.value
-
-    # pylint: disable=locally-disabled, no-method-argument
-    def get_database_names():
-        """Returns the name of a mongo database.
-        If executing a pytest : "test_mongo_db"
-        else : "mongo_db"
-        """
-        if "pytest" in sys.modules:
-            return MongoNames.PYTEST_DATABASE.value
-        return MongoNames.DATABASE.value

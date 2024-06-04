@@ -1,5 +1,7 @@
 """Contains scripts concerning MongoDB functionality."""
 
+from enum import Enum
+import sys
 import pandas as pd
 # Try-Except required to make pymongo an optional dependency.
 
@@ -20,7 +22,7 @@ else:
     _HAS_PYMONGO = True
 
 from .basket import Basket
-from .config import get_file_system, get_mongo_db, MongoNames
+from .config import get_file_system, get_mongo_db
 from .index.index_abc import IndexABC
 
 class MongoDB():
@@ -208,7 +210,6 @@ class MongoDB():
             The Pantry of interest.
         """
         supplement, metadata, manifest = MongoNames.get_collections_names()
-
         mongo_db = MongoDB(index_table=index,
                            database=MongoNames.get_database_names(),
                            file_system=pantry.file_system)
@@ -229,3 +230,33 @@ class MongoDB():
         """
         for e in MongoNames.get_collections_names():
             get_mongo_db()[MongoNames.get_database_names()][e].delete_one({'uuid':uuid})
+
+class MongoNames(Enum):
+    """Holds collections and database names in mongo database"""
+    PYTEST_COLLECTIONS_NAMES = ("test_supplement",
+                               "test_metadata", "test_manifest")
+    COLLECTIONS_NAMES = ("supplement", "metadata", "manifest")
+    PYTEST_DATABASE = "test_mongo_db"
+    DATABASE = "mongo_db"
+
+    @classmethod
+    def get_collections_names(cls):
+        """Returns a tuple with names of mongo database collections.
+        If executing a pytest, the returned collection :
+        ("test_supplement", "test_metadata", "test_manifest")
+        else the returned collection :
+        ("supplement", "metadata", "manifest")
+        """
+        if "pytest" in sys.modules:
+            return cls.PYTEST_COLLECTIONS_NAMES.value
+        return cls.COLLECTIONS_NAMES.value
+
+    @classmethod
+    def get_database_names(cls):
+        """Returns the name of a mongo database.
+        If executing a pytest : "test_mongo_db"
+        else : "mongo_db"
+        """
+        if "pytest" in sys.modules:
+            return cls.PYTEST_DATABASE.value
+        return cls.DATABASE.value
