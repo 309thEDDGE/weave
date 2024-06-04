@@ -26,8 +26,7 @@ from weave.upload import (
     validate_upload_item,
 )
 
-if "pymongo" in sys.modules:
-    import pymongo #noqa: F401 # pylint: disable=unused-import
+
 
 # This module is long and has many tests. Pylint is complaining that it is too
 # long. This isn't necessarily bad in this case, as the alternative
@@ -1460,10 +1459,10 @@ def test_upload_from_s3fs(test_basket):
         local_fs.rm(pantry_2.index.db_path)
 
 # Skip tests if pymongo is not installed.
-# @pytest.mark.skipif(
-#     "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-#     reason="Pymongo required for this test",
-# )
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+    reason="Pymongo required for this test",
+)
 def test_upload_basket_mongo(test_basket):
     """Testing pantry.upload_basket(), expected
     to update the collections in mongodb
