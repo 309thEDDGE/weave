@@ -26,8 +26,6 @@ from weave.upload import (
     validate_upload_item,
 )
 
-
-
 # This module is long and has many tests. Pylint is complaining that it is too
 # long. This isn't necessarily bad in this case, as the alternative
 # would be to write the tests continuuing in a different script, which would

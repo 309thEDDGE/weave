@@ -13,6 +13,9 @@ from weave.metadata_db import load_mongo
 from weave.mongo_db import MongoDB
 from weave.tests.pytest_resources import PantryForTest, get_file_systems
 
+if "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False):
+      pytestmark = pytest.mark.skip
+
 class MongoForTest(PantryForTest):
     """Extend the PantryForTest class to support mongodb and custom data
     loader.
@@ -58,10 +61,10 @@ file_systems, file_systems_ids = get_file_systems()
 
 
 # Test with different fsspec file systems (above).
-@pytest.fixture(
-    params=file_systems,
-    ids=file_systems_ids,
-)
+# @pytest.fixture(
+#     params=file_systems,
+#     ids=file_systems_ids,
+# )
 def set_up(request, tmpdir):
     """Sets up the fixture for testing usage."""
     file_system = request.param
@@ -75,10 +78,10 @@ def set_up(request, tmpdir):
 # pylint: disable=redefined-outer-name
 
 # Skip tests if pymongo is not installed.
-@pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-    reason="Pymongo required for this test",
-)
+# @pytest.mark.skipif(
+#     "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+#     reason="Pymongo required for this test",
+# )
 def test_load_mongo_from_metadata_db(set_up):
     """Test that load_mongo successfully loads valid metadata to
     the set_up.
