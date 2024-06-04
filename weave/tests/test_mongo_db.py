@@ -14,7 +14,7 @@ from weave.mongo_db import MongoDB
 from weave.tests.pytest_resources import PantryForTest, get_file_systems
 
 if "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False):
-      pytestmark = pytest.mark.skip
+    pytestmark = pytest.mark.skip
 
 class MongoForTest(PantryForTest):
     """Extend the PantryForTest class to support mongodb and custom data
@@ -61,10 +61,10 @@ file_systems, file_systems_ids = get_file_systems()
 
 
 # Test with different fsspec file systems (above).
-# @pytest.fixture(
-#     params=file_systems,
-#     ids=file_systems_ids,
-# )
+@pytest.fixture(
+    params=file_systems,
+    ids=file_systems_ids,
+)
 def set_up(request, tmpdir):
     """Sets up the fixture for testing usage."""
     file_system = request.param
