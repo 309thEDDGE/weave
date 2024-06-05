@@ -1,4 +1,5 @@
 """This class builds the user-facing Index class. It pulls from the _Index
+
 class which uses Pandas as it's backend to build and interface with the on disk
 Index baskets.
 """
@@ -135,6 +136,7 @@ class Pantry():
 
     def delete_basket(self, basket_address, **kwargs):
         """Deletes basket of given UUID or path.
+
         Note that the given basket will not be deleted if the basket
         is listed as the parent uuid for any of the baskets in the index.
         Removes a document in mongo from the supplement, metadata,
@@ -167,6 +169,7 @@ class Pantry():
 
     def upload_basket(self, upload_items, basket_type, **kwargs):
         """Upload a basket to the same pantry referenced by the Index
+
            Append a document to mongo in the supplement, metadata,
            and manifest collections.
 
@@ -249,6 +252,7 @@ class Pantry():
 
     def does_file_exist(self, file_path, **kwargs):
         """Check if a file already exists inside the pantry and return
+
         the uuids where it does.
 
         Parameters

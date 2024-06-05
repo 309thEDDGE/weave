@@ -27,11 +27,13 @@ from .index.index_abc import IndexABC
 
 class MongoDB():
     """Initializes mongo class. Creates a Mongo DB and facilitates the
+
     uploading of files to mongo collections.
     """
 
     def __init__(self, index_table, database="mongo_db", **kwargs):
         """Creates the mongo database and checks for any errors that could
+
         occur when creating the database.
 
         Parameters
@@ -176,6 +178,7 @@ class MongoDB():
 
     def load_mongo(self, **kwargs):
         """Load metadata, manifest, and supplement from baskets into the
+
         mongo database.
 
         Parameters
@@ -199,6 +202,7 @@ class MongoDB():
     @staticmethod
     def append_document (index : IndexABC, pantry):
         """Append a document using an Index in the supplement, manifest,
+
         and metadata collections
 
         Parameters
@@ -220,6 +224,7 @@ class MongoDB():
     @staticmethod
     def remove_document (uuid : str):
         """Delete a document using the uuid in the supplement,
+
         manifest, and metadata collections.
 
         Parameters
@@ -229,7 +234,9 @@ class MongoDB():
             in the supplement, manifest, and metadata collections.
         """
         for e in MongoNames.get_collections_names():
-            get_mongo_db()[MongoNames.get_database_names()][e].delete_one({'uuid':uuid})
+            get_mongo_db()[MongoNames.
+                get_database_names()][e].\
+                delete_one({'uuid':uuid})
 
 class MongoNames(Enum):
     """Holds collections and database names in mongo database"""
@@ -242,6 +249,7 @@ class MongoNames(Enum):
     @classmethod
     def get_collections_names(cls):
         """Returns a tuple with names of mongo database collections.
+
         If executing a pytest, the returned collection :
         ("test_supplement", "test_metadata", "test_manifest")
         else the returned collection :
@@ -254,6 +262,7 @@ class MongoNames(Enum):
     @classmethod
     def get_database_names(cls):
         """Returns the name of a mongo database.
+
         If executing a pytest : "test_mongo_db"
         else : "mongo_db"
         """
