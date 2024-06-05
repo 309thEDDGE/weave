@@ -1,6 +1,7 @@
 """Pytest tests for the index directory."""
 
 import os
+import sys
 import re
 import warnings
 import shutil
