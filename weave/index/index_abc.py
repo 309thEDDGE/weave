@@ -71,8 +71,9 @@ class IndexABC(abc.ABC):
 
         Parameters
         ----------
-        max_rows: int
-            Max rows returned in the pandas dataframe.
+        max_rows: int or None (default=1000)
+            Max rows returned in the pandas dataframe. If None, all rows will
+            be returned.
         offset: int (default=0)
             Offset from the beginning of the index to begin the query
 
@@ -169,8 +170,9 @@ class IndexABC(abc.ABC):
         ----------
         basket_type: str
             The basket type to filter for.
-        max_rows: int (default=1000)
-            Max rows returned in the pandas dataframe.
+        max_rows: int or None (default=1000)
+            Max rows returned in the pandas dataframe. If None, all rows will
+            be returned.
         offset: int (default=0)
             Offset from the beginning of the index to begin the query
 
@@ -190,8 +192,9 @@ class IndexABC(abc.ABC):
         ----------
         basket_label: str
             The label to filter for.
-        max_rows: int (default=1000)
-            Max rows returned in the pandas dataframe.
+        max_rows: int or None (default=1000)
+            Max rows returned in the pandas dataframe. If None, all rows will
+            be returned.
         offset: int (default=0)
             Offset from the beginning of the index to begin the query
 
@@ -216,10 +219,11 @@ class IndexABC(abc.ABC):
         end_time: datetime.datetime (default=None)
             The end datetime object to filter between. If None, will filter
             to the current datetime.
-        max_rows: int (default=1000)
-            Max rows returned in the pandas dataframe.
+        max_rows: int or None (default=1000)
+            Max rows returned in the pandas dataframe. If None, all rows will
+            be returned.
         offset: int (default=0)
-            Offset from the beginning of the index to begin the query
+            Offset from the beginning of the index to begin the query.
 
         Optional kwargs controlled by concrete implementations.
 

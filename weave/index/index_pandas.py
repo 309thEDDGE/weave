@@ -12,6 +12,29 @@ from ..upload import UploadBasket
 from .create_index import create_index_from_fs
 from .index_abc import IndexABC
 
+def slice_df(df, max_rows=None, offset=0):
+    """Returns the pandas dataframe representation of the index.
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        The dataframe to slice.
+    max_rows: int (default=None)
+        Max rows returned in the pandas dataframe. If None, all rows will be
+        returned.
+    offset: int (default=0)
+        Offset from the beginning of the index to begin the query
+
+    Returns
+    ----------
+    pandas.DataFrame
+        Returns a slice of the dataframe.
+    """
+    if max_rows is None:
+        return df
+    return df.iloc[offset:offset+max_rows]
+
+
 class IndexPandas(IndexABC):
     """Handles Pandas based functionality of the Index."""
 
@@ -125,8 +148,9 @@ class IndexPandas(IndexABC):
 
         Parameters
         ----------
-        max_rows: int (default=1000)
-            Max rows returned in the pandas dataframe.
+        max_rows: int or None (default=1000)
+            Max rows returned in the pandas dataframe. If None, all rows will
+            be returned.
         offset: int (default=0)
             Offset from the beginning of the index to begin the query
 
@@ -139,7 +163,7 @@ class IndexPandas(IndexABC):
             pantry.
         """
         self._sync_if_needed()
-        return self.index_df.iloc[offset:offset+max_rows]
+        return slice_df(self.index_df, max_rows, offset)
 
     def clean_up_indices(self, n_keep=20):
         """Deletes any index basket except the latest n index baskets.
@@ -511,8 +535,9 @@ class IndexPandas(IndexABC):
         ----------
         basket_type: str
             The basket type to filter for.
-        max_rows: int (default=1000)
-            Max rows returned in the pandas dataframe.
+        max_rows: int or None (default=1000)
+            Max rows returned in the pandas dataframe. If None, all rows will
+            be returned.
         offset: int (default=0)
             Offset from the beginning of the index to begin the query
 
@@ -524,9 +549,10 @@ class IndexPandas(IndexABC):
         """
         self._sync_if_needed()
 
-        return self.index_df[
-            self.index_df["basket_type"] == basket_type
-        ].iloc[offset:offset+max_rows]
+        return slice_df(
+            self.index_df[self.index_df["basket_type"] == basket_type],
+            max_rows,
+            offset)
 
     def get_baskets_of_label(self, basket_label, max_rows=1000,
                              offset=0, **kwargs):
@@ -536,8 +562,9 @@ class IndexPandas(IndexABC):
         ----------
         basket_label: str
             The label to filter for.
-        max_rows: int (default=1000)
-            Max rows returned in the pandas dataframe.
+        max_rows: int or None (default=1000)
+            Max rows returned in the pandas dataframe. If None, all rows will
+            be returned.
         offset: int (default=0)
             Offset from the beginning of the index to begin the query
 
@@ -550,9 +577,10 @@ class IndexPandas(IndexABC):
         """
         self._sync_if_needed()
 
-        return self.index_df[
-            self.index_df["label"] == basket_label
-        ].iloc[offset:offset+max_rows]
+        return slice_df(
+            self.index_df[self.index_df["label"] == basket_label],
+            max_rows,
+            offset)
 
     def get_baskets_by_upload_time(self, start_time=None, end_time=None,
                                    max_rows=1000, offset=0, **kwargs):
@@ -566,8 +594,9 @@ class IndexPandas(IndexABC):
         end_time: datetime.datetime (optional)
             The end datetime object to filter between. If None, will filter
             to the current datetime.
-        max_rows: int (default=1000)
-            Max rows returned in the pandas dataframe.
+        max_rows: int or None (default=1000)
+            Max rows returned in the pandas dataframe. If None, all rows will
+            be returned.
         offset: int (default=0)
             Offset from the beginning of the index to begin the query
 
@@ -587,17 +616,22 @@ class IndexPandas(IndexABC):
         self._sync_if_needed()
 
         if start_time is None:
-            return self.index_df[
-                self.index_df["upload_time"] <= end_time
-            ].iloc[offset:offset+max_rows]
+            return slice_df(
+                self.index_df[self.index_df["upload_time"] <= end_time],
+                max_rows,
+                offset)
         if end_time is None:
-            return self.index_df[
-                self.index_df["upload_time"] >= start_time
-            ].iloc[offset:offset+max_rows]
-        return self.index_df[
-            (self.index_df["upload_time"] >= start_time)
-             & (self.index_df["upload_time"] <= end_time)
-            ].iloc[offset:offset+max_rows]
+            return slice_df(
+                self.index_df[self.index_df["upload_time"] >= start_time],
+                max_rows,
+                offset)
+        return slice_df(
+            self.index_df[
+                (self.index_df["upload_time"] >= start_time)
+                 & (self.index_df["upload_time"] <= end_time)
+            ],
+            max_rows,
+            offset)
 
     def query(self, expr, **kwargs):
         """Returns a pandas dataframe of the results of the query.

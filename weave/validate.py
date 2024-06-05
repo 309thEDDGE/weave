@@ -318,9 +318,9 @@ def _check_metadata_only(files_in_basket, pantry):
     pantry: weave.Pantry
         Pantry object representing the pantry to validate.
     """
-    meta_data = None
-    supp_data = None
     man_data = None
+    supp_data = None
+    meta_data = None
     for file in files_in_basket:
         if file.endswith("basket_manifest.json"):
             man_data = json.load(pantry.file_system.open(file))
