@@ -127,4 +127,8 @@ def get_mongo_db():
         client = pymongo.MongoClient(
             "mongodb", username="root", password="example"
         )
+
+    # Force a connection test before we return. This will raise an error if
+    # the server is unreachable or has invalid credentials.
+    client.server_info()
     return client

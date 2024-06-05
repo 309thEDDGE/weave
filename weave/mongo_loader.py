@@ -22,51 +22,31 @@ else:
 from .basket import Basket
 from .config import get_file_system, get_mongo_db
 
-class MongoDB():
-    """Initializes mongo class. Creates a Mongo DB and facilitates the
-    uploading of files to mongo collections.
+
+class MongoLoader():
+    """Initializes a mongo loader class. Retrieves a connection to the mongo
+    server and facilitates the uploading of records to each pantry's individual
+    mongo db based on the record type (ie supplement, manifest, metadata).
     """
 
-    def __init__(self, index_table, database_name, **kwargs):
+    def __init__(self, pantry):
         """Creates the mongo database and checks for any errors that could
         occur when creating the database.
 
         Parameters
         ----------
-        index_table: dataframe
-            Weave index dataframe fetched using the Index class.
-            The dataframe must include the following columns:
-                uuid
-                basket_type
-                address
-        database_name: str
-            The database name to reference. Should be the pantry_path in most cases.
-        **file_system: fsspec object (optional)
-            The file system to retrieve the baskets' metadata from.
+        pantry: weave.Pantry
+            A pantry object
         """
-        self.index_table = index_table
-        self.database = get_mongo_db()[database_name]
         if not _HAS_PYMONGO:
             raise ImportError("Missing Dependency. The package 'pymongo' "
-                              "is required to use this function")
+                              "is required to use this class.")
 
-        if not isinstance(self.index_table, pd.DataFrame):
-            raise TypeError("Invalid datatype for index_table: "
-                            "must be Pandas DataFrame")
-
-        required_columns = ["uuid", "basket_type", "address"]
-
-        for required_column in required_columns:
-            if required_column not in self.index_table.columns.values.tolist():
-                raise ValueError("Invalid index_table: missing "
-                                 f"{required_column} column")
-
-        self.file_system = kwargs.get("file_system", None)
-        if self.file_system is None:
-            self.file_system = get_file_system()
+        self.pantry = pantry
+        self.database = get_mongo_db()[self.pantry.pantry_path]
 
 
-    def load_mongo_metadata(self, collection="metadata"):
+    def load_mongo_metadata(self, uuids, collection="metadata"):
         """Load metadata from baskets into the mongo database.
 
         A metadata.json is created in baskets when the metadata
@@ -80,30 +60,33 @@ class MongoDB():
         collection: str (default="metadata")
             Metadata will be added to the Mongo collection specified.
         """
+        if not isinstance(uuids, list):
+            uuids = [uuids]
+        if not isinstance(uuids[0], str):
+            raise TypeError("Invalid datatype for uuids: "
+                            "must be a list of strings [str]")
         if not isinstance(collection, str):
             raise TypeError("Invalid datatype for metadata collection: "
                             "must be a string")
 
-        for _, row in self.index_table.iterrows():
-            basket = Basket(row["address"], file_system=self.file_system)
+        for uuid in uuids:
+            basket = Basket(uuid, pantry=self.pantry)
             metadata = basket.get_metadata()
             if metadata is None:
                 continue
-            manifest = basket.get_manifest()
             mongo_metadata = {}
-            mongo_metadata["uuid"] = manifest["uuid"]
-            mongo_metadata["basket_type"] = manifest["basket_type"]
+            mongo_metadata["uuid"] = basket.uuid
+            mongo_metadata["basket_type"] = basket.basket_type
             mongo_metadata.update(metadata)
 
             # If the UUID already has metadata loaded in MongoDB,
             # the metadata should not be loaded to MongoDB again.
             if 0 == self.database[
                 collection
-            ].count_documents({"uuid": manifest["uuid"]}):
+            ].count_documents({"uuid": basket.uuid}):
                 self.database[collection].insert_one(mongo_metadata)
 
-
-    def load_mongo_manifest(self, collection="manifest"):
+    def load_mongo_manifest(self, uuids, collection="manifest"):
         """Load manifest from baskets into the mongo database.
 
         A manifest.json is created in baskets upon upload. This manifest is
@@ -116,12 +99,14 @@ class MongoDB():
         collection: str (default="manifest")
             Manifest will be added to the Mongo collection specified.
         """
+        if not isinstance(uuids, list):
+            uuids = [uuids]
         if not isinstance(collection, str):
             raise TypeError("Invalid datatype for manifest collection: "
                             "must be a string")
 
-        for _, row in self.index_table.iterrows():
-            basket = Basket(row["address"], file_system=self.file_system)
+        for uuid in uuids:
+            basket = Basket(uuid, pantry=self.pantry)
             mongo_manifest = basket.get_manifest()
             if mongo_manifest is None:
                 continue
@@ -130,11 +115,10 @@ class MongoDB():
             # the manifest should not be loaded to MongoDB again.
             if 0 == self.database[
                 collection
-            ].count_documents({"uuid": mongo_manifest["uuid"]}):
+            ].count_documents({"uuid": basket.uuid}):
                 self.database[collection].insert_one(mongo_manifest)
 
-
-    def load_mongo_supplement(self, collection="supplement"):
+    def load_mongo_supplement(self, uuids, collection="supplement"):
         """Load supplement from baskets into the mongo database.
 
         A supplement.json is created in baskets upon upload. This supplement
@@ -147,30 +131,30 @@ class MongoDB():
         collection: str (default="supplement")
             Supplement will be added to the Mongo collection specified.
         """
+        if not isinstance(uuids, list):
+            uuids = [uuids]
         if not isinstance(collection, str):
             raise TypeError("Invalid datatype for supplement collection: "
                             "must be a string")
 
-        for _, row in self.index_table.iterrows():
-            basket = Basket(row["address"], file_system=self.file_system)
+        for uuid in uuids:
+            basket = Basket(uuid, pantry=self.pantry)
             supplement = basket.get_supplement()
             if supplement is None:
                 continue
-            manifest = basket.get_manifest()
             mongo_supplement = {}
-            mongo_supplement["uuid"] = manifest["uuid"]
-            mongo_supplement["basket_type"] = manifest["basket_type"]
+            mongo_supplement["uuid"] = basket.uuid
+            mongo_supplement["basket_type"] = basket.basket_type
             mongo_supplement.update(supplement)
 
             # If the UUID already has metadata loaded in MongoDB,
             # the metadata should not be loaded to MongoDB again.
             if 0 == self.database[
                 collection
-            ].count_documents({"uuid": manifest["uuid"]}):
+            ].count_documents({"uuid": basket.uuid}):
                 self.database[collection].insert_one(mongo_supplement)
 
-
-    def load_mongo(self, **kwargs):
+    def load_mongo(self, uuids, **kwargs):
         """Load metadata, manifest, and supplement from baskets into the
         mongo database.
 
@@ -188,6 +172,6 @@ class MongoDB():
         supplement_collection = kwargs.get("supplement_collection",
                                            "supplement")
 
-        self.load_mongo_metadata(collection=metadata_collection)
-        self.load_mongo_manifest(collection=manifest_collection)
-        self.load_mongo_supplement(collection=supplement_collection)
+        self.load_mongo_metadata(uuids, collection=metadata_collection)
+        self.load_mongo_manifest(uuids, collection=manifest_collection)
+        self.load_mongo_supplement(uuids, collection=supplement_collection)
