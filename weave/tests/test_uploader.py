@@ -1455,6 +1455,7 @@ def test_upload_from_s3fs(test_basket):
     if local_fs.exists(pantry_2.index.db_path):
         local_fs.rm(pantry_2.index.db_path)
 
+
 # Skip tests if pymongo is not installed.
 @pytest.mark.skipif(
     "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
@@ -1490,6 +1491,7 @@ def test_upload_basket_mongo(test_basket):
     for e in collections:
         assert uuid == mongo_db[e].find_one(query,{'_id':0,'uuid':1})['uuid']
         mongo_db[e].delete_one(query)
+
 
 # Skip tests if pymongo is not installed.
 @pytest.mark.skipif(

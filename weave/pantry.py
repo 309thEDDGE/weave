@@ -79,6 +79,7 @@ class Pantry():
         self.metadata['index_metadata'] = self.index.generate_metadata()
         self.mongo_db = mongo_db
 
+
     def validate_path_in_pantry(self, path):
         """Validate the given path is within the pantry.
 
@@ -102,6 +103,7 @@ class Pantry():
                 f"Attempting to access basket outside of pantry: {path}"
             )
 
+
     def load_metadata(self):
         """Load pantry metadata from pantry_metadata.json."""
         self.metadata_path = os.path.join(
@@ -115,6 +117,7 @@ class Pantry():
         if 'index_metadata' not in self.metadata:
             self.metadata['index_metadata'] = {}
 
+
     def save_metadata(self):
         """Dump metadata to to pantry metadata file."""
         self.metadata['index_metadata'] = self.index.metadata
@@ -122,6 +125,7 @@ class Pantry():
                     self.metadata_path, "w", encoding="utf-8"
         ) as outfile:
             json.dump(self.metadata, outfile)
+
 
     def validate(self):
         """Convenient wrapper function to validate the pantry.
@@ -133,6 +137,7 @@ class Pantry():
         """
 
         return validate_pantry(self)
+
 
     def delete_basket(self, basket_address, **kwargs):
         """Deletes basket of given UUID or path.
@@ -166,6 +171,7 @@ class Pantry():
 
         if self.mongo_db:
             MongoDB.remove_document(remove_item.iloc[0].uuid)
+
 
     def upload_basket(self, upload_items, basket_type, **kwargs):
         """Upload a basket to the same pantry referenced by the Index
@@ -227,6 +233,7 @@ class Pantry():
 
         return single_indice_index
 
+
     def get_basket(self, basket_address):
         """Retrieves a basket of given UUID or path.
 
@@ -249,6 +256,7 @@ class Pantry():
             raise ValueError(f"Basket does not exist: {basket_address}")
         self.validate_path_in_pantry(row.iloc[0].address)
         return Basket(row.iloc[0].address, pantry=self)
+
 
     def does_file_exist(self, file_path, **kwargs):
         """Check if a file already exists inside the pantry and return

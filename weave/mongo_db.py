@@ -199,6 +199,7 @@ class MongoDB():
         self.load_mongo_manifest(collection=manifest_collection)
         self.load_mongo_supplement(collection=supplement_collection)
 
+
     @staticmethod
     def append_document (index : IndexABC, pantry):
         """Append a document using an Index in the supplement, manifest,
@@ -221,6 +222,7 @@ class MongoDB():
                             manifest_collection=manifest,
                             supplement_collection=supplement)
 
+
     @staticmethod
     def remove_document (uuid : str):
         """Delete a document using the uuid in the supplement,
@@ -238,6 +240,7 @@ class MongoDB():
                 get_database_names()][e].\
                 delete_one({'uuid':uuid})
 
+
 class MongoNames(Enum):
     """Holds collections and database names in mongo database"""
     PYTEST_COLLECTIONS_NAMES = ("test_supplement",
@@ -245,6 +248,7 @@ class MongoNames(Enum):
     COLLECTIONS_NAMES = ("supplement", "metadata", "manifest")
     PYTEST_DATABASE = "test_mongo_db"
     DATABASE = "mongo_db"
+
 
     @classmethod
     def get_collections_names(cls):
@@ -258,6 +262,7 @@ class MongoNames(Enum):
         if "pytest" in sys.modules:
             return cls.PYTEST_COLLECTIONS_NAMES.value
         return cls.COLLECTIONS_NAMES.value
+
 
     @classmethod
     def get_database_names(cls):
