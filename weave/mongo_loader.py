@@ -70,7 +70,7 @@ class MongoLoader():
         for uuid in uuids:
             basket = Basket(uuid, pantry=self.pantry)
             metadata = basket.get_metadata()
-            if metadata is None:
+            if not metadata:
                 continue
             mongo_metadata = {}
             mongo_metadata["uuid"] = basket.uuid
@@ -108,7 +108,7 @@ class MongoLoader():
         for uuid in uuids:
             basket = Basket(uuid, pantry=self.pantry)
             mongo_manifest = basket.get_manifest()
-            if mongo_manifest is None:
+            if not mongo_manifest:
                 continue
 
             # If the UUID already has the manifest loaded in MongoDB,
@@ -142,7 +142,7 @@ class MongoLoader():
         for uuid in uuids:
             basket = Basket(uuid, pantry=self.pantry)
             supplement = basket.get_supplement()
-            if supplement is None:
+            if not supplement:
                 continue
             mongo_supplement = {}
             mongo_supplement["uuid"] = basket.uuid
