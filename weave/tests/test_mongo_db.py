@@ -56,10 +56,8 @@ class MongoForTest(PantryForTest):
         self.database.client.drop_database(self.pantry_path)
 
 
-if "pymongo" not in sys.modules or "MONGODB_HOST" not in os.environ:
-    _SKIP_PYMONGO = True
-else:
-    _SKIP_PYMONGO = False
+_SKIP_PYMONGO = ("pymongo" not in sys.modules or
+                 "MONGODB_HOST" not in os.environ)
 
 # Create fsspec objects to be tested, and add to file_systems list.
 file_systems, file_systems_ids = get_file_systems()
@@ -324,7 +322,7 @@ def test_check_file_already_exists(set_up):
         mongo_loader = MongoLoader(pantry=pantry)
         mongo_loader.load_mongo_supplement(uuids=["file_already_exists_uuid"])
         uuids = pantry.does_file_exist(tmp_file.name)
-    
+
         assert len(uuids) == 1
         assert uuids[0] == 'file_already_exists_uuid'
 
@@ -333,7 +331,7 @@ def test_check_file_already_exists(set_up):
     _SKIP_PYMONGO, reason="Pymongo required for this test"
 )
 def test_check_pantries_have_discrete_mongodbs():
-    """Create two pantries and check the databases are different 
+    """Create two pantries and check the databases are different
     when using does_file_exist.
     """
     localfs = LocalFileSystem()
