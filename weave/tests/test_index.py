@@ -278,6 +278,26 @@ def test_index_abc_to_pandas_df_max_rows_and_offset_work(test_pantry):
     assert baskets.iloc[1].uuid == baskets2.iloc[0].uuid
 
 
+def test_index_abc_to_pandas_df_max_rows_none_works(test_pantry):
+    """Test IndexABC to_pandas_df max_rows equal to none."""
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+    # Put basket in the temporary pantry.
+    for basket_iter in range(3):
+        tmp_basket_dir_one = test_pantry.set_up_basket(f"basket_{basket_iter}")
+        test_pantry.upload_basket(
+            tmp_basket_dir=tmp_basket_dir_one,
+            uid=f"000{basket_iter}",
+        )
+
+    # Generate the index.
+    ind.generate_index()
+
+    baskets = ind.to_pandas_df(max_rows=None)
+    assert len(baskets) == 3
+
+
 def test_index_abc_track_basket_adds_single_basket(test_pantry):
     """Test IndexABC track_basket works when passing a single basket df."""
     # Unpack the test_pantry into two variables for the pantry and index.
@@ -1452,6 +1472,26 @@ def test_index_abc_get_baskets_of_type_max_rows_and_offset_work(test_pantry):
     assert baskets.iloc[1].uuid == baskets2.iloc[0].uuid
 
 
+def test_index_abc_get_baskets_of_type_max_rows_none_works(test_pantry):
+    """Test IndexABC get_baskets_of_type max_rows=None arguments."""
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+    # Put basket in the temporary pantry.
+    for basket_iter in range(3):
+        tmp_basket_dir_one = test_pantry.set_up_basket(f"basket_{basket_iter}")
+        test_pantry.upload_basket(
+            tmp_basket_dir=tmp_basket_dir_one,
+            uid=f"000{basket_iter}",
+        )
+
+    # Generate the index.
+    ind.generate_index()
+
+    baskets = ind.get_baskets_of_type("test_basket", max_rows=None)
+    assert len(baskets) == 3
+
+
 def test_index_abc_get_baskets_of_type_returns_empty_df(test_pantry):
     """Test IndexABC get_baskets_of_type returns empty df if no baskets of
     type.
@@ -1522,6 +1562,27 @@ def test_index_abc_get_baskets_of_label_max_rows_and_offset_work(test_pantry):
     assert len(baskets) == 2
     assert len(baskets2) == 2
     assert baskets.iloc[1].uuid == baskets2.iloc[0].uuid
+
+
+def test_index_abc_get_baskets_of_label_max_rows_none_works(test_pantry):
+    """Test IndexABC get_baskets_of_label max_rows=None arguments."""
+    # Unpack the test_pantry into two variables for the pantry and index.
+    test_pantry, ind = test_pantry
+
+    # Put basket in the temporary pantry.
+    for basket_iter in range(3):
+        tmp_basket_dir_one = test_pantry.set_up_basket(f"basket_{basket_iter}")
+        test_pantry.upload_basket(
+            tmp_basket_dir=tmp_basket_dir_one,
+            uid=f"000{basket_iter}",
+            label='good_label',
+        )
+
+    # Generate the index.
+    ind.generate_index()
+
+    baskets = ind.get_baskets_of_label("good_label", max_rows=None)
+    assert len(baskets) == 3
 
 
 def test_index_abc_get_baskets_of_label_returns_empty_df(test_pantry):

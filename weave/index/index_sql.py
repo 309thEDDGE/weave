@@ -273,8 +273,9 @@ class IndexSQL(IndexABC):
 
         Parameters
         ----------
-        max_rows: int (default=1000)
-            Max rows returned in the pandas dataframe.
+        max_rows: int or None (default=1000)
+            Max rows returned in the pandas dataframe. If None, all rows will
+            be returned.
         offset: int (default=0)
             Offset from the beginning of the index to begin the query
         **kwargs unused for this function.
@@ -286,7 +287,13 @@ class IndexSQL(IndexABC):
             pantry.
         """
         # Get the rows from the index as a list of lists, then get the columns.
-        result, columns = self.execute_sql(
+        if max_rows is None:
+            result, columns = self.execute_sql(
+                 f"""SELECT *
+                     FROM {self.pantry_schema}.pantry_index
+                     ORDER BY UUID""")
+        else:
+            result, columns = self.execute_sql(
              f"""SELECT *
                  FROM {self.pantry_schema}.pantry_index
                  ORDER BY UUID
@@ -658,8 +665,9 @@ class IndexSQL(IndexABC):
         ----------
         basket_type: str
             The basket type to filter for.
-        max_rows: int (default=1000)
-            Max rows returned in the pandas dataframe.
+        max_rows: int or None (default=1000)
+            Max rows returned in the pandas dataframe. If None, all rows will
+            be returned.
         offset: int (default=0)
             Offset from the beginning of the index to begin the query
 
@@ -669,16 +677,25 @@ class IndexSQL(IndexABC):
         ----------
         pandas.DataFrame containing the manifest data of baskets of the type.
         """
-        result, columns = self.execute_sql(
-            f"""SELECT *
-                FROM {self.pantry_schema}.pantry_index
-                WHERE basket_type = :basket_type
-                ORDER BY UUID
-                OFFSET (:offset) ROWS
-                FETCH FIRST (:max_rows) ROWS ONLY""",
-            {"offset": offset, "max_rows": max_rows,
-             "basket_type": basket_type},
-        )
+        if max_rows is None:
+            result, columns = self.execute_sql(
+                f"""SELECT *
+                    FROM {self.pantry_schema}.pantry_index
+                    WHERE basket_type = :basket_type
+                    ORDER BY UUID""",
+                {"basket_type": basket_type},
+            )
+        else:
+            result, columns = self.execute_sql(
+                f"""SELECT *
+                    FROM {self.pantry_schema}.pantry_index
+                    WHERE basket_type = :basket_type
+                    ORDER BY UUID
+                    OFFSET (:offset) ROWS
+                    FETCH FIRST (:max_rows) ROWS ONLY""",
+                {"offset": offset, "max_rows": max_rows,
+                 "basket_type": basket_type},
+            )
         result = [list(row) for row in result]
 
         ind_df = pd.DataFrame(result, columns=columns)
@@ -698,8 +715,9 @@ class IndexSQL(IndexABC):
         ----------
         basket_label: str
             The label to filter for.
-        max_rows: int (default=1000)
-            Max rows returned in the pandas dataframe.
+        max_rows: int or None (default=1000)
+            Max rows returned in the pandas dataframe. If None, all rows will
+            be returned.
         offset: int (default=0)
             Offset from the beginning of the index to begin the query
 
@@ -709,16 +727,25 @@ class IndexSQL(IndexABC):
         ----------
         pandas.DataFrame containing the manifest data of baskets with the label
         """
-        result, columns = self.execute_sql(
-            f"""SELECT *
-                FROM {self.pantry_schema}.pantry_index
-                WHERE label = :basket_label
-                ORDER BY UUID
-                OFFSET (:offset) ROWS
-                FETCH FIRST (:max_rows) ROWS ONLY""",
-            {"offset": offset, "max_rows": max_rows,
-             "basket_label": basket_label},
-        )
+        if max_rows is None:
+            result, columns = self.execute_sql(
+                f"""SELECT *
+                    FROM {self.pantry_schema}.pantry_index
+                    WHERE label = :basket_label
+                    ORDER BY UUID""",
+                {"basket_label": basket_label},
+            )
+        else:
+            result, columns = self.execute_sql(
+                f"""SELECT *
+                    FROM {self.pantry_schema}.pantry_index
+                    WHERE label = :basket_label
+                    ORDER BY UUID
+                    OFFSET (:offset) ROWS
+                    FETCH FIRST (:max_rows) ROWS ONLY""",
+                {"offset": offset, "max_rows": max_rows,
+                 "basket_label": basket_label},
+            )
         result = [list(row) for row in result]
 
         ind_df = pd.DataFrame(result, columns=columns)
@@ -742,8 +769,9 @@ class IndexSQL(IndexABC):
         end_time: datetime.datetime (optional)
             The end datetime object to filter between. If None, will filter
             to the current datetime.
-        max_rows: int (default=1000)
-            Max rows returned in the pandas dataframe.
+        max_rows: int or None (default=1000)
+            Max rows returned in the pandas dataframe. If None, all rows will
+            be returned.
         offset: int (default=0)
             Offset from the beginning of the index to begin the query
 
@@ -759,17 +787,19 @@ class IndexSQL(IndexABC):
             return self.to_pandas_df(max_rows=max_rows, offset=offset)
 
         pre_query = f"SELECT * FROM {self.pantry_schema}.pantry_index "
-        post_query = """ORDER BY UUID
-                        OFFSET (:offset) ROWS
+        post_query = """ORDER BY UUID """
+        limit_query = """OFFSET (:offset) ROWS
                         FETCH FIRST (:max_rows) ROWS ONLY"""
 
+        columns = None
         if start_time and end_time:
             start_time = int(datetime.timestamp(start_time))
             end_time = int(datetime.timestamp(end_time))
             query = "WHERE upload_time >= :start_time " \
                     "AND upload_time <= :end_time "
             results, columns = self.execute_sql(
-                pre_query + query + post_query,
+                pre_query + query + post_query +
+                    (limit_query if max_rows else ""),
                 {"offset": offset,
                  "max_rows": max_rows,
                  "start_time": start_time,
@@ -779,7 +809,8 @@ class IndexSQL(IndexABC):
             start_time = int(datetime.timestamp(start_time))
             query = "WHERE upload_time >= :start_time "
             results, columns = self.execute_sql(
-                pre_query + query + post_query,
+                pre_query + query + post_query +
+                    (limit_query if max_rows else ""),
                 {"offset": offset,
                  "max_rows": max_rows,
                  "start_time": start_time,
@@ -788,7 +819,8 @@ class IndexSQL(IndexABC):
             end_time = int(datetime.timestamp(end_time))
             query = "WHERE upload_time <= :end_time "
             results, columns = self.execute_sql(
-                pre_query + query + post_query,
+                pre_query + query + post_query +
+                    (limit_query if max_rows else ""),
                 {"offset": offset,
                  "max_rows": max_rows,
                  "end_time": end_time,

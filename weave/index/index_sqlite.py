@@ -113,8 +113,9 @@ class IndexSQLite(IndexABC):
 
         Parameters
         ----------
-        max_rows: int (default=1000)
-            Max rows returned in the pandas dataframe.
+        max_rows: int or None (default=1000)
+            Max rows returned in the pandas dataframe. If None, all rows will
+            be returned.
         offset: int (default=0)
             Offset from the beginning of the index to begin the query
 
@@ -130,9 +131,13 @@ class IndexSQLite(IndexABC):
             [info[1] for info in
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
         )
-        query = "SELECT * FROM pantry_index ORDER BY UUID LIMIT ? OFFSET ?"
+        query = "SELECT * FROM pantry_index ORDER BY UUID"
+        params = tuple()
+        if max_rows:
+            query += " LIMIT ? OFFSET ?"
+            params = (max_rows, offset)
         ind_df = pd.DataFrame(
-            self.cur.execute(query, (max_rows,offset,))
+            self.cur.execute(query, params)
             .fetchall(),
             columns=columns
         )
@@ -460,8 +465,9 @@ class IndexSQLite(IndexABC):
         ----------
         basket_type: str
             The basket type to filter for.
-        max_rows: int (default=1000)
-            Max rows returned in the pandas dataframe.
+        max_rows: int or None (default=1000)
+            Max rows returned in the pandas dataframe. If None, all rows will
+            be returned.
         offset: int (default=0)
             Offset from the beginning of the index to begin the query
 
@@ -475,11 +481,15 @@ class IndexSQLite(IndexABC):
             [info[1] for info in
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
         )
-        query="""SELECT * FROM pantry_index WHERE basket_type = ?
-                 ORDER BY UUID LIMIT ? OFFSET ?"""
+        query = """SELECT * FROM pantry_index WHERE basket_type = ?
+                 ORDER BY UUID"""
+        params = (basket_type,)
+        if max_rows:
+            query += " LIMIT ? OFFSET ?"
+            params = (basket_type, max_rows, offset)
         ind_df = pd.DataFrame(
             self.cur.execute(
-                query, (basket_type, max_rows, offset)
+                query, params
             ).fetchall(),
             columns=columns,
         )
@@ -499,8 +509,9 @@ class IndexSQLite(IndexABC):
         ----------
         basket_label: str
             The label to filter for.
-        max_rows: int (default=1000)
-            Max rows returned in the pandas dataframe.
+        max_rows: int or None (default=1000)
+            Max rows returned in the pandas dataframe. If None, all rows will
+            be returned.
         offset: int (default=0)
             Offset from the beginning of the index to begin the query
 
@@ -515,10 +526,14 @@ class IndexSQLite(IndexABC):
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
         )
         query = """SELECT * FROM pantry_index WHERE label = ?
-                   ORDER BY UUID LIMIT ? OFFSET ?"""
+                   ORDER BY UUID"""
+        params = (basket_label,)
+        if max_rows:
+            query += " LIMIT ? OFFSET ?"
+            params = (basket_label, max_rows, offset)
         ind_df = pd.DataFrame(
             self.cur.execute(
-                query, (basket_label, max_rows, offset)
+                query, params
             ).fetchall(),
             columns=columns,
         )
@@ -542,7 +557,7 @@ class IndexSQLite(IndexABC):
         end_time: datetime.datetime (optional)
             The end datetime object to filter between. If None, will filter
             to the current datetime.
-        max_rows: int (default=1000)
+        max_rows: int or None (default=1000)
             Max rows returned in the pandas dataframe.
         offset: int (default=0)
             Offset from the beginning of the index to begin the query
@@ -563,26 +578,36 @@ class IndexSQLite(IndexABC):
              self.cur.execute("PRAGMA table_info(pantry_index)").fetchall()]
         )
 
+        limit_query = ""
+        limit_params = tuple()
+        if max_rows:
+            limit_query = " LIMIT ? OFFSET ?"
+            limit_params = (max_rows, offset)
+
+        results = None
         if start_time and end_time:
             start_time = int(datetime.timestamp(start_time))
             end_time = int(datetime.timestamp(end_time))
             results = self.cur.execute(
                 """SELECT * FROM pantry_index
                 WHERE upload_time >= ? AND upload_time <= ?
-                ORDER BY UUID LIMIT ? OFFSET ?
-                """, (start_time, end_time, max_rows, offset)).fetchall()
+                ORDER BY UUID
+                """ + limit_query,
+                (start_time, end_time) + limit_params).fetchall()
         elif start_time:
             start_time = int(datetime.timestamp(start_time))
             results = self.cur.execute(
                 """SELECT * FROM pantry_index
-                WHERE upload_time >= ? ORDER BY UUID LIMIT ? OFFSET ?
-                """, (start_time, max_rows, offset)).fetchall()
+                WHERE upload_time >= ?
+                ORDER BY UUID
+                """ + limit_query, (start_time,) + limit_params).fetchall()
         elif end_time:
             end_time = int(datetime.timestamp(end_time))
             results = self.cur.execute(
                 """SELECT * FROM pantry_index
-                WHERE upload_time <= ? ORDER BY UUID LIMIT ? OFFSET ?
-                """, (end_time, max_rows, offset)).fetchall()
+                WHERE upload_time <= ?
+                ORDER BY UUID
+                """ + limit_query, (end_time,) + limit_params).fetchall()
 
         ind_df = pd.DataFrame(
             results,
