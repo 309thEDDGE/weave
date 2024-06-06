@@ -4,7 +4,6 @@ import os
 import sys
 import tempfile
 
-import pandas as pd
 import pytest
 from fsspec.implementations.local import LocalFileSystem
 
@@ -57,7 +56,7 @@ class MongoForTest(PantryForTest):
         self.database.client.drop_database(self.pantry_path)
 
 
-if "pymongo" not in sys.modules or not "MONGODB_HOST" in os.environ:
+if "pymongo" not in sys.modules or "MONGODB_HOST" not in os.environ:
     _SKIP_PYMONGO = True
 else:
     _SKIP_PYMONGO = False

@@ -5,7 +5,6 @@ Index baskets.
 
 import json
 import os
-import sys
 
 import s3fs
 # Ignore pylint duplicate code. Code here is used to explicitly show pymongo is

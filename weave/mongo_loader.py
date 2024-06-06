@@ -1,7 +1,4 @@
-"""Contains scripts concerning MongoDB functionality."""
-
-import pandas as pd
-# Try-Except required to make pymongo an optional dependency.
+"""Contains scripts concerning Mongo Loader functionality."""
 
 # Ignore pylint duplicate code. Code here is used to explicitly show pymongo is
 # an optional dependency. Duplicate code is found in config.py (where pymongo
@@ -20,7 +17,7 @@ else:
     _HAS_PYMONGO = True
 
 from .basket import Basket
-from .config import get_file_system, get_mongo_db
+from .config import get_mongo_db
 
 
 class MongoLoader():
