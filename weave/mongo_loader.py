@@ -30,8 +30,7 @@ class MongoLoader():
     """
 
     def __init__(self, pantry):
-        """Creates the mongo database and checks for any errors that could
-        occur when creating the database.
+        """Creates the mongo loader and makes a reference to the pantry's DB.
 
         Parameters
         ----------
@@ -57,6 +56,8 @@ class MongoLoader():
 
         Parameters
         ----------
+        uuids: [str]
+            A list of uuids to add their metadata to the mongo db.
         collection: str (default="metadata")
             Metadata will be added to the Mongo collection specified.
         """
@@ -96,6 +97,8 @@ class MongoLoader():
 
         Parameters
         ----------
+        uuids: [str]
+            A list of uuids to add their manifests to the mongo db.
         collection: str (default="manifest")
             Manifest will be added to the Mongo collection specified.
         """
@@ -128,6 +131,8 @@ class MongoLoader():
 
         Parameters
         ----------
+        uuids: [str]
+            A list of uuids to add their supplement to the mongo db.
         collection: str (default="supplement")
             Supplement will be added to the Mongo collection specified.
         """
@@ -160,6 +165,8 @@ class MongoLoader():
 
         Parameters
         ----------
+        uuids: [str]
+            A list of uuids to add their data to the mongo db.
         **metadata_collection: str (default="metadata")
             Metadata will be added to the Mongo collection specified.
         **manifest_collection: str (default="manifest")

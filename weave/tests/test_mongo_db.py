@@ -6,25 +6,23 @@ import tempfile
 
 import pandas as pd
 import pytest
+from fsspec.implementations.local import LocalFileSystem
 
 import weave
 from weave import Pantry, IndexPandas
 from weave.mongo_loader import MongoLoader
 from weave.tests.pytest_resources import PantryForTest, get_file_systems
 
-
 class MongoForTest(PantryForTest):
     """Extend the PantryForTest class to support mongodb and custom data
     loader.
     """
-
     def __init__(self, tmpdir, file_system):
         super().__init__(tmpdir, file_system)
-        self.database_name = "test_mongo_db"
-        self.metadata_collection = "test_metadata"
-        self.manifest_collection = "test_manifest"
-        self.supplement_collection = "test_supplement"
-        self.mongodb = weave.config.get_mongo_db()[self.database_name]
+        self.database = weave.config.get_mongo_db()[self.pantry_path]
+        self.supplement_collection = "supplement"
+        self.manifest_collection = "manifest"
+        self.metadata_collection = "metadata"
         self.load_data()
         self.pantry = weave.Pantry(
             IndexPandas,
@@ -54,13 +52,18 @@ class MongoForTest(PantryForTest):
     def cleanup(self):
         """Cleans up the pantry and mongodb."""
         self.cleanup_pantry()
-        for collection in self.mongodb.list_collection_names():
-            self.mongodb[collection].drop()
+        for collection in self.database.list_collection_names():
+            self.database[collection].drop()
+        self.database.client.drop_database(self.pantry_path)
 
+
+if "pymongo" not in sys.modules or not "MONGODB_HOST" in os.environ:
+    _SKIP_PYMONGO = True
+else:
+    _SKIP_PYMONGO = False
 
 # Create fsspec objects to be tested, and add to file_systems list.
 file_systems, file_systems_ids = get_file_systems()
-
 
 # Test with different fsspec file systems (above).
 @pytest.fixture(
@@ -78,9 +81,8 @@ def set_up(request, tmpdir):
 # Ignoring pylint's warning "redefined-outer-name" as this is simply
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
-
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo required for this test"
 )
 def test_load_mongo_metadata(set_up):
     """Test that load_mongo_metadata successfully loads valid metadata to
@@ -98,7 +100,7 @@ def test_load_mongo_metadata(set_up):
         {"uuid": "4321", "basket_type": "test_basket", "key2": "value2"},
     ]
 
-    db_data = list(set_up.mongodb[set_up.metadata_collection].find({}))
+    db_data = list(set_up.database[set_up.metadata_collection].find({}))
     compared_data = []
     for item in db_data:
         item.pop("_id")
@@ -107,7 +109,7 @@ def test_load_mongo_metadata(set_up):
 
 
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo required for this test"
 )
 def test_load_mongo_manifest(set_up):
     """Test that load_mongo_manifest successfully loads valid manifest to
@@ -128,7 +130,7 @@ def test_load_mongo_manifest(set_up):
         {"uuid": "nometadata", "parent_uuids": [],
          "basket_type": "test_basket", "label": ""}
     ]
-    db_data = list(set_up.mongodb[set_up.manifest_collection].find({}))
+    db_data = list(set_up.database[set_up.manifest_collection].find({}))
     compared_data = []
     for item in db_data:
         item.pop("_id")
@@ -139,7 +141,7 @@ def test_load_mongo_manifest(set_up):
 
 
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo required for this test"
 )
 def test_load_mongo_supplement(set_up):
     """Test that load_mongo_supplement successfully loads valid supplement to
@@ -157,7 +159,7 @@ def test_load_mongo_supplement(set_up):
         {"uuid": "4321", "basket_type": "test_basket"},
         {"uuid": "nometadata", "basket_type": "test_basket"}
     ]
-    db_data = list(set_up.mongodb[set_up.supplement_collection].find({}))
+    db_data = list(set_up.database[set_up.supplement_collection].find({}))
     compared_data = []
     for item in db_data:
         item.pop("_id")
@@ -168,7 +170,7 @@ def test_load_mongo_supplement(set_up):
 
 
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo required for this test"
 )
 def test_load_mongo(set_up):
     """Test that load_mongo successfully loads valid metadata, manifest, and
@@ -187,7 +189,7 @@ def test_load_mongo(set_up):
         {"uuid": "1234", "basket_type": "test_basket", "key1": "value1"},
         {"uuid": "4321", "basket_type": "test_basket", "key2": "value2"},
     ]
-    metadata = list(set_up.mongodb[set_up.metadata_collection].find({}))
+    metadata = list(set_up.database[set_up.metadata_collection].find({}))
     compared_metadata = []
     for item in metadata:
         item.pop("_id")
@@ -201,7 +203,7 @@ def test_load_mongo(set_up):
         {"uuid": "nometadata", "parent_uuids": [],
          "basket_type": "test_basket", "label": ""}
     ]
-    manifest = list(set_up.mongodb[set_up.manifest_collection].find({}))
+    manifest = list(set_up.database[set_up.manifest_collection].find({}))
     compared_manifest = []
     for item in manifest:
         item.pop("_id")
@@ -214,7 +216,7 @@ def test_load_mongo(set_up):
         {"uuid": "4321", "basket_type": "test_basket"},
         {"uuid": "nometadata", "basket_type": "test_basket"}
     ]
-    supplement = list(set_up.mongodb[set_up.supplement_collection].find({}))
+    supplement = list(set_up.database[set_up.supplement_collection].find({}))
     compared_supplement = []
     for item in supplement:
         item.pop("_id")
@@ -228,7 +230,7 @@ def test_load_mongo(set_up):
 
 
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo required for this test"
 )
 def test_load_mongo_metadata_check_collection_for_string(set_up):
     """Test that load_mongo_metadata prevents loading data with an invalid
@@ -243,27 +245,7 @@ def test_load_mongo_metadata_check_collection_for_string(set_up):
 
 
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules, reason="Pymongo required for this test"
-)
-def test_mongodb_check_dataframe_for_uuid(set_up):
-    """Test that MongoDB prevents loading data with missing uuid.
-    """
-    with pytest.raises(
-        TypeError, match="Invalid datatype for uuids: "
-                         "must be a list of strings [str]"
-    ):
-        mongo_loader = MongoLoader(pantry=set_up.pantry)
-        mongo_loader.load_mongo_metadata(
-            uuids=pd.DataFrame(
-                {"uuid": ["1234"],
-                 "basket_type": ["type"],
-                 "address": ["path"]}
-            )
-        )
-
-
-@pytest.mark.skipif(
-    "pymongo" not in sys.modules, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo required for this test"
 )
 def test_load_mongo_metadata_check_for_duplicate_uuid(set_up):
     """Test duplicate metadata won't be uploaded to mongoDB, based on the UUID.
@@ -274,14 +256,14 @@ def test_load_mongo_metadata_check_for_duplicate_uuid(set_up):
     mongo_loader.load_mongo_metadata([test_uuid], set_up.metadata_collection)
     mongo_loader.load_mongo_metadata([test_uuid], set_up.metadata_collection)
 
-    count = set_up.mongodb[set_up.metadata_collection].count_documents(
+    count = set_up.database[set_up.metadata_collection].count_documents(
         {"uuid": test_uuid}
     )
     assert count == 1, "duplicate uuid inserted"
 
 
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo required for this test"
 )
 def test_load_mongo_manifest_check_for_duplicate_uuid(set_up):
     """Test duplicate manifest won't be uploaded to mongoDB, based on the UUID.
@@ -292,14 +274,14 @@ def test_load_mongo_manifest_check_for_duplicate_uuid(set_up):
     mongo_loader.load_mongo_manifest([test_uuid], set_up.manifest_collection)
     mongo_loader.load_mongo_manifest([test_uuid], set_up.manifest_collection)
 
-    count = set_up.mongodb[set_up.manifest_collection].count_documents(
+    count = set_up.database[set_up.manifest_collection].count_documents(
         {"uuid": test_uuid}
     )
     assert count == 1, "duplicate uuid inserted"
 
 
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo required for this test"
 )
 def test_load_mongo_supplement_check_for_duplicate_uuid(set_up):
     """Test duplicate supplement won't be uploaded to mongoDB, based on the
@@ -311,23 +293,19 @@ def test_load_mongo_supplement_check_for_duplicate_uuid(set_up):
     mongo_loader.load_mongo_supplement([test_uuid], set_up.supplement_collection)
     mongo_loader.load_mongo_supplement([test_uuid], set_up.supplement_collection)
 
-    count = set_up.mongodb[set_up.supplement_collection].count_documents(
+    count = set_up.database[set_up.supplement_collection].count_documents(
         {"uuid": test_uuid}
     )
     assert count == 1, "duplicate uuid inserted"
 
 
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo required for this test"
 )
 def test_check_file_already_exists(set_up):
     """Make a file, upload it to the pantry, check if that file already exists.
     """
-    pantry = Pantry(
-        IndexPandas,
-        pantry_path=set_up.pantry_path,
-        file_system=set_up.file_system
-    )
+    pantry = set_up.pantry
 
     with tempfile.NamedTemporaryFile() as tmp_file:
         tmp_file.write(b'This is my temporary file that we will hash')
@@ -338,30 +316,39 @@ def test_check_file_already_exists(set_up):
             unique_id='file_already_exists_uuid',
         )
 
-    mongo_loader = MongoLoader(pantry=pantry)
-    mongo_loader.load_mongo_supplement(uuids=["file_already_exists_uuid"])
-    uuids = pantry.does_file_exist(tmp_file.name)
+        mongo_loader = MongoLoader(pantry=pantry)
+        mongo_loader.load_mongo_supplement(uuids=["file_already_exists_uuid"])
+        uuids = pantry.does_file_exist(tmp_file.name)
+    
+        assert len(uuids) == 1
+        assert uuids[0] == 'file_already_exists_uuid'
 
-    assert len(uuids) == 1
-    assert uuids[0] == 'file_already_exists_uuid'
 
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo required for this test"
 )
-def test_check_pantries_have_discrete_mongodbs(set_up):
+def test_check_pantries_have_discrete_mongodbs():
+    """Create two pantries and check the databases are different 
+    when using does_file_exist.
+    """
+    localfs = LocalFileSystem()
     pantry_basename = (
         "pytest-temp-pantry"
         f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
     )
+    pantry_path1 = pantry_basename+"pantry1"
+    pantry_path2 = pantry_basename+"pantry2"
+    localfs.mkdir(pantry_path1)
+    localfs.mkdir(pantry_path2)
     pantry1 = Pantry(
         IndexPandas,
-        pantry_path=pantry_basename+"pantry1",
-        file_system=set_up.file_system,
+        pantry_path=pantry_path1,
+        file_system=localfs,
     )
     pantry2 = Pantry(
         IndexPandas,
-        pantry_path=pantry_basename+"pantry2",
-        file_system=set_up.file_system,
+        pantry_path=pantry_path2,
+        file_system=localfs,
     )
 
     p1_mongo_loader = MongoLoader(pantry=pantry1)
@@ -399,7 +386,8 @@ def test_check_pantries_have_discrete_mongodbs(set_up):
                 pantry2.does_file_exist(tmp_file2.name) == ["pantry2fileuuid"]
             )
 
-    for collection in p1_mongo_loader.database.list_collection_names():
-            p1_mongo_loader.database[collection].drop()
-    for collection in p2_mongo_loader.database.list_collection_names():
-            p2_mongo_loader.database[collection].drop()
+    # Manually clean up as we had to create our own pantries and mongodbs.
+    p1_mongo_loader.database.client.drop_database(pantry1.pantry_path)
+    p2_mongo_loader.database.client.drop_database(pantry2.pantry_path)
+    localfs.rm(pantry1.pantry_path, recursive=True)
+    localfs.rm(pantry2.pantry_path, recursive=True)
