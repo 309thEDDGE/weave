@@ -5,11 +5,25 @@ Index baskets.
 
 import json
 import os
-import sys
 
 import s3fs
+# Ignore pylint duplicate code. Code here is used to explicitly show pymongo is
+# an optional dependency. Duplicate code is found in config.py (where pymongo
+# is actually imported)
+# pylint: disable-next=duplicate-code
+try:
+    # For the sake of explicitly showing that pymongo is optional, import
+    # pymongo here, even though it is not currently used in this file.
+    # Pylint ignore the next unused-import pylint warning.
+    # Also inline ruff ignore unused import (F401)
+    # pylint: disable-next=unused-import
+    import pymongo  # noqa: F401
+except ImportError:
+    _HAS_PYMONGO = False
+else:
+    _HAS_PYMONGO = True
 
-from .mongo_db import MongoDB
+from .mongo_loader import MongoLoader
 from .basket import Basket
 from .config import get_file_system
 from .index.create_index import create_index_from_fs
@@ -245,35 +259,30 @@ class Pantry():
         ----------
         file_path: str
             Local path to file being checked
-        **load_mongo: bool (default=false)
-            If true, the mongo supplement will be reloaded to get current
-            pantry contents.
+        **FORCE_LOAD_SUPPLEMENT: bool (default=false)
+            If true, the mongo supplement will be reloaded with the ENTIRETY of
+            the current pantry contents.
 
         Returns
         ----------
         list of basket uuids of where the file exists if it does. If file does
         not exist in the pantry, an empty list is returned.
         """
+        if not _HAS_PYMONGO:
+            raise ImportError("Missing Dependency. The package 'pymongo' "
+                              "is required to use this function.")
+
         integrity_data = derive_integrity_data(file_path)['hash']
+        mongo_loader = MongoLoader(pantry=self)
 
-        load_mongo = kwargs.get('load_mongo', False)
+        if kwargs.get("FORCE_LOAD_SUPPLEMENT", False):
+            mongo_loader.load_mongo_supplement(
+                self.index.to_pandas_df(max_rows=None).uuids
+            )
 
-        # If running pytest, point to the correct mongo database
-        if "pytest" in sys.modules:
-            mongo = MongoDB(index_table=self.index.to_pandas_df(),
-                            database="test_mongo_db",
-                            file_system=self.file_system)
-            if load_mongo:
-                mongo.load_mongo_supplement(collection='test_supplement')
-            db = mongo.database['test_supplement']
-        else:
-            mongo = MongoDB(index_table=self.index.to_pandas_df(),
-                            file_system=self.file_system)
-            if load_mongo:
-                mongo.load_mongo_supplement()
-            db = mongo.database['supplement']
+        supplement_collection = mongo_loader.database['supplement']
 
-        uuids = [f['uuid'] for f in db.find(
+        uuids = [f['uuid'] for f in supplement_collection.find(
             {'integrity_data.hash': {'$in': [integrity_data]}},
             {'uuid':1, '_id':0}
         )]
