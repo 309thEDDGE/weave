@@ -54,6 +54,8 @@ class Pantry():
             The fsspec object which hosts the pantry we desire to index.
             If file_system is None, then the default fs is retrieved from the
             config.
+        **index_kwargs: dict (optional)
+            Optional kwargs to be passed to the index constructor.
         """
 
         self.file_system = kwargs.pop("file_system", None)
@@ -87,7 +89,7 @@ class Pantry():
                            pantry_path=self.pantry_path,
                            metadata=self.metadata['index_metadata'],
                            pantry_read_only=self.is_read_only,
-                           **kwargs
+                           **kwargs["index_kwargs"],
         )
         self.metadata['index_metadata'] = self.index.generate_metadata()
 
