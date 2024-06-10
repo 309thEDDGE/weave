@@ -52,7 +52,11 @@ def create_pantry(**kwargs):
         )
     # Create a pantry using a config file that is given to the pantry factory.
     elif "config_file" in kwargs:
-        with open(kwargs.pop("config_file"), "r", encoding="utf-8") as config_file:
+        with open(
+            kwargs.pop("config_file"),
+            "r",
+            encoding="utf-8"
+        ) as config_file:
             config = json.load(config_file)
 
         pantry = _create_pantry_from_config(config, **kwargs)

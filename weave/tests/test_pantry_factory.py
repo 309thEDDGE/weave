@@ -89,13 +89,14 @@ def test_pantry_factory_local_config(test_pantry):
         config_path = os.path.join(tmp_dir, "config.json")
 
         with open(config_path, "w", encoding="utf-8") as config_file:
-            json.dump({"index":index_name,
-                       "pantry_path":test_pantry.pantry_path,
-                       "file_system":file_system_type,
-                       "S3_ENDPOINT":os.environ["S3_ENDPOINT"]},
-                      config_file)
+            json.dump(
+                {"index":index_name,
+                 "pantry_path":test_pantry.pantry_path,
+                 "file_system":file_system_type,
+                 "S3_ENDPOINT":os.environ["S3_ENDPOINT"]},
+                config_file
+            )
         pantry = create_pantry(config_file=config_path)
-
 
     assert isinstance(pantry, weave.Pantry)
 
@@ -107,14 +108,18 @@ def test_pantry_factory_existing_pantry_config(test_pantry):
     file_system_type = test_pantry.file_system.__class__.__name__
     config_path = os.path.join(test_pantry.pantry_path, "config.json")
 
-    with test_pantry.file_system.open(config_path,
-                                      "w",
-                                      encoding="utf-8") as config_file:
-            json.dump({"index":index_name,
-                       "pantry_path":test_pantry.pantry_path,
-                       "file_system":file_system_type,
-                       "S3_ENDPOINT":os.environ["S3_ENDPOINT"]},
-                      config_file)
+    with test_pantry.file_system.open(
+        config_path,
+        "w",
+        encoding="utf-8"
+    ) as config_file:
+        json.dump(
+            {"index":index_name,
+             "pantry_path":test_pantry.pantry_path,
+             "file_system":file_system_type,
+             "S3_ENDPOINT":os.environ["S3_ENDPOINT"]},
+            config_file
+        )
 
     pantry = create_pantry(pantry_path=test_pantry.pantry_path,
                            file_system=test_pantry.file_system)
@@ -129,14 +134,18 @@ def test_pantry_factory_invalid_index(test_pantry):
     file_system_type = test_pantry.file_system.__class__.__name__
     config_path = os.path.join(test_pantry.pantry_path, "config.json")
 
-    with test_pantry.file_system.open(config_path,
-                                      "w",
-                                      encoding="utf-8") as config_file:
-            json.dump({"index":invalid_index,
-                       "pantry_path":test_pantry.pantry_path,
-                       "file_system":file_system_type,
-                       "S3_ENDPOINT":os.environ["S3_ENDPOINT"]},
-                      config_file)
+    with test_pantry.file_system.open(
+        config_path,
+        "w",
+        encoding="utf-8"
+    ) as config_file:
+        json.dump(
+            {"index":invalid_index,
+             "pantry_path":test_pantry.pantry_path,
+             "file_system":file_system_type,
+             "S3_ENDPOINT":os.environ["S3_ENDPOINT"]},
+            config_file
+        )
 
     with pytest.raises(
         ValueError,
@@ -153,14 +162,18 @@ def test_pantry_factory_invalid_file_system(test_pantry):
     invalid_fs = "PRISMFileSystem"
     config_path = os.path.join(test_pantry.pantry_path, "config.json")
 
-    with test_pantry.file_system.open(config_path,
-                                      "w",
-                                      encoding="utf-8") as config_file:
-            json.dump({"index":index_name,
-                       "pantry_path":test_pantry.pantry_path,
-                       "file_system":invalid_fs,
-                       "S3_ENDPOINT":os.environ["S3_ENDPOINT"]},
-                      config_file)
+    with test_pantry.file_system.open(
+        config_path,
+        "w",
+        encoding="utf-8"
+    ) as config_file:
+        json.dump(
+            {"index":index_name,
+             "pantry_path":test_pantry.pantry_path,
+             "file_system":invalid_fs,
+             "S3_ENDPOINT":os.environ["S3_ENDPOINT"]},
+            config_file
+        )
     with pytest.raises(
         ValueError,
         match=f"File System Type: '{invalid_fs}' is"
