@@ -1,28 +1,14 @@
 """Pytest tests for the pantry factory."""
 import json
 import os
-import re
-import shutil
 import tempfile
-import uuid as uuid_lib
-import warnings
-from pathlib import Path
-from unittest.mock import patch
 
-import pandas as pd
 import pytest
-import s3fs
-import fsspec
-from fsspec.implementations.local import LocalFileSystem
 
-from weave import Basket
+import weave
 from weave.pantry_factory import create_pantry
-from weave.index.create_index import create_index_from_fs
 from weave.index.index_pandas import IndexPandas
-from weave.pantry import Pantry
 from weave.tests.pytest_resources import PantryForTest, get_file_systems
-from weave.__init__ import __version__ as weave_version
-
 
 ###############################################################################
 #                      Pytest Fixtures Documentation:                         #
@@ -33,17 +19,6 @@ from weave.__init__ import __version__ as weave_version
 #                                                                             #
 #  https://docs.pytest.org/en/7.3.x/how-to/fixtures.html#fixture-parametrize  #
 ###############################################################################
-
-# This module is long and has many tests. Pylint is complaining that it is too
-# long. This isn't neccesarily a bad thing, as the alternative would be to
-# write the tests continuing in a different script, which is unneccesarily
-# complex. Disabling this warning for this script.
-# pylint: disable=too-many-lines
-
-# Pylint doesn't like redefining the test fixture here from
-# test_basket, but this is the right way to do this in case at some
-# point in the future there is a need to differentiate the two.
-# pylint: disable=duplicate-code
 
 # Create fsspec objects to be tested, and add to file_systems list.
 file_systems, file_systems_ids = get_file_systems()
@@ -64,23 +39,17 @@ def fixture_test_pantry(request, tmpdir):
 
 
 def test_pantry_factory_default_args(test_pantry):
-    """"""
+    """Test the pantry factory with the default create pantry args."""
     pantry = create_pantry(index=IndexPandas,
                            pantry_path=test_pantry.pantry_path,
                            file_system=test_pantry.file_system)
 
-    print('pantry name: ', pantry.pantry_path)
-    print('index: ', pantry.index.to_pandas_df())
-    # config_path = os.path.join(test_pantry.pantry_path)
-    # test_pantry.pantry_path
+    assert isinstance(pantry, weave.Pantry)
 
 
 def test_pantry_factory_local_config(test_pantry):
-    """"""
-    if type(test_pantry.file_system) is LocalFileSystem:
-        file_system = "LocalFileSystem"
-    elif type(test_pantry.file_system) is s3fs.S3FileSystem:
-        file_system = "S3FileSystem"
+    """Create a pantry using the pantry factory with a locally saved config."""
+    file_system_type = test_pantry.file_system.__class__.__name__
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         config_path = os.path.join(tmp_dir, "config.json")
@@ -88,39 +57,44 @@ def test_pantry_factory_local_config(test_pantry):
         with open(config_path, "w", encoding="utf-8") as config_file:
             json.dump({"index":"IndexPandas",
                        "pantry_path":test_pantry.pantry_path,
-                       "file_system":file_system,
-# I feel like the s3 endpoint shouldn't be hard coded in like this, any suggestions?
+                       "file_system":file_system_type,
                        "S3_ENDPOINT":os.environ["S3_ENDPOINT"]},
                       config_file)
         pantry = create_pantry(config_file=config_path)
 
 
-    print('pantry name: ', pantry.pantry_path)
-    print('index: ', pantry.index.to_pandas_df())
+    assert isinstance(pantry, weave.Pantry)
+
 
 def test_pantry_factory_existing_pantry_config(test_pantry):
-    """"""
-    if type(test_pantry.file_system) is LocalFileSystem:
-        file_system = "LocalFileSystem"
-    elif type(test_pantry.file_system) is s3fs.S3FileSystem:
-        file_system = "S3FileSystem"
-    print(test_pantry.file_system.find(test_pantry.pantry_path))
+    """Create a pantry using the pantry factory with a config file saved in the
+    pantry path."""
+    file_system_type = test_pantry.file_system.__class__.__name__
     config_path = os.path.join(test_pantry.pantry_path, "config.json")
 
-    with test_pantry.file_system.open(config_path, "w", encoding="utf-8") as config_file:
+    with test_pantry.file_system.open(config_path,
+                                      "w",
+                                      encoding="utf-8") as config_file:
             json.dump({"index":"IndexPandas",
                        "pantry_path":test_pantry.pantry_path,
-                       "file_system":file_system,
-# I feel like the s3 endpoint shouldn't be hard coded in like this, any suggestions?
+                       "file_system":file_system_type,
                        "S3_ENDPOINT":os.environ["S3_ENDPOINT"]},
                       config_file)
-    print(test_pantry.file_system.cat(config_path))
 
     pantry = create_pantry(pantry_path=test_pantry.pantry_path,
                            file_system=test_pantry.file_system)
 
-    print('pantry name: ', pantry.pantry_path)
-    print('index: ', pantry.index.to_pandas_df())
+    assert isinstance(pantry, weave.Pantry)
+
+
+def test_pantry_factory_invalid_args(test_pantry):
+    """Ensure error will be raised if incorrect params are given to pantry
+    factory."""
+    with pytest.raises(
+        ValueError,
+        match="Invalid kwargs passed, unable to make pantry",
+    ):
+        create_pantry()
 
 
 

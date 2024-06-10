@@ -24,10 +24,9 @@ from .index.index_pandas import IndexPandas
 from .index.index_sqlite import IndexSQLite
 from .index.index_sql import IndexSQL
 from .pantry import Pantry
-from .pantry_factory import create_pantry
 from .mongo_loader import MongoLoader
 
-__version__ = "1.8.0"
+__version__ = "1.9.0"
 
 __all__ = [
     "Basket",
