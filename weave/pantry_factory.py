@@ -111,9 +111,13 @@ def _create_pantry_from_config(config, **kwargs):
     if file_system_type == "LocalFileSystem":
         file_system = LocalFileSystem()
     elif file_system_type == "S3FileSystem":
-        file_system = s3fs.S3FileSystem(
-            client_kwargs={"endpoint_url": config["S3_ENDPOINT"]}
-        )
+        if "S3_ENDPOINT" in config:
+            file_system = s3fs.S3FileSystem(
+                client_kwargs={"endpoint_url": config["S3_ENDPOINT"]}
+            )
+        else:
+            # If there is no custom endpoint, use the default one in the config
+            file_system = get_file_system()
     else:
         raise ValueError(f"File System Type: '{file_system_type}' is"
         f"not supported by this factory")
