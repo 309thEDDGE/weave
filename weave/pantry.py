@@ -85,11 +85,23 @@ class Pantry():
         except (OSError, ValueError):
             self.is_read_only = True
 
+        # print(kwargs.get('index_kwargs'))
+        # if kwargs.get('index_kwargs'):
+        #     print('we found it')
+        # else:
+        #     print('we didnt find it')
+
+        # self.index = index(file_system=self.file_system,
+        #                    pantry_path=self.pantry_path,
+        #                    metadata=self.metadata['index_metadata'],
+        #                    pantry_read_only=self.is_read_only,
+        #                    **kwargs["index_kwargs"],
+        # )
         self.index = index(file_system=self.file_system,
                            pantry_path=self.pantry_path,
                            metadata=self.metadata['index_metadata'],
                            pantry_read_only=self.is_read_only,
-                           **kwargs["index_kwargs"],
+                           **kwargs,
         )
         self.metadata['index_metadata'] = self.index.generate_metadata()
 
