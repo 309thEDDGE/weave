@@ -737,3 +737,34 @@ def test_read_only_get_data():
         del read_only_pantry
         del read_only_fs
         del my_basket
+        
+def test_create_basket_in_place_with_pantry(tmp_path):
+    test_dir = tmp_path / "test_basket"
+    test_dir.mkdir()
+    # Simulate files to include in the basket
+    file1 = test_dir / "file1.txt"
+    file2 = test_dir / "file2.txt"
+    file1.write_text("This is a test file 1.")
+    file2.write_text("This is a test file 2.")
+    
+    upload_items = [
+        {"path": str(file1), "stub": False},
+        {"path": str(file2), "stub": False}
+    ]
+    metadata = {"author": "test"}
+    
+    # Mock pantry
+    class MockPantry:
+        def __init__(self):
+            self.baskets = []
+    
+        def add_basket(self, basket_path):
+            self.baskets.append(basket_path)
+    
+    mock_pantry = MockPantry()
+    
+    # Create basket in place with pantry
+    create_basket_in_place(str(test_dir), upload_items, metadata, mock_pantry)
+    
+    # Validate basket addition to pantry
+    assert str(test_dir) in mock_pantry.baskets

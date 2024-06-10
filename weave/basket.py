@@ -3,6 +3,7 @@
 
 import json
 import os
+import hashlib
 from pathlib import Path
 
 import pandas as pd
@@ -270,3 +271,69 @@ class Basket(BasketInitializer):
                    "address", "storage_type"]
 
         return pd.DataFrame(data=[data], columns=columns)
+
+import os
+import json
+import hashlib
+from .config import MANIFEST_SCHEMA, SUPPLEMENT_SCHEMA, METADATA_SCHEMA
+from .validate import validate_basket_directory, validate_pantry
+from datetime import datetime
+import uuid
+
+    def create_basket_in_place(directory_path, upload_items=None, metadata=None, pantry=None):
+        # Validate the directory
+        if not validate_basket_directory(directory_path):
+            raise ValueError("Provided directory cannot be a valid basket (e.g., no nested baskets allowed)")
+        
+        # Create manifest file
+        manifest = {
+            "uuid": str(uuid.uuid4()),
+            "upload_time": datetime.utcnow().isoformat(),
+            "parent_uuids": [],
+            "basket_type": "item",
+            "label": ""
+        }
+        
+        manifest_path = os.path.join(directory_path, "manifest.json")
+        with open(manifest_path, 'w') as f:
+            json.dump(manifest, f, indent=4)
+        
+        # Create supplement file
+        supplement = {
+            "upload_items": [],
+            "integrity_data": []
+        }
+        
+        for item in upload_items or []:
+            file_path = item['path']
+            file_size = os.path.getsize(file_path)
+            with open(file_path, 'rb') as f:
+                file_hash = hashlib.sha256(f.read()).hexdigest()
+        
+            supplement["upload_items"].append({
+                "path": file_path,
+                "stub": item.get("stub", False)
+            })
+            supplement["integrity_data"].append({
+                "file_size": file_size,
+                "hash": file_hash,
+                "access_date": datetime.utcnow().isoformat(),
+                "source_path": file_path,
+                "upload_path": os.path.join(directory_path, os.path.basename(file_path))
+            })
+        
+        supplement_path = os.path.join(directory_path, "supplement.json")
+        with open(supplement_path, 'w') as f:
+            json.dump(supplement, f, indent=4)
+        
+        # Create metadata file if provided
+        if metadata:
+            metadata_path = os.path.join(directory_path, "metadata.json")
+            with open(metadata_path, 'w') as f:
+                json.dump(metadata, f, indent=4)
+        
+        # Add to pantry if provided
+        if pantry:
+            pantry.add_basket(directory_path)
+        
+        return manifest, supplement, metadata
