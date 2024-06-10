@@ -4,19 +4,18 @@
 import json
 import os
 import hashlib
+import uuid
 from pathlib import Path
+from datetime import datetime
 
 import pandas as pd
-import uuid
 
-from datetime import datetime
-from .config import get_file_system, prohibited_filenames, manifest_schema, supplement_schema
-from .validate import validate_basket_in_place_directory, validate_pantry
+from .config import get_file_system, prohibited_filenames
+from .validate import validate_basket_in_place_directory
 
 
 class BasketInitializer:
-    """Initializes basket class. Validates input args.
-    """
+    """Initializes basket class. Validates input args."""
 
     def __init__(self, basket_address, **kwargs):
         """Handles set up of basket. Calls validation.
@@ -47,23 +46,31 @@ class BasketInitializer:
                 raise error
 
             if "pantry" not in kwargs:
-                raise KeyError("pantry, required to set up basket from UUID,"
-                               "is not in kwargs.") from error
+                raise KeyError(
+                    "pantry, required to set up basket from UUID,"
+                    "is not in kwargs."
+                ) from error
             self.set_up_basket_from_uuid(basket_address, kwargs["pantry"])
         if "zip" in str(type(self.file_system)) and os.name == "nt":
-            self.manifest_path = '/'.join([self.basket_path,
-                                           "basket_manifest.json"])
-            self.supplement_path = '/'.join([self.basket_path,
-                                             "basket_supplement.json"])
-            self.metadata_path = '/'.join([self.basket_path,
-                                           "basket_metadata.json"])
+            self.manifest_path = "/".join(
+                [self.basket_path, "basket_manifest.json"]
+            )
+            self.supplement_path = "/".join(
+                [self.basket_path, "basket_supplement.json"]
+            )
+            self.metadata_path = "/".join(
+                [self.basket_path, "basket_metadata.json"]
+            )
         else:
-            self.manifest_path = os.path.join(self.basket_path,
-                                              "basket_manifest.json")
-            self.supplement_path = os.path.join(self.basket_path,
-                                                "basket_supplement.json")
-            self.metadata_path = os.path.join(self.basket_path,
-                                              "basket_metadata.json")
+            self.manifest_path = os.path.join(
+                self.basket_path, "basket_manifest.json"
+            )
+            self.supplement_path = os.path.join(
+                self.basket_path, "basket_supplement.json"
+            )
+            self.metadata_path = os.path.join(
+                self.basket_path, "basket_metadata.json"
+            )
         self.validate()
 
     def _set_up_basket_from_path(self, basket_address):
@@ -133,12 +140,12 @@ class BasketInitializer:
                 f"does not exist: {self.supplement_path}"
             )
 
+
 # Ignoring because there is a necessary and
 # reasonable amount of variables in this case
 # pylint: disable=too-many-instance-attributes
 class Basket(BasketInitializer):
-    """This class provides convenience functions for accessing basket contents.
-    """
+    """This class provides convenience functions for accessing basket contents."""
 
     def __init__(self, basket_address, **kwargs):
         """Initializes the Basket_Class.
@@ -245,7 +252,7 @@ class Basket(BasketInitializer):
         if relative_path is not None:
             relative_path = os.fspath(relative_path)
             ls_path = os.fspath(
-              Path(os.path.join(self.basket_path, relative_path))
+                Path(os.path.join(self.basket_path, relative_path))
             )
 
         if ls_path == os.fspath(Path(self.basket_path)):
@@ -265,73 +272,104 @@ class Basket(BasketInitializer):
 
     def to_pandas_df(self):
         """Return a dataframe of the basket member variables."""
-        data = [self.uuid, self.upload_time,
-                self.parent_uuids, self.basket_type,
-                self.label, self.weave_version, self.address,
-                self.storage_type]
-        columns = ["uuid", "upload_time", "parent_uuids",
-                   "basket_type", "label", "weave_version",
-                   "address", "storage_type"]
+        data = [
+            self.uuid,
+            self.upload_time,
+            self.parent_uuids,
+            self.basket_type,
+            self.label,
+            self.weave_version,
+            self.address,
+            self.storage_type,
+        ]
+        columns = [
+            "uuid",
+            "upload_time",
+            "parent_uuids",
+            "basket_type",
+            "label",
+            "weave_version",
+            "address",
+            "storage_type",
+        ]
 
         return pd.DataFrame(data=[data], columns=columns)
 
+
 def create_basket_in_place(directory_path, metadata=None, pantry=None):
-   # Validate the directory
-    if not validate_basket_in_place_directory(directory_path):
-        raise ValueError("Provided directory cannot be a valid basket (e.g., no nested baskets allowed)")
+    """Creates a basket in place by generating the manifest, supplement, and
+    metadata files directly in the provided directory without moving or 
+    uploading any files.
     
+    Parameters
+    ----------
+    directory_path (str): The path to the directory where the basket will be 
+    created.
+    metadata (dict, optional): A dictionary containing metadata to be included
+    in the basket.
+    pantry (object, optional): An optional pantry object to which the basket 
+    will be added. 
+    
+    Returns
+    ---------
+    tuple: A tuple containing the manifest, supplement, and metadata dicts 
+    """
+    # Validate the directory
+    if not validate_basket_in_place_directory(directory_path):
+        raise ValueError(
+            "Provided directory cannot be a valid basket (e.g., no nested baskets allowed)"
+        )
+
     # Create manifest file
     manifest = {
         "uuid": str(uuid.uuid4()),
         "upload_time": datetime.utcnow().isoformat(),
         "parent_uuids": [],
         "basket_type": "item",
-        "label": ""
+        "label": "",
     }
-    
+
     manifest_path = os.path.join(directory_path, "manifest.json")
-    with open(manifest_path, 'w') as f:
+    with open(manifest_path, "w", encoding='utf-8') as f:
         json.dump(manifest, f, indent=4)
-    
+
     # Create supplement file
-    supplement = {
-        "upload_items": [],
-        "integrity_data": []
-    }
-    
+    supplement = {"upload_items": [], "integrity_data": []}
+
     for root, _, files in os.walk(directory_path):
         for file in files:
             if file in ["manifest.json", "supplement.json", "metadata.json"]:
                 continue
             file_path = os.path.join(root, file)
             file_size = os.path.getsize(file_path)
-            with open(file_path, 'rb') as f:
+            with open(file_path, "rb") as f:
                 file_hash = hashlib.sha256(f.read()).hexdigest()
-    
-            supplement["upload_items"].append({
-                "path": file_path,
-                "stub": False
-            })
-            supplement["integrity_data"].append({
-                "file_size": file_size,
-                "hash": file_hash,
-                "access_date": datetime.utcnow().isoformat(),
-                "source_path": file_path,
-                "upload_path": file_path
-            })
-    
+
+            supplement["upload_items"].append(
+                {"path": file_path, "stub": False}
+            )
+            supplement["integrity_data"].append(
+                {
+                    "file_size": file_size,
+                    "hash": file_hash,
+                    "access_date": datetime.utcnow().isoformat(),
+                    "source_path": file_path,
+                    "upload_path": file_path,
+                }
+            )
+
     supplement_path = os.path.join(directory_path, "supplement.json")
-    with open(supplement_path, 'w') as f:
+    with open(supplement_path, "w", encoding='utf-8') as f:
         json.dump(supplement, f, indent=4)
-    
+
     # Create metadata file if provided
     if metadata:
         metadata_path = os.path.join(directory_path, "metadata.json")
-        with open(metadata_path, 'w') as f:
+        with open(metadata_path, "w", encoding='utf-8') as f:
             json.dump(metadata, f, indent=4)
-    
+
     # Add to pantry if provided
     if pantry:
         pantry.add_basket(directory_path)
-    
+
     return manifest, supplement, metadata

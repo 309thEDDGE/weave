@@ -737,9 +737,10 @@ def test_read_only_get_data():
         del read_only_pantry
         del read_only_fs
         del my_basket
-        
+
 def test_create_basket_in_place(tmp_path):
-    breakpoint()
+    """Make a directory and create a basket in place
+    """
     test_dir = tmp_path / "test_basket"
     test_dir.mkdir()
     # Simulate files to include in the basket
@@ -747,30 +748,69 @@ def test_create_basket_in_place(tmp_path):
     file2 = test_dir / "file2.txt"
     file1.write_text("This is a test file 1.")
     file2.write_text("This is a test file 2.")
-    
+
     metadata = {"author": "test"}
-    
+
     # Create basket in place
-    manifest, supplement, metadata_file = create_basket_in_place(str(test_dir), metadata)
-    
+    manifest, _, _ = create_basket_in_place(str(test_dir), metadata)
+
     # Validate basket creation
     assert os.path.exists(test_dir / "manifest.json")
     assert os.path.exists(test_dir / "supplement.json")
     if metadata:
         assert os.path.exists(test_dir / "metadata.json")
-    
+
     # Validate manifest content
-    with open(test_dir / "manifest.json") as f:
+    with open(test_dir / "manifest.json", encoding='utf-8') as f:
         manifest_data = json.load(f)
     assert manifest_data["uuid"] == manifest["uuid"]
-    
+
     # Validate supplement content
-    with open(test_dir / "supplement.json") as f:
+    with open(test_dir / "supplement.json", encoding='utf-8') as f:
         supplement_data = json.load(f)
     assert len(supplement_data["upload_items"]) == 2
-    
+
     # Validate metadata content
     if metadata:
-        with open(test_dir / "metadata.json") as f:
+        with open(test_dir / "metadata.json", encoding='utf-8') as f:
             metadata_data = json.load(f)
         assert metadata_data == metadata
+
+def test_create_basket_in_place_with_pantry(tmp_path):
+    """Make a directory and create a basket in place with a pantry.
+    """
+    test_dir = tmp_path / "test_basket"
+    test_dir.mkdir()
+    # Simulate files to include in the basket
+    file1 = test_dir / "file1.txt"
+    file2 = test_dir / "file2.txt"
+    file1.write_text("This is a test file 1.")
+    file2.write_text("This is a test file 2.")
+
+    metadata = {"author": "test"}
+
+    #Mock pantry only needs one method for testing, so ignoring pylint is
+    #reasonable in this case
+    # pylint: disable=too-few-public-methods
+    class MockPantry:
+        """Mock Pantry for Testing."""
+        def __init__(self):
+            """Initializes with an empty list of buckets."""
+            self.baskets = []
+
+        def add_basket(self, basket_path):
+            """Add basket to mock pantry.
+            ------
+            Parameters:
+            ------
+            basket_path (str): The path to the basket to add.
+            """
+            self.baskets.append(basket_path)
+
+    mock_pantry = MockPantry()
+
+    # Create basket in place with pantry
+    create_basket_in_place(str(test_dir), metadata, mock_pantry)
+
+    # Validate basket addition to pantry
+    assert str(test_dir) in mock_pantry.baskets
