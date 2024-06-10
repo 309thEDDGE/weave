@@ -19,7 +19,6 @@ from weave.index.create_index import create_index_from_fs
 from weave.pantry import Pantry
 from weave.index.index_pandas import IndexPandas
 from weave.tests.pytest_resources import PantryForTest, get_file_systems
-from weave.validate import validate_basket_directory
 
 ###############################################################################
 #                      Pytest Fixtures Documentation:                         #
@@ -739,7 +738,8 @@ def test_read_only_get_data():
         del read_only_fs
         del my_basket
         
-def test_create_basket_in_place_with_pantry(tmp_path):
+def test_create_basket_in_place(tmp_path):
+    breakpoint()
     test_dir = tmp_path / "test_basket"
     test_dir.mkdir()
     # Simulate files to include in the basket
@@ -748,24 +748,29 @@ def test_create_basket_in_place_with_pantry(tmp_path):
     file1.write_text("This is a test file 1.")
     file2.write_text("This is a test file 2.")
     
-    upload_items = [
-        {"path": str(file1), "stub": False},
-        {"path": str(file2), "stub": False}
-    ]
     metadata = {"author": "test"}
     
-    # Mock pantry
-    class MockPantry:
-        def __init__(self):
-            self.baskets = []
+    # Create basket in place
+    manifest, supplement, metadata_file = create_basket_in_place(str(test_dir), metadata)
     
-        def add_basket(self, basket_path):
-            self.baskets.append(basket_path)
+    # Validate basket creation
+    assert os.path.exists(test_dir / "manifest.json")
+    assert os.path.exists(test_dir / "supplement.json")
+    if metadata:
+        assert os.path.exists(test_dir / "metadata.json")
     
-    mock_pantry = MockPantry()
+    # Validate manifest content
+    with open(test_dir / "manifest.json") as f:
+        manifest_data = json.load(f)
+    assert manifest_data["uuid"] == manifest["uuid"]
     
-    # Create basket in place with pantry
-    create_basket_in_place(str(test_dir), upload_items, metadata, mock_pantry)
+    # Validate supplement content
+    with open(test_dir / "supplement.json") as f:
+        supplement_data = json.load(f)
+    assert len(supplement_data["upload_items"]) == 2
     
-    # Validate basket addition to pantry
-    assert str(test_dir) in mock_pantry.baskets
+    # Validate metadata content
+    if metadata:
+        with open(test_dir / "metadata.json") as f:
+            metadata_data = json.load(f)
+        assert metadata_data == metadata

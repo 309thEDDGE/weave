@@ -26,7 +26,7 @@ from .index.index_sql import IndexSQL
 from .pantry import Pantry
 from .mongo_loader import MongoLoader
 
-__version__ = "1.8.0"
+__version__ = "1.10.0"
 
 __all__ = [
     "Basket",
