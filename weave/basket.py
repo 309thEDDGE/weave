@@ -7,8 +7,11 @@ import hashlib
 from pathlib import Path
 
 import pandas as pd
+import uuid
 
-from .config import get_file_system, prohibited_filenames
+from datetime import datetime
+from .config import get_file_system, prohibited_filenames, manifest_schema, supplement_schema, metadata_schema
+from .validate import validate_basket_directory, validate_pantry
 
 
 class BasketInitializer:
@@ -271,14 +274,6 @@ class Basket(BasketInitializer):
                    "address", "storage_type"]
 
         return pd.DataFrame(data=[data], columns=columns)
-
-import os
-import json
-import hashlib
-from .config import MANIFEST_SCHEMA, SUPPLEMENT_SCHEMA, METADATA_SCHEMA
-from .validate import validate_basket_directory, validate_pantry
-from datetime import datetime
-import uuid
 
     def create_basket_in_place(directory_path, upload_items=None, metadata=None, pantry=None):
         # Validate the directory
