@@ -34,6 +34,7 @@ def create_pantry(**kwargs):
         If file_system is None, then the default fs is retrieved from the
         config.
     **config_file: str (optional)
+    Optional kwargs passed to the Index constructor.
 
     Returns:
     -----------
@@ -44,37 +45,48 @@ def create_pantry(**kwargs):
     # Create a pantry in the default way using the Pantry constructor
     if all(k in kwargs for k in ["index", "pantry_path", "file_system"]):
         pantry = Pantry(
-            kwargs["index"],
-            pantry_path=kwargs["pantry_path"],
-            file_system=kwargs["file_system"],
+            kwargs.pop("index"),
+            pantry_path=kwargs.pop("pantry_path"),
+            file_system=kwargs.pop("file_system"),
+            **kwargs,
         )
     # Create a pantry using a config file that is given to the pantry factory.
     elif "config_file" in kwargs:
-        with open(kwargs["config_file"], "r", encoding="utf-8") as config_file:
+        with open(kwargs.pop("config_file"), "r", encoding="utf-8") as config_file:
             config = json.load(config_file)
 
-        pantry = _create_pantry_from_config(config)
+        pantry = _create_pantry_from_config(config, **kwargs)
     # Create a pantry using a config that exists inside the pantry directory.
     elif "pantry_path" in kwargs:
-        file_system = kwargs.get("file_system", None)
+        file_system = kwargs.pop("file_system")
         if file_system is None:
             file_system = get_file_system()
 
         with file_system.open(
-            os.path.join(kwargs["pantry_path"], "config.json"),
+            os.path.join(kwargs.pop("pantry_path"), "config.json"),
             'r'
         ) as config_file:
             config = json.load(config_file)
 
-        pantry = _create_pantry_from_config(config)
+        pantry = _create_pantry_from_config(config, **kwargs)
     # If pantry was unable to be created using the methods above, throw error.
     else:
         raise ValueError("Invalid kwargs passed, unable to make pantry")
     return pantry
 
 
-def _create_pantry_from_config(config):
+def _create_pantry_from_config(config, **kwargs):
     """Create the weave.pantry object from a pre-existing config file.
+
+    Parameters:
+    -----------
+    config: dict
+        Dictionary that contains the contents of the config.json file.
+    Optional kwargs passed to the Index constructor.
+
+    Returns:
+    -----------
+    weave.Pantry object
     """
     # Parse the index type used by this pantry.
     index_type = config["index"]
@@ -102,12 +114,9 @@ def _create_pantry_from_config(config):
         raise ValueError(f"File System Type: '{file_system_type}' is"
         f"not supported by this factory")
 
-    # Get any additional index_kwargs to be passed forward.
-    index_kwargs = config.get("index_kwargs", None)
-
     return Pantry(
         index_constructor,
         pantry_path=pantry_path,
         file_system=file_system,
-        index_kwargs=index_kwargs,
+        **kwargs
     )
