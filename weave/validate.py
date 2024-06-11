@@ -53,23 +53,22 @@ def validate_pantry(pantry):
         warning_list = [warn[i].message for i in range(len(warn))]
         return warning_list
 
-def validate_basket_in_place_directory(directory_path):
+def validate_basket_in_place_directory(fs, directory_path):
     """
     Validates the directory to ensure it can be a valid basket.
-
-    - It should not contain nested baskets.
+    It should not contain nested baskets.
     
     Parameters:
-    - directory_path (str): The path to the directory to validate.
-    
+    ----------    
+    directory_path (str): The path to the directory to validate.
+    fs (fsspec.AbstractFileSystem): The file system object
     Returns:
-    - bool: True if the directory is valid, False otherwise.
+    ----------
+    bool: True if the directory is valid, False otherwise.
     """
-    for root, dirs, files in os.walk(directory_path):
-        for dir in dirs:
-            dir_path = os.path.join(root, dir)
-            if any(f in os.listdir(dir_path) for f in ["manifest.json", "supplement.json", "metadata.json"]):
-                return False
+    for path in fs.find(directory_path):
+        if path.endswith(("manifest.json", "supplement.json", "metadata.json")):
+            return False
     return True
 
 def _check_level(current_dir, **kwargs):

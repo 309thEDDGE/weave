@@ -752,7 +752,7 @@ def test_create_basket_in_place(tmp_path):
     metadata = {"author": "test"}
 
     # Create basket in place
-    manifest, _, _ = create_basket_in_place(str(test_dir), metadata)
+    manifest, _, _ = create_basket_in_place(str(test_dir), metadata, fs=LocalFileSystem)
 
     # Validate basket creation
     assert os.path.exists(test_dir / "manifest.json")
@@ -810,7 +810,116 @@ def test_create_basket_in_place_with_pantry(tmp_path):
     mock_pantry = MockPantry()
 
     # Create basket in place with pantry
-    create_basket_in_place(str(test_dir), metadata, mock_pantry)
+    create_basket_in_place(str(test_dir), metadata, mock_pantry, fs=LocalFileSystem)
 
     # Validate basket addition to pantry
     assert str(test_dir) in mock_pantry.baskets
+
+
+def test_create_basket_in_place_s3():
+    s3 = s3fs.S3FileSystem(
+        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+    )
+    test_dir = "s3://test-bucket/test_basket"
+    s3.mkdir(test_dir)
+
+    # Simulate files to include in the basket
+    file1 = test_dir + "/file1.txt"
+    file2 = test_dir + "/file2.txt"
+    with s3.open(file1, 'w') as f:
+        f.write("This is a test file 1.")
+    with s3.open(file2, 'w') as f:
+        f.write("This is a test file 2.")
+    
+    metadata = {"author": "test"}
+    
+    # Create basket in place
+    manifest, _, _ = create_basket_in_place(test_dir, metadata, fs=s3)
+    
+    # Validate basket creation
+    assert s3.exists(test_dir + "/manifest.json")
+    assert s3.exists(test_dir + "/supplement.json")
+    if metadata:
+        assert s3.exists(test_dir + "/metadata.json")
+    
+    # Validate manifest content
+    with s3.open(test_dir + "/manifest.json", encoding='utf-8') as f:
+        manifest_data = json.load(f)
+    assert manifest_data["uuid"] == manifest["uuid"]
+    
+    # Validate supplement content
+    with s3.open(test_dir + "/supplement.json", encoding='utf-8') as f:
+        supplement_data = json.load(f)
+    assert len(supplement_data["upload_items"]) == 2
+    
+    # Validate metadata content
+    if metadata:
+        with s3.open(test_dir + "/metadata.json", encoding='utf-8') as f:
+            metadata_data = json.load(f)
+        assert metadata_data == metadata
+
+def test_create_basket_in_place_with_pantry_s3():
+    s3 = s3fs.S3FileSystem(
+        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+    )
+    test_dir = "s3://test-bucket/test_basket"
+    s3.mkdir(test_dir)
+
+    # Simulate files to include in the basket
+    file1 = test_dir + "/file1.txt"
+    file2 = test_dir + "/file2.txt"
+    with s3.open(file1, 'w') as f:
+        f.write("This is a test file 1.")
+    with s3.open(file2, 'w') as f:
+        f.write("This is a test file 2.")
+    
+    metadata = {"author": "test"}
+    
+    # pylint: disable=too-few-public-methods
+    class MockPantry:
+        """Mock Pantry class for testing.
+    
+        This class simulates a pantry with basic add_basket functionality.
+        """
+    
+        def __init__(self):
+            """Initialize the MockPantry with an empty list of baskets."""
+            self.baskets = []
+    
+        def add_basket(self, basket_path):
+            """Add a basket to the MockPantry.
+    
+            Args:
+                basket_path (str): The path to the basket to add.
+            """
+            self.baskets.append(basket_path)
+    
+    mock_pantry = MockPantry()
+    
+    # Create basket in place with pantry
+    create_basket_in_place(test_dir, metadata, mock_pantry, fs=s3)
+    
+    # Validate basket addition to pantry
+    assert test_dir in mock_pantry.baskets
+    
+    # Validate basket creation
+    assert s3.exists(test_dir + "/manifest.json")
+    assert s3.exists(test_dir + "/supplement.json")
+    if metadata:
+        assert s3.exists(test_dir + "/metadata.json")
+    
+    # Validate manifest content
+    with s3.open(test_dir + "/manifest.json", encoding='utf-8') as f:
+        manifest_data = json.load(f)
+    assert manifest_data["uuid"] == manifest["uuid"]
+    
+    # Validate supplement content
+    with s3.open(test_dir + "/supplement.json", encoding='utf-8') as f:
+        supplement_data = json.load(f)
+    assert len(supplement_data["upload_items"]) == 2
+    
+    # Validate metadata content
+    if metadata:
+        with s3.open(test_dir + "/metadata.json", encoding='utf-8') as f:
+            metadata_data = json.load(f)
+        assert metadata_data == metadata

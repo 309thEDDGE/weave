@@ -9,6 +9,8 @@ from pathlib import Path
 from datetime import datetime
 
 import pandas as pd
+import s3fs
+from fsspec.implementations.local import LocalFileSystem
 
 from .config import get_file_system, prohibited_filenames
 from .validate import validate_basket_in_place_directory
@@ -296,7 +298,7 @@ class Basket(BasketInitializer):
         return pd.DataFrame(data=[data], columns=columns)
 
 
-def create_basket_in_place(directory_path, metadata=None, pantry=None):
+def create_basket_in_place(directory_path, metadata=None, pantry=None, fs=None):
     """Creates a basket in place by generating the manifest, supplement, and
     metadata files directly in the provided directory without moving or 
     uploading any files.
@@ -309,13 +311,18 @@ def create_basket_in_place(directory_path, metadata=None, pantry=None):
     in the basket.
     pantry (object, optional): An optional pantry object to which the basket 
     will be added. 
-    
+    fs (fsspec.AbstractFileSystem): The file system object. Defaults to
     Returns
     ---------
     tuple: A tuple containing the manifest, supplement, and metadata dicts 
     """
+    if fs is None:
+        fs = s3fs.S3FileSystem(
+        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+        )
+
     # Validate the directory
-    if not validate_basket_in_place_directory(directory_path):
+    if not validate_basket_in_place_directory(fs, directory_path):
         raise ValueError(
             "Provided directory cannot be a valid basket (e.g., no nested baskets allowed)"
         )
@@ -336,36 +343,33 @@ def create_basket_in_place(directory_path, metadata=None, pantry=None):
     # Create supplement file
     supplement = {"upload_items": [], "integrity_data": []}
 
-    for root, _, files in os.walk(directory_path):
-        for file in files:
-            if file in ["manifest.json", "supplement.json", "metadata.json"]:
-                continue
-            file_path = os.path.join(root, file)
-            file_size = os.path.getsize(file_path)
-            with open(file_path, "rb") as f:
-                file_hash = hashlib.sha256(f.read()).hexdigest()
-
-            supplement["upload_items"].append(
-                {"path": file_path, "stub": False}
-            )
-            supplement["integrity_data"].append(
-                {
-                    "file_size": file_size,
-                    "hash": file_hash,
-                    "access_date": datetime.utcnow().isoformat(),
-                    "source_path": file_path,
-                    "upload_path": file_path,
-                }
-            )
+    for path in fs.find(directory_path):
+        if path.endswith(("manifest.json", "supplement.json", "metadata.json")):
+            continue
+        file_size = fs.size(path)
+        with fs.open(path, 'rb') as f:
+            file_hash = hashlib.sha256(f.read()).hexdigest()
+    
+        supplement["upload_items"].append({
+            "path": path,
+            "stub": False
+        })
+        supplement["integrity_data"].append({
+            "file_size": file_size,
+            "hash": file_hash,
+            "access_date": datetime.utcnow().isoformat(),
+            "source_path": path,
+            "upload_path": path
+        })
 
     supplement_path = os.path.join(directory_path, "supplement.json")
-    with open(supplement_path, "w", encoding='utf-8') as f:
+    with fs.open(supplement_path, "w", encoding='utf-8') as f:
         json.dump(supplement, f, indent=4)
 
     # Create metadata file if provided
     if metadata:
         metadata_path = os.path.join(directory_path, "metadata.json")
-        with open(metadata_path, "w", encoding='utf-8') as f:
+        with fs.open(metadata_path, "w", encoding='utf-8') as f:
             json.dump(metadata, f, indent=4)
 
     # Add to pantry if provided
