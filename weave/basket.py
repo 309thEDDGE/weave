@@ -16,7 +16,7 @@ from .config import get_file_system, prohibited_filenames
 from .validate import validate_basket_in_place_directory
 from .upload import derive_integrity_data
 from .index.create_index import create_index_from_fs
-
+from .index.index_abc import IndexABC
 
 class BasketInitializer:
     """Initializes basket class. Validates input args."""
@@ -325,9 +325,10 @@ def create_basket_in_place(
 
     Returns:
     ----------
-    tuple: A tuple containing the Basket instance and a single row from the basket index.
+    single_index_row: A single row from the basket index
 
     Raises:
+    ----------
     ValueError: If the provided directory cannot be a valid basket (e.g., it contains nested baskets).
     """
     if fs is None:
@@ -336,7 +337,7 @@ def create_basket_in_place(
         )
 
     # Validate the directory
-    if not validate_basket_directory(fs, directory_path):
+    if not validate_basket_in_place_directory(fs, directory_path):
         raise ValueError(
             "Provided directory cannot be a valid basket (e.g., no nested baskets allowed)"
         )
@@ -363,7 +364,7 @@ def create_basket_in_place(
                 continue
 
             file_path = os.path.join(root, file)
-            integrity_data = derive_integrity_data(file_path, fs)
+            integrity_data = derive_integrity_data(file_path=file_path, source_file_system=fs)
 
             supplement["upload_items"].append(
                 {"path": file_path, "stub": False}
@@ -384,10 +385,7 @@ def create_basket_in_place(
     if pantry:
         pantry.add_basket(directory_path)
 
-    # Create a Basket instance
-    basket = Basket(directory_path, fs=fs)
-
     # Create the index row
     single_index_row = create_index_from_fs(directory_path, fs)
-
-    return basket, single_index_row
+    IndexABC.track_basket(single_index_row)
+    return single_index_row

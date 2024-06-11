@@ -52,6 +52,31 @@ def fixture_test_pantry(request, tmpdir):
     yield test_pantry
     test_pantry.cleanup_pantry()
 
+@pytest.fixture
+def local_fs():
+    return LocalFileSystem()
+
+@pytest.fixture
+def s3_fs():
+    return s3fs.S3FileSystem(client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]})
+
+@pytest.fixture
+def local_test_dir(tmp_path):
+    test_dir = tmp_path / "test_basket"
+    test_dir.mkdir()
+    yield test_dir
+    # Clean up
+    for file in test_dir.iterdir():
+        file.unlink()
+    test_dir.rmdir()
+    
+@pytest.fixture
+def s3_test_dir(s3_fs):
+    test_dir = "test-bucket/test_basket"
+    s3_fs.mkdir(test_dir)
+    yield test_dir
+    # Clean up
+    s3_fs.rm(test_dir, recursive=True)
 
 def test_basket_basket_path_is_pathlike():
     """Test that an error is returned when trying to instantiate a basket with
@@ -735,180 +760,137 @@ def test_read_only_get_data():
         del read_only_fs
         del my_basket
 
-
-def test_create_basket_in_place_local(tmp_path):
-    test_dir = tmp_path / "test_basket"
-    test_dir.mkdir()
-
+def test_create_basket_in_place_local(local_test_dir, local_fs):
     # Simulate files to include in the basket
-    file1 = test_dir / "file1.txt"
-    file2 = test_dir / "file2.txt"
+    file1 = local_test_dir / "file1.txt"
+    file2 = local_test_dir / "file2.txt"
     file1.write_text("This is a test file 1.")
     file2.write_text("This is a test file 2.")
-
+    
     metadata = {"author": "test"}
-
+    
     # Create basket in place
-    basket, index_row = create_basket_in_place(
-        str(test_dir), metadata, fs=LocalFileSystem()
-    )
-
+    index_row = create_basket_in_place(str(local_test_dir), metadata, fs=local_fs)
     # Validate basket creation
-    assert os.path.exists(test_dir / "manifest.json")
-    assert os.path.exists(test_dir / "supplement.json")
+    assert os.path.exists(local_test_dir / "manifest.json")
+    assert os.path.exists(local_test_dir / "supplement.json")
     if metadata:
-        assert os.path.exists(test_dir / "metadata.json")
-
+        assert os.path.exists(local_test_dir / "metadata.json")
+    
     # Validate manifest content
-    with open(test_dir / "manifest.json", encoding="utf-8") as f:
+    with open(local_test_dir / "manifest.json", encoding='utf-8') as f:
         manifest_data = json.load(f)
-    assert manifest_data["uuid"] == basket.uuid
     assert manifest_data["label"] == index_row.iloc[0]["label"]
     assert manifest_data["basket_type"] == index_row.iloc[0]["basket_type"]
 
-    # Validate using Basket class
-    assert basket.get_manifest() == manifest_data
-    assert basket.get_supplement() is not None
-    if metadata:
-        assert basket.get_metadata() == metadata
-
-
-def test_create_basket_in_place_with_pantry_local(tmp_path):
-    test_dir = tmp_path / "test_basket"
-    test_dir.mkdir()
-
+def test_create_basket_in_place_with_pantry_local(local_test_dir, local_fs):
     # Simulate files to include in the basket
-    file1 = test_dir / "file1.txt"
-    file2 = test_dir / "file2.txt"
+    file1 = local_test_dir / "file1.txt"
+    file2 = local_test_dir / "file2.txt"
     file1.write_text("This is a test file 1.")
     file2.write_text("This is a test file 2.")
-
+    
     metadata = {"author": "test"}
-
+    
     # pylint: disable=too-few-public-methods
     class MockPantry:
         """Mock Pantry class for testing.
-
+    
         This class simulates a pantry with basic add_basket functionality.
         """
-
+    
         def __init__(self):
             """Initialize the MockPantry with an empty list of baskets."""
             self.baskets = []
-
+    
         def add_basket(self, basket_path):
             """Add a basket to the MockPantry.
-
+    
             Args:
                 basket_path (str): The path to the basket to add.
             """
             self.baskets.append(basket_path)
-
+    
     mock_pantry = MockPantry()
-
+    
     # Create basket in place with pantry
-    basket, index_row = create_basket_in_place(
-        str(test_dir), metadata, mock_pantry, fs=LocalFileSystem()
-    )
-
+    index_row = create_basket_in_place(str(local_test_dir), metadata, mock_pantry, fs=local_fs)
+    
     # Validate basket addition to pantry
-    assert str(test_dir) in mock_pantry.baskets
+    assert str(local_test_dir) in mock_pantry.baskets
+    
+    # Validate manifest content
+    with open(local_test_dir / "manifest.json", encoding='utf-8') as f:
+        manifest_data = json.load(f)
+    assert manifest_data["label"] == index_row.iloc[0]["label"]
+    assert manifest_data["basket_type"] == index_row.iloc[0]["basket_type"]
 
-    # Validate using Basket class
-    assert basket.get_manifest() is not None
-    assert basket.get_supplement() is not None
-    if metadata:
-        assert basket.get_metadata() is not None
-
-
-def test_create_basket_in_place_s3():
-    s3 = s3fs.S3FileSystem(
-        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-    )
-    test_dir = "s3://test-bucket/test_basket"
-    s3.mkdir(test_dir)
-
-    # Simulate files to include in the basket
-    file1 = test_dir + "/file1.txt"
-    file2 = test_dir + "/file2.txt"
-    with s3.open(file1, "w") as f:
+def test_create_basket_in_place_s3(s3_test_dir, s3_fs):
+   # Simulate files to include in the basket
+    file1 = s3_test_dir + "/file1.txt"
+    file2 = s3_test_dir + "/file2.txt"
+    with s3_fs.open(file1, 'w') as f:
         f.write("This is a test file 1.")
-    with s3.open(file2, "w") as f:
+    with s3_fs.open(file2, 'w') as f:
         f.write("This is a test file 2.")
-
+    
     metadata = {"author": "test"}
-
+    
     # Create basket in place
-    basket, index_row = create_basket_in_place(test_dir, metadata, fs=s3)
-
+    index_row = create_basket_in_place(s3_test_dir, metadata, fs=s3_fs)
+    
     # Validate basket creation
-    assert s3.exists(test_dir + "/manifest.json")
-    assert s3.exists(test_dir + "/supplement.json")
+    assert s3_fs.exists(s3_test_dir + "/manifest.json")
+    assert s3_fs.exists(s3_test_dir + "/supplement.json")
     if metadata:
-        assert s3.exists(test_dir + "/metadata.json")
+        assert s3_fs.exists(s3_test_dir + "/metadata.json")
+    
+    # Validate manifest content
+    with s3_fs.open(s3_test_dir + "/manifest.json", encoding='utf-8') as f:
+        manifest_data = json.load(f)
+    assert manifest_data["label"] == index_row.iloc[0]["label"]
+    assert manifest_data["basket_type"] == index_row.iloc[0]["basket_type"]
 
-
-def test_create_basket_in_place_with_pantry_s3():
-    s3 = s3fs.S3FileSystem(
-        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-    )
-    test_dir = "s3://test-bucket/test_basket"
-    s3.mkdir(test_dir)
-
+def test_create_basket_in_place_with_pantry_s3(s3_test_dir, s3_fs):
     # Simulate files to include in the basket
-    file1 = test_dir + "/file1.txt"
-    file2 = test_dir + "/file2.txt"
-    with s3.open(file1, "w") as f:
+    file1 = s3_test_dir + "/file1.txt"
+    file2 = s3_test_dir + "/file2.txt"
+    with s3_fs.open(file1, 'w') as f:
         f.write("This is a test file 1.")
-    with s3.open(file2, "w") as f:
+    with s3_fs.open(file2, 'w') as f:
         f.write("This is a test file 2.")
-
+    
     metadata = {"author": "test"}
-
+    
     # pylint: disable=too-few-public-methods
     class MockPantry:
         """Mock Pantry class for testing.
-
+    
         This class simulates a pantry with basic add_basket functionality.
         """
-
+    
         def __init__(self):
             """Initialize the MockPantry with an empty list of baskets."""
             self.baskets = []
-
+    
         def add_basket(self, basket_path):
             """Add a basket to the MockPantry.
-
+    
             Args:
                 basket_path (str): The path to the basket to add.
             """
             self.baskets.append(basket_path)
-
+    
     mock_pantry = MockPantry()
-
+    
     # Create basket in place with pantry
-    basket, index_row = create_basket_in_place(
-        test_dir, metadata, mock_pantry, fs=s3
-    )
-
+    index_row = create_basket_in_place(s3_test_dir, metadata, mock_pantry, fs=s3_fs)
+    
     # Validate basket addition to pantry
-    assert test_dir in mock_pantry.baskets
-
-    # Validate basket creation
-    assert s3.exists(test_dir + "/manifest.json")
-    assert s3.exists(test_dir + "/supplement.json")
-    if metadata:
-        assert s3.exists(test_dir + "/metadata.json")
-
+    assert s3_test_dir in mock_pantry.baskets
+    
     # Validate manifest content
-    with s3.open(test_dir + "/manifest.json", encoding="utf-8") as f:
+    with s3_fs.open(s3_test_dir + "/manifest.json", encoding='utf-8') as f:
         manifest_data = json.load(f)
-    assert manifest_data["uuid"] == basket.uuid
     assert manifest_data["label"] == index_row.iloc[0]["label"]
     assert manifest_data["basket_type"] == index_row.iloc[0]["basket_type"]
-
-    # Validate using Basket class
-    assert basket.get_manifest() == manifest_data
-    assert basket.get_supplement() is not None
-    if metadata:
-        assert basket.get_metadata() == metadata
