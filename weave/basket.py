@@ -14,7 +14,8 @@ from fsspec.implementations.local import LocalFileSystem
 
 from .config import get_file_system, prohibited_filenames
 from .validate import validate_basket_in_place_directory
-
+from .upload import derive_integrity_data
+from .index.create_index import create_index_from_fs
 
 class BasketInitializer:
     """Initializes basket class. Validates input args."""
@@ -297,83 +298,86 @@ class Basket(BasketInitializer):
 
         return pd.DataFrame(data=[data], columns=columns)
 
+def create_basket_in_place(directory_path, metadata=None, pantry=None, fs=None, parent_uuids=None, basket_type="item", label=""):
+    """
+    Creates a basket in place by generating the manifest, supplement, and metadata files
+    directly in the provided directory without moving or uploading any files.
 
-def create_basket_in_place(directory_path, metadata=None, pantry=None, fs=None):
-    """Creates a basket in place by generating the manifest, supplement, and
-    metadata files directly in the provided directory without moving or 
-    uploading any files.
-    
-    Parameters
+    Parameters:
     ----------
-    directory_path (str): The path to the directory where the basket will be 
-    created.
-    metadata (dict, optional): A dictionary containing metadata to be included
-    in the basket.
-    pantry (object, optional): An optional pantry object to which the basket 
-    will be added. 
-    fs (fsspec.AbstractFileSystem): The file system object. Defaults to
-    Returns
-    ---------
-    tuple: A tuple containing the manifest, supplement, and metadata dicts 
+    directory_path (str): The path to the directory where the basket will be created.
+    metadata (dict, optional): A dictionary containing metadata to be included in the basket.
+    pantry (object, optional): An optional pantry object to which the basket will be added.
+    fs (fsspec.AbstractFileSystem, optional): The file system object. Defaults to S3 file system.
+    parent_uuids (list, optional): A list of parent UUIDs for the basket.
+    basket_type (str, optional): The type of the basket.
+    label (str, optional): The label for the basket.
+    
+    Returns:
+    ----------
+    tuple: A tuple containing the Basket instance and a single row from the basket index.
+    
+    Raises:
+    ValueError: If the provided directory cannot be a valid basket (e.g., it contains nested baskets).
     """
     if fs is None:
-        fs = s3fs.S3FileSystem(
-        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-        )
-
+        fs = s3fs.S3FileSystem(client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]})
+    
     # Validate the directory
-    if not validate_basket_in_place_directory(fs, directory_path):
-        raise ValueError(
-            "Provided directory cannot be a valid basket (e.g., no nested baskets allowed)"
-        )
-
+    if not validate_basket_directory(fs, directory_path):
+        raise ValueError("Provided directory cannot be a valid basket (e.g., no nested baskets allowed)")
+    
     # Create manifest file
     manifest = {
         "uuid": str(uuid.uuid4()),
         "upload_time": datetime.utcnow().isoformat(),
-        "parent_uuids": [],
-        "basket_type": "item",
-        "label": "",
+        "parent_uuids": parent_uuids or [],
+        "basket_type": basket_type,
+        "label": label
     }
-
-    manifest_path = os.path.join(directory_path, "manifest.json")
-    with open(manifest_path, "w", encoding='utf-8') as f:
-        json.dump(manifest, f, indent=4)
-
-    # Create supplement file
-    supplement = {"upload_items": [], "integrity_data": []}
-
-    for path in fs.find(directory_path):
-        if path.endswith(("manifest.json", "supplement.json", "metadata.json")):
-            continue
-        file_size = fs.size(path)
-        with fs.open(path, 'rb') as f:
-            file_hash = hashlib.sha256(f.read()).hexdigest()
     
-        supplement["upload_items"].append({
-            "path": path,
-            "stub": False
-        })
-        supplement["integrity_data"].append({
-            "file_size": file_size,
-            "hash": file_hash,
-            "access_date": datetime.utcnow().isoformat(),
-            "source_path": path,
-            "upload_path": path
-        })
-
+    manifest_path = os.path.join(directory_path, "manifest.json")
+    with fs.open(manifest_path, 'w', encoding='utf-8') as f:
+        json.dump(manifest, f, indent=4)
+    
+    # Create supplement file
+    supplement = {
+        "upload_items": [],
+        "integrity_data": []
+    }
+    
+    for root, _, files in fs.walk(directory_path):
+        for file in files:
+            if file in ["manifest.json", "supplement.json", "metadata.json"]:
+                continue
+    
+            file_path = os.path.join(root, file)
+            integrity_data = derive_integrity_data(file_path, fs)
+    
+            supplement["upload_items"].append({
+                "path": file_path,
+                "stub": False
+            })
+            supplement["integrity_data"].append(integrity_data)
+    
     supplement_path = os.path.join(directory_path, "supplement.json")
-    with fs.open(supplement_path, "w", encoding='utf-8') as f:
+    with fs.open(supplement_path, 'w', encoding='utf-8') as f:
         json.dump(supplement, f, indent=4)
-
+    
     # Create metadata file if provided
     if metadata:
         metadata_path = os.path.join(directory_path, "metadata.json")
-        with fs.open(metadata_path, "w", encoding='utf-8') as f:
+        with fs.open(metadata_path, 'w', encoding='utf-8') as f:
             json.dump(metadata, f, indent=4)
-
+    
     # Add to pantry if provided
     if pantry:
         pantry.add_basket(directory_path)
-
-    return manifest, supplement, metadata
+    
+    # Create a Basket instance
+    basket = Basket(directory_path, fs=fs)
+    
+    # Create the index row
+    single_index_row = create_index_from_fs(directory_path, fs)
+    
+    return basket, single_index_row

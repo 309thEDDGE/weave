@@ -66,9 +66,11 @@ def validate_basket_in_place_directory(fs, directory_path):
     ----------
     bool: True if the directory is valid, False otherwise.
     """
-    for path in fs.find(directory_path):
-        if path.endswith(("manifest.json", "supplement.json", "metadata.json")):
-            return False
+    for root, dirs, files in fs.walk(directory_path):
+        for dir in dirs:
+            dir_path = os.path.join(root, dir)
+            if any(f in fs.ls(dir_path) for f in ["manifest.json", "supplement.json", "metadata.json"]):
+                return False
     return True
 
 def _check_level(current_dir, **kwargs):

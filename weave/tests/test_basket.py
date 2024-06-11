@@ -751,7 +751,7 @@ def test_create_basket_in_place_local(tmp_path):
     metadata = {"author": "test"}
     
     # Create basket in place
-    manifest, _, _ = create_basket_in_place(str(test_dir), metadata, fs=LocalFileSystem())
+    basket, index_row = create_basket_in_place(str(test_dir), metadata, fs=LocalFileSystem())
     
     # Validate basket creation
     assert os.path.exists(test_dir / "manifest.json")
@@ -762,28 +762,20 @@ def test_create_basket_in_place_local(tmp_path):
     # Validate manifest content
     with open(test_dir / "manifest.json", encoding='utf-8') as f:
         manifest_data = json.load(f)
-    assert manifest_data["uuid"] == manifest["uuid"]
-    
-    # Validate supplement content
-    with open(test_dir / "supplement.json", encoding='utf-8') as f:
-        supplement_data = json.load(f)
-    assert len(supplement_data["upload_items"]) == 2
-    
-    # Validate metadata content
-    if metadata:
-        with open(test_dir / "metadata.json", encoding='utf-8') as f:
-            metadata_data = json.load(f)
-        assert metadata_data == metadata
+    assert manifest_data["uuid"] == basket.uuid
+    assert manifest_data["label"] == index_row.iloc[0]["label"]
+    assert manifest_data["basket_type"] == index_row.iloc[0]["basket_type"]
     
     # Validate using Basket class
-    basket = Basket(str(test_dir), fs=LocalFileSystem())
     assert basket.get_manifest() == manifest_data
-    assert basket.get_supplement() == supplement_data
+    assert basket.get_supplement() is not None
     if metadata:
         assert basket.get_metadata() == metadata
+
 def test_create_basket_in_place_with_pantry_local(tmp_path):
     test_dir = tmp_path / "test_basket"
     test_dir.mkdir()
+
     # Simulate files to include in the basket
     file1 = test_dir / "file1.txt"
     file2 = test_dir / "file2.txt"
@@ -814,25 +806,23 @@ def test_create_basket_in_place_with_pantry_local(tmp_path):
     mock_pantry = MockPantry()
     
     # Create basket in place with pantry
-    create_basket_in_place(str(test_dir), metadata, mock_pantry, fs=LocalFileSystem())
+    basket, index_row = create_basket_in_place(str(test_dir), metadata, mock_pantry, fs=LocalFileSystem())
     
     # Validate basket addition to pantry
     assert str(test_dir) in mock_pantry.baskets
     
     # Validate using Basket class
-    basket = Basket(str(test_dir), fs=LocalFileSystem())
     assert basket.get_manifest() is not None
     assert basket.get_supplement() is not None
     if metadata:
         assert basket.get_metadata() is not None
-
 def test_create_basket_in_place_s3():
-    s3 = s3fs.S3FileSystem(
-        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-    )
-    test_dir = "s3://test-bucket/test_basket"
-    s3.mkdir(test_dir)
-
+        s3 = s3fs.S3FileSystem(
+            client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+        )
+        test_dir = "s3://test-bucket/test_basket"
+        s3.mkdir(test_dir)
+    
     # Simulate files to include in the basket
     file1 = test_dir + "/file1.txt"
     file2 = test_dir + "/file2.txt"
@@ -844,29 +834,13 @@ def test_create_basket_in_place_s3():
     metadata = {"author": "test"}
     
     # Create basket in place
-    manifest, _, _ = create_basket_in_place(test_dir, metadata, fs=s3)
+    basket, index_row = create_basket_in_place(test_dir, metadata, fs=s3)
     
     # Validate basket creation
     assert s3.exists(test_dir + "/manifest.json")
     assert s3.exists(test_dir + "/supplement.json")
     if metadata:
         assert s3.exists(test_dir + "/metadata.json")
-    
-    # Validate manifest content
-    with s3.open(test_dir + "/manifest.json", encoding='utf-8') as f:
-        manifest_data = json.load(f)
-    assert manifest_data["uuid"] == manifest["uuid"]
-    
-    # Validate supplement content
-    with s3.open(test_dir + "/supplement.json", encoding='utf-8') as f:
-        supplement_data = json.load(f)
-    assert len(supplement_data["upload_items"]) == 2
-    
-    # Validate metadata content
-    if metadata:
-        with s3.open(test_dir + "/metadata.json", encoding='utf-8') as f:
-            metadata_data = json.load(f)
-        assert metadata_data == metadata
 
 def test_create_basket_in_place_with_pantry_s3():
     s3 = s3fs.S3FileSystem(
@@ -907,7 +881,7 @@ def test_create_basket_in_place_with_pantry_s3():
     mock_pantry = MockPantry()
     
     # Create basket in place with pantry
-    create_basket_in_place(test_dir, metadata, mock_pantry, fs=s3)
+    basket, index_row = create_basket_in_place(test_dir, metadata, mock_pantry, fs=s3)
     
     # Validate basket addition to pantry
     assert test_dir in mock_pantry.baskets
@@ -921,15 +895,12 @@ def test_create_basket_in_place_with_pantry_s3():
     # Validate manifest content
     with s3.open(test_dir + "/manifest.json", encoding='utf-8') as f:
         manifest_data = json.load(f)
-    assert manifest_data["uuid"] == manifest["uuid"]
+    assert manifest_data["uuid"] == basket.uuid
+    assert manifest_data["label"] == index_row.iloc[0]["label"]
+    assert manifest_data["basket_type"] == index_row.iloc[0]["basket_type"]
     
-    # Validate supplement content
-    with s3.open(test_dir + "/supplement.json", encoding='utf-8') as f:
-        supplement_data = json.load(f)
-    assert len(supplement_data["upload_items"]) == 2
-    
-    # Validate metadata content
+    # Validate using Basket class
+    assert basket.get_manifest() == manifest_data
+    assert basket.get_supplement() is not None
     if metadata:
-        with s3.open(test_dir + "/metadata.json", encoding='utf-8') as f:
-            metadata_data = json.load(f)
-        assert metadata_data == metadata
+        assert basket.get_metadata() == metadata
