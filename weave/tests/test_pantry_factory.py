@@ -37,7 +37,7 @@ if "WEAVE_SQL_HOST" in os.environ and "sqlalchemy" in sys.modules:
     indexes.append(IndexSQL)
     indexes_ids.append("SQL")
 
-# Create combinations of the above parameters to pass into the fixture..
+# Create combinations of the above parameters to pass into the fixture.
 params = []
 params_ids = []
 for iter_file_system in file_systems:
