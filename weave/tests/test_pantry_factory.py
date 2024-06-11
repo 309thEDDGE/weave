@@ -89,11 +89,12 @@ def test_pantry_factory_local_config(test_pantry):
         config_path = os.path.join(tmp_dir, "config.json")
 
         with open(config_path, "w", encoding="utf-8") as config_file:
+            s3_endpoint = os.environ.get("S3_ENDPOINT", None)
             json.dump(
                 {"index":index_name,
                  "pantry_path":test_pantry.pantry_path,
                  "file_system":file_system_type,
-                 "S3_ENDPOINT":os.environ["S3_ENDPOINT"]},
+                 "S3_ENDPOINT":s3_endpoint},
                 config_file
             )
         pantry = create_pantry(config_file=config_path)
