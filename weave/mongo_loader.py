@@ -179,3 +179,41 @@ class MongoLoader():
         self.load_mongo_metadata(uuids, collection=metadata_collection)
         self.load_mongo_manifest(uuids, collection=manifest_collection)
         self.load_mongo_supplement(uuids, collection=supplement_collection)
+
+
+    @staticmethod
+    def append_document (uuid : str, pantry):
+        """Append a document using an Index in the supplement, manifest,
+
+        and metadata collections
+
+        Parameters
+        ----------
+        uuid: str
+            uuid of the basket.
+        pantry : Pantry
+            The Pantry of interest.
+        """
+        mongo = MongoLoader(pantry)
+        mongo.load_mongo(uuid)
+
+
+    @staticmethod
+    def remove_document (uuid : str, pantry):
+        """Delete a document using the uuid in the supplement,
+
+        manifest, and metadata collections.
+
+        Parameters
+        ----------
+        uuid: str
+            "uuid" will be used to locate and remove the document from MongoDB
+            in the supplement, manifest, and metadata collections.
+        pantry: Pantry
+            The Pantry of interest.
+        """
+        mongo_db = get_mongo_db()[pantry.pantry_path]
+        collection_names = ('manifest', 'metadata','supplement')
+
+        for e in collection_names:
+            mongo_db[e].delete_one({'uuid':uuid})
