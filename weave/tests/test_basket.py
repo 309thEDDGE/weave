@@ -75,9 +75,11 @@ def test_basket_address_does_not_exist(test_pantry):
     """
 
     basket_path = Path("i n v a l i d p a t h")
-    pantry = Pantry(IndexPandas,
-                    pantry_path=test_pantry.pantry_path,
-                    file_system=test_pantry.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system,
+    )
     pantry.index.generate_index()
     with pytest.raises(
         ValueError, match=f"Basket does not exist: {basket_path}"
@@ -85,7 +87,7 @@ def test_basket_address_does_not_exist(test_pantry):
         Basket(
             Path(basket_path),
             file_system=test_pantry.file_system,
-            pantry=pantry
+            pantry=pantry,
         )
 
 
@@ -97,7 +99,7 @@ def test_make_basket_with_uuid_stays_in_pantry(test_pantry):
     pantry = Pantry(
         IndexPandas,
         pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system
+        file_system=test_pantry.file_system,
     )
 
     # Save and delete the basket.
@@ -110,7 +112,7 @@ def test_make_basket_with_uuid_stays_in_pantry(test_pantry):
     address = address.split(os.path.sep)
     address[0] += "-2"
     new_address = (os.path.sep).join(address)
-    index.at[0,"address"] = new_address
+    index.at[0, "address"] = new_address
 
     # Track the new basket
     pantry.index.track_basket(index)
@@ -142,10 +144,7 @@ def test_basket_no_manifest_file(test_pantry):
             f"does not exist: {manifest_path}"
         ),
     ):
-        Basket(
-            Path(basket_path),
-            file_system=test_pantry.file_system
-        )
+        Basket(Path(basket_path), file_system=test_pantry.file_system)
 
 
 def test_basket_no_supplement_file(test_pantry):
@@ -170,10 +169,7 @@ def test_basket_no_supplement_file(test_pantry):
             f"does not exist: {supplement_path}"
         ),
     ):
-        Basket(
-            Path(basket_path),
-            file_system=test_pantry.file_system
-        )
+        Basket(Path(basket_path), file_system=test_pantry.file_system)
 
 
 def test_basket_get_manifest(test_pantry):
@@ -186,10 +182,7 @@ def test_basket_get_manifest(test_pantry):
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
     basket_path = test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
-    basket = Basket(
-        Path(basket_path),
-        file_system=test_pantry.file_system
-    )
+    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
     manifest = basket.get_manifest()
     assert manifest == {
         "uuid": "0000",
@@ -208,10 +201,7 @@ def test_basket_get_manifest_cached(test_pantry):
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
     basket_path = test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
-    basket = Basket(
-        Path(basket_path),
-        file_system=test_pantry.file_system
-    )
+    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
 
     # Read the basket_manifest.json file and store as a dictionary for later.
     manifest = basket.get_manifest()
@@ -241,10 +231,7 @@ def test_basket_get_supplement(test_pantry):
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
     basket_path = test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
-    basket = Basket(
-        Path(basket_path),
-        file_system=test_pantry.file_system
-    )
+    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
 
     # Create a copy of the basket's expected upload_items.
     upload_items = [{"path": str(tmp_basket_dir.realpath()), "stub": False}]
@@ -267,10 +254,7 @@ def test_basket_get_supplement_cached(test_pantry):
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
     basket_path = test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
-    basket = Basket(
-        Path(basket_path),
-        file_system=test_pantry.file_system
-    )
+    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
 
     # Save the original basket supplement as a dictionary.
     original_supplement = basket.get_supplement()
@@ -300,10 +284,7 @@ def test_basket_get_metadata(test_pantry):
         tmp_basket_dir, metadata=metadata_in
     )
 
-    basket = Basket(
-        Path(basket_path),
-        file_system=test_pantry.file_system
-    )
+    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
 
     # Check get_metadata returns the same values used during the upload.
     metadata = basket.get_metadata()
@@ -324,10 +305,7 @@ def test_basket_get_metadata_cached(test_pantry):
         tmp_basket_dir, metadata=metadata_in
     )
 
-    basket = Basket(
-        Path(basket_path),
-        file_system=test_pantry.file_system
-    )
+    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
 
     # Save the original basket metadata as a dictionary.
     metadata = basket.get_metadata()
@@ -350,10 +328,7 @@ def test_basket_get_metadata_none(test_pantry):
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
     basket_path = test_pantry.upload_basket(tmp_basket_dir)
 
-    basket = Basket(
-        Path(basket_path),
-        file_system=test_pantry.file_system
-    )
+    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
     metadata = basket.get_metadata()
 
     # No metadata was added to the upload, so it should be None.
@@ -367,10 +342,7 @@ def test_basket_ls(test_pantry):
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
     basket_path = test_pantry.upload_basket(tmp_basket_dir)
 
-    basket = Basket(
-        Path(basket_path),
-        file_system=test_pantry.file_system
-    )
+    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
 
     uploaded_dir_path = os.path.join(basket_path, tmp_basket_dir_name)
     assert Path(basket.ls()[0]).match(uploaded_dir_path)
@@ -383,30 +355,23 @@ def test_basket_ls_relpath(test_pantry):
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
     basket_path = test_pantry.upload_basket(tmp_basket_dir)
 
-    basket = Basket(
-        Path(basket_path),
-        file_system=test_pantry.file_system
-    )
+    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
 
-    uploaded_file_path = os.path.join(basket_path,
-                                      tmp_basket_dir_name,
-                                      "test.txt")
+    uploaded_file_path = os.path.join(
+        basket_path, tmp_basket_dir_name, "test.txt"
+    )
     assert Path(basket.ls(tmp_basket_dir_name)[0]).match(uploaded_file_path)
 
 
 def test_basket_ls_relpath_period(test_pantry):
-    """Test that the basket ls function works when using the relative path '.'
-    """
+    """Test that the basket ls function works when using the relative path '.'"""
 
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
     basket_path = test_pantry.upload_basket(tmp_basket_dir)
 
-    basket = Basket(
-        Path(basket_path),
-        file_system=test_pantry.file_system
-    )
+    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
 
     uploaded_dir_path = os.path.join(basket_path, tmp_basket_dir_name)
     assert Path(basket.ls(".")[0]).match(uploaded_dir_path)
@@ -422,10 +387,7 @@ def test_basket_ls_is_pathlike(test_pantry):
     tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
     basket_path = test_pantry.upload_basket(tmp_basket_dir)
 
-    basket = Basket(
-        Path(basket_path),
-        file_system=test_pantry.file_system
-    )
+    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
 
     with pytest.raises(
         TypeError, match="expected str, bytes or os.PathLike object, not int"
@@ -459,10 +421,7 @@ def test_basket_ls_after_find(test_pantry):
     test_pantry.file_system.find(test_pantry.pantry_path)
 
     # Set up basket
-    test_basket = Basket(
-        basket_path,
-        file_system=test_pantry.file_system
-    )
+    test_basket = Basket(basket_path, file_system=test_pantry.file_system)
 
     expected_base_dir_paths = [
         os.path.join(basket_path, tmp_basket_dir_name, i)
@@ -487,24 +446,30 @@ def test_basket_ls_after_find(test_pantry):
 
 
 def test_basket_init_from_uuid(test_pantry):
-    """Test that a basket can be successfully initialized from a UUID.
-    """
+    """Test that a basket can be successfully initialized from a UUID."""
 
     # Put basket in the temporary pantry
     tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
     uuid = "0000"
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
-    pantry = Pantry(IndexPandas,
-                    pantry_path=test_pantry.pantry_path,
-                    file_system=test_pantry.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system,
+    )
     pantry.index.generate_index()
     test_basket = Basket(
         basket_address=uuid,
         pantry=pantry,
     )
     assert Path(test_basket.ls("basket_one")[0]).match(
-        os.path.join(test_pantry.pantry_path, "test_basket",
-                     "0000", "basket_one", "test.txt")
+        os.path.join(
+            test_pantry.pantry_path,
+            "test_basket",
+            "0000",
+            "basket_one",
+            "test.txt",
+        )
     )
 
 
@@ -518,9 +483,11 @@ def test_basket_init_fails_if_uuid_does_not_exist(test_pantry):
     uuid = "0000"
     bad_uuid = "a bad uuid"
     test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one, uid=uuid)
-    pantry = Pantry(IndexPandas,
-                    pantry_path=test_pantry.pantry_path,
-                    file_system=test_pantry.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system,
+    )
     pantry.index.generate_index()
     with pytest.raises(ValueError, match=f"Basket does not exist: {bad_uuid}"):
         Basket(
@@ -542,18 +509,24 @@ def test_basket_pantry_name_does_not_exist(test_pantry):
     if isinstance(test_pantry.file_system, s3fs.S3FileSystem):
         error_msg = "Connection to s3fs failed."
         with pytest.raises(ConnectionError, match=error_msg):
-            pantry = Pantry(IndexPandas,
+            pantry = Pantry(
+                IndexPandas,
                 pantry_path=pantry_path,
-                file_system=test_pantry.file_system)
+                file_system=test_pantry.file_system,
+            )
             pantry.index.generate_index()
     else:
-        error_msg = f"Invalid pantry Path. Pantry does not exist at: " \
-            f"{pantry_path}"
+        error_msg = (
+            f"Invalid pantry Path. Pantry does not exist at: " f"{pantry_path}"
+        )
         with pytest.raises(ValueError, match=error_msg):
-            pantry = Pantry(IndexPandas,
+            pantry = Pantry(
+                IndexPandas,
                 pantry_path=pantry_path,
-                file_system=test_pantry.file_system)
+                file_system=test_pantry.file_system,
+            )
             pantry.index.generate_index()
+
 
 def test_basket_from_uuid_with_many_baskets(test_pantry):
     """Test that many baskets can be initialized using UUIDs."""
@@ -563,30 +536,36 @@ def test_basket_from_uuid_with_many_baskets(test_pantry):
         tmp_basket_dir = test_pantry.set_up_basket(f"temp_basket_{uuid}")
         test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir, uid=uuid)
 
-    pantry = Pantry(IndexPandas,
-                    pantry_path=test_pantry.pantry_path,
-                    file_system=test_pantry.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system,
+    )
     pantry.index.generate_index()
     test_basket = Basket(
         basket_address=uuid,
         pantry=pantry,
     )
     assert Path(test_basket.ls(f"temp_basket_{uuid}")[0]).match(
-        os.path.join(test_pantry.pantry_path, "test_basket", uuid,
-            f"temp_basket_{uuid}", "test.txt")
+        os.path.join(
+            test_pantry.pantry_path,
+            "test_basket",
+            uuid,
+            f"temp_basket_{uuid}",
+            "test.txt",
+        )
     )
 
 
 def test_basket_correct_weave_version_member_variable(test_pantry):
-    """Test that basket has the correct weave version as a member variable
-    """
+    """Test that basket has the correct weave version as a member variable"""
     tmp_basket_dir = test_pantry.set_up_basket("basket_one")
     basket_path = test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir)
 
     basket = Basket(
         Path(basket_path),
         pantry_path=test_pantry.pantry_path,
-        file_system=test_pantry.file_system
+        file_system=test_pantry.file_system,
     )
 
     assert basket.weave_version == weave_version
@@ -597,12 +576,15 @@ def test_basket_check_member_variables(test_pantry):
     # Upload a basket
     tmp_basket_dir = test_pantry.set_up_basket("basket")
     uuid = "0000"
-    basket_path = test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir,
-                                            uid=uuid)
+    basket_path = test_pantry.upload_basket(
+        tmp_basket_dir=tmp_basket_dir, uid=uuid
+    )
 
-    pantry = Pantry(IndexPandas,
-                    pantry_path=test_pantry.pantry_path,
-                    file_system=test_pantry.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system,
+    )
     pantry.index.generate_index()
     my_basket = Basket(
         basket_address=uuid,
@@ -631,12 +613,15 @@ def test_basket_to_pandas_df(test_pantry):
     # Upload a basket
     tmp_basket_dir = test_pantry.set_up_basket("basket")
     uuid = "0000"
-    basket_path = test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir,
-                                            uid=uuid)
+    basket_path = test_pantry.upload_basket(
+        tmp_basket_dir=tmp_basket_dir, uid=uuid
+    )
 
-    pantry = Pantry(IndexPandas,
-                    pantry_path=test_pantry.pantry_path,
-                    file_system=test_pantry.file_system)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system,
+    )
     pantry.index.generate_index()
     my_basket = Basket(
         basket_address=uuid,
@@ -652,18 +637,27 @@ def test_basket_to_pandas_df(test_pantry):
         manifest_dict = json.load(file)
 
     # Collect the data and build a dataframe for testing
-    data = [manifest_dict["uuid"],
-            manifest_dict["upload_time"],
-            manifest_dict["parent_uuids"],
-            manifest_dict["basket_type"],
-            manifest_dict["label"],
-            manifest_dict["weave_version"],
-            basket_path,
-            test_pantry.file_system.__class__.__name__]
+    data = [
+        manifest_dict["uuid"],
+        manifest_dict["upload_time"],
+        manifest_dict["parent_uuids"],
+        manifest_dict["basket_type"],
+        manifest_dict["label"],
+        manifest_dict["weave_version"],
+        basket_path,
+        test_pantry.file_system.__class__.__name__,
+    ]
 
-    columns = ["uuid", "upload_time", "parent_uuids",
-               "basket_type", "label", "weave_version",
-               "address", "storage_type"]
+    columns = [
+        "uuid",
+        "upload_time",
+        "parent_uuids",
+        "basket_type",
+        "label",
+        "weave_version",
+        "address",
+        "storage_type",
+    ]
 
     answer_df = pd.DataFrame(data=[data], columns=columns)
 
@@ -677,13 +671,15 @@ def test_basket_to_pandas_df(test_pantry):
     answer_df.drop(columns="address", inplace=True)
     assert basket_df.equals(answer_df)
 
+
 def test_basket_time_is_utc(test_pantry):
     """Make sure time data is in UTC format"""
     # Upload a basket
     uuid = "0000"
     tmp_basket_dir = test_pantry.set_up_basket("basket")
-    basket_path = test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir,
-                                            uid=uuid)
+    basket_path = test_pantry.upload_basket(
+        tmp_basket_dir=tmp_basket_dir, uid=uuid
+    )
 
     manifest_path = os.path.join(basket_path, "basket_manifest.json")
 
@@ -699,7 +695,7 @@ def test_basket_time_is_utc(test_pantry):
     )
 
     match_iso8601 = re.compile(regex).match
-    assert match_iso8601(str(manifest_dict['upload_time'])) is not None
+    assert match_iso8601(str(manifest_dict["upload_time"])) is not None
 
 
 def test_read_only_get_data():
@@ -707,13 +703,13 @@ def test_read_only_get_data():
     the data
     """
     with tempfile.TemporaryDirectory(dir=".") as tmpdir:
-        tmp_pantry = Pantry(IndexPandas,
-                            pantry_path=tmpdir,
-                            file_system=LocalFileSystem())
+        tmp_pantry = Pantry(
+            IndexPandas, pantry_path=tmpdir, file_system=LocalFileSystem()
+        )
         tmp_file_path = os.path.join(tmpdir, "temp_basket.txt")
         with open(tmp_file_path, "w", encoding="utf-8") as tmp_file:
             basket_uuid = tmp_pantry.upload_basket(
-                upload_items=[{"path":tmp_file.name, "stub":False}],
+                upload_items=[{"path": tmp_file.name, "stub": False}],
                 basket_type="read_only",
             )["uuid"][0]
 
@@ -722,12 +718,13 @@ def test_read_only_get_data():
         )
 
         read_only_fs = fsspec.filesystem("zip", fo=zip_path, mode="r")
-        read_only_pantry = Pantry(IndexPandas,
-                                  pantry_path="",
-                                  file_system=read_only_fs)
+        read_only_pantry = Pantry(
+            IndexPandas, pantry_path="", file_system=read_only_fs
+        )
 
-        my_basket = Basket(os.path.join("read_only", basket_uuid),
-                           pantry=read_only_pantry)
+        my_basket = Basket(
+            os.path.join("read_only", basket_uuid), pantry=read_only_pantry
+        )
 
         # Check that manifest and supplement are returned and metadata is empty
         assert my_basket.get_manifest()
@@ -738,6 +735,7 @@ def test_read_only_get_data():
         del read_only_fs
         del my_basket
 
+
 def test_create_basket_in_place_local(tmp_path):
     test_dir = tmp_path / "test_basket"
     test_dir.mkdir()
@@ -747,30 +745,33 @@ def test_create_basket_in_place_local(tmp_path):
     file2 = test_dir / "file2.txt"
     file1.write_text("This is a test file 1.")
     file2.write_text("This is a test file 2.")
-    
+
     metadata = {"author": "test"}
-    
+
     # Create basket in place
-    basket, index_row = create_basket_in_place(str(test_dir), metadata, fs=LocalFileSystem())
-    
+    basket, index_row = create_basket_in_place(
+        str(test_dir), metadata, fs=LocalFileSystem()
+    )
+
     # Validate basket creation
     assert os.path.exists(test_dir / "manifest.json")
     assert os.path.exists(test_dir / "supplement.json")
     if metadata:
         assert os.path.exists(test_dir / "metadata.json")
-    
+
     # Validate manifest content
-    with open(test_dir / "manifest.json", encoding='utf-8') as f:
+    with open(test_dir / "manifest.json", encoding="utf-8") as f:
         manifest_data = json.load(f)
     assert manifest_data["uuid"] == basket.uuid
     assert manifest_data["label"] == index_row.iloc[0]["label"]
     assert manifest_data["basket_type"] == index_row.iloc[0]["basket_type"]
-    
+
     # Validate using Basket class
     assert basket.get_manifest() == manifest_data
     assert basket.get_supplement() is not None
     if metadata:
         assert basket.get_metadata() == metadata
+
 
 def test_create_basket_in_place_with_pantry_local(tmp_path):
     test_dir = tmp_path / "test_basket"
@@ -781,66 +782,71 @@ def test_create_basket_in_place_with_pantry_local(tmp_path):
     file2 = test_dir / "file2.txt"
     file1.write_text("This is a test file 1.")
     file2.write_text("This is a test file 2.")
-    
+
     metadata = {"author": "test"}
-    
+
     # pylint: disable=too-few-public-methods
     class MockPantry:
         """Mock Pantry class for testing.
-    
+
         This class simulates a pantry with basic add_basket functionality.
         """
-    
+
         def __init__(self):
             """Initialize the MockPantry with an empty list of baskets."""
             self.baskets = []
-    
+
         def add_basket(self, basket_path):
             """Add a basket to the MockPantry.
-    
+
             Args:
                 basket_path (str): The path to the basket to add.
             """
             self.baskets.append(basket_path)
-    
+
     mock_pantry = MockPantry()
-    
+
     # Create basket in place with pantry
-    basket, index_row = create_basket_in_place(str(test_dir), metadata, mock_pantry, fs=LocalFileSystem())
-    
+    basket, index_row = create_basket_in_place(
+        str(test_dir), metadata, mock_pantry, fs=LocalFileSystem()
+    )
+
     # Validate basket addition to pantry
     assert str(test_dir) in mock_pantry.baskets
-    
+
     # Validate using Basket class
     assert basket.get_manifest() is not None
     assert basket.get_supplement() is not None
     if metadata:
         assert basket.get_metadata() is not None
+
+
 def test_create_basket_in_place_s3():
-        s3 = s3fs.S3FileSystem(
-            client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-        )
-        test_dir = "s3://test-bucket/test_basket"
-        s3.mkdir(test_dir)
-    
+    s3 = s3fs.S3FileSystem(
+        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+    )
+    test_dir = "s3://test-bucket/test_basket"
+    s3.mkdir(test_dir)
+
     # Simulate files to include in the basket
     file1 = test_dir + "/file1.txt"
     file2 = test_dir + "/file2.txt"
-    with s3.open(file1, 'w') as f:
+    with s3.open(file1, "w") as f:
         f.write("This is a test file 1.")
-    with s3.open(file2, 'w') as f:
+    with s3.open(file2, "w") as f:
         f.write("This is a test file 2.")
-    
+
     metadata = {"author": "test"}
-    
+
     # Create basket in place
     basket, index_row = create_basket_in_place(test_dir, metadata, fs=s3)
-    
+
     # Validate basket creation
     assert s3.exists(test_dir + "/manifest.json")
     assert s3.exists(test_dir + "/supplement.json")
     if metadata:
         assert s3.exists(test_dir + "/metadata.json")
+
 
 def test_create_basket_in_place_with_pantry_s3():
     s3 = s3fs.S3FileSystem(
@@ -852,53 +858,55 @@ def test_create_basket_in_place_with_pantry_s3():
     # Simulate files to include in the basket
     file1 = test_dir + "/file1.txt"
     file2 = test_dir + "/file2.txt"
-    with s3.open(file1, 'w') as f:
+    with s3.open(file1, "w") as f:
         f.write("This is a test file 1.")
-    with s3.open(file2, 'w') as f:
+    with s3.open(file2, "w") as f:
         f.write("This is a test file 2.")
-    
+
     metadata = {"author": "test"}
-    
+
     # pylint: disable=too-few-public-methods
     class MockPantry:
         """Mock Pantry class for testing.
-    
+
         This class simulates a pantry with basic add_basket functionality.
         """
-    
+
         def __init__(self):
             """Initialize the MockPantry with an empty list of baskets."""
             self.baskets = []
-    
+
         def add_basket(self, basket_path):
             """Add a basket to the MockPantry.
-    
+
             Args:
                 basket_path (str): The path to the basket to add.
             """
             self.baskets.append(basket_path)
-    
+
     mock_pantry = MockPantry()
-    
+
     # Create basket in place with pantry
-    basket, index_row = create_basket_in_place(test_dir, metadata, mock_pantry, fs=s3)
-    
+    basket, index_row = create_basket_in_place(
+        test_dir, metadata, mock_pantry, fs=s3
+    )
+
     # Validate basket addition to pantry
     assert test_dir in mock_pantry.baskets
-    
+
     # Validate basket creation
     assert s3.exists(test_dir + "/manifest.json")
     assert s3.exists(test_dir + "/supplement.json")
     if metadata:
         assert s3.exists(test_dir + "/metadata.json")
-    
+
     # Validate manifest content
-    with s3.open(test_dir + "/manifest.json", encoding='utf-8') as f:
+    with s3.open(test_dir + "/manifest.json", encoding="utf-8") as f:
         manifest_data = json.load(f)
     assert manifest_data["uuid"] == basket.uuid
     assert manifest_data["label"] == index_row.iloc[0]["label"]
     assert manifest_data["basket_type"] == index_row.iloc[0]["basket_type"]
-    
+
     # Validate using Basket class
     assert basket.get_manifest() == manifest_data
     assert basket.get_supplement() is not None
