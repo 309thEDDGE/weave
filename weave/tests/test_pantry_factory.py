@@ -113,11 +113,12 @@ def test_pantry_factory_existing_pantry_config(test_pantry):
         "w",
         encoding="utf-8"
     ) as config_file:
+        s3_endpoint = os.environ.get("S3_ENDPOINT", None)
         json.dump(
             {"index":index_name,
              "pantry_path":test_pantry.pantry_path,
              "file_system":file_system_type,
-             "S3_ENDPOINT":os.environ["S3_ENDPOINT"]},
+             "S3_ENDPOINT":s3_endpoint},
             config_file
         )
 
@@ -142,8 +143,7 @@ def test_pantry_factory_invalid_index(test_pantry):
         json.dump(
             {"index":invalid_index,
              "pantry_path":test_pantry.pantry_path,
-             "file_system":file_system_type,
-             "S3_ENDPOINT":os.environ["S3_ENDPOINT"]},
+             "file_system":file_system_type},
             config_file
         )
 
@@ -170,8 +170,7 @@ def test_pantry_factory_invalid_file_system(test_pantry):
         json.dump(
             {"index":index_name,
              "pantry_path":test_pantry.pantry_path,
-             "file_system":invalid_fs,
-             "S3_ENDPOINT":os.environ["S3_ENDPOINT"]},
+             "file_system":invalid_fs},
             config_file
         )
     with pytest.raises(
@@ -183,7 +182,7 @@ def test_pantry_factory_invalid_file_system(test_pantry):
                       file_system=test_pantry.file_system)
 
 
-def test_pantry_factory_invalid_args(test_pantry):
+def test_pantry_factory_invalid_args():
     """Ensure error will be raised if there is an incorrect combination of
     params."""
     with pytest.raises(
