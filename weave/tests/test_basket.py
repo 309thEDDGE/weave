@@ -102,22 +102,22 @@ def test_make_basket_with_uuid_stays_in_pantry(test_pantry):
 
     # Save and delete the basket.
     pantry.index.generate_index()
-    index = pantry.index.to_pandas_df()
-    pantry.index.untrack_basket(index.iloc[0].uuid)
+    index_df = pantry.index.to_pandas_df()
+    pantry.index.untrack_basket(index_df.iloc[0].uuid)
 
     # Modify the basket address to a new (fake) pantry.
-    address = index.iloc[0].address
+    address = index_df.iloc[0].address
     address = address.split(os.path.sep)
     address[0] += "-2"
     new_address = (os.path.sep).join(address)
-    index.at[0,"address"] = new_address
+    index_df.at[0,"address"] = new_address
 
     # Track the new basket
-    pantry.index.track_basket(index)
+    pantry.index.track_basket(index_df)
 
     error_msg = f"Attempting to access basket outside of pantry: {new_address}"
     with pytest.raises(ValueError, match=re.escape(error_msg)):
-        Basket(index.iloc[0].uuid, pantry=pantry)
+        Basket(index_df.iloc[0].uuid, pantry=pantry)
 
 
 def test_basket_no_manifest_file(test_pantry):
