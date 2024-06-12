@@ -3,7 +3,6 @@
 
 import json
 import os
-import hashlib
 import uuid
 import importlib
 from pathlib import Path
@@ -11,12 +10,12 @@ from datetime import datetime
 
 import pandas as pd
 import s3fs
-from fsspec.implementations.local import LocalFileSystem
 
 from .config import get_file_system, prohibited_filenames
 from .validate import validate_basket_in_place_directory
 from .upload import derive_integrity_data
-from .index.create_index import create_index_from_fs
+
+
 
 class BasketInitializer:
     """Initializes basket class. Validates input args."""
@@ -299,74 +298,91 @@ class Basket(BasketInitializer):
 
         return pd.DataFrame(data=[data], columns=columns)
 
-def create_basket_in_place(directory_path, metadata=None, pantry=None, fs=None, parent_uuids=None, basket_type="item", label=""):
+# pylint: disable-msg=too-many-locals
+def create_basket_in_place(directory_path, **kwargs):
     """Creates a basket in place by generating the manifest, supplement, and metadata files
     directly in the provided directory without moving or uploading any files.
-    
+
     Parameters:
     ----------
-    directory_path: (string) The path to the directory where the basket will be created.
-    metadata: (dict, optional) A dictionary containing metadata to be included in the basket.
-    pantry: (object, optional) An optional pantry object to which the basket will be added.
-    fs (fsspec.AbstractFileSystem, optional): The file system object. Defaults to S3 file system.
-    parent_uuids (list, optional): A list of parent UUIDs for the basket.
-    basket_type (str, optional): The type of the basket.
-    label (str, optional): The label for the basket.
-    
+    directory_path: string
+        The path to the directory where the basket will be created.
+    **metadata: dict (optional)
+        A dictionary containing metadata to be included in the basket.
+    **pantry: object (optional)
+        An optional pantry object to which the basket will be added.
+    **file_system: fsspec.AbstractFileSystem (optional)
+        The file system object. Defaults to S3 file system.
+    **parent_uuids: list (optional)
+        A list of parent UUIDs for the basket.
+    **basket_type: str (optional)
+        The type of the basket.
+    **label: str (optional)
+        The label for the basket.
+
     Returns:
     ----------
     pd.DataFrame: A single row DataFrame containing the basket information.
     """
-    if fs is None:
-        fs = s3fs.S3FileSystem(client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]})
-    
+    metadata = kwargs.get("metadata", None)
+    pantry = kwargs.get("pantry", None)
+    file_system = kwargs.get("file_system", None)
+    parent_uuids = kwargs.get("parent_uuids", None)
+    basket_type = kwargs.get("basket_type", "item")
+    label = kwargs.get("label", "")
+
+    if file_system is None:
+        file_system = s3fs.S3FileSystem(
+            client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+        )
+
     # Validate the directory
-    if not validate_basket_in_place_directory(fs, directory_path):
-        raise ValueError("Provided directory cannot be a valid basket (e.g., no nested baskets allowed)")
-    
+    if not validate_basket_in_place_directory(file_system, directory_path):
+        raise ValueError(
+            "Provided directory cannot be a valid basket (e.g., no nested baskets allowed)"
+        )
+
     # Create manifest file
     manifest = {
         "uuid": str(uuid.uuid1().hex),
         "upload_time": datetime.utcnow().isoformat(),
         "parent_uuids": parent_uuids or [],
         "basket_type": basket_type,
-        "label": label
+        "label": label,
     }
-    
+
     manifest_path = os.path.join(directory_path, "manifest.json")
-    with fs.open(manifest_path, 'w', encoding='utf-8') as f:
+    with file_system.open(manifest_path, "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=4)
-    
+
     # Create supplement file
-    supplement = {
-        "upload_items": [],
-        "integrity_data": []
-    }
-    
-    for root, _, files in fs.walk(directory_path):
+    supplement = {"upload_items": [], "integrity_data": []}
+
+    for root, _, files in file_system.walk(directory_path):
         for file in files:
             if file in ["manifest.json", "supplement.json", "metadata.json"]:
                 continue
-    
+
             file_path = os.path.join(root, file)
-            integrity_data = derive_integrity_data(file_path=file_path, source_file_system=fs)
-    
-            supplement["upload_items"].append({
-                "path": file_path,
-                "stub": False
-            })
+            integrity_data = derive_integrity_data(
+                file_path=file_path, source_file_system=file_system
+            )
+
+            supplement["upload_items"].append(
+                {"path": file_path, "stub": False}
+            )
             supplement["integrity_data"].append(integrity_data)
-    
+
     supplement_path = os.path.join(directory_path, "supplement.json")
-    with fs.open(supplement_path, 'w', encoding='utf-8') as f:
+    with file_system.open(supplement_path, "w", encoding="utf-8") as f:
         json.dump(supplement, f, indent=4)
-    
+
     # Create metadata file if provided
     if metadata:
         metadata_path = os.path.join(directory_path, "metadata.json")
-        with fs.open(metadata_path, 'w', encoding='utf-8') as f:
+        with file_system.open(metadata_path, "w", encoding="utf-8") as f:
             json.dump(metadata, f, indent=4)
-    
+
     # Add to pantry if provided
     if pantry:
         pantry.add_basket(directory_path)
@@ -378,11 +394,13 @@ def create_basket_in_place(directory_path, metadata=None, pantry=None, fs=None, 
         "parent_uuids": [manifest["parent_uuids"]],
         "basket_type": [manifest["basket_type"]],
         "label": [manifest["label"]],
-        "weave_version": [importlib.metadata.version("weave-db")], 
+        "weave_version": [importlib.metadata.version("weave-db")],
         "address": [directory_path],
-        "storage_type": ["s3" if isinstance(fs, s3fs.S3FileSystem) else "local"]
+        "storage_type": [
+            "s3" if isinstance(file_system, s3fs.S3FileSystem) else "local"
+        ],
     }
-    
+
     single_index_row = pd.DataFrame(index_data)
-    
+
     return single_index_row

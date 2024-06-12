@@ -54,7 +54,7 @@ def validate_pantry(pantry):
         return warning_list
 
 
-def validate_basket_in_place_directory(fs, directory_path):
+def validate_basket_in_place_directory(file_system, directory_path):
     """
     Validates the directory to ensure it can be a valid basket.
     It should not contain nested baskets.
@@ -67,11 +67,11 @@ def validate_basket_in_place_directory(fs, directory_path):
     ----------
     bool: True if the directory is valid, False otherwise.
     """
-    for root, dirs, files in fs.walk(directory_path):
-        for dir in dirs:
-            dir_path = os.path.join(root, dir)
+    for root, dirs, files in file_system.walk(directory_path):
+        for directory in dirs:
+            dir_path = os.path.join(root, directory)
             if any(
-                f in fs.ls(dir_path)
+                f in file_system.ls(dir_path)
                 for f in ["manifest.json", "supplement.json", "metadata.json"]
             ):
                 return False
@@ -248,15 +248,15 @@ def _handle_manifest(file, pantry):
     except jsonschema.exceptions.ValidationError:
         warnings.warn(
             UserWarning(
-                "Invalid Basket. " "Manifest Schema does not match at: ", file
+                "Invalid Basket. Manifest Schema does not match at: ",
+                file
             )
         )
 
     except json.decoder.JSONDecodeError:
         warnings.warn(
             UserWarning(
-                "Invalid Basket. "
-                "Manifest could not be loaded into json at: ",
+                "Invalid Basket. Manifest could not be loaded into json at: ",
                 file,
             )
         )
@@ -283,7 +283,7 @@ def _handle_supplement(file, pantry):
     except jsonschema.exceptions.ValidationError:
         warnings.warn(
             UserWarning(
-                "Invalid Basket. " "Supplement Schema does not match at: ",
+                "Invalid Basket. Supplement Schema does not match at: ",
                 file,
             )
         )
@@ -291,8 +291,7 @@ def _handle_supplement(file, pantry):
     except json.decoder.JSONDecodeError:
         warnings.warn(
             UserWarning(
-                "Invalid Basket. "
-                "Supplement could not be loaded into json at: ",
+                "Invalid Basket. Supplement could not be loaded into json at: ",
                 file,
             )
         )
