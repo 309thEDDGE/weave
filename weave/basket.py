@@ -16,7 +16,6 @@ from .config import get_file_system, prohibited_filenames
 from .validate import validate_basket_in_place_directory
 from .upload import derive_integrity_data
 from .index.create_index import create_index_from_fs
-from .index.index_abc import IndexABC
 
 class BasketInitializer:
     """Initializes basket class. Validates input args."""
@@ -322,7 +321,7 @@ def create_basket_in_place(directory_path, metadata=None, pantry=None, fs=None, 
         fs = s3fs.S3FileSystem(client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]})
     
     # Validate the directory
-    if not validate_basket_directory(fs, directory_path):
+    if not validate_basket_in_place_directory(fs, directory_path):
         raise ValueError("Provided directory cannot be a valid basket (e.g., no nested baskets allowed)")
     
     # Create manifest file
@@ -350,7 +349,7 @@ def create_basket_in_place(directory_path, metadata=None, pantry=None, fs=None, 
                 continue
     
             file_path = os.path.join(root, file)
-            integrity_data = derive_integrity_data(file_path, fs)
+            integrity_data = derive_integrity_data(file_path=file_path, source_file_system=fs)
     
             supplement["upload_items"].append({
                 "path": file_path,
