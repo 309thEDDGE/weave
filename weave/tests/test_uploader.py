@@ -2,6 +2,8 @@
 
 import json
 import os
+import sys
+import tempfile
 import time
 import uuid
 from datetime import datetime
@@ -14,6 +16,7 @@ from fsspec.implementations.local import LocalFileSystem
 
 import weave
 from weave import Pantry, IndexPandas, IndexSQLite
+from weave.config import get_mongo_db
 from weave.tests.pytest_resources import PantryForTest, file_path_in_list
 from weave.tests.pytest_resources import get_file_systems
 from weave.upload import (
@@ -1453,3 +1456,83 @@ def test_upload_from_s3fs(test_basket):
         s3.rm(minio_path,recursive=True)
     if local_fs.exists(pantry_2.index.db_path):
         local_fs.rm(pantry_2.index.db_path)
+
+
+# Skip tests if pymongo is not installed.
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+    reason="Pymongo required for this test",
+)
+def test_upload_basket_mongo(test_basket):
+    """Testing pantry.upload_basket(), expected
+
+    to update the collections in mongodb
+    """
+    fs = test_basket.file_system
+    pantry_path = test_basket.pantry_path
+    pantry = Pantry(IndexPandas,
+                    pantry_path=pantry_path,
+                    use_mongo=True,
+                    file_system=fs)
+
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        uuid = pantry.upload_basket(
+            upload_items=[{'path':temp_file.name,'stub':False}],
+                basket_type="test-1",
+                metadata = {'Data Type':'text'}
+                ).values.tolist()[0][0]
+
+        temp_file.close()
+        os.unlink(temp_file.name)
+
+    collections = ("supplement", "metadata", "manifest")
+    mongo_db = get_mongo_db()[pantry.pantry_path]
+    query = {'uuid': uuid}
+
+    for e in collections:
+        assert uuid == mongo_db[e].find_one(query,{'_id':0,'uuid':1})['uuid']
+        mongo_db[e].delete_one(query)
+
+
+# Skip tests if pymongo is not installed.
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+    reason="Pymongo required for this test",
+)
+def test_delete_basket_mongo(test_basket):
+    """Testing pantry.delete_basket(), expected to update
+
+    the collections in mongodb
+    """
+    fs = test_basket.file_system
+    pantry_path = test_basket.pantry_path
+
+    pantry = Pantry(IndexPandas,
+                    pantry_path=pantry_path,
+                    use_mongo=True,
+                    file_system=fs)
+
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        uuid = pantry.upload_basket(
+            upload_items=[{'path':temp_file.name,'stub':False}],
+                basket_type="test-1",
+                metadata = {'Data Type':'text'}
+                ).values.tolist()[0][0]
+
+        temp_file.close()
+        os.unlink(temp_file.name)
+
+    query = {'uuid': uuid}
+    collections = ("supplement", "metadata", "manifest")
+    mongo_db = get_mongo_db()[pantry.pantry_path]
+
+    for e in collections:
+        #Check, Basket has been uploaded to mongodb collections
+        assert uuid == mongo_db[e].find_one(query,{'_id':0,'uuid':1})['uuid']
+
+    #Invoke the delete_basket instance method
+    pantry.delete_basket(uuid)
+
+    for e in collections:
+        #Basket should nolonger have an entry for the mongodb collections
+        assert mongo_db[e].find_one(query) is None

@@ -182,7 +182,7 @@ class MongoLoader():
 
 
     @staticmethod
-    def append_document (uuid : str, pantry):
+    def append_document (uuid : str, pantry, **kwargs):
         """Append a document using an Index in the supplement, manifest,
 
         and metadata collections
@@ -193,13 +193,26 @@ class MongoLoader():
             uuid of the basket.
         pantry : Pantry
             The Pantry of interest.
+        **metadata_collection: str (default="metadata")
+            Metadata will be added to the Mongo collection specified.
+        **manifest_collection: str (default="manifest")
+            Manifest will be added to the Mongo collection specified.
+        **supplement_collection: str (default="supplement")
+            Supplement will be added to the Mongo collection specified.
         """
+        metadata_collection = kwargs.get("metadata_collection", "metadata")
+        manifest_collection = kwargs.get("manifest_collection", "manifest")
+        supplement_collection = kwargs.get("supplement_collection",
+                                           "supplement")
         mongo = MongoLoader(pantry)
-        mongo.load_mongo(uuid)
+        mongo.load_mongo(uuid,
+            metadata_collection=metadata_collection,
+            manifest_collection=manifest_collection,
+            supplement_collection=supplement_collection)
 
 
     @staticmethod
-    def remove_document (uuid : str, pantry):
+    def remove_document (uuid : str, pantry, **kwargs):
         """Delete a document using the uuid in the supplement,
 
         manifest, and metadata collections.
@@ -211,9 +224,22 @@ class MongoLoader():
             in the supplement, manifest, and metadata collections.
         pantry: Pantry
             The Pantry of interest.
+        **metadata_collection: str (default="metadata")
+            Metadata will be added to the Mongo collection specified.
+        **manifest_collection: str (default="manifest")
+            Manifest will be added to the Mongo collection specified.
+        **supplement_collection: str (default="supplement")
+            Supplement will be added to the Mongo collection specified.
         """
+        metadata_collection = kwargs.get("metadata_collection", "metadata")
+        manifest_collection = kwargs.get("manifest_collection", "manifest")
+        supplement_collection = kwargs.get("supplement_collection",
+                                           "supplement")
+
         mongo_db = get_mongo_db()[pantry.pantry_path]
-        collection_names = ('manifest', 'metadata','supplement')
+        collection_names = (metadata_collection,
+                            manifest_collection,
+                            supplement_collection)
 
         for e in collection_names:
             mongo_db[e].delete_one({'uuid':uuid})
