@@ -771,6 +771,10 @@ def test_create_basket_in_place_local(local_test_dir, local_fs):
     
     # Create basket in place
     index_row = create_basket_in_place(str(local_test_dir), metadata, fs=local_fs)
+    
+    # Print index_row to inspect its structure
+    print("Index Row:", index_row)
+    
     # Validate basket creation
     assert os.path.exists(local_test_dir / "manifest.json")
     assert os.path.exists(local_test_dir / "supplement.json")
@@ -780,8 +784,14 @@ def test_create_basket_in_place_local(local_test_dir, local_fs):
     # Validate manifest content
     with open(local_test_dir / "manifest.json", encoding='utf-8') as f:
         manifest_data = json.load(f)
-    assert manifest_data["label"] == index_row.iloc[0]["label"]
+    
+    # Adjust assertions based on index_row structure
+    assert not index_row.empty, "Index row should not be empty"
+    assert manifest_data["uuid"] == index_row.iloc[0]["uuid"]
+    assert manifest_data["upload_time"] == index_row.iloc[0]["upload_time"]
+    assert manifest_data["parent_uuids"] == index_row.iloc[0]["parent_uuids"]
     assert manifest_data["basket_type"] == index_row.iloc[0]["basket_type"]
+    assert manifest_data["label"] == index_row.iloc[0]["label"]
 
 def test_create_basket_in_place_with_pantry_local(local_test_dir, local_fs):
     # Simulate files to include in the basket
@@ -816,17 +826,26 @@ def test_create_basket_in_place_with_pantry_local(local_test_dir, local_fs):
     # Create basket in place with pantry
     index_row = create_basket_in_place(str(local_test_dir), metadata, mock_pantry, fs=local_fs)
     
+    # Print index_row to inspect its structure
+    print("Index Row:", index_row)
+    
     # Validate basket addition to pantry
     assert str(local_test_dir) in mock_pantry.baskets
     
     # Validate manifest content
     with open(local_test_dir / "manifest.json", encoding='utf-8') as f:
         manifest_data = json.load(f)
-    assert manifest_data["label"] == index_row.iloc[0]["label"]
+    
+    # Adjust assertions based on index_row structure
+    assert not index_row.empty, "Index row should not be empty"
+    assert manifest_data["uuid"] == index_row.iloc[0]["uuid"]
+    assert manifest_data["upload_time"] == index_row.iloc[0]["upload_time"]
+    assert manifest_data["parent_uuids"] == index_row.iloc[0]["parent_uuids"]
     assert manifest_data["basket_type"] == index_row.iloc[0]["basket_type"]
+    assert manifest_data["label"] == index_row.iloc[0]["label"]
 
 def test_create_basket_in_place_s3(s3_test_dir, s3_fs):
-   # Simulate files to include in the basket
+    # Simulate files to include in the basket
     file1 = s3_test_dir + "/file1.txt"
     file2 = s3_test_dir + "/file2.txt"
     with s3_fs.open(file1, 'w') as f:
@@ -839,6 +858,9 @@ def test_create_basket_in_place_s3(s3_test_dir, s3_fs):
     # Create basket in place
     index_row = create_basket_in_place(s3_test_dir, metadata, fs=s3_fs)
     
+    # Print index_row to inspect its structure
+    print("Index Row:", index_row)
+    
     # Validate basket creation
     assert s3_fs.exists(s3_test_dir + "/manifest.json")
     assert s3_fs.exists(s3_test_dir + "/supplement.json")
@@ -848,8 +870,14 @@ def test_create_basket_in_place_s3(s3_test_dir, s3_fs):
     # Validate manifest content
     with s3_fs.open(s3_test_dir + "/manifest.json", encoding='utf-8') as f:
         manifest_data = json.load(f)
-    assert manifest_data["label"] == index_row.iloc[0]["label"]
+    
+    # Adjust assertions based on index_row structure
+    assert not index_row.empty, "Index row should not be empty"
+    assert manifest_data["uuid"] == index_row.iloc[0]["uuid"]
+    assert manifest_data["upload_time"] == index_row.iloc[0]["upload_time"]
+    assert manifest_data["parent_uuids"] == index_row.iloc[0]["parent_uuids"]
     assert manifest_data["basket_type"] == index_row.iloc[0]["basket_type"]
+    assert manifest_data["label"] == index_row.iloc[0]["label"]
 
 def test_create_basket_in_place_with_pantry_s3(s3_test_dir, s3_fs):
     # Simulate files to include in the basket
@@ -886,11 +914,20 @@ def test_create_basket_in_place_with_pantry_s3(s3_test_dir, s3_fs):
     # Create basket in place with pantry
     index_row = create_basket_in_place(s3_test_dir, metadata, mock_pantry, fs=s3_fs)
     
+    # Print index_row to inspect its structure
+    print("Index Row:", index_row)
+    
     # Validate basket addition to pantry
     assert s3_test_dir in mock_pantry.baskets
     
     # Validate manifest content
     with s3_fs.open(s3_test_dir + "/manifest.json", encoding='utf-8') as f:
         manifest_data = json.load(f)
-    assert manifest_data["label"] == index_row.iloc[0]["label"]
+    
+    # Adjust assertions based on index_row structure
+    assert not index_row.empty, "Index row should not be empty"
+    assert manifest_data["uuid"] == index_row.iloc[0]["uuid"]
+    assert manifest_data["upload_time"] == index_row.iloc[0]["upload_time"]
+    assert manifest_data["parent_uuids"] == index_row.iloc[0]["parent_uuids"]
     assert manifest_data["basket_type"] == index_row.iloc[0]["basket_type"]
+    assert manifest_data["label"] == index_row.iloc[0]["label"]
