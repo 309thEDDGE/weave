@@ -5,6 +5,7 @@ import json
 import os
 import hashlib
 import uuid
+import importlib
 from pathlib import Path
 from datetime import datetime
 
@@ -299,23 +300,22 @@ class Basket(BasketInitializer):
         return pd.DataFrame(data=[data], columns=columns)
 
 def create_basket_in_place(directory_path, metadata=None, pantry=None, fs=None, parent_uuids=None, basket_type="item", label=""):
-    """
-    Creates a basket in place by generating the manifest, supplement, and metadata files
+    """Creates a basket in place by generating the manifest, supplement, and metadata files
     directly in the provided directory without moving or uploading any files.
+    
     Parameters:
-    directory_path (str): The path to the directory where the basket will be created.
-    metadata (dict, optional): A dictionary containing metadata to be included in the basket.
-    pantry (object, optional): An optional pantry object to which the basket will be added.
+    ----------
+    directory_path: (string) The path to the directory where the basket will be created.
+    metadata: (dict, optional) A dictionary containing metadata to be included in the basket.
+    pantry: (object, optional) An optional pantry object to which the basket will be added.
     fs (fsspec.AbstractFileSystem, optional): The file system object. Defaults to S3 file system.
     parent_uuids (list, optional): A list of parent UUIDs for the basket.
     basket_type (str, optional): The type of the basket.
     label (str, optional): The label for the basket.
     
     Returns:
+    ----------
     pd.DataFrame: A single row DataFrame containing the basket information.
-    
-    Raises:
-    ValueError: If the provided directory cannot be a valid basket (e.g., it contains nested baskets).
     """
     if fs is None:
         fs = s3fs.S3FileSystem(client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]})
@@ -326,7 +326,7 @@ def create_basket_in_place(directory_path, metadata=None, pantry=None, fs=None, 
     
     # Create manifest file
     manifest = {
-        "uuid": str(uuid.uuid4()),
+        "uuid": str(uuid.uuid1().hex),
         "upload_time": datetime.utcnow().isoformat(),
         "parent_uuids": parent_uuids or [],
         "basket_type": basket_type,
@@ -370,7 +370,7 @@ def create_basket_in_place(directory_path, metadata=None, pantry=None, fs=None, 
     # Add to pantry if provided
     if pantry:
         pantry.add_basket(directory_path)
-    
+
     # Create the index row as a DataFrame
     index_data = {
         "uuid": [manifest["uuid"]],
@@ -378,7 +378,7 @@ def create_basket_in_place(directory_path, metadata=None, pantry=None, fs=None, 
         "parent_uuids": [manifest["parent_uuids"]],
         "basket_type": [manifest["basket_type"]],
         "label": [manifest["label"]],
-        "weave_version": ["1.0"],  # Example version, adjust as necessary
+        "weave_version": [importlib.metadata.version("weave-db")], 
         "address": [directory_path],
         "storage_type": ["s3" if isinstance(fs, s3fs.S3FileSystem) else "local"]
     }

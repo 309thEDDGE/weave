@@ -771,10 +771,7 @@ def test_create_basket_in_place_local(local_test_dir, local_fs):
     
     # Create basket in place
     index_row = create_basket_in_place(str(local_test_dir), metadata, fs=local_fs)
-    
-    # Print index_row to inspect its structure
-    print("Index Row:", index_row)
-    
+
     # Validate basket creation
     assert os.path.exists(local_test_dir / "manifest.json")
     assert os.path.exists(local_test_dir / "supplement.json")
@@ -825,10 +822,7 @@ def test_create_basket_in_place_with_pantry_local(local_test_dir, local_fs):
     
     # Create basket in place with pantry
     index_row = create_basket_in_place(str(local_test_dir), metadata, mock_pantry, fs=local_fs)
-    
-    # Print index_row to inspect its structure
-    print("Index Row:", index_row)
-    
+
     # Validate basket addition to pantry
     assert str(local_test_dir) in mock_pantry.baskets
     
@@ -857,9 +851,6 @@ def test_create_basket_in_place_s3(s3_test_dir, s3_fs):
     
     # Create basket in place
     index_row = create_basket_in_place(s3_test_dir, metadata, fs=s3_fs)
-    
-    # Print index_row to inspect its structure
-    print("Index Row:", index_row)
     
     # Validate basket creation
     assert s3_fs.exists(s3_test_dir + "/manifest.json")
@@ -913,9 +904,6 @@ def test_create_basket_in_place_with_pantry_s3(s3_test_dir, s3_fs):
     
     # Create basket in place with pantry
     index_row = create_basket_in_place(s3_test_dir, metadata, mock_pantry, fs=s3_fs)
-    
-    # Print index_row to inspect its structure
-    print("Index Row:", index_row)
     
     # Validate basket addition to pantry
     assert s3_test_dir in mock_pantry.baskets
