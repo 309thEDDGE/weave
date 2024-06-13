@@ -13,6 +13,7 @@ import pandas as pd
 import fsspec
 from fsspec.implementations.local import LocalFileSystem
 
+import weave
 from weave.__init__ import __version__ as weave_version
 from weave.basket import Basket, create_basket_in_place
 from weave.index.create_index import create_index_from_fs
@@ -790,46 +791,27 @@ def test_create_basket_in_place_local(local_test_dir, local_fs):
     assert manifest_data["basket_type"] == index_row.iloc[0]["basket_type"]
     assert manifest_data["label"] == index_row.iloc[0]["label"]
 
-def test_create_basket_in_place_with_pantry_local(local_test_dir, local_fs):
+def test_create_basket_in_place_with_pantry_local(test_pantry):
+    file_system=test_pantry.file_system
+    pantry_path=test_pantry.pantry_path
     # Simulate files to include in the basket
-    file1 = local_test_dir / "file1.txt"
-    file2 = local_test_dir / "file2.txt"
-    file1.write_text("This is a test file 1.")
-    file2.write_text("This is a test file 2.")
+    file_system.mkdir(os.path.join(pantry_path,"TestBasketInPlace"))
+    with file_system.open(os.path.join(pantry_path, "TestBasketInPlace", "file1.txt"),'w', encoding='utf-8') as f:
+        f.write("This is a test file 1.")        
+    with file_system.open(os.path.join(pantry_path, "TestBasketInPlace", "file2.txt"),'w', encoding='utf-8') as f:
+        f.write("This is a test file 2.")  
     
     meta = {"author": "test"}
-    
-    # pylint: disable=too-few-public-methods
-    class MockPantry:
-        """Mock Pantry class for testing.
-    
-        This class simulates a pantry with basic add_basket functionality.
-        """
-    
-        def __init__(self):
-            """Initialize the MockPantry with an empty list of baskets."""
-            self.baskets = []
-    
-        def add_basket(self, basket_path):
-            """Add a basket to the MockPantry.
-    
-            Args:
-                basket_path (str): The path to the basket to add.
-            """
-            self.baskets.append(basket_path)
-    
-    mock_pantry = MockPantry()
+
+    pantry=weave.Pantry(weave.IndexPandas, pantry_path=pantry_path, file_system=file_system)
     
     # Create basket in place with pantry
-    index_row = create_basket_in_place(str(local_test_dir), metadata=meta, pantry=mock_pantry, file_system=local_fs)
-
-    # Validate basket addition to pantry
-    assert str(local_test_dir) in mock_pantry.baskets
+    index_row = create_basket_in_place(pantry_path, metadata=meta, pantry=pantry, file_system=file_system)
     
     # Validate manifest content
-    with open(local_test_dir / "manifest.json", encoding='utf-8') as f:
+    with file_system.open(os.path.join(index_row.address[0], "manifest.json"), encoding='utf-8') as f:
         manifest_data = json.load(f)
-    
+
     # Adjust assertions based on index_row structure
     assert not index_row.empty, "Index row should not be empty"
     assert manifest_data["uuid"] == index_row.iloc[0]["uuid"]

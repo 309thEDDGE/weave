@@ -383,10 +383,6 @@ def create_basket_in_place(directory_path, **kwargs):
         with file_system.open(metadata_path, "w", encoding="utf-8") as f:
             json.dump(metadata, f, indent=4)
 
-    # Add to pantry if provided
-    if pantry:
-        pantry.add_basket(directory_path)
-
     # Create the index row as a DataFrame
     index_data = {
         "uuid": [manifest["uuid"]],
@@ -397,10 +393,13 @@ def create_basket_in_place(directory_path, **kwargs):
         "weave_version": [importlib.metadata.version("weave-db")],
         "address": [directory_path],
         "storage_type": [
-            "s3" if isinstance(file_system, s3fs.S3FileSystem) else "local"
+            file_system.__class__.__name__
         ],
     }
 
     single_index_row = pd.DataFrame(index_data)
+        # Add to pantry if provided
+    if pantry:
+        pantry.index.track_basket(single_index_row)
 
     return single_index_row
