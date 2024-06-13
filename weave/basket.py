@@ -274,6 +274,7 @@ class Basket(BasketInitializer):
         # not passing refresh=True
         return self.file_system.ls(ls_path, refresh=True)
 
+    # pylint: disable-msg=duplicate-code
     def to_pandas_df(self):
         """Return a dataframe of the basket member variables."""
         data = [
@@ -300,7 +301,6 @@ class Basket(BasketInitializer):
         return pd.DataFrame(data=[data], columns=columns)
 
 # pylint: disable-msg=too-many-locals
-# pylint: disable-msg=duplicate-code
 def create_basket_in_place(directory_path, **kwargs):
     """Creates a basket in place by generating the manifest, supplement, and
     metadata files directly in the provided directory without moving or
