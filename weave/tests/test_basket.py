@@ -365,7 +365,8 @@ def test_basket_ls_relpath(test_pantry):
 
 
 def test_basket_ls_relpath_period(test_pantry):
-    """Test that the basket ls function works when using the relative path '.'"""
+    """Test that the basket ls function works when using the relative path '.'
+    """
 
     # Create a temporary basket with a test file, and upload it.
     tmp_basket_dir_name = "test_basket_tmp_dir"

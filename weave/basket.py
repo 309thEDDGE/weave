@@ -148,7 +148,8 @@ class BasketInitializer:
 # reasonable amount of variables in this case
 # pylint: disable=too-many-instance-attributes
 class Basket(BasketInitializer):
-    """This class provides convenience functions for accessing basket contents."""
+    """This class provides convenience functions for accessing basket contents.
+    """
 
     def __init__(self, basket_address, **kwargs):
         """Initializes the Basket_Class.
@@ -299,9 +300,11 @@ class Basket(BasketInitializer):
         return pd.DataFrame(data=[data], columns=columns)
 
 # pylint: disable-msg=too-many-locals
+# pylint: disable-msg=duplicate-code
 def create_basket_in_place(directory_path, **kwargs):
-    """Creates a basket in place by generating the manifest, supplement, and metadata files
-    directly in the provided directory without moving or uploading any files.
+    """Creates a basket in place by generating the manifest, supplement, and
+    metadata files directly in the provided directory without moving or
+    uploading any files.
 
     Parameters:
     ----------
@@ -339,7 +342,8 @@ def create_basket_in_place(directory_path, **kwargs):
     # Validate the directory
     if not validate_basket_in_place_directory(file_system, directory_path):
         raise ValueError(
-            "Provided directory cannot be a valid basket (e.g., no nested baskets allowed)"
+            "Provided directory cannot be a valid basket "
+            "(e.g., no nested baskets allowed)"
         )
 
     # Create manifest file

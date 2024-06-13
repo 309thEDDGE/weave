@@ -291,7 +291,8 @@ def _handle_supplement(file, pantry):
     except json.decoder.JSONDecodeError:
         warnings.warn(
             UserWarning(
-                "Invalid Basket. Supplement could not be loaded into json at: ",
+                "Invalid Basket. "
+                "Supplement could not be loaded into json at: ",
                 file,
             )
         )
