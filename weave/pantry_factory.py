@@ -62,16 +62,22 @@ def create_pantry(**kwargs):
         pantry = _create_pantry_from_config(config, **kwargs)
     # Create a pantry using a config that exists inside the pantry directory.
     elif "pantry_path" in kwargs:
-        file_system = kwargs.pop("file_system")
-        if file_system is None:
+        if "file_system" in kwargs:
+            file_system = kwargs.pop("file_system")
+        else:
             file_system = get_file_system()
 
-        with file_system.open(
-            os.path.join(kwargs.pop("pantry_path"), "config.json"),
-            'r'
-        ) as config_file:
-            config = json.load(config_file)
-
+        try:
+            with file_system.open(
+                os.path.join(kwargs.pop("pantry_path"), "config.json"),
+                'r'
+            ) as config_file:
+                config = json.load(config_file)
+        except FileNotFoundError as exc:
+            raise FileNotFoundError(
+                "Config file not found in pantry. Please add a config file "
+                "path or add a config file to the pantry."
+            ) from exc
         pantry = _create_pantry_from_config(config, **kwargs)
     # If pantry was unable to be created using the methods above, throw error.
     else:
@@ -92,8 +98,21 @@ def _create_pantry_from_config(config, **kwargs):
     -----------
     weave.Pantry object
     """
+    # Ensure config has the proper keys and values:
+    try:
+        index_type = config["index"]
+        pantry_path = config["pantry_path"]
+        file_system_type = config["file_system"]
+    except KeyError as exc:
+        raise KeyError(
+            "Config file requires 'index' 'pantry_path' and "
+            "'file_system' keys to build pantry from config file."
+        ) from exc
+
+    # Remove pantry kwargs to not conflict with config args.
+    _ = [kwargs.pop(x, None) for x in ["index", "pantry_path", "file_system"]]
+
     # Parse the index type used by this pantry.
-    index_type = config["index"]
     if index_type == "IndexPandas":
         index_constructor = IndexPandas
     elif index_type == "IndexSQLite":
@@ -103,11 +122,7 @@ def _create_pantry_from_config(config, **kwargs):
     else:
         raise ValueError(f"Index Type '{index_type}' is not supported")
 
-    # Get the pantry path.
-    pantry_path = config["pantry_path"]
-
     # Get the file system used for this pantry.
-    file_system_type = config["file_system"]
     if file_system_type == "LocalFileSystem":
         file_system = LocalFileSystem()
     elif file_system_type == "S3FileSystem":
