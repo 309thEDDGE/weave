@@ -67,7 +67,7 @@ def validate_basket_in_place_directory(file_system, directory_path):
     ----------
     bool: True if the directory is valid, False otherwise.
     """
-    for root, dirs, files in file_system.walk(directory_path):
+    for root, dirs, __ in file_system.walk(directory_path):
         for directory in dirs:
             dir_path = os.path.join(root, directory)
             if any(
