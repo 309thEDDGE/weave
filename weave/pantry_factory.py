@@ -17,10 +17,11 @@ def create_pantry(**kwargs):
     """Create a weave.Pantry object using regular params or a config file.
 
     Three options to create a pantry:
-    1: Default args, requires Index, pantry_path, file_system
+    1: Default args, requires an Index, and pantry_path (with an optional
+       file_system kwarg).
     2: A local config file which has information about the index, path, etc
-    3: Only a pantry path and file_system, this will look for a global
-       config file in the pantry root.
+    3: Only a pantry path (with an optional file_system kwarg), this will look
+       for a global config file in the pantry root.
 
     Parameters:
     -----------
@@ -31,8 +32,8 @@ def create_pantry(**kwargs):
         Path to the directory in which the pantry is located.
     **file_system: fsspec object (optional)
         The fsspec object which hosts the pantry we desire to index.
-        If file_system is None, then the default fs is retrieved from the
-        config.
+        If the file system is not passed, then the default fs is retrieved from
+        the weave config.
     **config_file: str (optional)
     Optional kwargs passed to the Index constructor.
 
@@ -43,11 +44,15 @@ def create_pantry(**kwargs):
     pantry = None
 
     # Create a pantry in the default way using the Pantry constructor
-    if all(k in kwargs for k in ["index", "pantry_path", "file_system"]):
+    if all(k in kwargs for k in ["index", "pantry_path"]):
+        if "file_system" in kwargs:
+            file_system = kwargs.pop("file_system")
+        else:
+            file_system = get_file_system()
         pantry = Pantry(
             kwargs.pop("index"),
             pantry_path=kwargs.pop("pantry_path"),
-            file_system=kwargs.pop("file_system"),
+            file_system=file_system,
             **kwargs,
         )
     # Create a pantry using a config file that is given to the pantry factory.
