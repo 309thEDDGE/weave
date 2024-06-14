@@ -276,7 +276,7 @@ class Pantry():
 
         if kwargs.get("FORCE_LOAD_SUPPLEMENT", False):
             mongo_loader.load_mongo_supplement(
-                self.index.to_pandas_df(max_rows=None).uuids
+                self.index.to_pandas_df(max_rows=None).uuid.to_list()
             )
 
         supplement_collection = mongo_loader.database['supplement']
