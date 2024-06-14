@@ -205,7 +205,6 @@ class MongoLoader():
         supplement_collection = kwargs.get("supplement_collection",
                                            "supplement")
         mongo = MongoLoader(copy.deepcopy(pantry))
-        uuid = copy.copy(uuid)
 
         mongo.load_mongo(uuid,
             metadata_collection=metadata_collection,
@@ -239,7 +238,6 @@ class MongoLoader():
                                            "supplement")
 
         database_name = copy.copy(pantry.pantry_path)
-        uuid = copy.copy(uuid)
 
         mongo_db = get_mongo_db()[database_name]
         collection_names = (metadata_collection,
