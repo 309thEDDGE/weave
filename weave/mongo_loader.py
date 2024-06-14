@@ -237,7 +237,7 @@ class MongoLoader():
         supplement_collection = kwargs.get("supplement_collection",
                                            "supplement")
 
-        database_name = copy.copy(pantry.pantry_path)
+        database_name = pantry.pantry_path
 
         mongo_db = get_mongo_db()[database_name]
         collection_names = (metadata_collection,
