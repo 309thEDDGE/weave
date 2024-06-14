@@ -1,4 +1,4 @@
-"""This class builds the user-facing Index class. It pulls from the _Index 
+"""This class builds the user-facing Index class. It pulls from the _Index
 class which uses Pandas as it's backend to build and interface with the on disk
 Index baskets.
 """

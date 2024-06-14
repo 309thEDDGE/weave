@@ -1,5 +1,6 @@
 """Contains scripts concerning Mongo Loader functionality."""
 
+import copy
 # Ignore pylint duplicate code. Code here is used to explicitly show pymongo is
 # an optional dependency. Duplicate code is found in config.py (where pymongo
 # is actually imported)
@@ -18,7 +19,6 @@ else:
 
 from .basket import Basket
 from .config import get_mongo_db
-
 
 class MongoLoader():
     """Initializes a mongo loader class. Retrieves a connection to the mongo
@@ -204,7 +204,9 @@ class MongoLoader():
         manifest_collection = kwargs.get("manifest_collection", "manifest")
         supplement_collection = kwargs.get("supplement_collection",
                                            "supplement")
-        mongo = MongoLoader(pantry)
+        mongo = MongoLoader(copy.deepcopy(pantry))
+        uuid = copy.copy(uuid)
+
         mongo.load_mongo(uuid,
             metadata_collection=metadata_collection,
             manifest_collection=manifest_collection,
@@ -236,7 +238,10 @@ class MongoLoader():
         supplement_collection = kwargs.get("supplement_collection",
                                            "supplement")
 
-        mongo_db = get_mongo_db()[pantry.pantry_path]
+        database_name = copy.copy(pantry.pantry_path)
+        uuid = copy.copy(uuid)
+
+        mongo_db = get_mongo_db()[database_name]
         collection_names = (metadata_collection,
                             manifest_collection,
                             supplement_collection)
