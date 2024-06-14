@@ -3,7 +3,6 @@ class which uses Pandas as it's backend to build and interface with the on disk
 Index baskets.
 """
 
-import copy
 import json
 import os
 
