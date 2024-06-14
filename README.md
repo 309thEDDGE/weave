@@ -209,7 +209,7 @@ basket_contents = [pantry_name/basket_type/uuid/data.csv]
 df = pd.read_csv(s3.open(basket_contents[0], mode="rb"))
 ```
 
-### Using a Pantry
+### Creating a Pantry
 
 The Pantry class facilitates interaction with the file system including upload,
 access, and delete baskets. The pantry can also track pantry-level metadata.
@@ -231,6 +231,48 @@ pantry = Pantry(
 )
 index_df = pantry.index.to_pandas_df()
 ```
+
+#### Pantry Factory
+Weave also has the ability to create a pantry from a config file using a pantry
+factory by calling `create_pantry()`. There are three ways of calling `create_pantry()`
+to enstantiate a pantry:
+- Default `pantry()` args requires: Index and a pantry_path (with an optional
+       file_system kwarg).
+- A local config file which has information about the index, path, and file system.
+- Only a pantry path (with an optional file_system kwarg), this will look for
+  a global config file in the pantry root.
+
+```python
+from weave.pantry_factory import create_pantry
+from weave import IndexPandas
+
+# Option 1 (default Pantry() args)
+pantry = create_pantry(
+    index=IndexPandas,
+    pantry_path=pantry_path,
+    file_system=file_system,
+)
+
+# Option 2 (uses a local config)
+pantry = create_pantry(
+    config_file="config.json"
+)
+
+# Option 3 (uses a global config stored in the pantry root)
+pantry = create_pantry(
+    pantry_path=pantry_path
+)
+
+# How the config.json file should be setup:
+{
+    "index":"IndexPandas",
+    "pantry_path":"weave-test",
+    "file_system":"LocalFileSystem"
+}
+```
+
+### Using a Pantry
+
 `Index.to_pandas_df()` returns a pandas dataframe with each row corresponding
 to a basket in the datastore. The columns in the dataframe follow the manifest
 schema for the basket. An example basket entry is shown below:

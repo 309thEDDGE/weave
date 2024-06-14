@@ -80,8 +80,8 @@ def create_pantry(**kwargs):
                 config = json.load(config_file)
         except FileNotFoundError as exc:
             raise FileNotFoundError(
-                "Config file not found in pantry. Please add a config file "
-                "path or add a config file to the pantry."
+                "Pantry path or config file does not exist. Please add a "
+                "config file path or add a config file to the pantry."
             ) from exc
         pantry = _create_pantry_from_config(config, **kwargs)
     # If pantry was unable to be created using the methods above, throw error.
