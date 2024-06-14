@@ -235,8 +235,8 @@ class Pantry():
         self.index.track_basket(single_indice_index)
 
         if self.use_mongo:
-            MongoLoader(copy.deepcopy(self)).load_mongo(single_indice_index.iloc[0].uuid)
-            # MongoLoader.append_document(single_indice_index.iloc[0].uuid, self)
+            MongoLoader(copy.deepcopy(self)).\
+                load_mongo(single_indice_index.iloc[0].uuid)
 
         return single_indice_index
 
