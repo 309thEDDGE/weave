@@ -3,6 +3,7 @@ class which uses Pandas as it's backend to build and interface with the on disk
 Index baskets.
 """
 
+import copy
 import json
 import os
 
@@ -234,7 +235,8 @@ class Pantry():
         self.index.track_basket(single_indice_index)
 
         if self.use_mongo:
-            MongoLoader.append_document(single_indice_index.iloc[0].uuid, self)
+            MongoLoader(copy.deepcopy(self)).load_mongo(single_indice_index.iloc[0].uuid)
+            # MongoLoader.append_document(single_indice_index.iloc[0].uuid, self)
 
         return single_indice_index
 

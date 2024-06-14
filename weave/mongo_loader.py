@@ -1,6 +1,5 @@
 """Contains scripts concerning Mongo Loader functionality."""
 
-import copy
 # Ignore pylint duplicate code. Code here is used to explicitly show pymongo is
 # an optional dependency. Duplicate code is found in config.py (where pymongo
 # is actually imported)
@@ -179,37 +178,6 @@ class MongoLoader():
         self.load_mongo_metadata(uuids, collection=metadata_collection)
         self.load_mongo_manifest(uuids, collection=manifest_collection)
         self.load_mongo_supplement(uuids, collection=supplement_collection)
-
-
-    @staticmethod
-    def append_document (uuid : str, pantry, **kwargs):
-        """Append a document using an Index in the supplement, manifest,
-
-        and metadata collections
-
-        Parameters
-        ----------
-        uuid: str
-            uuid of the basket.
-        pantry : Pantry
-            The Pantry of interest.
-        **metadata_collection: str (default="metadata")
-            Metadata will be added to the Mongo collection specified.
-        **manifest_collection: str (default="manifest")
-            Manifest will be added to the Mongo collection specified.
-        **supplement_collection: str (default="supplement")
-            Supplement will be added to the Mongo collection specified.
-        """
-        metadata_collection = kwargs.get("metadata_collection", "metadata")
-        manifest_collection = kwargs.get("manifest_collection", "manifest")
-        supplement_collection = kwargs.get("supplement_collection",
-                                           "supplement")
-        mongo = MongoLoader(copy.deepcopy(pantry))
-
-        mongo.load_mongo(uuid,
-            metadata_collection=metadata_collection,
-            manifest_collection=manifest_collection,
-            supplement_collection=supplement_collection)
 
 
     @staticmethod
