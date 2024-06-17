@@ -235,7 +235,7 @@ index_df = pantry.index.to_pandas_df()
 #### Pantry Factory
 Weave also has the ability to create a pantry from a config file using a pantry
 factory by calling `create_pantry()`. There are three ways of calling `create_pantry()`
-to enstantiate a pantry:
+to instantiate a pantry:
 - Default `pantry()` args requires: Index and a pantry_path (with an optional
        file_system kwarg).
 - A local config file which has information about the index, path, and file system.
