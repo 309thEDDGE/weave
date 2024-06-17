@@ -31,7 +31,7 @@ def slice_df(df, max_rows=None, offset=0):
         Returns a slice of the dataframe.
     """
     if max_rows is None:
-        return df
+        return df.copy()
     return df.iloc[offset:offset+max_rows]
 
 
@@ -143,12 +143,12 @@ class IndexPandas(IndexABC):
         path = str(path)
         return int(os.path.basename(path).replace("-index.json",""))
 
-    def to_pandas_df(self, max_rows=1000, offset=0, **kwargs):
+    def to_pandas_df(self, max_rows=None, offset=0, **kwargs):
         """Returns the pandas dataframe representation of the index.
 
         Parameters
         ----------
-        max_rows: int or None (default=1000)
+        max_rows: int or None (default=None)
             Max rows returned in the pandas dataframe. If None, all rows will
             be returned.
         offset: int (default=0)
@@ -527,7 +527,7 @@ class IndexPandas(IndexABC):
                       ]
         return rows
 
-    def get_baskets_of_type(self, basket_type, max_rows=1000,
+    def get_baskets_of_type(self, basket_type, max_rows=None,
                             offset=0, **kwargs):
         """Returns a pandas dataframe containing baskets of basket_type.
 
@@ -535,7 +535,7 @@ class IndexPandas(IndexABC):
         ----------
         basket_type: str
             The basket type to filter for.
-        max_rows: int or None (default=1000)
+        max_rows: int or None (default=None)
             Max rows returned in the pandas dataframe. If None, all rows will
             be returned.
         offset: int (default=0)
@@ -554,7 +554,7 @@ class IndexPandas(IndexABC):
             max_rows,
             offset)
 
-    def get_baskets_of_label(self, basket_label, max_rows=1000,
+    def get_baskets_of_label(self, basket_label, max_rows=None,
                              offset=0, **kwargs):
         """Returns a pandas dataframe containing baskets with label.
 
@@ -562,7 +562,7 @@ class IndexPandas(IndexABC):
         ----------
         basket_label: str
             The label to filter for.
-        max_rows: int or None (default=1000)
+        max_rows: int or None (default=None)
             Max rows returned in the pandas dataframe. If None, all rows will
             be returned.
         offset: int (default=0)
@@ -583,7 +583,7 @@ class IndexPandas(IndexABC):
             offset)
 
     def get_baskets_by_upload_time(self, start_time=None, end_time=None,
-                                   max_rows=1000, offset=0, **kwargs):
+                                   max_rows=None, offset=0, **kwargs):
         """Returns a pandas dataframe of baskets uploaded between two times.
 
         Parameters
@@ -594,7 +594,7 @@ class IndexPandas(IndexABC):
         end_time: datetime.datetime (optional)
             The end datetime object to filter between. If None, will filter
             to the current datetime.
-        max_rows: int or None (default=1000)
+        max_rows: int or None (default=None)
             Max rows returned in the pandas dataframe. If None, all rows will
             be returned.
         offset: int (default=0)
