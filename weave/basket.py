@@ -322,6 +322,8 @@ def create_basket_in_place(directory_path, **kwargs):
         The type of the basket.
     **label: str (optional)
         The label for the basket.
+    **skip_validation: bool (optional)
+        Force the create basket function to skip validation.
 
     Returns:
     ----------
@@ -333,18 +335,20 @@ def create_basket_in_place(directory_path, **kwargs):
     parent_uuids = kwargs.get("parent_uuids", None)
     basket_type = kwargs.get("basket_type", "item")
     label = kwargs.get("label", "")
+    skip_validation = kwargs.get("skip_validation", False)
 
     if file_system is None:
         file_system = s3fs.S3FileSystem(
             client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
         )
 
-    # Validate the directory
-    if not validate_basket_in_place_directory(file_system, directory_path):
-        raise ValueError(
-            "Provided directory cannot be a valid basket "
-            "(e.g., no nested baskets allowed)"
-        )
+    if not skip_validation:
+        # Validate the directory
+        if validate_basket_in_place_directory(file_system, directory_path):
+            raise ValueError(
+                "Provided directory cannot be a valid basket "
+                "(e.g., no nested baskets allowed)"
+            )
 
     # Create manifest file
     manifest = {
