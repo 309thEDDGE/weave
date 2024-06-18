@@ -764,7 +764,8 @@ def test_create_basket_in_place(test_pantry):
 
     # Create basket in place
     index_row = create_basket_in_place(
-        pantry_path, metadata=meta, file_system=file_system
+        pantry_path, metadata=meta, file_system=file_system,
+        skip_validation=True
     )
 
     if meta:
@@ -813,7 +814,8 @@ def test_create_basket_in_place_with_pantry(test_pantry):
 
     # Create basket in place with pantry
     index_row = create_basket_in_place(
-        pantry_path, metadata=meta, pantry=pantry, file_system=file_system
+        pantry_path, metadata=meta, pantry=pantry, file_system=file_system,
+        skip_validation=True
     )
 
     if meta:

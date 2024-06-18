@@ -17,6 +17,7 @@ from .upload import derive_integrity_data
 
 
 
+
 class BasketInitializer:
     """Initializes basket class. Validates input args."""
 
@@ -341,7 +342,6 @@ def create_basket_in_place(directory_path, **kwargs):
         file_system = s3fs.S3FileSystem(
             client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
         )
-
     if not skip_validation:
         # Validate the directory
         if validate_basket_in_place_directory(file_system, directory_path):
