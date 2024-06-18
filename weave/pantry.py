@@ -55,7 +55,6 @@ class Pantry():
             If file_system is None, then the default fs is retrieved from the
             config.
         """
-
         self.file_system = kwargs.pop("file_system", None)
         if self.file_system is None:
             self.file_system = get_file_system()
@@ -87,7 +86,7 @@ class Pantry():
                            pantry_path=self.pantry_path,
                            metadata=self.metadata['index_metadata'],
                            pantry_read_only=self.is_read_only,
-                           **kwargs
+                           **kwargs,
         )
         self.metadata['index_metadata'] = self.index.generate_metadata()
 
@@ -277,7 +276,7 @@ class Pantry():
 
         if kwargs.get("FORCE_LOAD_SUPPLEMENT", False):
             mongo_loader.load_mongo_supplement(
-                self.index.to_pandas_df(max_rows=None).uuids
+                self.index.to_pandas_df().uuid.to_list()
             )
 
         supplement_collection = mongo_loader.database['supplement']
