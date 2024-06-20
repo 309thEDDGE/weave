@@ -18,14 +18,14 @@ class IndexABC(abc.ABC):
             The fsspec object which hosts the pantry we desire to index.
         pantry_path: str
             Path to the pantry root which we want to index.
-        **metadata: dict (required)
+        **config_metadata: dict (required)
             Existing metadata for the Index.
         Optional kwargs controlled by concrete implementations.
         """
 
         self._file_system = file_system
         self._pantry_path = pantry_path
-        self.metadata = kwargs.get("metadata", {})
+        self.config_metadata = kwargs.get("config_metadata", {})
         self.generate_metadata()
 
     @property

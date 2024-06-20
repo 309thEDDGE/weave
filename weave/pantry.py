@@ -1,6 +1,4 @@
-"""This class builds the user-facing Index class. It pulls from the _Index 
-class which uses Pandas as it's backend to build and interface with the on disk
-Index baskets.
+"""Wherein is contained the Pantry class.
 """
 
 import json
@@ -70,7 +68,7 @@ class Pantry():
             )
 
         self.pantry_path = str(pantry_path)
-        self.load_metadata()
+        self.load_setup_config()
 
         # Check if file system is read-only. If so, raise error.
         try:
@@ -82,13 +80,14 @@ class Pantry():
         except (OSError, ValueError):
             self.is_read_only = True
 
-        self.index = index(file_system=self.file_system,
-                           pantry_path=self.pantry_path,
-                           metadata=self.metadata['index_metadata'],
-                           pantry_read_only=self.is_read_only,
-                           **kwargs,
+        self.index = index(
+            file_system=self.file_system,
+            pantry_path=self.pantry_path,
+            config_metadata=self.config_metadata['index_setup_config'],
+            pantry_read_only=self.is_read_only,
+            **kwargs,
         )
-        self.metadata['index_metadata'] = self.index.generate_metadata()
+        self.config_metadata['index_setup_config'] = self.index.generate_config()
 
     def validate_path_in_pantry(self, path):
         """Validate the given path is within the pantry.
@@ -113,24 +112,25 @@ class Pantry():
                 f"Attempting to access basket outside of pantry: {path}"
             )
 
-    def load_metadata(self):
+    def load_setup_config(self):
         """Load pantry metadata from pantry_metadata.json."""
         self.metadata_path = os.path.join(
-                                self.pantry_path,'pantry_metadata.json'
+            self.pantry_path,
+            'pantry_metadata.json',
         )
         if self.file_system.exists(self.metadata_path):
             with self.file_system.open(self.metadata_path, "rb") as file:
                 self.metadata = json.load(file)
         else:
-            self.metadata = {}
-        if 'index_metadata' not in self.metadata:
-            self.metadata['index_metadata'] = {}
+            self.config_metadata = {}
+        if 'index_setup_config' not in self.metadata:
+            self.config_metadata['index_setup_config'] = {}
 
-    def save_metadata(self):
+    def save_setup_config(self):
         """Dump metadata to to pantry metadata file."""
-        self.metadata['index_metadata'] = self.index.metadata
+        self.pantry_setup_config['index_metadata'] = self.index.metadata
         with self.file_system.open(
-                    self.metadata_path, "w", encoding="utf-8"
+            self.metadata_path, "w", encoding="utf-8"
         ) as outfile:
             json.dump(self.metadata, outfile)
 
