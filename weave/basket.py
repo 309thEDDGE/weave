@@ -13,6 +13,7 @@ import s3fs
 
 from .config import get_file_system, prohibited_filenames
 from .validate import validate_basket_in_place_directory
+from .validate import validate_basket_in_place_directory_backward
 from .upload import derive_integrity_data
 
 
@@ -344,11 +345,18 @@ def create_basket_in_place(directory_path, **kwargs):
         )
     if not skip_validation:
         # Validate the directory
-        if validate_basket_in_place_directory(file_system, directory_path):
+        if not validate_basket_in_place_directory(file_system, directory_path):
             raise ValueError(
                 "Provided directory cannot be a valid basket "
                 "(e.g., no nested baskets allowed)"
             )
+        if not validate_basket_in_place_directory_backward(file_system, 
+                                                           directory_path):
+            raise ValueError(
+                "Provided directory cannot be a valid basket "
+                "(e.g., no nested baskets allowed)"
+            )
+
 
     # Create manifest file
     manifest = {

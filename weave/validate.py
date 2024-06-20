@@ -6,6 +6,7 @@ import warnings
 from pathlib import Path
 
 import jsonschema
+import s3fs
 from jsonschema import validate
 
 from .config import manifest_schema, supplement_schema, prohibited_filenames
@@ -75,6 +76,39 @@ def validate_basket_in_place_directory(file_system, directory_path):
                 for f in ["manifest.json", "supplement.json", "metadata.json"]
             ):
                 return False
+    return True
+
+
+def validate_basket_in_place_directory_backward(file_system, directory_path):
+    """
+    Validates the directory to ensure it can be a valid basket.
+    It should not be contained within an existing basket.
+
+    Parameters:
+    ----------
+    directory_path (str): The path to the directory to validate.
+    file_system (fsspec.AbstractFileSystem): The file system object
+    
+    Returns:
+    ----------
+    bool: True if the directory is valid, False otherwise.
+    """
+    current_path = os.path.abspath(directory_path)
+
+    if isinstance(file_system, s3fs.S3FileSystem):
+        root_path = "s3://"
+    else:
+        root_path = os.path.abspath(os.sep)
+    
+    while (current_path != root_path) and (
+        current_path != os.path.dirname(current_path)):
+        if any(
+            f in file_system.ls(current_path)
+            for f in ["manifest.json", "supplement.json", "metadata.json"]
+        ):
+            return False
+        current_path = os.path.dirname(current_path)
+        
     return True
 
 
