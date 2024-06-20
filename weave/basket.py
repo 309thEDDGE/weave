@@ -357,7 +357,6 @@ def create_basket_in_place(directory_path, **kwargs):
                 "(e.g., no nested baskets allowed)"
             )
 
-
     # Create manifest file
     manifest = {
         "uuid": str(uuid.uuid1().hex),

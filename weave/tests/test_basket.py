@@ -759,20 +759,15 @@ def test_create_basket_in_place(test_pantry):
         encoding="utf-8",
     ) as f:
         f.write("This is a test file 2.")
-
+    #breakpoint()
     meta = {"author": "test"}
 
     # Create basket in place in TestBasketInPlace directory
     directory = os.path.join(pantry_path, "TestBasketInPlace")
-    if isinstance(file_system, s3fs.S3FileSystem):
-        index_row = create_basket_in_place(
-            directory, metadata=meta, file_system=file_system,
-            skip_validation=True
-        )
-    else:
-        index_row = create_basket_in_place(
-            directory, metadata=meta, file_system=file_system
-        )
+
+    index_row = create_basket_in_place(
+        directory, metadata=meta, file_system=file_system
+    )
 
     if meta:
         assert file_system.exists(os.path.join(directory, "metadata.json"))
@@ -820,15 +815,10 @@ def test_create_basket_in_place_with_pantry(test_pantry):
 
     # Create basket in TestBasketInPlace directory
     directory = os.path.join(pantry_path, "TestBasketInPlace")
-    if isinstance(file_system, s3fs.S3FileSystem):
-        index_row = create_basket_in_place(
-            directory, metadata=meta, pantry=pantry, file_system=file_system,
-            skip_validation=True
-        )
-    else:
-        index_row = create_basket_in_place(
-            directory, metadata=meta, pantry=pantry, file_system=file_system
-        )
+
+    index_row = create_basket_in_place(
+        directory, metadata=meta, pantry=pantry, file_system=file_system
+    )
 
     if meta:
         assert file_system.exists(os.path.join(directory, "metadata.json"))

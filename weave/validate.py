@@ -72,8 +72,10 @@ def validate_basket_in_place_directory(file_system, directory_path):
         for directory in dirs:
             dir_path = os.path.join(root, directory)
             if any(
-                f in file_system.ls(dir_path)
-                for f in ["manifest.json", "supplement.json", "metadata.json"]
+                os.path.basename(f) in ["manifest.json",
+                                        "supplement.json",
+                                        "metadata.json"]
+                for f in file_system.ls(dir_path)
             ):
                 return False
     return True
@@ -88,23 +90,25 @@ def validate_basket_in_place_directory_backward(file_system, directory_path):
     ----------
     directory_path (str): The path to the directory to validate.
     file_system (fsspec.AbstractFileSystem): The file system object
-    
+
     Returns:
     ----------
     bool: True if the directory is valid, False otherwise.
     """
-    current_path = os.path.abspath(directory_path)
 
     if isinstance(file_system, s3fs.S3FileSystem):
         root_path = "s3://"
+        current_path = Path(directory_path)
     else:
         root_path = os.path.abspath(os.sep)
-
+        current_path = os.path.abspath(directory_path)
     while (current_path != root_path) and (
         current_path != os.path.dirname(current_path)):
         if any(
-            f in file_system.ls(current_path)
-            for f in ["manifest.json", "supplement.json", "metadata.json"]
+            os.path.basename(f) in ["manifest.json",
+                                    "supplement.json",
+                                    "metadata.json"]
+            for f in file_system.ls(current_path)
         ):
             return False
         current_path = os.path.dirname(current_path)
