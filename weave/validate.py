@@ -99,7 +99,7 @@ def validate_basket_in_place_directory_backward(file_system, directory_path):
         root_path = "s3://"
     else:
         root_path = os.path.abspath(os.sep)
-    
+
     while (current_path != root_path) and (
         current_path != os.path.dirname(current_path)):
         if any(
@@ -108,7 +108,7 @@ def validate_basket_in_place_directory_backward(file_system, directory_path):
         ):
             return False
         current_path = os.path.dirname(current_path)
-        
+  
     return True
 
 

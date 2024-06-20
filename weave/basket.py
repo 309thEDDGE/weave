@@ -350,7 +350,7 @@ def create_basket_in_place(directory_path, **kwargs):
                 "Provided directory cannot be a valid basket "
                 "(e.g., no nested baskets allowed)"
             )
-        if not validate_basket_in_place_directory_backward(file_system, 
+        if not validate_basket_in_place_directory_backward(file_system,
                                                            directory_path):
             raise ValueError(
                 "Provided directory cannot be a valid basket "

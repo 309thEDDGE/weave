@@ -772,7 +772,7 @@ def test_create_basket_in_place(test_pantry):
     else:
         index_row = create_basket_in_place(
             directory, metadata=meta, file_system=file_system
-        )  
+        )
 
     if meta:
         assert file_system.exists(os.path.join(directory, "metadata.json"))
@@ -828,7 +828,7 @@ def test_create_basket_in_place_with_pantry(test_pantry):
     else:
         index_row = create_basket_in_place(
             directory, metadata=meta, pantry=pantry, file_system=file_system
-        )        
+        )   
 
     if meta:
         assert file_system.exists(os.path.join(directory, "metadata.json"))
