@@ -108,7 +108,7 @@ def validate_basket_in_place_directory_backward(file_system, directory_path):
         ):
             return False
         current_path = os.path.dirname(current_path)
-  
+
     return True
 
 
