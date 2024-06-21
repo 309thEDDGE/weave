@@ -26,7 +26,7 @@ class IndexABC(abc.ABC):
         self._file_system = file_system
         self._pantry_path = pantry_path
         self.config_metadata = kwargs.get("config_metadata", {})
-        self.generate_metadata()
+        self.generate_config()
 
     @property
     @abc.abstractmethod

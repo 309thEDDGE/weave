@@ -68,6 +68,7 @@ class Pantry():
             )
 
         self.pantry_path = str(pantry_path)
+        self.config_metadata = {}
         self.load_setup_config()
 
         # Check if file system is read-only. If so, raise error.
@@ -88,6 +89,7 @@ class Pantry():
             **kwargs,
         )
         self.config_metadata['index_setup_config'] = self.index.generate_config()
+        self._generate_config()
 
     def validate_path_in_pantry(self, path):
         """Validate the given path is within the pantry.
@@ -113,24 +115,30 @@ class Pantry():
             )
 
     def load_setup_config(self):
-        """Load pantry metadata from pantry_metadata.json."""
-        self.metadata_path = os.path.join(
+        """Load pantry metadata from config.json."""
+        self.config_path = os.path.join(
             self.pantry_path,
-            'pantry_metadata.json',
+            'config.json',
         )
-        if self.file_system.exists(self.metadata_path):
-            with self.file_system.open(self.metadata_path, "rb") as file:
+        if self.file_system.exists(self.config_path):
+            with self.file_system.open(self.config_path, "rb") as file:
                 self.config_metadata = json.load(file)
         else:
             self.config_metadata = {}
         if 'index_setup_config' not in self.config_metadata:
             self.config_metadata['index_setup_config'] = {}
 
+    def _generate_config(self):
+        self.config_metadata["index"] = str(self.index)
+        self.config_metadata["file_system"] = str(
+            self.file_system.__class__.__name__
+        )
+        self.config_metadata["pantry_path"] = self.pantry_path
+
     def save_setup_config(self):
         """Dump metadata to to pantry metadata file."""
-        self.pantry_setup_config['index_metadata'] = self.index.config_metadata
         with self.file_system.open(
-            self.metadata_path, "w", encoding="utf-8"
+            self.config_path, "w", encoding="utf-8"
         ) as outfile:
             json.dump(self.config_metadata, outfile)
 
