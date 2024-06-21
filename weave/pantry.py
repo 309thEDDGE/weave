@@ -120,19 +120,19 @@ class Pantry():
         )
         if self.file_system.exists(self.metadata_path):
             with self.file_system.open(self.metadata_path, "rb") as file:
-                self.metadata = json.load(file)
+                self.config_metadata = json.load(file)
         else:
             self.config_metadata = {}
-        if 'index_setup_config' not in self.metadata:
+        if 'index_setup_config' not in self.config_metadata:
             self.config_metadata['index_setup_config'] = {}
 
     def save_setup_config(self):
         """Dump metadata to to pantry metadata file."""
-        self.pantry_setup_config['index_metadata'] = self.index.metadata
+        self.pantry_setup_config['index_metadata'] = self.index.config_metadata
         with self.file_system.open(
             self.metadata_path, "w", encoding="utf-8"
         ) as outfile:
-            json.dump(self.metadata, outfile)
+            json.dump(self.config_metadata, outfile)
 
     def validate(self):
         """Convenient wrapper function to validate the pantry.

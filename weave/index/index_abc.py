@@ -39,7 +39,7 @@ class IndexABC(abc.ABC):
         """The pantry path referenced by this Index."""
 
     @abc.abstractmethod
-    def generate_metadata(self, **kwargs):
+    def generate_config(self, **kwargs):
         """Generate the metadata for the index.
 
         Parameters
@@ -51,7 +51,7 @@ class IndexABC(abc.ABC):
         A dictionary of metadata for the index.
         """
 
-        self.metadata["name"] = str(self)
+        self.config_metadata["index_type"] = str(self)
 
     @abc.abstractmethod
     def generate_index(self, **kwargs):

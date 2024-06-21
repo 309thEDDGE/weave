@@ -107,15 +107,15 @@ class IndexPandas(IndexABC):
             return False
         return True
 
-    def generate_metadata(self, **kwargs):
+    def generate_config(self, **kwargs):
         """Populates the metadata for the index.
 
         Parameters
         ----------
         **kwargs unused for this class.
         """
-        super().generate_metadata(**kwargs)
-        return self.metadata
+        super().generate_config(**kwargs)
+        return self.config_metadata
 
     def sync_index(self):
         """Gets index from latest index basket."""

@@ -70,7 +70,7 @@ class IndexSQLite(IndexABC):
         """The pantry path referenced by this Index."""
         return self._pantry_path
 
-    def generate_metadata(self, **kwargs):
+    def generate_config(self, **kwargs):
         """Populates the metadata for the index.
 
         Parameters
