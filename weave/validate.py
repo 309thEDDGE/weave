@@ -72,9 +72,7 @@ def validate_basket_in_place_directory(file_system, directory_path):
         for directory in dirs:
             dir_path = os.path.join(root, directory)
             if any(
-                os.path.basename(f) in ["manifest.json",
-                                        "supplement.json",
-                                        "metadata.json"]
+                os.path.basename(f) in ["basket_manifest.json"]
                 for f in file_system.ls(dir_path)
             ):
                 return False
@@ -105,9 +103,7 @@ def validate_basket_in_place_directory_backward(file_system, directory_path):
     while (current_path != root_path) and (
         current_path != os.path.dirname(current_path)):
         if any(
-            os.path.basename(f) in ["manifest.json",
-                                    "supplement.json",
-                                    "metadata.json"]
+            os.path.basename(f) in ["basket_manifest.json"]
             for f in file_system.ls(current_path)
         ):
             return False

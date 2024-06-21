@@ -366,16 +366,18 @@ def create_basket_in_place(directory_path, **kwargs):
         "label": label,
     }
 
-    manifest_path = os.path.join(directory_path, "manifest.json")
+    manifest_path = os.path.join(directory_path, "basket_manifest.json")
     with file_system.open(manifest_path, "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=4)
 
     # Create supplement file
-    supplement = {"upload_items": [], "integrity_data": []}
+    basket_supplement = {"upload_items": [], "integrity_data": []}
 
     for root, _, files in file_system.walk(directory_path):
         for file in files:
-            if file in ["manifest.json", "supplement.json", "metadata.json"]:
+            if file in ["basket_manifest.json",
+                        "basket_supplement.json",
+                        "basket_metadata.json"]:
                 continue
 
             file_path = os.path.join(root, file)
@@ -383,18 +385,18 @@ def create_basket_in_place(directory_path, **kwargs):
                 file_path=file_path, source_file_system=file_system
             )
 
-            supplement["upload_items"].append(
+            basket_supplement["upload_items"].append(
                 {"path": file_path, "stub": False}
             )
-            supplement["integrity_data"].append(integrity_data)
+            basket_supplement["integrity_data"].append(integrity_data)
 
-    supplement_path = os.path.join(directory_path, "supplement.json")
+    supplement_path = os.path.join(directory_path, "basket_supplement.json")
     with file_system.open(supplement_path, "w", encoding="utf-8") as f:
-        json.dump(supplement, f, indent=4)
+        json.dump(basket_supplement, f, indent=4)
 
     # Create metadata file if provided
     if metadata:
-        metadata_path = os.path.join(directory_path, "metadata.json")
+        metadata_path = os.path.join(directory_path, "basket_metadata.json")
         with file_system.open(metadata_path, "w", encoding="utf-8") as f:
             json.dump(metadata, f, indent=4)
 

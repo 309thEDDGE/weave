@@ -770,11 +770,13 @@ def test_create_basket_in_place(test_pantry):
     )
 
     if meta:
-        assert file_system.exists(os.path.join(directory, "metadata.json"))
+        assert file_system.exists(os.path.join(directory,
+                                               "basket_metadata.json"))
 
     # Validate manifest content
     with file_system.open(
-        os.path.join(index_row.address[0], "manifest.json"), encoding="utf-8"
+        os.path.join(index_row.address[0], "basket_manifest.json"),
+        encoding="utf-8"
     ) as f:
         manifest_data = json.load(f)
 
@@ -821,11 +823,13 @@ def test_create_basket_in_place_with_pantry(test_pantry):
     )
 
     if meta:
-        assert file_system.exists(os.path.join(directory, "metadata.json"))
+        assert file_system.exists(os.path.join(directory,
+                                               "basket_metadata.json"))
 
     # Validate manifest content
     with file_system.open(
-        os.path.join(index_row.address[0], "manifest.json"), encoding="utf-8"
+        os.path.join(index_row.address[0], "basket_manifest.json"),
+        encoding="utf-8"
     ) as f:
         manifest_data = json.load(f)
 
