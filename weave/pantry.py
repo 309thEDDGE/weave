@@ -36,7 +36,7 @@ class Pantry():
     """
 
     def __init__(self, index: IndexABC, pantry_path="weave-test",
-                 use_mongo=False, **kwargs):
+                 mongo_client=None, **kwargs):
         """Initialize Pantry object.
 
         A pantry is a collection of baskets. This class facilitates the upload,
@@ -91,7 +91,7 @@ class Pantry():
                            **kwargs
         )
         self.metadata['index_metadata'] = self.index.generate_metadata()
-        self.use_mongo = use_mongo
+        self.mongo_client = mongo_client
 
 
     def validate_path_in_pantry(self, path):
@@ -178,8 +178,8 @@ class Pantry():
         self.index.untrack_basket(remove_item.iloc[0].address, **kwargs)
         self.file_system.rm(remove_item.iloc[0].address, recursive=True)
 
-        if self.use_mongo:
-            MongoLoader.remove_document (remove_item.iloc[0].uuid, self)
+        if self.mongo_client is not None:
+            MongoLoader(self).remove_document(remove_item.iloc[0].uuid)
 
     def upload_basket(self, upload_items, basket_type, **kwargs):
         """Upload a basket to the same pantry referenced by the Index
@@ -233,7 +233,7 @@ class Pantry():
         single_indice_index = create_index_from_fs(up_dir, self.file_system)
         self.index.track_basket(single_indice_index)
 
-        if self.use_mongo:
+        if self.mongo_client is not None:
             MongoLoader(self).\
                 load_mongo(single_indice_index.iloc[0].uuid)
 

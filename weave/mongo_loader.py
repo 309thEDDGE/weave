@@ -180,8 +180,7 @@ class MongoLoader():
         self.load_mongo_supplement(uuids, collection=supplement_collection)
 
 
-    @staticmethod
-    def remove_document (uuid : str, pantry, **kwargs):
+    def remove_document (self, uuid : str, **kwargs):
         """Delete a document using the uuid in the supplement,
 
         manifest, and metadata collections.
@@ -205,12 +204,12 @@ class MongoLoader():
         supplement_collection = kwargs.get("supplement_collection",
                                            "supplement")
 
-        database_name = pantry.pantry_path
+        # database_name = self.pantry.pantry_path
 
-        mongo_db = get_mongo_db()[database_name]
+        # mongo_db = get_mongo_db()[database_name]
         collection_names = (metadata_collection,
                             manifest_collection,
                             supplement_collection)
 
         for e in collection_names:
-            mongo_db[e].delete_one({'uuid':uuid})
+            self.database[e].delete_one({'uuid':uuid})

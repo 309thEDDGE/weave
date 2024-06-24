@@ -2,7 +2,6 @@
 
 import json
 import os
-import sys
 import tempfile
 import time
 import uuid
@@ -1459,10 +1458,10 @@ def test_upload_from_s3fs(test_basket):
 
 
 # Skip tests if pymongo is not installed.
-@pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-    reason="Pymongo required for this test",
-)
+# @pytest.mark.skipif(
+#     "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+#     reason="Pymongo required for this test",
+# )
 def test_upload_basket_mongo(test_basket):
     """Testing pantry.upload_basket(), expected
 
@@ -1470,9 +1469,11 @@ def test_upload_basket_mongo(test_basket):
     """
     fs = test_basket.file_system
     pantry_path = test_basket.pantry_path
+    mongo_client = get_mongo_db()
+
     pantry = Pantry(IndexPandas,
                     pantry_path=pantry_path,
-                    use_mongo=True,
+                    mongo_client=mongo_client,
                     file_system=fs)
 
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
@@ -1486,19 +1487,21 @@ def test_upload_basket_mongo(test_basket):
         os.unlink(temp_file.name)
 
     collections = ("supplement", "metadata", "manifest")
-    mongo_db = get_mongo_db()[pantry.pantry_path]
+    mongo_db = mongo_client[pantry.pantry_path]
     query = {'uuid': uuid}
 
     for e in collections:
+        #Check, if document exist in the selected collection
         assert uuid == mongo_db[e].find_one(query,{'_id':0,'uuid':1})['uuid']
+        #clean up, remove the document from the selected collection
         mongo_db[e].delete_one(query)
 
 
 # Skip tests if pymongo is not installed.
-@pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-    reason="Pymongo required for this test",
-)
+# @pytest.mark.skipif(
+#     "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+#     reason="Pymongo required for this test",
+# )
 def test_delete_basket_mongo(test_basket):
     """Testing pantry.delete_basket(), expected to update
 
@@ -1506,10 +1509,11 @@ def test_delete_basket_mongo(test_basket):
     """
     fs = test_basket.file_system
     pantry_path = test_basket.pantry_path
+    mongo_client = get_mongo_db()
 
     pantry = Pantry(IndexPandas,
                     pantry_path=pantry_path,
-                    use_mongo=True,
+                    mongo_client=mongo_client,
                     file_system=fs)
 
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
@@ -1524,15 +1528,15 @@ def test_delete_basket_mongo(test_basket):
 
     query = {'uuid': uuid}
     collections = ("supplement", "metadata", "manifest")
-    mongo_db = get_mongo_db()[pantry.pantry_path]
+    mongo_db = mongo_client[pantry.pantry_path]
 
     for e in collections:
-        #Check, Basket has been uploaded to mongodb collections
+        #Check, Basket has been uploaded to selected collections
         assert uuid == mongo_db[e].find_one(query,{'_id':0,'uuid':1})['uuid']
 
     #Invoke the delete_basket instance method
     pantry.delete_basket(uuid)
 
     for e in collections:
-        #Basket should nolonger have an entry for the mongodb collections
+        #Basket should nolonger have an entry for the selected collections
         assert mongo_db[e].find_one(query) is None
