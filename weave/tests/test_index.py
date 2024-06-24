@@ -1897,3 +1897,26 @@ def test_read_only_generate_index(test_pantry):
         os.remove(f"weave-{remove_path}.db")
     if os.path.exists(f"weave-{read_only_pantry_path}.db"):
         os.remove(f"weave-{read_only_pantry_path}.db")
+
+
+def test_generate_index_when_pandas_index_exists(test_pantry):
+    """Test that there is no error when calling generate_index() with any index
+    when there is an existing Pandas index.
+    """
+    test_pantry, ind = test_pantry
+    # Create a pandas index
+    pantry = Pantry(IndexPandas,
+                    pantry_path=test_pantry.pantry_path,
+                    file_system=test_pantry.file_system,
+                    sync=True,
+                   )
+    pantry.index.generate_index()
+    # Create other index to generate index
+    pantry2 = Pantry(type(ind),
+                    pantry_path=test_pantry.pantry_path,
+                    file_system=test_pantry.file_system,
+                    sync=True,
+                   )
+    # Generate the index.
+    pantry2.index.generate_index()
+    assert len(pantry2.index) == 0

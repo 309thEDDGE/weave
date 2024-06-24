@@ -249,22 +249,12 @@ class IndexSQL(IndexABC):
         ----------
         **kwargs unused for this function.
         """
+        index_df = create_index_from_fs(self.pantry_path, self.file_system)
+        index_address = index_df.address.tolist()
 
-        if not isinstance(self.pantry_path, str):
-            raise TypeError("'pantry_path' must be a string: "
-                            f"'{self.pantry_path}'")
+        for address in index_address:
+            entry = create_index_from_fs(address,file_system=self.file_system)
 
-        if not self.file_system.exists(self.pantry_path):
-            raise FileNotFoundError("'pantry_path' does not exist: "
-                                    f"'{self.pantry_path}'")
-
-        basket_jsons = [x for x in self.file_system.find(self.pantry_path)
-            if x.endswith("basket_manifest.json")
-        ]
-
-        for basket_json_address in basket_jsons:
-            entry = create_index_from_fs(basket_json_address,
-                                         file_system=self.file_system)
             if len(self.get_rows(entry['uuid'].iloc[0])) == 0:
                 self.track_basket(entry)
 
