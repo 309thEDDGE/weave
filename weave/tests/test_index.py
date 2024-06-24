@@ -294,7 +294,7 @@ def test_index_abc_to_pandas_df_max_rows_none_works(test_pantry):
     # Generate the index.
     ind.generate_index()
 
-    baskets = ind.to_pandas_df(max_rows=None)
+    baskets = ind.to_pandas_df()
     assert len(baskets) == 3
 
 
@@ -1488,7 +1488,7 @@ def test_index_abc_get_baskets_of_type_max_rows_none_works(test_pantry):
     # Generate the index.
     ind.generate_index()
 
-    baskets = ind.get_baskets_of_type("test_basket", max_rows=None)
+    baskets = ind.get_baskets_of_type("test_basket")
     assert len(baskets) == 3
 
 
@@ -1581,7 +1581,7 @@ def test_index_abc_get_baskets_of_label_max_rows_none_works(test_pantry):
     # Generate the index.
     ind.generate_index()
 
-    baskets = ind.get_baskets_of_label("good_label", max_rows=None)
+    baskets = ind.get_baskets_of_label("good_label")
     assert len(baskets) == 3
 
 
