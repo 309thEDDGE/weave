@@ -302,11 +302,13 @@ class Basket(BasketInitializer):
 
         return pd.DataFrame(data=[data], columns=columns)
 
+#Disabling pylint to keep basket in place to a single function for clarity.
 # pylint: disable-msg=too-many-locals
 def create_basket_in_place(directory_path, **kwargs):
-    """Creates a basket in place by generating the manifest, supplement, and
-    metadata files directly in the provided directory without moving or
-    uploading any files.
+    """Creates a basket in place.
+    
+    Generates the manifest, supplement, and metadata files directly in the
+    provided directory without moving or uploading any files.
 
     Parameters:
     ----------
@@ -415,7 +417,7 @@ def create_basket_in_place(directory_path, **kwargs):
     }
 
     single_index_row = pd.DataFrame(index_data)
-        # Add to pantry if provided
+    # Add to pantry if provided
     if pantry:
         pantry.index.track_basket(single_index_row)
 

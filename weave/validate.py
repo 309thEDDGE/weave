@@ -58,12 +58,15 @@ def validate_pantry(pantry):
 def validate_basket_in_place_directory(file_system, directory_path):
     """
     Validates the directory to ensure it can be a valid basket.
-    It should not contain nested baskets.
+
+    Valid baskets should not contain nested baskets.
 
     Parameters:
     ----------
-    directory_path (str): The path to the directory to validate.
-    fs (fsspec.AbstractFileSystem): The file system object
+    directory_path: String
+        The path to the directory to validate.
+    file_system: fsspec.AbstractFileSystem
+        The file system object
     Returns:
     ----------
     bool: True if the directory is valid, False otherwise.
@@ -82,16 +85,20 @@ def validate_basket_in_place_directory(file_system, directory_path):
 def validate_basket_in_place_directory_backward(file_system, directory_path):
     """
     Validates the directory to ensure it can be a valid basket.
-    It should not be contained within an existing basket.
+    
+    Valid baskets should not be contained within an existing basket.
 
     Parameters:
     ----------
-    directory_path (str): The path to the directory to validate.
-    file_system (fsspec.AbstractFileSystem): The file system object
+    directory_path: string 
+        The path to the directory to validate.
+    file_system: fsspec.AbstractFileSystem
+        The file system object
 
     Returns:
     ----------
-    bool: True if the directory is valid, False otherwise.
+    bool:
+        True if the directory is valid, False otherwise.
     """
 
     if isinstance(file_system, s3fs.S3FileSystem):

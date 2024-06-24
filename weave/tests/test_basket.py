@@ -741,8 +741,8 @@ def test_read_only_get_data():
 def test_create_basket_in_place(test_pantry):
     """Test create basekt in place works without a pantry.
     """
-    # although we are not testing a pantry upload it
-    # still makes sense to use the test_pantry for clean-up
+    # Although this test is not testing a pantry upload, it still makes
+    # sense to use the test_pantry for clean-up purposes.
     file_system = test_pantry.file_system
     pantry_path = test_pantry.pantry_path
     # Simulate files to include in the basket
@@ -759,7 +759,7 @@ def test_create_basket_in_place(test_pantry):
         encoding="utf-8",
     ) as f:
         f.write("This is a test file 2.")
-    #breakpoint()
+
     meta = {"author": "test"}
 
     # Create basket in place in TestBasketInPlace directory
