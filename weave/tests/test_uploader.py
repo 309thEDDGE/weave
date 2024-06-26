@@ -1492,7 +1492,7 @@ def test_upload_basket_mongo(test_basket):
     query = {'uuid': uuid}
 
     for e in collections:
-        # Check, if document exists in the selected collection
+        # Check if document exists in the selected collection
         assert uuid == mongo_db[e].find_one(query,{'_id':0,'uuid':1})['uuid']
         # Clean up, remove the document from the selected collection
         mongo_db[e].delete_one(query)
@@ -1532,7 +1532,6 @@ def test_delete_basket_mongo(test_basket):
     mongo_db = mongo_client[pantry.pantry_path]
 
     for e in collections:
-        # Check, Basket has been uploaded to selected collections
         assert uuid == mongo_db[e].find_one(query,{'_id':0,'uuid':1})['uuid']
 
     # Invoke the delete_basket instance method
