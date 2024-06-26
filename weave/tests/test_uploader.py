@@ -1538,5 +1538,5 @@ def test_delete_basket_mongo(test_basket):
     pantry.delete_basket(uuid)
 
     for e in collections:
-        # Basket should nolonger have an entry for the selected collections
+        # Basket should no longer have an entry for the selected collections
         assert mongo_db[e].find_one(query) is None
