@@ -181,9 +181,7 @@ class MongoLoader():
 
 
     def remove_document (self, uuid : str, **kwargs):
-        """Delete a document using the uuid in the supplement,
-
-        manifest, and metadata collections.
+        """Delete a document using the uuid in the collections.
 
         Parameters
         ----------
