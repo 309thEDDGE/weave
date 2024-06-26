@@ -1464,9 +1464,7 @@ def test_upload_from_s3fs(test_basket):
     reason="Pymongo required for this test",
 )
 def test_upload_basket_mongo(test_basket):
-    """Testing pantry.upload_basket(), expected
-
-    to update the collections in mongodb
+    """Testing pantry.upload_basket(), expected to update the collections.
     """
     fs = test_basket.file_system
     pantry_path = test_basket.pantry_path
@@ -1504,9 +1502,7 @@ def test_upload_basket_mongo(test_basket):
     reason="Pymongo required for this test",
 )
 def test_delete_basket_mongo(test_basket):
-    """Testing pantry.delete_basket(), expected to update
-
-    the collections in mongodb
+    """Testing pantry.delete_basket(), expected to update the collections.
     """
     fs = test_basket.file_system
     pantry_path = test_basket.pantry_path
