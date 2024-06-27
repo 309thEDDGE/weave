@@ -79,7 +79,12 @@ def derive_integrity_data(file_path, byte_count=10**8, **kwargs):
     source_file_system = kwargs.get("source_file_system", LocalFileSystem())
     if not isinstance(file_path, str):
         raise TypeError(f"'file_path' must be a string: '{file_path}'")
-    if not (source_file_system.exists(file_path) or os.path.exists(file_path)):
+    file_exists = (
+        source_file_system.exists(file_path) if isinstance(
+            source_file_system, s3fs.S3FileSystem
+        ) else os.path.exists(file_path)
+    )
+    if not file_exists:
         raise FileExistsError(f"'file_path' does not exist: '{file_path}'")
 
     if not isinstance(byte_count, int):
