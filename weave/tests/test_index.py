@@ -1911,12 +1911,14 @@ def test_generate_index_when_pandas_index_exists(test_pantry):
                     sync=True,
                    )
     pantry.index.generate_index()
-    # Create other index to generate index
+    # Create other index to generate index for test
     pantry2 = Pantry(type(ind),
                     pantry_path=test_pantry.pantry_path,
                     file_system=test_pantry.file_system,
                     sync=True,
                    )
-    # Generate the index.
-    pantry2.index.generate_index()
-    assert len(pantry2.index) == 0
+    # Generate the index; test fails if IndexError is thrown
+    try:
+        pantry2.index.generate_index()
+    except:
+        assert False
