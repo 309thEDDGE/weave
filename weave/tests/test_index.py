@@ -1920,5 +1920,5 @@ def test_generate_index_when_pandas_index_exists(test_pantry):
     # Generate the index; test fails if IndexError is thrown
     try:
         pantry2.index.generate_index()
-    except:
+    except IndexError:
         assert False
