@@ -3,16 +3,24 @@
 
 import json
 import os
+import uuid
+import importlib
 from pathlib import Path
+from datetime import datetime
 
 import pandas as pd
+import s3fs
 
 from .config import get_file_system, prohibited_filenames
+from .validate import validate_basket_in_place_directory
+from .validate import validate_basket_in_place_directory_backward
+from .upload import derive_integrity_data
+
+
 
 
 class BasketInitializer:
-    """Initializes basket class. Validates input args.
-    """
+    """Initializes basket class. Validates input args."""
 
     def __init__(self, basket_address, **kwargs):
         """Handles set up of basket. Calls validation.
@@ -43,23 +51,31 @@ class BasketInitializer:
                 raise error
 
             if "pantry" not in kwargs:
-                raise KeyError("pantry, required to set up basket from UUID,"
-                               "is not in kwargs.") from error
+                raise KeyError(
+                    "pantry, required to set up basket from UUID,"
+                    "is not in kwargs."
+                ) from error
             self.set_up_basket_from_uuid(basket_address, kwargs["pantry"])
         if "zip" in str(type(self.file_system)) and os.name == "nt":
-            self.manifest_path = '/'.join([self.basket_path,
-                                           "basket_manifest.json"])
-            self.supplement_path = '/'.join([self.basket_path,
-                                             "basket_supplement.json"])
-            self.metadata_path = '/'.join([self.basket_path,
-                                           "basket_metadata.json"])
+            self.manifest_path = "/".join(
+                [self.basket_path, "basket_manifest.json"]
+            )
+            self.supplement_path = "/".join(
+                [self.basket_path, "basket_supplement.json"]
+            )
+            self.metadata_path = "/".join(
+                [self.basket_path, "basket_metadata.json"]
+            )
         else:
-            self.manifest_path = os.path.join(self.basket_path,
-                                              "basket_manifest.json")
-            self.supplement_path = os.path.join(self.basket_path,
-                                                "basket_supplement.json")
-            self.metadata_path = os.path.join(self.basket_path,
-                                              "basket_metadata.json")
+            self.manifest_path = os.path.join(
+                self.basket_path, "basket_manifest.json"
+            )
+            self.supplement_path = os.path.join(
+                self.basket_path, "basket_supplement.json"
+            )
+            self.metadata_path = os.path.join(
+                self.basket_path, "basket_metadata.json"
+            )
         self.validate()
 
     def _set_up_basket_from_path(self, basket_address):
@@ -128,6 +144,7 @@ class BasketInitializer:
                 f"Invalid Basket, basket_supplement.json "
                 f"does not exist: {self.supplement_path}"
             )
+
 
 # Ignoring because there is a necessary and
 # reasonable amount of variables in this case
@@ -241,7 +258,7 @@ class Basket(BasketInitializer):
         if relative_path is not None:
             relative_path = os.fspath(relative_path)
             ls_path = os.fspath(
-              Path(os.path.join(self.basket_path, relative_path))
+                Path(os.path.join(self.basket_path, relative_path))
             )
 
         if ls_path == os.fspath(Path(self.basket_path)):
@@ -259,14 +276,149 @@ class Basket(BasketInitializer):
         # not passing refresh=True
         return self.file_system.ls(ls_path, refresh=True)
 
+    # pylint: disable-msg=duplicate-code
     def to_pandas_df(self):
         """Return a dataframe of the basket member variables."""
-        data = [self.uuid, self.upload_time,
-                self.parent_uuids, self.basket_type,
-                self.label, self.weave_version, self.address,
-                self.storage_type]
-        columns = ["uuid", "upload_time", "parent_uuids",
-                   "basket_type", "label", "weave_version",
-                   "address", "storage_type"]
+        data = [
+            self.uuid,
+            self.upload_time,
+            self.parent_uuids,
+            self.basket_type,
+            self.label,
+            self.weave_version,
+            self.address,
+            self.storage_type,
+        ]
+        columns = [
+            "uuid",
+            "upload_time",
+            "parent_uuids",
+            "basket_type",
+            "label",
+            "weave_version",
+            "address",
+            "storage_type",
+        ]
 
         return pd.DataFrame(data=[data], columns=columns)
+
+#Disabling pylint to keep basket in place to a single function for clarity.
+# pylint: disable-msg=too-many-locals
+def create_basket_in_place(directory_path, **kwargs):
+    """Creates a basket in place.
+    
+    Generates the manifest, supplement, and metadata files directly in the
+    provided directory without moving or uploading any files.
+
+    Parameters:
+    ----------
+    directory_path: string
+        The path to the directory where the basket will be created.
+    **metadata: dict (optional)
+        A dictionary containing metadata to be included in the basket.
+    **pantry: object (optional)
+        An optional pantry object to which the basket will be added.
+    **file_system: fsspec.AbstractFileSystem (optional)
+        The file system object. Defaults to S3 file system.
+    **parent_uuids: list (optional)
+        A list of parent UUIDs for the basket.
+    **basket_type: str (optional)
+        The type of the basket.
+    **label: str (optional)
+        The label for the basket.
+    **skip_validation: bool (optional)
+        Force the create basket function to skip validation.
+
+    Returns:
+    ----------
+    pd.DataFrame: A single row DataFrame containing the basket information.
+    """
+    metadata = kwargs.get("metadata", None)
+    pantry = kwargs.get("pantry", None)
+    file_system = kwargs.get("file_system", None)
+    parent_uuids = kwargs.get("parent_uuids", None)
+    basket_type = kwargs.get("basket_type", "item")
+    label = kwargs.get("label", "")
+    skip_validation = kwargs.get("skip_validation", False)
+
+    if file_system is None:
+        file_system = s3fs.S3FileSystem(
+            client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+        )
+    if not skip_validation:
+        # Validate the directory
+        if not validate_basket_in_place_directory(file_system, directory_path):
+            raise ValueError(
+                "Provided directory cannot be a valid basket "
+                "(e.g., no nested baskets allowed)"
+            )
+        if not validate_basket_in_place_directory_backward(file_system,
+                                                           directory_path):
+            raise ValueError(
+                "Provided directory cannot be a valid basket "
+                "(e.g., no nested baskets allowed)"
+            )
+
+    # Create manifest file
+    manifest = {
+        "uuid": str(uuid.uuid1().hex),
+        "upload_time": datetime.utcnow().isoformat(),
+        "parent_uuids": parent_uuids or [],
+        "basket_type": basket_type,
+        "label": label,
+    }
+
+    manifest_path = os.path.join(directory_path, "basket_manifest.json")
+    with file_system.open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=4)
+
+    # Create supplement file
+    basket_supplement = {"upload_items": [], "integrity_data": []}
+
+    for root, _, files in file_system.walk(directory_path):
+        for file in files:
+            if file in ["basket_manifest.json",
+                        "basket_supplement.json",
+                        "basket_metadata.json"]:
+                continue
+
+            file_path = os.path.join(root, file)
+            integrity_data = derive_integrity_data(
+                file_path=file_path, source_file_system=file_system
+            )
+
+            basket_supplement["upload_items"].append(
+                {"path": file_path, "stub": False}
+            )
+            basket_supplement["integrity_data"].append(integrity_data)
+
+    supplement_path = os.path.join(directory_path, "basket_supplement.json")
+    with file_system.open(supplement_path, "w", encoding="utf-8") as f:
+        json.dump(basket_supplement, f, indent=4)
+
+    # Create metadata file if provided
+    if metadata:
+        metadata_path = os.path.join(directory_path, "basket_metadata.json")
+        with file_system.open(metadata_path, "w", encoding="utf-8") as f:
+            json.dump(metadata, f, indent=4)
+
+    # Create the index row as a DataFrame
+    index_data = {
+        "uuid": [manifest["uuid"]],
+        "upload_time": [manifest["upload_time"]],
+        "parent_uuids": [manifest["parent_uuids"]],
+        "basket_type": [manifest["basket_type"]],
+        "label": [manifest["label"]],
+        "weave_version": [importlib.metadata.version("weave-db")],
+        "address": [directory_path],
+        "storage_type": [
+            file_system.__class__.__name__
+        ],
+    }
+
+    single_index_row = pd.DataFrame(index_data)
+    # Add to pantry if provided
+    if pantry:
+        pantry.index.track_basket(single_index_row)
+
+    return single_index_row
