@@ -17,9 +17,8 @@ else:
     _HAS_PYMONGO = True
 
 from .basket import Basket
-
-
 from .config import get_mongo_db
+
 
 class MongoLoader():
     """Initializes a mongo loader class. Retrieves a connection to the mongo
