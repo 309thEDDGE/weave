@@ -15,7 +15,7 @@ import s3fs
 import fsspec
 from fsspec.implementations.local import LocalFileSystem
 
-from weave import Basket
+from weave.basket import Basket
 from weave.index.create_index import create_index_from_fs
 from weave.index.index_pandas import IndexPandas
 from weave.pantry import Pantry

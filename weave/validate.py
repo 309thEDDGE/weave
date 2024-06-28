@@ -6,6 +6,7 @@ import warnings
 from pathlib import Path
 
 import jsonschema
+import s3fs
 from jsonschema import validate
 
 from .config import manifest_schema, supplement_schema, prohibited_filenames
@@ -54,6 +55,70 @@ def validate_pantry(pantry):
         return warning_list
 
 
+def validate_basket_in_place_directory(file_system, directory_path):
+    """
+    Validates the directory to ensure it can be a valid basket.
+
+    Valid baskets should not contain nested baskets.
+
+    Parameters:
+    ----------
+    directory_path: String
+        The path to the directory to validate.
+    file_system: fsspec.AbstractFileSystem
+        The file system object
+    Returns:
+    ----------
+    bool: True if the directory is valid, False otherwise.
+    """
+    for root, dirs, __ in file_system.walk(directory_path):
+        for directory in dirs:
+            dir_path = os.path.join(root, directory)
+            if any(
+                os.path.basename(f) in ["basket_manifest.json"]
+                for f in file_system.ls(dir_path)
+            ):
+                return False
+    return True
+
+
+def validate_basket_in_place_directory_backward(file_system, directory_path):
+    """
+    Validates the directory to ensure it can be a valid basket.
+    
+    Valid baskets should not be contained within an existing basket.
+
+    Parameters:
+    ----------
+    directory_path: string 
+        The path to the directory to validate.
+    file_system: fsspec.AbstractFileSystem
+        The file system object
+
+    Returns:
+    ----------
+    bool:
+        True if the directory is valid, False otherwise.
+    """
+
+    if isinstance(file_system, s3fs.S3FileSystem):
+        root_path = "s3://"
+        current_path = Path(directory_path)
+    else:
+        root_path = os.path.abspath(os.sep)
+        current_path = os.path.abspath(directory_path)
+    while (current_path != root_path) and (
+        current_path != os.path.dirname(current_path)):
+        if any(
+            os.path.basename(f) in ["basket_manifest.json"]
+            for f in file_system.ls(current_path)
+        ):
+            return False
+        current_path = os.path.dirname(current_path)
+
+    return True
+
+
 def _check_level(current_dir, **kwargs):
     """Check all immediate subdirs in dir, check for manifest.
 
@@ -93,7 +158,6 @@ def _check_level(current_dir, **kwargs):
             f"Invalid Path. No file or directory found at: {current_dir}"
         )
 
-
     manifest_path = os.path.join(current_dir, "basket_manifest.json")
 
     # If a manifest exists, it's a basket, validate it
@@ -116,16 +180,16 @@ def _check_level(current_dir, **kwargs):
             # This will return True to the _validate_basket
             # and throw an error or warning
             if in_basket:
-                return _check_level(file_or_dir,
-                                    pantry=pantry,
-                                    in_basket=in_basket)
+                return _check_level(
+                    file_or_dir, pantry=pantry, in_basket=in_basket
+                )
             # If directory is not a basket, check all files in the
             # current dir. If everything is valid, _check_level returns True
             # If it isn't valid, return False
             # and continue looking at all the sub-directories
-            if not _check_level(file_or_dir,
-                                pantry=pantry,
-                                in_basket=in_basket):
+            if not _check_level(
+                file_or_dir, pantry=pantry, in_basket=in_basket
+            ):
                 return False
 
     # This is the default backup return
@@ -174,12 +238,16 @@ def _validate_basket(basket_dir, pantry):
     # either the directory is wrong,
     # or this function is incorrectly called,
     if not pantry.file_system.exists(manifest_path):
-        raise FileNotFoundError(f"Invalid Path. "
-                                f"No Basket found at: {basket_dir}")
+        raise FileNotFoundError(
+            f"Invalid Path. " f"No Basket found at: {basket_dir}"
+        )
 
     if not pantry.file_system.exists(supplement_path):
-        warnings.warn(UserWarning(
-            "Invalid Basket. No Supplement file found at: ", basket_dir))
+        warnings.warn(
+            UserWarning(
+                "Invalid Basket. No Supplement file found at: ", basket_dir
+            )
+        )
 
     files_in_basket = pantry.file_system.ls(path=basket_dir, refresh=True)
 
@@ -194,10 +262,8 @@ def _validate_basket(basket_dir, pantry):
         {
             "basket_manifest.json": _handle_manifest,
             "basket_supplement.json": _handle_supplement,
-            "basket_metadata.json": _handle_metadata
-        }.get(
-            file_name, _handle_none_of_the_above
-        )(file, pantry)
+            "basket_metadata.json": _handle_metadata,
+        }.get(file_name, _handle_none_of_the_above)(file, pantry)
 
     # Default return True if there are no problems with this basket
     return True
@@ -221,16 +287,20 @@ def _handle_manifest(file, pantry):
         _validate_parent_uuids(data, pantry)
 
     except jsonschema.exceptions.ValidationError:
-        warnings.warn(UserWarning(
-            "Invalid Basket. "
-            "Manifest Schema does not match at: ", file
-        ))
+        warnings.warn(
+            UserWarning(
+                "Invalid Basket. Manifest Schema does not match at: ",
+                file
+            )
+        )
 
     except json.decoder.JSONDecodeError:
-        warnings.warn(UserWarning(
-            "Invalid Basket. "
-            "Manifest could not be loaded into json at: ", file
-        ))
+        warnings.warn(
+            UserWarning(
+                "Invalid Basket. Manifest could not be loaded into json at: ",
+                file,
+            )
+        )
 
 
 def _handle_supplement(file, pantry):
@@ -252,16 +322,21 @@ def _handle_supplement(file, pantry):
         _validate_supplement_files(basket_dir, data, pantry)
 
     except jsonschema.exceptions.ValidationError:
-        warnings.warn(UserWarning(
-            "Invalid Basket. "
-            "Supplement Schema does not match at: ", file
-        ))
+        warnings.warn(
+            UserWarning(
+                "Invalid Basket. Supplement Schema does not match at: ",
+                file,
+            )
+        )
 
     except json.decoder.JSONDecodeError:
-        warnings.warn(UserWarning(
-            "Invalid Basket. "
-            "Supplement could not be loaded into json at: ", file
-        ))
+        warnings.warn(
+            UserWarning(
+                "Invalid Basket. "
+                "Supplement could not be loaded into json at: ",
+                file,
+            )
+        )
 
 
 def _handle_metadata(file, pantry):
@@ -279,10 +354,13 @@ def _handle_metadata(file, pantry):
         json.load(pantry.file_system.open(file))
 
     except json.decoder.JSONDecodeError:
-        warnings.warn(UserWarning(
-            "Invalid Basket. "
-            "Metadata could not be loaded into json at: ", file
-        ))
+        warnings.warn(
+            UserWarning(
+                "Invalid Basket. "
+                "Metadata could not be loaded into json at: ",
+                file,
+            )
+        )
 
 
 def _handle_none_of_the_above(file, pantry):
@@ -298,14 +376,15 @@ def _handle_none_of_the_above(file, pantry):
 
     basket_dir, _ = os.path.split(file)
 
-    if pantry.file_system.info(file)['type'] == 'directory':
-        if _check_level(file,
-                        pantry=pantry,
-                        in_basket=True):
-            warnings.warn(UserWarning(
-                "Invalid Basket. Manifest File "
-                "found in sub directory of basket at: ", basket_dir
-            ))
+    if pantry.file_system.info(file)["type"] == "directory":
+        if _check_level(file, pantry=pantry, in_basket=True):
+            warnings.warn(
+                UserWarning(
+                    "Invalid Basket. Manifest File "
+                    "found in sub directory of basket at: ",
+                    basket_dir,
+                )
+            )
 
 
 def _check_metadata_only(files_in_basket, pantry):
@@ -335,15 +414,20 @@ def _check_metadata_only(files_in_basket, pantry):
     # 1. metadata is not empty
     # 2. Basket has parent_uuids
     # 3. No files were uploaded (this is checked twice)
-    if not (meta_data and
-            not supp_data["integrity_data"] and
-            man_data["parent_uuids"]):
+    if not (
+        meta_data
+        and not supp_data["integrity_data"]
+        and man_data["parent_uuids"]
+    ):
         # Raise a warning that there are no files uploaded, but it
         # is not considered to be a metadata-only basket.
-        warnings.warn(UserWarning(
+        warnings.warn(
+            UserWarning(
                 "Invalid Basket. No files in basket and criteria not met for "
-                "metadata-only basket. ", man_data["uuid"]
-            ))
+                "metadata-only basket. ",
+                man_data["uuid"],
+            )
+        )
 
 
 def _validate_parent_uuids(data, pantry):
@@ -366,14 +450,16 @@ def _validate_parent_uuids(data, pantry):
     if len(data["parent_uuids"]) == 0:
         return
 
-    found_parents = list(pantry.index.get_rows(data['parent_uuids'])['uuid'])
-    missing_uids = (
-        [uuid for uuid in data["parent_uuids"] if uuid not in found_parents]
-    )
+    found_parents = list(pantry.index.get_rows(data["parent_uuids"])["uuid"])
+    missing_uids = [
+        uuid for uuid in data["parent_uuids"] if uuid not in found_parents
+    ]
 
     if missing_uids:
-        warnings.warn(f"The uuids: {missing_uids} were not found in the "
-                      f"index, which was found inside basket: {data['uuid']}")
+        warnings.warn(
+            f"The uuids: {missing_uids} were not found in the "
+            f"index, which was found inside basket: {data['uuid']}"
+        )
 
 
 def _validate_supplement_files(basket_dir, data, pantry):
@@ -394,10 +480,11 @@ def _validate_supplement_files(basket_dir, data, pantry):
     ignores = [
         os.path.join(basket_dir, "basket_manifest.json"),
         os.path.join(basket_dir, "basket_supplement.json"),
-        os.path.join(basket_dir, "basket_metadata.json")
+        os.path.join(basket_dir, "basket_metadata.json"),
     ]
     system_file_list = [
-        file for file in sys_file_list
+        file
+        for file in sys_file_list
         if not any(Path(file).match(p) for p in ignores)
     ]
 
@@ -405,10 +492,11 @@ def _validate_supplement_files(basket_dir, data, pantry):
 
     # Remove path up until the pantry directory in both lists
     system_file_list = [
-        Path(file[file.find(pantry.pantry_path):]) for file in system_file_list
+        Path(file[file.find(pantry.pantry_path) :])
+        for file in system_file_list
     ]
     supp_file_list = [
-        Path(file[file.find(pantry.pantry_path):]) for file in supp_file_list
+        Path(file[file.find(pantry.pantry_path) :]) for file in supp_file_list
     ]
 
     system_file_set = set(system_file_list)
@@ -419,12 +507,18 @@ def _validate_supplement_files(basket_dir, data, pantry):
 
     for file in files_not_in_system:
         warnings.warn(
-            UserWarning("File listed in the basket_supplement.json does not "
-                        "exist in the file system: ", file)
+            UserWarning(
+                "File listed in the basket_supplement.json does not "
+                "exist in the file system: ",
+                file,
+            )
         )
 
     for file in files_not_in_supp:
         warnings.warn(
-            UserWarning("File found in the file system is not listed in "
-                        "the basket_supplement.json: ", file)
+            UserWarning(
+                "File found in the file system is not listed in "
+                "the basket_supplement.json: ",
+                file,
+            )
         )
