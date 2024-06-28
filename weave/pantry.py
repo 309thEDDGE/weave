@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """Wherein is contained the Pantry class.
 """
 
