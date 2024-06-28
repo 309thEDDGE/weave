@@ -179,3 +179,33 @@ class MongoLoader():
         self.load_mongo_metadata(uuids, collection=metadata_collection)
         self.load_mongo_manifest(uuids, collection=manifest_collection)
         self.load_mongo_supplement(uuids, collection=supplement_collection)
+
+
+    def remove_document (self, uuid : str, **kwargs):
+        """Delete a document using the uuid in the collections.
+
+        Parameters
+        ----------
+        uuid: str
+            "uuid" will be used to locate and remove the document from MongoDB
+            in the supplement, manifest, and metadata collections.
+        pantry: Pantry
+            The Pantry of interest.
+        **metadata_collection: str (default="metadata")
+            Metadata will be added to the Mongo collection specified.
+        **manifest_collection: str (default="manifest")
+            Manifest will be added to the Mongo collection specified.
+        **supplement_collection: str (default="supplement")
+            Supplement will be added to the Mongo collection specified.
+        """
+        metadata_collection = kwargs.get("metadata_collection", "metadata")
+        manifest_collection = kwargs.get("manifest_collection", "manifest")
+        supplement_collection = kwargs.get("supplement_collection",
+                                           "supplement")
+
+        collection_names = (metadata_collection,
+                            manifest_collection,
+                            supplement_collection)
+
+        for e in collection_names:
+            self.database[e].delete_one({'uuid':uuid})
