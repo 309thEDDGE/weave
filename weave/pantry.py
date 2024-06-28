@@ -54,6 +54,12 @@ class Pantry():
             The fsspec object which hosts the pantry we desire to index.
             If file_system is None, then the default fs is retrieved from the
             config.
+        **mongo_config: dict (optional)
+            A dictionary containing keys and values to be used for the mongo
+            collection. Supported keys: MONGODB_HOST, MONGODB_PORT,
+            MONGODB_USERNAME, MONGODB_PASSWORD, METADATA_COLLECTION,
+            MANIFEST_COLLECTION, SUPPLEMENT_COLLECTION.
+            If keys are not present, default values will be used if necessary.
         """
         self.file_system = kwargs.pop("file_system", None)
         if self.file_system is None:
@@ -91,6 +97,7 @@ class Pantry():
             **kwargs,
         )
         self.mongo_client = mongo_client
+        self.mongo_config = kwargs.get("mongo_config", {})
         self.config_metadata['index_setup_config'] = self.index.generate_config()
         self._generate_config()
 
@@ -137,6 +144,18 @@ class Pantry():
             self.file_system.__class__.__name__
         )
         self.config_metadata["pantry_path"] = self.pantry_path
+
+        # Add the config fields for the mongo db data store if available.
+        if self.mongo_client:
+            # Prioritize user provided mongo config dictionary.
+            if self.mongo_config:
+                self.config_metadata.update(self.mongo_config)
+            # Otherwise, populate as much as we can from the mongo client.
+            else:
+                address = self.mongo_client.address
+                if address:
+                    self.config_metadata["mongodb_host"] = address[0]
+                    self.config_metadata["mongodb_port"] = address[1]
 
     def save_setup_config(self):
         """Dump metadata to to pantry metadata file."""

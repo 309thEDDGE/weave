@@ -4,7 +4,14 @@ import json
 import os
 
 import s3fs
+import warnings
 from fsspec.implementations.local import LocalFileSystem
+try:
+    import pymongo
+except ImportError:
+    _HAS_PYMONGO = False
+else:
+    _HAS_PYMONGO = True
 
 from .config import get_file_system
 from .pantry import Pantry
@@ -142,9 +149,27 @@ def _create_pantry_from_config(config, **kwargs):
         raise ValueError(f"File System Type: '{file_system_type}' is"
         f"not supported by this factory")
 
+    # Check for optional mongo db connection config keys.
+    mongo_client = None
+    if "mongodb_host" in config:
+        if not _HAS_PYMONGO:
+            warnings.warn(
+                UserWarning(
+                    "Found mongo configuration keys, but pymongo is not "
+                    "available on this system... Ignoring mongo config."
+                )
+        )
+        else:
+            mongo_client = pymongo.MongoClient(
+                host=config.get("mongodb_host"),
+                username=config.get("mongodb_username"),
+                password=config.get("mongodb_password"),
+            )
+
     return Pantry(
         index_constructor,
         pantry_path=pantry_path,
         file_system=file_system,
+        mongo_client=mongo_client
         **kwargs
     )

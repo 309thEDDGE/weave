@@ -5,12 +5,7 @@
 # is actually imported)
 # pylint: disable-next=duplicate-code
 try:
-    # For the sake of explicitly showing that pymongo is optional, import
-    # pymongo here, even though it is not currently used in this file.
-    # Pylint ignore the next unused-import pylint warning.
-    # Also inline ruff ignore unused import (F401)
-    # pylint: disable-next=unused-import
-    import pymongo  # noqa: F401
+    import pymongo
 except ImportError:
     _HAS_PYMONGO = False
 else:
@@ -26,20 +21,47 @@ class MongoLoader():
     mongo db based on the record type (ie supplement, manifest, metadata).
     """
 
-    def __init__(self, pantry):
+    def __init__(self, pantry, **kwargs):
         """Creates the mongo loader and makes a reference to the pantry's DB.
 
         Parameters
         ----------
         pantry: weave.Pantry
             A pantry object
+        **mongo_client: pymongo.MongoClient (optional)
+            A pre-constructed MongoClient to be used. If not present, a
+            MongoClient will be constructed using the optional mongo_config
+            dictionary, or weave.config.get_mongo_db() as a last resort.
+        **mongo_config: dict (optional)
+            Dictionary containing the configuration settings of this loader.
+            Supported Keys:
         """
         if not _HAS_PYMONGO:
             raise ImportError("Missing Dependency. The package 'pymongo' "
                               "is required to use this class.")
 
         self.pantry = pantry
-        self.database = get_mongo_db()[self.pantry.pantry_path]
+        self.mongo_config = kwargs.get("mongo_config", {})
+
+        # Try to get the mongo_client from the optional kwarg.
+        self.mongo_client = kwargs.get("mongo_client")
+        # Try to make one using the optional mongo_config, if still None.
+        if self.mongo_client is None:
+            self.mongo_client = pymongo.MongoClient(
+                host=self.mongo_config.get("mongodb_host"),
+                username=self.mongo_config.get("mongodb_username"),
+                password=self.mongo_config.get("mongodb_password"),
+            )
+        # If we still don't have a valid mongo_client, use the weave config as
+        # a last resort.
+        if self.mongo_client is None:
+            self.mongo_client = get_mongo_db()
+
+        # Get the database. (Use MONGODB_DATABASE, defaulting to
+        # pantry_path if it is not present.)
+        self.database = self.mongo_client[
+            self.mongo_config.get("mongodb_database", self.pantry.pantry_path)
+        ]
 
 
     def load_mongo_metadata(self, uuids, collection="metadata"):
