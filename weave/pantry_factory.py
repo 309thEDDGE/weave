@@ -164,12 +164,13 @@ def _create_pantry_from_config(config, **kwargs):
                 host=config.get("mongodb_host"),
                 username=config.get("mongodb_username"),
                 password=config.get("mongodb_password"),
+                port=config.get("mongodb_port", 27017),
             )
 
     return Pantry(
         index_constructor,
         pantry_path=pantry_path,
         file_system=file_system,
-        mongo_client=mongo_client
-        **kwargs
+        mongo_client=mongo_client,
+        **kwargs,
     )

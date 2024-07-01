@@ -53,6 +53,7 @@ class MongoLoader():
                 host=self.mongo_config.get("mongodb_host"),
                 username=self.mongo_config.get("mongodb_username"),
                 password=self.mongo_config.get("mongodb_password"),
+                port=self.mongo_config.get("mongodb_port", 27017),
             )
         # If we still don't have a valid mongo_client, use the weave config as
         # a last resort.
@@ -64,9 +65,21 @@ class MongoLoader():
         self.database = self.mongo_client[
             self.mongo_config.get("mongodb_database", self.pantry.pantry_path)
         ]
+        self.metadata_collection = self.mongo_config.get(
+            "metadata_collection",
+            "metadata",
+        )
+        self.manifest_collection = self.mongo_config.get(
+            "manifest_collection",
+            "manifest",
+        )
+        self.supplement_collection = self.mongo_config.get(
+            "supplement_collection",
+            "supplement",
+        )
 
 
-    def load_mongo_metadata(self, uuids, collection="metadata"):
+    def load_mongo_metadata(self, uuids):
         """Load metadata from baskets into the mongo database.
 
         A metadata.json is created in baskets when the metadata
@@ -79,17 +92,13 @@ class MongoLoader():
         ----------
         uuids: [str]
             A list of uuids to add their metadata to the mongo db.
-        collection: str (default="metadata")
-            Metadata will be added to the Mongo collection specified.
         """
         if not isinstance(uuids, list):
             uuids = [uuids]
         if not isinstance(uuids[0], str):
             raise TypeError("Invalid datatype for uuids: "
                             "must be a list of strings [str]")
-        if not isinstance(collection, str):
-            raise TypeError("Invalid datatype for metadata collection: "
-                            "must be a string")
+        collection = self.metadata_collection
 
         for uuid in uuids:
             basket = Basket(uuid, pantry=self.pantry)
@@ -104,11 +113,11 @@ class MongoLoader():
             # If the UUID already has metadata loaded in MongoDB,
             # the metadata should not be loaded to MongoDB again.
             if 0 == self.database[
-                collection
+                self.metadata_collection
             ].count_documents({"uuid": basket.uuid}):
                 self.database[collection].insert_one(mongo_metadata)
 
-    def load_mongo_manifest(self, uuids, collection="manifest"):
+    def load_mongo_manifest(self, uuids):
         """Load manifest from baskets into the mongo database.
 
         A manifest.json is created in baskets upon upload. This manifest is
@@ -120,14 +129,13 @@ class MongoLoader():
         ----------
         uuids: [str]
             A list of uuids to add their manifests to the mongo db.
-        collection: str (default="manifest")
-            Manifest will be added to the Mongo collection specified.
         """
         if not isinstance(uuids, list):
             uuids = [uuids]
-        if not isinstance(collection, str):
-            raise TypeError("Invalid datatype for manifest collection: "
-                            "must be a string")
+        if not isinstance(uuids[0], str):
+            raise TypeError("Invalid datatype for uuids: "
+                            "must be a list of strings [str]")
+        collection = self.manifest_collection
 
         for uuid in uuids:
             basket = Basket(uuid, pantry=self.pantry)
@@ -142,7 +150,7 @@ class MongoLoader():
             ].count_documents({"uuid": basket.uuid}):
                 self.database[collection].insert_one(mongo_manifest)
 
-    def load_mongo_supplement(self, uuids, collection="supplement"):
+    def load_mongo_supplement(self, uuids):
         """Load supplement from baskets into the mongo database.
 
         A supplement.json is created in baskets upon upload. This supplement
@@ -154,14 +162,13 @@ class MongoLoader():
         ----------
         uuids: [str]
             A list of uuids to add their supplement to the mongo db.
-        collection: str (default="supplement")
-            Supplement will be added to the Mongo collection specified.
         """
         if not isinstance(uuids, list):
             uuids = [uuids]
-        if not isinstance(collection, str):
-            raise TypeError("Invalid datatype for supplement collection: "
-                            "must be a string")
+        if not isinstance(uuids[0], str):
+            raise TypeError("Invalid datatype for uuids: "
+                            "must be a list of strings [str]")
+        collection = self.supplement_collection
 
         for uuid in uuids:
             basket = Basket(uuid, pantry=self.pantry)
@@ -180,7 +187,8 @@ class MongoLoader():
             ].count_documents({"uuid": basket.uuid}):
                 self.database[collection].insert_one(mongo_supplement)
 
-    def load_mongo(self, uuids, **kwargs):
+
+    def load_mongo(self, uuids):
         """Load metadata, manifest, and supplement from baskets into the
         mongo database.
 
@@ -188,24 +196,13 @@ class MongoLoader():
         ----------
         uuids: [str]
             A list of uuids to add their data to the mongo db.
-        **metadata_collection: str (default="metadata")
-            Metadata will be added to the Mongo collection specified.
-        **manifest_collection: str (default="manifest")
-            Manifest will be added to the Mongo collection specified.
-        **supplement_collection: str (default="supplement")
-            Supplement will be added to the Mongo collection specified.
         """
-        metadata_collection = kwargs.get("metadata_collection", "metadata")
-        manifest_collection = kwargs.get("manifest_collection", "manifest")
-        supplement_collection = kwargs.get("supplement_collection",
-                                           "supplement")
-
-        self.load_mongo_metadata(uuids, collection=metadata_collection)
-        self.load_mongo_manifest(uuids, collection=manifest_collection)
-        self.load_mongo_supplement(uuids, collection=supplement_collection)
+        self.load_mongo_metadata(uuids)
+        self.load_mongo_manifest(uuids)
+        self.load_mongo_supplement(uuids)
 
 
-    def remove_document (self, uuid : str, **kwargs):
+    def remove_document(self, uuid):
         """Delete a document using the uuid in the collections.
 
         Parameters
@@ -213,23 +210,10 @@ class MongoLoader():
         uuid: str
             "uuid" will be used to locate and remove the document from MongoDB
             in the supplement, manifest, and metadata collections.
-        pantry: Pantry
-            The Pantry of interest.
-        **metadata_collection: str (default="metadata")
-            Metadata will be added to the Mongo collection specified.
-        **manifest_collection: str (default="manifest")
-            Manifest will be added to the Mongo collection specified.
-        **supplement_collection: str (default="supplement")
-            Supplement will be added to the Mongo collection specified.
         """
-        metadata_collection = kwargs.get("metadata_collection", "metadata")
-        manifest_collection = kwargs.get("manifest_collection", "manifest")
-        supplement_collection = kwargs.get("supplement_collection",
-                                           "supplement")
+        collection_names = (self.metadata_collection,
+                            self.manifest_collection,
+                            self.supplement_collection)
 
-        collection_names = (metadata_collection,
-                            manifest_collection,
-                            supplement_collection)
-
-        for e in collection_names:
-            self.database[e].delete_one({'uuid':uuid})
+        for collection in collection_names:
+            self.database[collection].delete_one({'uuid':uuid})
