@@ -21,17 +21,19 @@ class MongoLoader():
     mongo db based on the record type (ie supplement, manifest, metadata).
     """
 
-    def __init__(self, pantry, **kwargs):
+    def __init__(self, pantry, mongo_client=None, **kwargs):
         """Creates the mongo loader and makes a reference to the pantry's DB.
 
         Parameters
         ----------
         pantry: weave.Pantry
             A pantry object
-        **mongo_client: pymongo.MongoClient (optional)
-            A pre-constructed MongoClient to be used. If not present, a
-            MongoClient will be constructed using the optional mongo_config
-            dictionary, or weave.config.get_mongo_db() as a last resort.
+        mongo_client: pymongo.MongoClient or None (optional; defaults to None)
+            A pre-constructed MongoClient to be used. Ignored if the Pantry arg
+            has a non-None pantry.mongo_client. Otherwise, this arg will be
+            used for the client. If none, is provided, a MongoClient will be
+            constructed using the optional mongo_config dictionary,
+            or weave.config.get_mongo_db() as a last resort.
         **mongo_config: dict (optional)
             Dictionary containing the configuration settings of this loader.
             Supported Keys:
@@ -43,9 +45,9 @@ class MongoLoader():
         self.pantry = pantry
         self.mongo_config = kwargs.get("mongo_config", {})
 
-        # Try to get the mongo_client from the optional kwarg.
-        self.mongo_client = kwargs.get("mongo_client")
-        # Try to make one using the optional mongo_config, if still None.
+        # Priorize using the pantry client, otherwise use the given client.
+        self.mongo_client = self.pantry.mongo_client or mongo_client
+        # If both were None, try to make a client using the mongo_config.
         if self.mongo_client is None:
             self.mongo_client = pymongo.MongoClient(
                 host=self.mongo_config.get("mongodb_host"),

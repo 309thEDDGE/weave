@@ -49,6 +49,9 @@ class Pantry():
             the contents within the pantry.
         pantry_path: str (default="weave-test")
             Name of the pantry this object is associated with.
+        mongo_client: pymongo.MongoClient (optional)
+            The MongoClient object to be used to update a mongo datastore when
+            adding and removing baskets.
         **file_system: fsspec object (optional)
             The fsspec object which hosts the pantry we desire to index.
             If file_system is None, then the default fs is retrieved from the
