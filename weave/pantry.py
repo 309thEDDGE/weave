@@ -147,17 +147,9 @@ class Pantry():
         )
         self.config_metadata["pantry_path"] = self.pantry_path
 
-        # Add the config fields for the mongo db data store if available.
-        if self.mongo_client:
-            # Prioritize user provided mongo config dictionary.
-            if self.mongo_config:
-                self.config_metadata.update(self.mongo_config)
-            # Otherwise, populate as much as we can from the mongo client.
-            else:
-                address = self.mongo_client.address
-                if address:
-                    self.config_metadata["mongodb_host"] = address[0]
-                    self.config_metadata["mongodb_port"] = address[1]
+        # Add the provided mongo_config to the main config dictionary.
+        if self.mongo_config:
+            self.config_metadata.update(self.mongo_config)
 
     def save_setup_config(self):
         """Dump metadata to to pantry metadata file."""
