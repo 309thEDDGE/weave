@@ -2,6 +2,7 @@
 """
 
 import abc
+import warnings
 from datetime import datetime
 
 
@@ -18,14 +19,14 @@ class IndexABC(abc.ABC):
             The fsspec object which hosts the pantry we desire to index.
         pantry_path: str
             Path to the pantry root which we want to index.
-        **config_metadata: dict (required)
+        **setup_config: dict (required)
             Existing metadata for the Index.
         Optional kwargs controlled by concrete implementations.
         """
 
         self._file_system = file_system
         self._pantry_path = pantry_path
-        self.config_metadata = kwargs.get("config_metadata", {})
+        self.setup_config = kwargs.get("setup_config", {})
         self.generate_config()
 
     @property
@@ -39,8 +40,17 @@ class IndexABC(abc.ABC):
         """The pantry path referenced by this Index."""
 
     @abc.abstractmethod
+    def generate_metadata(self, **kwargs):
+        """(Deprecated) Generate the metadata for the index."""
+        warnings.warn(
+            UserWarning("This function is being deprecated in a future weave "
+                        "release. Please use generate_config() instead.")
+        )
+        return self.generate_config(**kwargs)
+
+    @abc.abstractmethod
     def generate_config(self, **kwargs):
-        """Generate the metadata for the index.
+        """Generate the setup config for the index.
 
         Parameters
         ----------
@@ -50,8 +60,7 @@ class IndexABC(abc.ABC):
         ----------
         A dictionary of metadata for the index.
         """
-
-        self.config_metadata["index_type"] = str(self)
+        self.setup_config["index_type"] = str(self)
 
     @abc.abstractmethod
     def generate_index(self, **kwargs):

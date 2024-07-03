@@ -48,13 +48,14 @@ class MongoLoader():
         # Priorize using the pantry client, otherwise use the given client.
         self.mongo_client = self.pantry.mongo_client or mongo_client
         # If both were None, try to make a client using the mongo_config.
-        if self.mongo_client is None:
+        if self.mongo_client is None and self.mongo_config:
             self.mongo_client = pymongo.MongoClient(
-                host=self.mongo_config.get("mongodb_host"),
-                username=self.mongo_config.get("mongodb_username"),
-                password=self.mongo_config.get("mongodb_password"),
+                host=self.mongo_config["mongodb_host"],
+                username=self.mongo_config["mongodb_username"],
+                password=self.mongo_config["mongodb_password"],
                 port=self.mongo_config.get("mongodb_port", 27017),
             )
+            self.mongo_client.server_info()
         # If we still don't have a valid mongo_client, use the weave config as
         # a last resort.
         if self.mongo_client is None:
@@ -91,12 +92,15 @@ class MongoLoader():
             provided, populate using self.metadata_collection (which defaults
             to "metadata" if otherwise unspecified).
         """
+        collection = kwargs.get("collection", self.metadata_collection)
         if not isinstance(uuids, list):
             uuids = [uuids]
         if not isinstance(uuids[0], str):
             raise TypeError("Invalid datatype for uuids: "
                             "must be a list of strings [str]")
-        collection = kwargs.get("collection", self.metadata_collection)
+        if not isinstance(collection, str):
+            raise TypeError("Invalid datatype for metadata collection: "
+                            "must be a string")
 
         for uuid in uuids:
             basket = Basket(uuid, pantry=self.pantry)
@@ -132,13 +136,15 @@ class MongoLoader():
             provided, populate using self.manifest_collection (which defaults
             to "manifest" if otherwise unspecified).
         """
+        collection = kwargs.get("collection", self.manifest_collection)
         if not isinstance(uuids, list):
             uuids = [uuids]
         if not isinstance(uuids[0], str):
             raise TypeError("Invalid datatype for uuids: "
                             "must be a list of strings [str]")
-        collection = kwargs.get("collection", self.manifest_collection)
-
+        if not isinstance(collection, str):
+            raise TypeError("Invalid datatype for manifest collection: "
+                            "must be a string")
         for uuid in uuids:
             basket = Basket(uuid, pantry=self.pantry)
             mongo_manifest = basket.get_manifest()
@@ -169,12 +175,15 @@ class MongoLoader():
             provided, populate using self.supplement_collection (which defaults
             to "supplement" if otherwise unspecified).
         """
+        collection = kwargs.get("collection", self.supplement_collection)
         if not isinstance(uuids, list):
             uuids = [uuids]
         if not isinstance(uuids[0], str):
             raise TypeError("Invalid datatype for uuids: "
                             "must be a list of strings [str]")
-        collection = kwargs.get("collection", self.supplement_collection)
+        if not isinstance(collection, str):
+            raise TypeError("Invalid datatype for supplement collection: "
+                            "must be a string")
 
         for uuid in uuids:
             basket = Basket(uuid, pantry=self.pantry)
@@ -246,6 +255,11 @@ class MongoLoader():
         collection_names = (metadata_collection,
                             manifest_collection,
                             supplement_collection)
+
+        for collection in collection_names:
+            if not isinstance(collection, str):
+                raise TypeError("Invalid datatype for collection: "
+                                "must be a string")
 
         for collection in collection_names:
             self.database[collection].delete_one({'uuid':uuid})

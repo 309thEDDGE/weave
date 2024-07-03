@@ -2,10 +2,12 @@
 pre-existing config file either locally or from the pantry path."""
 import json
 import os
+import warnings
 
 import s3fs
-import warnings
 from fsspec.implementations.local import LocalFileSystem
+# Duplicate code below used to handle pymongo being unavailable.
+# pylint: disable-next=duplicate-code
 try:
     import pymongo
 except ImportError:
@@ -96,7 +98,7 @@ def create_pantry(**kwargs):
         raise ValueError("Invalid kwargs passed, unable to make pantry")
     return pantry
 
-
+# pylint: disable-next=too-many-branches
 def _create_pantry_from_config(config, **kwargs):
     """Create the weave.pantry object from a pre-existing config file.
 
@@ -161,9 +163,9 @@ def _create_pantry_from_config(config, **kwargs):
         )
         else:
             mongo_client = pymongo.MongoClient(
-                host=config.get("mongodb_host"),
-                username=config.get("mongodb_username"),
-                password=config.get("mongodb_password"),
+                host=config["mongodb_host"],
+                username=config["mongodb_username"],
+                password=config["mongodb_password"],
                 port=config.get("mongodb_port", 27017),
             )
 

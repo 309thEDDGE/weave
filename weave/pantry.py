@@ -1,8 +1,8 @@
 """Wherein is contained the Pantry class.
 """
-
 import json
 import os
+import warnings
 
 import s3fs
 # Ignore pylint duplicate code. Code here is used to explicitly show pymongo is
@@ -29,6 +29,7 @@ from .index.index_abc import IndexABC
 from .upload import UploadBasket, derive_integrity_data
 from .validate import validate_pantry
 
+# pylint: disable-next=too-many-instance-attributes
 class Pantry():
     """Facilitate user interaction with the index of a Weave data warehouse.
     """
@@ -78,7 +79,7 @@ class Pantry():
             )
 
         self.pantry_path = str(pantry_path)
-        self.config_metadata = {}
+        self.setup_config = {}
         self.load_setup_config()
 
         # Check if file system is read-only. If so, raise error.
@@ -94,13 +95,13 @@ class Pantry():
         self.index = index(
             file_system=self.file_system,
             pantry_path=self.pantry_path,
-            config_metadata=self.config_metadata['index_setup_config'],
+            setup_config=self.setup_config['index_setup_config'],
             pantry_read_only=self.is_read_only,
             **kwargs,
         )
         self.mongo_client = mongo_client
         self.mongo_config = kwargs.get("mongo_config", {})
-        self.config_metadata['index_setup_config'] = self.index.generate_config()
+        self.setup_config['index_setup_config'] = self.index.generate_config()
         self._generate_config()
 
     def validate_path_in_pantry(self, path):
@@ -126,37 +127,55 @@ class Pantry():
                 f"Attempting to access basket outside of pantry: {path}"
             )
 
+    def load_metadata(self):
+        """(Deprecated) Load pantry metadata from config.json."""
+        warnings.warn(
+            UserWarning("This function is being deprecated in a future weave "
+                        "release. Please use load_setup_config() instead.")
+        )
+        self.load_setup_config()
+
     def load_setup_config(self):
-        """Load pantry metadata from config.json."""
+        """Load pantry setup configuration from config.json."""
         self.config_path = os.path.join(
             self.pantry_path,
             'config.json',
         )
         if self.file_system.exists(self.config_path):
             with self.file_system.open(self.config_path, "rb") as file:
-                self.config_metadata = json.load(file)
+                self.setup_config = json.load(file)
         else:
-            self.config_metadata = {}
-        if 'index_setup_config' not in self.config_metadata:
-            self.config_metadata['index_setup_config'] = {}
+            self.setup_config = {}
+        if 'index_setup_config' not in self.setup_config:
+            self.setup_config['index_setup_config'] = {}
 
     def _generate_config(self):
-        self.config_metadata["index"] = str(self.index)
-        self.config_metadata["file_system"] = str(
+        """Helper method to populate the setup_config dictionary."""
+        self.setup_config["index"] = str(self.index)
+        self.setup_config["file_system"] = str(
             self.file_system.__class__.__name__
         )
-        self.config_metadata["pantry_path"] = self.pantry_path
+        self.setup_config["pantry_path"] = self.pantry_path
 
         # Add the provided mongo_config to the main config dictionary.
         if self.mongo_config:
-            self.config_metadata.update(self.mongo_config)
+            self.setup_config.update(self.mongo_config)
+
+    def save_metadata(self):
+        """(Deprecated) Dump metadata to to pantry metadata file."""
+        warnings.warn(
+            UserWarning("This function is being deprecated in a future weave "
+                        "release. Please use save_setup_config() instead.")
+        )
+        self.save_setup_config()
 
     def save_setup_config(self):
-        """Dump metadata to to pantry metadata file."""
+        """Save setup configuration settings to a config file inside the
+        pantry."""
         with self.file_system.open(
             self.config_path, "w", encoding="utf-8"
         ) as outfile:
-            json.dump(self.config_metadata, outfile)
+            json.dump(self.setup_config, outfile)
 
     def validate(self):
         """Convenient wrapper function to validate the pantry.

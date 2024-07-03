@@ -197,7 +197,6 @@ def test_pantry_factory_loads_mongo_config(test_pantry):
     """Ensure custom mongo connections are used when the proper keys exist in a
     config file."""
     test_pantry, index_name, index_constructor = test_pantry
-    file_system_type = test_pantry.file_system.__class__.__name__
 
     # Create a config for custom connections and settings for mongo.
     test_config = {
@@ -240,12 +239,12 @@ def test_pantry_factory_loads_mongo_config(test_pantry):
 
     # Ensure previously provided config settings are loaded from the config
     # when a new pantry is constructed from the global config.
-    assert all(pantry2.config_metadata.get(key, None) == val for key, val
+    assert all(pantry2.setup_config.get(key, None) == val for key, val
                 in test_config.items())
 
     # Also check the index creation settings are in the loaded config.
-    assert pantry2.config_metadata.get("index") == str(pantry2.index)
-    assert pantry2.config_metadata.get("file_system") == (
+    assert pantry2.setup_config.get("index") == str(pantry2.index)
+    assert pantry2.setup_config.get("file_system") == (
         pantry2.file_system.__class__.__name__
     )
-    assert pantry2.config_metadata.get("pantry_path") == pantry2.pantry_path
+    assert pantry2.setup_config.get("pantry_path") == pantry2.pantry_path
