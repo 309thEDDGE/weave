@@ -257,7 +257,6 @@ class IndexSQL(IndexABC):
         ----------
         **kwargs unused for this function.
         """
-
         if not isinstance(self.pantry_path, str):
             raise TypeError("'pantry_path' must be a string: "
                             f"'{self.pantry_path}'")
@@ -273,8 +272,9 @@ class IndexSQL(IndexABC):
         for basket_json_address in basket_jsons:
             entry = create_index_from_fs(basket_json_address,
                                          file_system=self.file_system)
-            if len(self.get_rows(entry['uuid'].iloc[0])) == 0:
-                self.track_basket(entry)
+            if not entry.empty:
+                if len(self.get_rows(entry['uuid'].iloc[0])) == 0:
+                    self.track_basket(entry)
 
     def to_pandas_df(self, max_rows=None, offset=0, **kwargs):
         """Returns the pandas dataframe representation of the index.
