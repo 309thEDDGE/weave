@@ -116,10 +116,10 @@ def test_pantry_factory_existing_pantry_config(test_pantry):
     ) as config_file:
         s3_endpoint = os.environ.get("S3_ENDPOINT", None)
         json.dump(
-            {"index":index_name,
-             "pantry_path":test_pantry.pantry_path,
-             "file_system":file_system_type,
-             "S3_ENDPOINT":s3_endpoint},
+            {"index": index_name,
+             "pantry_path": test_pantry.pantry_path,
+             "file_system": file_system_type,
+             "S3_ENDPOINT": s3_endpoint},
             config_file
         )
 
