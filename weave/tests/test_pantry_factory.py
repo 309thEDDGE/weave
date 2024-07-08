@@ -196,7 +196,7 @@ def test_pantry_factory_invalid_args():
 def test_pantry_factory_loads_mongo_config(test_pantry):
     """Ensure custom mongo connections are used when the proper keys exist in a
     config file."""
-    test_pantry, index_name, index_constructor = test_pantry
+    test_pantry, _, index_constructor = test_pantry
 
     # Create a config for custom connections and settings for mongo.
     test_config = {
