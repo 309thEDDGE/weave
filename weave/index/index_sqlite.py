@@ -71,6 +71,14 @@ class IndexSQLite(IndexABC):
         return self._pantry_path
 
     def generate_metadata(self, **kwargs):
+        """(Deprecated) Generate the metadata for the index."""
+        warnings.warn(
+            UserWarning("This function is being deprecated in a future weave "
+                        "release. Please use generate_config() instead.")
+        )
+        return self.generate_config(**kwargs)
+
+    def generate_config(self, **kwargs):
         """Populates the metadata for the index.
 
         Parameters

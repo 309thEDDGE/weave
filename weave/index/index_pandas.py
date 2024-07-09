@@ -108,14 +108,22 @@ class IndexPandas(IndexABC):
         return True
 
     def generate_metadata(self, **kwargs):
+        """(Deprecated) Generate the metadata for the index."""
+        warnings.warn(
+            UserWarning("This function is being deprecated in a future weave "
+                        "release. Please use generate_config() instead.")
+        )
+        return self.generate_config(**kwargs)
+
+    def generate_config(self, **kwargs):
         """Populates the metadata for the index.
 
         Parameters
         ----------
         **kwargs unused for this class.
         """
-        super().generate_metadata(**kwargs)
-        return self.metadata
+        super().generate_config(**kwargs)
+        return self.setup_config
 
     def sync_index(self):
         """Gets index from latest index basket."""

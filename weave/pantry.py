@@ -1,10 +1,8 @@
-"""This class builds the user-facing Index class. It pulls from the _Index
-class which uses Pandas as it's backend to build and interface with the on disk
-Index baskets.
+"""Wherein is contained the Pantry class.
 """
-
 import json
 import os
+import warnings
 
 import s3fs
 # Ignore pylint duplicate code. Code here is used to explicitly show pymongo is
@@ -31,6 +29,7 @@ from .index.index_abc import IndexABC
 from .upload import UploadBasket, derive_integrity_data
 from .validate import validate_pantry
 
+# pylint: disable-next=too-many-instance-attributes
 class Pantry():
     """Facilitate user interaction with the index of a Weave data warehouse.
     """
@@ -51,10 +50,19 @@ class Pantry():
             the contents within the pantry.
         pantry_path: str (default="weave-test")
             Name of the pantry this object is associated with.
+        mongo_client: pymongo.MongoClient (optional)
+            The MongoClient object to be used to update a mongo datastore when
+            adding and removing baskets.
         **file_system: fsspec object (optional)
             The fsspec object which hosts the pantry we desire to index.
             If file_system is None, then the default fs is retrieved from the
             config.
+        **mongo_config: dict (optional)
+            A dictionary containing keys and values to be used for the mongo
+            collection. Supported keys: MONGODB_HOST, MONGODB_PORT,
+            MONGODB_USERNAME, MONGODB_PASSWORD, METADATA_COLLECTION,
+            MANIFEST_COLLECTION, SUPPLEMENT_COLLECTION.
+            If keys are not present, default values will be used if necessary.
         """
         self.file_system = kwargs.pop("file_system", None)
         if self.file_system is None:
@@ -71,7 +79,8 @@ class Pantry():
             )
 
         self.pantry_path = str(pantry_path)
-        self.load_metadata()
+        self.setup_config = {}
+        self.load_setup_config()
 
         # Check if file system is read-only. If so, raise error.
         try:
@@ -83,15 +92,17 @@ class Pantry():
         except (OSError, ValueError):
             self.is_read_only = True
 
-        self.index = index(file_system=self.file_system,
-                           pantry_path=self.pantry_path,
-                           metadata=self.metadata['index_metadata'],
-                           pantry_read_only=self.is_read_only,
-                           **kwargs,
+        self.index = index(
+            file_system=self.file_system,
+            pantry_path=self.pantry_path,
+            setup_config=self.setup_config['index_setup_config'],
+            pantry_read_only=self.is_read_only,
+            **kwargs,
         )
-        self.metadata['index_metadata'] = self.index.generate_metadata()
         self.mongo_client = mongo_client
-
+        self.mongo_config = kwargs.get("mongo_config", {})
+        self.setup_config['index_setup_config'] = self.index.generate_config()
+        self._generate_config()
 
     def validate_path_in_pantry(self, path):
         """Validate the given path is within the pantry.
@@ -117,25 +128,54 @@ class Pantry():
             )
 
     def load_metadata(self):
-        """Load pantry metadata from pantry_metadata.json."""
-        self.metadata_path = os.path.join(
-                                self.pantry_path,'pantry_metadata.json'
+        """(Deprecated) Load pantry metadata from config.json."""
+        warnings.warn(
+            UserWarning("This function is being deprecated in a future weave "
+                        "release. Please use load_setup_config() instead.")
         )
-        if self.file_system.exists(self.metadata_path):
-            with self.file_system.open(self.metadata_path, "rb") as file:
-                self.metadata = json.load(file)
+        self.load_setup_config()
+
+    def load_setup_config(self):
+        """Load pantry setup configuration from config.json."""
+        self.config_path = os.path.join(
+            self.pantry_path,
+            'config.json',
+        )
+        if self.file_system.exists(self.config_path):
+            with self.file_system.open(self.config_path, "rb") as file:
+                self.setup_config = json.load(file)
         else:
-            self.metadata = {}
-        if 'index_metadata' not in self.metadata:
-            self.metadata['index_metadata'] = {}
+            self.setup_config = {}
+        if 'index_setup_config' not in self.setup_config:
+            self.setup_config['index_setup_config'] = {}
+
+    def _generate_config(self):
+        """Helper method to populate the setup_config dictionary."""
+        self.setup_config["index"] = str(self.index)
+        self.setup_config["file_system"] = str(
+            self.file_system.__class__.__name__
+        )
+        self.setup_config["pantry_path"] = self.pantry_path
+
+        # Add the provided mongo_config to the main config dictionary.
+        if self.mongo_config:
+            self.setup_config.update(self.mongo_config)
 
     def save_metadata(self):
-        """Dump metadata to to pantry metadata file."""
-        self.metadata['index_metadata'] = self.index.metadata
+        """(Deprecated) Dump metadata to to pantry metadata file."""
+        warnings.warn(
+            UserWarning("This function is being deprecated in a future weave "
+                        "release. Please use save_setup_config() instead.")
+        )
+        self.save_setup_config()
+
+    def save_setup_config(self):
+        """Save setup configuration settings to a config file inside the
+        pantry."""
         with self.file_system.open(
-                    self.metadata_path, "w", encoding="utf-8"
+            self.config_path, "w", encoding="utf-8"
         ) as outfile:
-            json.dump(self.metadata, outfile)
+            json.dump(self.setup_config, outfile)
 
     def validate(self):
         """Convenient wrapper function to validate the pantry.

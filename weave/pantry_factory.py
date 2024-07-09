@@ -2,9 +2,18 @@
 pre-existing config file either locally or from the pantry path."""
 import json
 import os
+import warnings
 
 import s3fs
 from fsspec.implementations.local import LocalFileSystem
+# Duplicate code below used to handle pymongo being unavailable.
+# pylint: disable-next=duplicate-code
+try:
+    import pymongo
+except ImportError:
+    _HAS_PYMONGO = False
+else:
+    _HAS_PYMONGO = True
 
 from .config import get_file_system
 from .pantry import Pantry
@@ -89,7 +98,7 @@ def create_pantry(**kwargs):
         raise ValueError("Invalid kwargs passed, unable to make pantry")
     return pantry
 
-
+# pylint: disable-next=too-many-branches
 def _create_pantry_from_config(config, **kwargs):
     """Create the weave.pantry object from a pre-existing config file.
 
@@ -142,9 +151,28 @@ def _create_pantry_from_config(config, **kwargs):
         raise ValueError(f"File System Type: '{file_system_type}' is"
         f"not supported by this factory")
 
+    # Check for optional mongo db connection config keys.
+    mongo_client = None
+    if "mongodb_host" in config:
+        if not _HAS_PYMONGO:
+            warnings.warn(
+                UserWarning(
+                    "Found mongo configuration keys, but pymongo is not "
+                    "available on this system... Ignoring mongo config."
+                )
+        )
+        else:
+            mongo_client = pymongo.MongoClient(
+                host=config["mongodb_host"],
+                username=config["mongodb_username"],
+                password=config["mongodb_password"],
+                port=config.get("mongodb_port", 27017),
+            )
+
     return Pantry(
         index_constructor,
         pantry_path=pantry_path,
         file_system=file_system,
-        **kwargs
+        mongo_client=mongo_client,
+        **kwargs,
     )

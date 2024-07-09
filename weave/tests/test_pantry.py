@@ -557,34 +557,36 @@ def test_get_basket_stays_in_pantry(test_pantry):
         pantry.get_basket(index.iloc[0].address)
 
 
-def test_pantry_get_metadata_no_data(test_pantry):
-    """Test the pantry reads in empty metadata and the index metadata."""
+def test_pantry_get_metadata_basic_data(test_pantry):
+    """Test the pantry reads in basic metadata and the index metadata."""
     pantry = Pantry(
         IndexPandas,
         pantry_path=test_pantry.pantry_path,
         file_system=test_pantry.file_system
     )
 
-    assert len(pantry.metadata) == 1
-    assert 'index_metadata' in pantry.metadata
+    # Below are the basic keys that should always exist in a config dictionary.
+    basic_keys = ("index_setup_config", "index", "file_system", "pantry_path")
+    assert len(pantry.setup_config) == 4
+    assert all(k in pantry.setup_config for k in basic_keys)
 
 
-def test_pantry_save_metadata(test_pantry):
+def test_pantry_save_setup_config(test_pantry):
     """Test Pantry can save metadata correctly."""
     pantry = Pantry(
         IndexPandas,
         pantry_path=test_pantry.pantry_path,
         file_system=test_pantry.file_system
     )
-    pantry.save_metadata()
+    pantry.save_setup_config()
 
     file_metadata = None
-    if pantry.file_system.exists(pantry.metadata_path):
-        with pantry.file_system.open(pantry.metadata_path, "rb") as file:
+    if pantry.file_system.exists(pantry.config_path):
+        with pantry.file_system.open(pantry.config_path, "rb") as file:
             file_metadata = json.load(file)
 
-    assert pantry.file_system.exists(pantry.metadata_path)
-    assert pantry.metadata == file_metadata
+    assert pantry.file_system.exists(pantry.config_path)
+    assert pantry.setup_config == file_metadata
 
 
 def test_pantry_get_metadata_existing_data(test_pantry):
@@ -594,9 +596,9 @@ def test_pantry_get_metadata_existing_data(test_pantry):
         pantry_path=test_pantry.pantry_path,
         file_system=test_pantry.file_system
     )
-    pantry.metadata['test'] = 'test'
-    pantry.metadata['index_metadata']['test'] = 'test'
-    pantry.save_metadata()
+    pantry.setup_config['test'] = 'test'
+    pantry.setup_config['index_setup_config']['test'] = 'test'
+    pantry.save_setup_config()
 
     pantry2 = Pantry(
         IndexPandas,
@@ -604,8 +606,8 @@ def test_pantry_get_metadata_existing_data(test_pantry):
         file_system=test_pantry.file_system
     )
 
-    assert pantry2.metadata['test'] == 'test'
-    assert pantry2.index.metadata['test'] == 'test'
+    assert pantry2.setup_config['test'] == 'test'
+    assert pantry2.index.setup_config['test'] == 'test'
 
 
 def test_upload_basket_works_on_empty_basket(test_pantry):

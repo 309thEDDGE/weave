@@ -143,14 +143,14 @@ def test_index_abc_builtin_str_works(test_index_only):
     )
 
 
-def test_index_abc_generate_metadata_returns_dict(test_index_only):
-    """Test IndexABC generate_metadata returns a python dictionary."""
+def test_index_abc_generate_config_returns_dict(test_index_only):
+    """Test IndexABC generate_config returns a python dictionary."""
     ind = test_index_only
 
-    metadata = ind.generate_metadata()
+    metadata = ind.generate_config()
     assert (
         isinstance(metadata, dict)
-    ), "Index.generate_metadata must return a dict."
+    ), "Index.generate_config must return a dict."
 
 
 def test_index_abc_generate_index_works(test_pantry):

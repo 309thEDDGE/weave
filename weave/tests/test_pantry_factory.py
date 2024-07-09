@@ -116,10 +116,10 @@ def test_pantry_factory_existing_pantry_config(test_pantry):
     ) as config_file:
         s3_endpoint = os.environ.get("S3_ENDPOINT", None)
         json.dump(
-            {"index":index_name,
-             "pantry_path":test_pantry.pantry_path,
-             "file_system":file_system_type,
-             "S3_ENDPOINT":s3_endpoint},
+            {"index": index_name,
+             "pantry_path": test_pantry.pantry_path,
+             "file_system": file_system_type,
+             "S3_ENDPOINT": s3_endpoint},
             config_file
         )
 
@@ -142,9 +142,9 @@ def test_pantry_factory_invalid_index(test_pantry):
         encoding="utf-8"
     ) as config_file:
         json.dump(
-            {"index":invalid_index,
-             "pantry_path":test_pantry.pantry_path,
-             "file_system":file_system_type},
+            {"index": invalid_index,
+             "pantry_path": test_pantry.pantry_path,
+             "file_system": file_system_type},
             config_file
         )
 
@@ -191,3 +191,60 @@ def test_pantry_factory_invalid_args():
         match="Invalid kwargs passed, unable to make pantry",
     ):
         create_pantry()
+
+
+def test_pantry_factory_loads_mongo_config(test_pantry):
+    """Ensure custom mongo connections are used when the proper keys exist in a
+    config file."""
+    test_pantry, _, index_constructor = test_pantry
+
+    # Create a config for custom connections and settings for mongo.
+    test_config = {
+        "mongodb_host": "mongodb",
+        "mongodb_port": 27017,
+        "mongodb_username": "root",
+        "mongodb_password": "example",
+        "metadata_collection": "test-custom-metadata",
+        "supplement_collection": "test-custom-supplement",
+        "manifest_collection": "test-custom-manifest",
+    }
+
+    # Create a pantry using the 'default' method, but give it additional mongo
+    # config settings.
+    pantry = create_pantry(
+        index=index_constructor,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system,
+        mongo_config=test_config,
+    )
+
+    # Have the pantry save its config settings to the global pantry config.
+    pantry.save_setup_config()
+
+    # Check that the config was written correctly and contains all the
+    # additional mongo config settings.
+    with test_pantry.file_system.open(
+        os.path.join(test_pantry.pantry_path, "config.json")
+    ) as config_file:
+        pantry_config = json.load(config_file)
+        assert all(pantry_config.get(key, None) == val for key, val
+            in test_config.items())
+
+    # Create a pantry using the saved config.
+    pantry2 = create_pantry(
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system,
+        mongo_config=test_config,
+    )
+
+    # Ensure previously provided config settings are loaded from the config
+    # when a new pantry is constructed from the global config.
+    assert all(pantry2.setup_config.get(key, None) == val for key, val
+                in test_config.items())
+
+    # Also check the index creation settings are in the loaded config.
+    assert pantry2.setup_config.get("index") == str(pantry2.index)
+    assert pantry2.setup_config.get("file_system") == (
+        pantry2.file_system.__class__.__name__
+    )
+    assert pantry2.setup_config.get("pantry_path") == pantry2.pantry_path

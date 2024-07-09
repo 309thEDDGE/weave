@@ -250,8 +250,14 @@ def test_load_mongo_metadata_check_for_duplicate_uuid(set_up):
     test_uuid = "1234"
 
     mongo_loader = MongoLoader(pantry=set_up.pantry)
-    mongo_loader.load_mongo_metadata([test_uuid], set_up.metadata_collection)
-    mongo_loader.load_mongo_metadata([test_uuid], set_up.metadata_collection)
+    mongo_loader.load_mongo_metadata(
+        [test_uuid],
+        collection=set_up.metadata_collection,
+    )
+    mongo_loader.load_mongo_metadata(
+        [test_uuid],
+        collection=set_up.metadata_collection,
+    )
 
     count = set_up.database[set_up.metadata_collection].count_documents(
         {"uuid": test_uuid}
@@ -268,8 +274,14 @@ def test_load_mongo_manifest_check_for_duplicate_uuid(set_up):
     test_uuid = "1234"
 
     mongo_loader = MongoLoader(pantry=set_up.pantry)
-    mongo_loader.load_mongo_manifest([test_uuid], set_up.manifest_collection)
-    mongo_loader.load_mongo_manifest([test_uuid], set_up.manifest_collection)
+    mongo_loader.load_mongo_manifest(
+        [test_uuid],
+        collection=set_up.manifest_collection,
+    )
+    mongo_loader.load_mongo_manifest(
+        [test_uuid],
+        collection=set_up.manifest_collection,
+    )
 
     count = set_up.database[set_up.manifest_collection].count_documents(
         {"uuid": test_uuid}
@@ -289,11 +301,11 @@ def test_load_mongo_supplement_check_for_duplicate_uuid(set_up):
     mongo_loader = MongoLoader(pantry=set_up.pantry)
     mongo_loader.load_mongo_supplement(
         [test_uuid],
-        set_up.supplement_collection,
+        collection=set_up.supplement_collection,
     )
     mongo_loader.load_mongo_supplement(
         [test_uuid],
-        set_up.supplement_collection,
+        collection=set_up.supplement_collection,
     )
 
     count = set_up.database[set_up.supplement_collection].count_documents(
