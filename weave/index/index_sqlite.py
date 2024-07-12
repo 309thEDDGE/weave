@@ -95,6 +95,9 @@ class IndexSQLite(IndexABC):
 
         Parameters
         ----------
+        refresh: bool (default: False)
+            Specifies whether existing index data should be dropped before
+            refreshing.
         **kwargs unused for this function.
         """
         if not isinstance(self.pantry_path, str):
@@ -116,6 +119,34 @@ class IndexSQLite(IndexABC):
                     self.track_basket(entry, _commit_db=False)
 
         self.con.commit()
+
+    def clear_index(self, refresh=False, **kwargs):
+        """Deletes/clears the previously populated index.
+
+        Deletes the index entirely (by deleting and recreating the sqlite file)
+        optionally repopulating the new one if the refresh flag is set to True.
+
+        Parameters
+        ----------
+        refresh: bool (default=False)
+            Regenerates the index after clearing the old one.
+
+        **kwargs unused for this function.
+        """
+        # Close the connection to the sqlite file, and then delete the file.
+        self.con.close()
+        if os.path.exists(self.db_path):
+            os.remove(self.db_path)
+
+        # Recreate the sqlite file, make a connection to it, then rebuild the
+        # empty tables.
+        self.con = sqlite3.connect(self.db_path)
+        self.cur = self.con.cursor()
+        self._create_tables()
+
+        # Optionally re-populate the tables.
+        if refresh:
+            self.generate_index()
 
     def to_pandas_df(self, max_rows=None, offset=0, **kwargs):
         """Returns the pandas dataframe representation of the index.

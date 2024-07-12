@@ -233,6 +233,30 @@ class IndexPandas(IndexABC):
         index = create_index_from_fs(self.pantry_path, self.file_system)
         self._upload_index(index=index)
 
+    def clear_index(self, refresh=False, **kwargs):
+        """Clears out ALL pandas indexes in the pantry and generates a new one.
+
+        THIS FUNCTION DOES NOT BEHAVE THE SAME AS THE OTHER CLEAR_INDEX METHODS
+
+        Because the pandas index will sync with the pantry index at the
+        beginning of nearly every method, the index will never be left empty as
+        long as there are baskets in the pantry. Thus this function will behave
+        slightly differently than the SQL/SQLite clear_index methods.
+
+        This method will delete ALL the pandas indices in the pantry, but will
+        immediately regenerate the index (unlike the SQL/SQLite implementations
+        which leave the index empty unless refresh=True).
+
+        Parameters
+        ----------
+        refresh: UNUSED IN THIS IMPLEMENTATION
+            UNUSED IN THIS IMPLEMENTATION--INDEX IS ALWAYS REFRESHED.
+        **kwargs unused for this function.
+        """
+        self.clean_up_indices(n_keep=0)
+        self.index_df = None
+        self.generate_index()
+
     def _upload_index(self, index):
         """Upload a new index."""
         n_secs = time_ns()
