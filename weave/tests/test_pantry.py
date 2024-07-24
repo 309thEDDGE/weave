@@ -17,7 +17,7 @@ import fsspec
 from fsspec.implementations.local import LocalFileSystem
 
 from weave.basket import Basket
-from weave.config import get_mongo_db
+
 from weave.index.create_index import create_index_from_fs
 from weave.index.index_pandas import IndexPandas
 from weave.pantry import Pantry
@@ -48,6 +48,17 @@ from weave.__init__ import __version__ as weave_version
 
 # Create fsspec objects to be tested, and add to file_systems list.
 file_systems, file_systems_ids = get_file_systems()
+
+
+
+# Test with two different fsspec file systems (top of file).
+@pytest.fixture(params=file_systems, ids=file_systems_ids)
+def test_basket(request, tmpdir):
+    """Sets up pytest fixture."""
+    file_system = request.param
+    test_pantry = PantryForTest(tmpdir, file_system)
+    yield test_pantry
+    test_pantry.cleanup_pantry()
 
 
 # Test with different fsspec file systems (above).
