@@ -201,6 +201,13 @@ def test_index_sql_track_basket_adds_to_parent_uuids(test_index):
     assert len(rows) == 0
 
 
+# Skip tests if sqlalchemy is not installed.
+@pytest.mark.skipif(
+    not _HAS_REQUIRED_DEPS
+    or not os.environ.get("WEAVE_SQL_PASSWORD", False),
+    reason="Modules: 'psycopg2', 'sqlalchemy' required for this test "
+    "AND env variables: 'WEAVE_SQL_HOST', 'WEAVE_SQL_PASSWORD'",
+)
 def test_drop_index_deletes_sql_schema(test_index):
     """Test that drop_index drops the schema."""
     sample_basket_df = get_sample_basket_df()
