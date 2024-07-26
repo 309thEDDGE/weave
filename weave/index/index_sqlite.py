@@ -95,9 +95,6 @@ class IndexSQLite(IndexABC):
 
         Parameters
         ----------
-        refresh: bool (default: False)
-            Specifies whether existing index data should be dropped before
-            refreshing.
         **kwargs unused for this function.
         """
         if not isinstance(self.pantry_path, str):
@@ -134,9 +131,7 @@ class IndexSQLite(IndexABC):
         **kwargs unused for this function.
         """
         # Close the connection to the sqlite file, and then delete the file.
-        self.con.close()
-        if os.path.exists(self.db_path):
-            os.remove(self.db_path)
+        self.drop_index()
 
         # Recreate the sqlite file, make a connection to it, then rebuild the
         # empty tables.
@@ -147,6 +142,17 @@ class IndexSQLite(IndexABC):
         # Optionally re-populate the tables.
         if refresh:
             self.generate_index()
+
+    def drop_index(self):
+        """Drops all data stored in the index backend and deletes the sqlite db
+
+        The sqlite file is NOT regenerated in this call.
+        Use clear_index if you wish to have the file rebuilt with nothing in it
+        """
+        # Close the connection to the sqlite file, and then delete the file.
+        self.con.close()
+        if os.path.exists(self.db_path):
+            os.remove(self.db_path)
 
     def to_pandas_df(self, max_rows=None, offset=0, **kwargs):
         """Returns the pandas dataframe representation of the index.
