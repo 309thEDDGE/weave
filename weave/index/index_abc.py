@@ -75,6 +75,20 @@ class IndexABC(abc.ABC):
         """
 
     @abc.abstractmethod
+    def clear_index(self, refresh=False, **kwargs):
+        """Deletes/clears the previously populated index.
+
+        Delete the index entirely, optionally regenerating a new one
+        if the refresh flag is set to True.
+
+        Parameters
+        ----------
+        refresh: bool (default=False)
+            Regenerates the index after clearing the old one.
+        Optional kwargs controlled by concrete implementations.
+        """
+
+    @abc.abstractmethod
     def to_pandas_df(self, max_rows=None, offset=0, **kwargs):
         """Returns the pandas dataframe representation of the index.
 

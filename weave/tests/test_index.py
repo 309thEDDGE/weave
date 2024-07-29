@@ -1922,3 +1922,54 @@ def test_generate_index_when_pandas_index_exists(test_pantry):
         pantry2.index.generate_index()
     except IndexError:
         assert False
+
+
+def test_clear_index_works(test_pantry):
+    """Test clear_index deletes the current index"""
+    test_pantry, ind = test_pantry
+
+    # Put basket in the temporary pantry.
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_basket_dir_one,
+        uid="0001",
+        label='good_label',
+    )
+
+    # Generate the index, check the basket is tracked, then clear the index.
+    ind.generate_index()
+    assert len(ind) == 1
+    ind.clear_index()
+
+    # Because the pandas index automatically syncs whenever class methods are
+    # called (generating a new index if none exists), the index will never be
+    # empty as long as there are baskets in the pantry.
+    # Thus, stop the clear check here, as the pandas index will not be empty
+    # unless we also delete the basket from the pantry.
+    if ind.__class__.__name__ == "IndexPandas":
+        return
+
+    # For the remaining index types (SQL/SQLite), the tables should be empty
+    # after clearing without the refresh flag.
+    assert len(ind) == 0
+
+
+def test_clear_index_with_refresh_works(test_pantry):
+    """Test clear_index deletes the current index"""
+    test_pantry, ind = test_pantry
+
+    # Put basket in the temporary pantry.
+    tmp_basket_dir_one = test_pantry.set_up_basket("basket_one")
+    test_pantry.upload_basket(
+        tmp_basket_dir=tmp_basket_dir_one,
+        uid="0001",
+        label='good_label',
+    )
+
+    # Generate the index, check the basket is tracked, then clear and refresh.
+    ind.generate_index()
+    assert len(ind) == 1
+    ind.clear_index(refresh=True)
+
+    # The basket should have been re-added to the index after refreshing.
+    assert len(ind) == 1

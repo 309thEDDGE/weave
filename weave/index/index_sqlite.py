@@ -117,6 +117,43 @@ class IndexSQLite(IndexABC):
 
         self.con.commit()
 
+    def clear_index(self, refresh=False, **kwargs):
+        """Deletes/clears the previously populated index.
+
+        Deletes the index entirely (by deleting and recreating the sqlite file)
+        optionally repopulating the new one if the refresh flag is set to True.
+
+        Parameters
+        ----------
+        refresh: bool (default=False)
+            Regenerates the index after clearing the old one.
+
+        **kwargs unused for this function.
+        """
+        # Close the connection to the sqlite file, and then delete the file.
+        self.drop_index()
+
+        # Recreate the sqlite file, make a connection to it, then rebuild the
+        # empty tables.
+        self.con = sqlite3.connect(self.db_path)
+        self.cur = self.con.cursor()
+        self._create_tables()
+
+        # Optionally re-populate the tables.
+        if refresh:
+            self.generate_index()
+
+    def drop_index(self):
+        """Drops all data stored in the index backend and deletes the sqlite db
+
+        The sqlite file is NOT regenerated in this call.
+        Use clear_index if you wish to have the file rebuilt with nothing in it
+        """
+        # Close the connection to the sqlite file, and then delete the file.
+        self.con.close()
+        if os.path.exists(self.db_path):
+            os.remove(self.db_path)
+
     def to_pandas_df(self, max_rows=None, offset=0, **kwargs):
         """Returns the pandas dataframe representation of the index.
 

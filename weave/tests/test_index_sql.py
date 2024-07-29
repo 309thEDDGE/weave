@@ -199,3 +199,45 @@ def test_index_sql_track_basket_adds_to_parent_uuids(test_index):
         f"SELECT * FROM {test_index.index.pantry_schema}.parent_uuids"
     )
     assert len(rows) == 0
+
+
+# Skip tests if sqlalchemy is not installed.
+@pytest.mark.skipif(
+    not _HAS_REQUIRED_DEPS
+    or not os.environ.get("WEAVE_SQL_PASSWORD", False),
+    reason="Modules: 'psycopg2', 'sqlalchemy' required for this test "
+    "AND env variables: 'WEAVE_SQL_HOST', 'WEAVE_SQL_PASSWORD'",
+)
+def test_drop_index_deletes_sql_schema(test_index):
+    """Test that drop_index drops the schema."""
+    sample_basket_df = get_sample_basket_df()
+    uuid = "1000"
+    sample_basket_df["uuid"] = uuid
+
+    ind = test_index.index
+
+    # Track the basket.
+    ind.track_basket(sample_basket_df)
+
+    assert len(ind) == 1
+
+    # Drop the index (drops the db schema)
+    ind.drop_index()
+
+    # Check the db is closed when we try to use it.
+    with pytest.raises(Exception) as exc:
+        len(ind)
+    assert (
+        f'relation "{ind.pantry_schema}.pantry_index" does not exist'
+        in str(exc)
+    )
+
+    # Check the db schema is dropped.
+    rows, _ = ind.execute_sql(
+        "SELECT schema_name FROM information_schema.schemata;"
+    )
+    assert not any(ind.pantry_schema == row[0] for row in rows)
+
+    # Recreate the db using clear_index so the test doesn't crash during
+    # cleanup, as we previously dropped the schema.
+    ind.clear_index()

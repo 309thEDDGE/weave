@@ -1,5 +1,6 @@
 """Pytest tests for the sqlite index."""
 import os
+import sqlite3
 
 import pytest
 
@@ -198,3 +199,30 @@ def test_index_sqlite_track_basket_adds_to_parent_uuids(test_index):
     cursor.execute("SELECT * FROM parent_uuids")
     rows = cursor.fetchall()
     assert len(rows) == 0
+
+
+def test_drop_index_deletes_sqlite_file(test_index):
+    """Test that drop_index drops all data and deletes the db file."""
+    sample_basket_df = get_sample_basket_df()
+    uuid = "1000"
+    sample_basket_df["uuid"] = uuid
+
+    # Track the basket.
+    test_index.index.track_basket(sample_basket_df)
+
+    assert len(test_index.index) == 1
+
+    # Drop the index (deleting the db file)
+    test_index.index.drop_index()
+
+    # Check the db is closed when we try to use it.
+    with pytest.raises(sqlite3.ProgrammingError) as exc:
+        len(test_index.index)
+    assert "Cannot operate on a closed database." in str(exc)
+
+    # Check the db file is deleted.
+    assert not os.path.exists(test_index.db_path)
+
+    # Recreate the dbfile using clear_index so the test doesn't crash during
+    # cleanup, as we previously deleted the sqlite file.
+    test_index.index.clear_index()

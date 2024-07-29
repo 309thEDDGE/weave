@@ -276,6 +276,40 @@ class IndexSQL(IndexABC):
                 if len(self.get_rows(entry['uuid'].iloc[0])) == 0:
                     self.track_basket(entry)
 
+    def clear_index(self, refresh=False, **kwargs):
+        """Deletes/clears the previously populated index.
+
+        Deletes the index entirely (by dropping and re-creating the schema)
+        optionally repopulating the new one if the refresh flag is set to True.
+
+        Parameters
+        ----------
+        refresh: bool (default=False)
+            Regenerates the index after clearing the old one.
+
+        **kwargs unused for this function.
+        """
+        # Drop this index's schema, and then re-create the schema and tables.
+        self.drop_index()
+        self._create_schema()
+        self._create_tables()
+
+        # Optionally re-populate the tables.
+        if refresh:
+            self.generate_index()
+
+    def drop_index(self):
+        """Drops all data stored in the index backend and drops the schema.
+
+        The schemas and tables are NOT regenerated in this call.
+        Use clear_index if you wish to have them rebuilt with nothing in them.
+        """
+        # Drop this index's schema, and then re-create the schema and tables.
+        self.execute_sql(
+            f"DROP SCHEMA IF EXISTS {self.pantry_schema} CASCADE;",
+            commit=True,
+        )
+
     def to_pandas_df(self, max_rows=None, offset=0, **kwargs):
         """Returns the pandas dataframe representation of the index.
 
