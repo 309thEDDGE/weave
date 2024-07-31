@@ -253,9 +253,9 @@ def test_drop_index_deletes_sql_schema(test_index):
 def test_index_sql_check_duplicate_schema_name(test_index):
     """Test that the duplicate schema error is not raised when using different
     case-sensitive paths."""
-    pantry_path = test_ind.index.pantry_path
+    pantry_path = test_index.index.pantry_path
     # Test that we can create a SQL Index using the same pantry path in
     # different pantry_path casing.
-    ind_1 = IndexSQL(LocalFileSystem(), pantry_path.upper())
-    ind_2 = IndexSQL(LocalFileSystem(), pantry_path.lower())
+    _ = IndexSQL(LocalFileSystem(), pantry_path.upper())
+    _ = IndexSQL(LocalFileSystem(), pantry_path.lower())
 
