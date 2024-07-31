@@ -241,3 +241,20 @@ def test_drop_index_deletes_sql_schema(test_index):
     # Recreate the db using clear_index so the test doesn't crash during
     # cleanup, as we previously dropped the schema.
     ind.clear_index()
+
+
+# Skip tests if sqlalchemy is not installed.
+@pytest.mark.skipif(
+    not _HAS_REQUIRED_DEPS
+    or not os.environ.get("WEAVE_SQL_PASSWORD", False),
+    reason="Modules: 'psycopg2', 'sqlalchemy' required for this test "
+    "AND env variables: 'WEAVE_SQL_HOST', 'WEAVE_SQL_PASSWORD'",
+)
+def test_index_sql_check_duplicate_schema_name(test_index):
+    """Test that the duplicate schema error is not raised when using different
+    case-sensitive paths."""
+    pantry_path = test_index.index.pantry_path
+    # Test that we can create a SQL Index using the same pantry path in
+    # different pantry_path casing.
+    _ = IndexSQL(LocalFileSystem(), pantry_path.upper())
+    _ = IndexSQL(LocalFileSystem(), pantry_path.lower())

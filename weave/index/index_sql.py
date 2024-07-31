@@ -84,6 +84,7 @@ class IndexSQL(IndexABC):
         if d_schema_name == "":
             d_schema_name = "weave"
         self._pantry_schema = kwargs.get("pantry_schema", d_schema_name)
+        self._pantry_schema = self._pantry_schema.lower()
 
         self._engine = sqla.create_engine(sqla.engine.url.URL(
             drivername="postgresql",
