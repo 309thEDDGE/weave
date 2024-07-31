@@ -258,4 +258,3 @@ def test_index_sql_check_duplicate_schema_name(test_index):
     # different pantry_path casing.
     _ = IndexSQL(LocalFileSystem(), pantry_path.upper())
     _ = IndexSQL(LocalFileSystem(), pantry_path.lower())
-
