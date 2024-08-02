@@ -14,7 +14,7 @@ else:
 from .basket import Basket
 from .config import get_mongo_db
 
-
+# pylint: disable-next=too-many-instance-attributes
 class MongoLoader():
     """Initializes a mongo loader class. Retrieves a connection to the mongo
     server and facilitates the uploading of records to each pantry's individual
