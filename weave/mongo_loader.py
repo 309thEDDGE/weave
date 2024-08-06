@@ -14,7 +14,7 @@ else:
 from .basket import Basket
 from .config import get_mongo_db
 
-
+# pylint: disable-next=too-many-instance-attributes
 class MongoLoader():
     """Initializes a mongo loader class. Retrieves a connection to the mongo
     server and facilitates the uploading of records to each pantry's individual
@@ -63,9 +63,10 @@ class MongoLoader():
 
         # Get the database. (Use MONGODB_DATABASE, defaulting to
         # pantry_path if it is not present.)
-        self.database = self.mongo_client[
-            self.mongo_config.get("mongodb_database", self.pantry.pantry_path)
-        ]
+        self.database_name = self.mongo_config.get(
+            "mongodb_database", self.pantry.pantry_path)
+        self.database = self.mongo_client[self.database_name]
+
         self.metadata_collection = self.mongo_config.get(
             "metadata_collection", "metadata")
         self.manifest_collection = self.mongo_config.get(
@@ -229,6 +230,23 @@ class MongoLoader():
         self.load_mongo_manifest(uuids, collection=manifest_collection)
         self.load_mongo_supplement(uuids, collection=supplement_collection)
 
+    def clear_mongo(self, refresh=False):
+        """Clear the metadata, manifest, and supplement collections optionally,
+        refreshing them from the pantry.
+
+        Parameters
+        ----------
+        refresh: bool (default=False)
+            If True, reload the collections with data retreived from the pantry
+        """
+        # Drop the referenced database.
+        self.database.client.drop_database(self.database_name)
+
+        # Optionally refresh the mongo collections with the current index.
+        if refresh:
+            self.load_mongo(
+                self.pantry.index.to_pandas_df(max_rows=None)['uuid'].to_list()
+            )
 
     def remove_document(self, uuid, **kwargs):
         """Delete a document using the uuid in the collections.

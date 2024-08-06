@@ -377,14 +377,14 @@ def test_check_pantries_have_discrete_mongodbs():
             tmp_file2.flush()
 
             pantry1.upload_basket(
-                upload_items=[{'path':tmp_file1.name, 'stub':False}],
+                upload_items=[{'path': tmp_file1.name, 'stub': False}],
                 basket_type='test_basket',
                 unique_id='pantry1fileuuid',
             )
             p1_mongo_loader.load_mongo_supplement(uuids=["pantry1fileuuid"])
 
             pantry2.upload_basket(
-                upload_items=[{'path':tmp_file2.name, 'stub':False}],
+                upload_items=[{'path': tmp_file2.name, 'stub': False}],
                 basket_type='test_basket',
                 unique_id='pantry2fileuuid',
             )
@@ -406,3 +406,45 @@ def test_check_pantries_have_discrete_mongodbs():
     p2_mongo_loader.database.client.drop_database(pantry2.pantry_path)
     localfs.rm(pantry1.pantry_path, recursive=True)
     localfs.rm(pantry2.pantry_path, recursive=True)
+
+
+@pytest.mark.skipif(
+    _SKIP_PYMONGO, reason="Pymongo required for this test"
+)
+def test_clear_mongo_works(set_up):
+    """Test clear_mongo removed all mongo documents from the tracked DB and
+    refreshed.
+    """
+    # Load the metadata, supplement, and manifests of the three baskets in
+    # the pantry (one has no metadata).
+    test_uuids = ["1234", "4321", "nometadata"]
+    mongo_loader = MongoLoader(pantry=set_up.pantry)
+    mongo_loader.load_mongo(uuids=test_uuids)
+
+    count = set_up.database[set_up.metadata_collection].count_documents({})
+    assert count == 2, "metadata collection not loaded"
+    count = set_up.database[set_up.supplement_collection].count_documents({})
+    assert count == 3, "supplement collection not loaded"
+    count = set_up.database[set_up.manifest_collection].count_documents({})
+    assert count == 3, "manifest collection not loaded"
+
+    # Clear the database, and ensure all collections are empty.
+    mongo_loader.clear_mongo()
+
+    count = set_up.database[set_up.metadata_collection].count_documents({})
+    assert count == 0, "metadata collection not cleared"
+    count = set_up.database[set_up.supplement_collection].count_documents({})
+    assert count == 0, "supplement collection not cleared"
+    count = set_up.database[set_up.manifest_collection].count_documents({})
+    assert count == 0, "manifest collection not cleared"
+
+    # Refresh the database (metadata will only have 2 records as one of the
+    # baskets does not include metadata)
+    mongo_loader.clear_mongo(refresh=True)
+
+    count = set_up.database[set_up.metadata_collection].count_documents({})
+    assert count == 2, "metadata collection not up to date"
+    count = set_up.database[set_up.supplement_collection].count_documents({})
+    assert count == 3, "supplement collection not up to date"
+    count = set_up.database[set_up.manifest_collection].count_documents({})
+    assert count == 3, "manifest collection not up to date"
