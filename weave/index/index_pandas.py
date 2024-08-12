@@ -59,6 +59,9 @@ class IndexPandas(IndexABC):
         **pantry_read_only: bool (default=False)
             A bool that flags if the current working file system is read-only
             or not.
+        **auto_cleanup: bool (default=True)
+            A bool that flags whether or not old indices are removed when a
+            new one is created and the limit is met.
         """
         super().__init__(file_system=file_system,
                          pantry_path=pantry_path,
@@ -72,6 +75,7 @@ class IndexPandas(IndexABC):
         self.index_json_time = 0 # 0 is essentially same as None in this case
         self.index_df = None
         self.pantry_read_only = kwargs.get("pantry_read_only", False)
+        self.auto_cleanup = kwargs.get("auto_cleanup", True)
 
     def __len__(self):
         """Returns the number of baskets in the index."""
@@ -134,8 +138,11 @@ class IndexPandas(IndexABC):
             self.generate_index()
             return
         if len(index_paths) > 20:
-            warnings.warn(f"The index basket count is {len(index_paths)}. " +
-                 "Consider running weave.IndexPandas.clean_up_indices")
+            if self.auto_cleanup:
+                self.clean_up_indices()
+            else:
+                warnings.warn(f"The index basket count is {len(index_paths)}."+
+                     " Consider running weave.IndexPandas.clean_up_indices")
         latest_index_path = ""
         for path in index_paths:
             path_time = self._get_index_time_from_path(path)
