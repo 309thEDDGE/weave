@@ -141,8 +141,9 @@ class IndexPandas(IndexABC):
             if self.auto_cleanup:
                 self.clean_up_indices()
             else:
-                warnings.warn(f"The index basket count is {len(index_paths)}."+
-                     " Consider running weave.IndexPandas.clean_up_indices")
+                warn = f"The index basket count is {(len(index_paths))}. " \
+                        "Consider running weave.IndexPandas.clean_up_indices"
+                warnings.warn(warn)
         latest_index_path = ""
         for path in index_paths:
             path_time = self._get_index_time_from_path(path)
