@@ -11,6 +11,7 @@ except ImportError:
 else:
     _HAS_PYMONGO = True
 from pathlib import Path
+import os
 
 from .basket import Basket
 from .config import get_mongo_db
@@ -65,7 +66,10 @@ class MongoLoader():
         # Get the database. (Use MONGODB_DATABASE, defaulting to
         # pantry_path if it is not present.)
         self.database_name = self.mongo_config.get(
-            "mongodb_database", Path(self.pantry.pantry_path).name)
+            "mongodb_database",
+            # self.pantry.pantry_path)
+            # Path(self.pantry.pantry_path).name)
+            self.pantry.pantry_path.replace(os.sep, "_").replace("-", "_"))
         self.database = self.mongo_client[self.database_name]
 
         self.metadata_collection = self.mongo_config.get(
