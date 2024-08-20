@@ -116,9 +116,8 @@ class Pantry():
             Path to verify.
         """
         valid = True
-        if self.file_system == "s3":
-            if self.pantry_path:
-                valid = path.startswith(self.pantry_path + os.path.sep)
+        if self.pantry_path:
+            valid = path.startswith(self.pantry_path + os.path.sep)
         if valid and "zip" not in str(type(self.file_system)):
             bad_str = os.path.sep + ".." + os.path.sep
             valid = bad_str not in path
