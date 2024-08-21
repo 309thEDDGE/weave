@@ -98,17 +98,18 @@ def get_index_column_names():
 
 def get_file_system():
     """Get the filesystem to be used for storing baskets."""
-    # return s3fs.S3FileSystem(
-    #     client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-    # )
-
-    return s3fs.S3FileSystem(
-        endpoint_url=os.environ["S3_ENDPOINT"],
-        key=os.environ["AWS_ACCESS_KEY_ID"],
-        secret=os.environ["AWS_SECRET_ACCESS_KEY"],
-        use_ssl=False,
-        anon=False
-    )
+    if "JUPYTERHUB_USER" in os.environ:
+        return s3fs.S3FileSystem(
+            client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+        )
+    else:
+        return s3fs.S3FileSystem(
+            endpoint_url=os.environ["S3_ENDPOINT"],
+            key=os.environ["AWS_ACCESS_KEY_ID"],
+            secret=os.environ["AWS_SECRET_ACCESS_KEY"],
+            use_ssl=False,
+            anon=False
+        )
 
 
 def get_mongo_db():
