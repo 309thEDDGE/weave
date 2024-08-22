@@ -104,11 +104,10 @@ def get_file_system():
         )
     else:
         return s3fs.S3FileSystem(
-            endpoint_url=os.environ["S3_ENDPOINT"],
-            key=os.environ["AWS_ACCESS_KEY_ID"],
-            secret=os.environ["AWS_SECRET_ACCESS_KEY"],
-            use_ssl=False,
-            anon=False
+            client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"],
+                           "use_ssl": "False",
+                           "anon": "False"
+                           }
         )
 
 
