@@ -106,7 +106,6 @@ def get_file_system():
         client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]},
                         use_ssl=False,
                         anon=False
-                        
     )
 
 
