@@ -111,9 +111,8 @@ def test_sync_index_autocleanup_if_false(test_pantry):
         sync=True,
         auto_cleanup=False,
     )
-    pantry.index.to_pandas_df()
 
-    for i in range (24):
+    for i in range (25):
         tmp_basket_dir_one = test_pantry.set_up_basket(f"basket_{i}")
         test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one,
                              uid=f"000{i}")
