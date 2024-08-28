@@ -2,6 +2,7 @@
 import os
 import re
 import tempfile
+import warnings
 
 import pytest
 
@@ -100,6 +101,33 @@ def test_sync_index_calls_generate_index_if_no_index(test_pantry):
     )
     assert len(pantry.index.to_pandas_df()) == 1
 
+def test_sync_index_autocleanup_if_false(test_pantry):
+    """Tests that IndexPandas.sync raises the correct warning with
+    auto-cleanup turned off."""
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=test_pantry.pantry_path,
+        file_system=test_pantry.file_system,
+        sync=True,
+        auto_cleanup=False,
+    )
+    pantry.index.to_pandas_df()
+
+    for i in range (24):
+        tmp_basket_dir_one = test_pantry.set_up_basket(f"basket_{i}")
+        test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir_one,
+                             uid=f"000{i}")
+
+        pantry.index.generate_index()
+
+    with warnings.catch_warnings(record=True) as warn:
+        pantry.index.sync_index()
+    warning_list = [warn[i].message for i in range(len(warn))]
+    warning_1 = warning_list[0]
+    assert warning_1.args[0] == (
+        "The index basket count is 25. "
+        "Consider running weave.IndexPandas.clean_up_indices"
+    )
 
 def test_get_index_time_from_path(test_pantry):
     """Tests Index._get_index_time_from_path to ensure it returns the correct
