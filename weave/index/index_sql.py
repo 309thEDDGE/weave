@@ -57,7 +57,7 @@ class IndexSQL(IndexABC):
                 'host': os.environ["WEAVE_SQL_HOST"],
                 'username': os.environ["WEAVE_SQL_USERNAME"],
                 'password': os.environ["WEAVE_SQL_PASSWORD"],
-                'port': os.environ.get("WEAVE_SQL_PORT", 5432),
+                'port': int(os.environ.get("WEAVE_SQL_PORT", 5432)),
             }
             # pylint: enable=pointless-statement
         except KeyError as key_error:

@@ -122,7 +122,7 @@ def get_mongo_db():
             host=os.environ["MONGODB_HOST"],
             username=os.environ["MONGODB_USERNAME"],
             password=os.environ["MONGODB_PASSWORD"],
-            port=os.environ.get("MONGODB_PORT", 27017),
+            port=int(os.environ.get("MONGODB_PORT", 27017)),
         )
     else:
         client = pymongo.MongoClient(
