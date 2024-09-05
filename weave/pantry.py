@@ -84,7 +84,6 @@ class Pantry():
 
         # Check if file system is read-only. If so, raise error.
         try:
-            # FIXME: this is wasteful -- nothing is ever really deleted in s3
             self.file_system.touch(os.path.join(self.pantry_path,
                                                 "test_read_only.txt"))
             self.file_system.rm(os.path.join(self.pantry_path,
