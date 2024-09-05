@@ -73,7 +73,7 @@ def test_github_cicd_sql_server():
         host= os.environ["WEAVE_SQL_HOST"],
         user= os.environ["WEAVE_SQL_USERNAME"],
         password= os.environ["WEAVE_SQL_PASSWORD"],
-        port= os.environ.get("WEAVE_SQL_PORT", 5432),
+        port=int(os.environ.get("WEAVE_SQL_PORT", 5432)),
         )
     cur = conn.cursor()
 

@@ -1,6 +1,4 @@
-<h1 align="center">
-<img src="./weave_transparent.png" width="300">
-</h1>
+<h1 align="center"><img src="./weave_transparent.png" width="300"></h1>
 
 # Weave
 
