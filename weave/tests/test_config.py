@@ -11,14 +11,24 @@ from fsspec.implementations.local import LocalFileSystem
 
 import weave
 
+# Ignore pylint duplicate code. Code here is used to explicitly show pymongo is
+# an optional dependency. Duplicate code is found in config.py (where pymongo
+# is actually imported)
+# pylint: disable-next=duplicate-code
+try:
+    import pymongo
+except ImportError:
+    _HAS_PYMONGO = False
+else:
+    _HAS_PYMONGO = True
 
 @pytest.mark.parametrize("selection,expected",[("s3", s3fs.S3FileSystem),
                                          ("local", LocalFileSystem),
                                          ("other", LocalFileSystem)])
 def test_config_filesystem(selection, expected):
     """Test selecting FileSystem type from get_file_system"""
-    fs = weave.config.get_file_system(file_system=selection) 
-    assert type(fs) == expected
+    fs = weave.config.get_file_system(file_system=selection)
+    assert isinstance(fs, expected)
 
 
 # Skip tests if pymongo is not installed.
