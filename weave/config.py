@@ -130,7 +130,7 @@ def get_mongo_db(**kwargs):
 
     timeout = kwargs.get("timeout", None)
     if timeout is None:
-        timeout = os.environ.get("MONGO_TIMEOUT", 0)
+        timeout = os.environ.get("WEAVE_MONGODB_TIMEOUT", 0)
 
     # If MONGODB_HOST, USERNAME and PASSWORD are provided as environment
     # variables, initialize the mongo client with the provided
@@ -145,11 +145,11 @@ def get_mongo_db(**kwargs):
             username=os.environ["MONGODB_USERNAME"],
             password=os.environ["MONGODB_PASSWORD"],
             port=int(os.environ.get("MONGODB_PORT", 27017)),
-            timeoutMS=timeout
+            timeoutMS=timeout,
         )
     else:
         client = pymongo.MongoClient(
-            "mongodb", username="root", password="example", timeoutMS=timeout
+            "mongodb", username="root",password="example", timeoutMS=timeout,
         )
 
     # Force a connection test before we return. This will raise an error if

@@ -323,7 +323,10 @@ class Pantry():
                               "is required to use this function.")
 
         integrity_data = derive_integrity_data(file_path)['hash']
-        mongo_loader = MongoLoader(pantry=self)
+        try:
+            mongo_loader = MongoLoader(pantry=self)
+        except pymongo.errors.ServerSelectionTimeoutError:
+            return []
 
         if kwargs.get("FORCE_LOAD_SUPPLEMENT", False):
             mongo_loader.load_mongo_supplement(
