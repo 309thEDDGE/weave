@@ -1,6 +1,7 @@
 """Test weave configuration functions"""
 
 import os
+import sys
 import time
 
 import pymongo
@@ -20,6 +21,11 @@ def test_config_filesystem(selection, expected):
     assert type(fs) == expected
 
 
+# Skip tests if pymongo is not installed.
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+    reason="Pymongo required for this test",
+)
 def test_get_mongo_arg_timeout():
     """Verify the timeout works when can't connect to host."""
     os.environ['MONGODB_HOST'] = "BAD_HOST"
@@ -32,6 +38,11 @@ def test_get_mongo_arg_timeout():
     assert abs(end-start - timeout/1000) < timeout/10
 
 
+# Skip tests if pymongo is not installed.
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+    reason="Pymongo required for this test",
+)
 def test_get_mongo_env_timeout():
     """Verify the timeout works when can't connect to host."""
     timeout = 500
