@@ -130,7 +130,7 @@ def get_mongo_db(**kwargs):
 
     timeout = kwargs.get("timeout", None)
     if timeout is None:
-        timeout = os.environ.get("WEAVE_MONGODB_TIMEOUT", 0)
+        timeout = int(os.environ.get("WEAVE_MONGODB_TIMEOUT", 0))
 
     # If MONGODB_HOST, USERNAME and PASSWORD are provided as environment
     # variables, initialize the mongo client with the provided
