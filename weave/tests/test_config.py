@@ -4,7 +4,6 @@ import os
 import sys
 import time
 
-import pymongo
 import pytest
 import s3fs
 from fsspec.implementations.local import LocalFileSystem
