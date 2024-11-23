@@ -54,7 +54,6 @@ def test_get_mongo_arg_timeout():
         assert abs(end-start - timeout/1000) < timeout/10
     finally:
         os.environ = env_copy
-        
 
 
 # Skip tests if pymongo is not installed.
@@ -77,4 +76,3 @@ def test_get_mongo_env_timeout():
         assert abs(end-start - timeout/1000) < timeout/10
     finally:
         os.environ = env_copy
-
