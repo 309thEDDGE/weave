@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+from unittest import mock
 
 import pytest
 import s3fs
@@ -21,17 +22,16 @@ except ImportError:
 else:
     _HAS_PYMONGO = True
 
-# @pytest.mark.parametrize("selection,expected",[("s3", s3fs.S3FileSystem),
-#                                          ("local", LocalFileSystem),
-#                                          ("other", LocalFileSystem)])
-# def test_config_filesystem(selection, expected):
-#     """Test selecting FileSystem type from get_file_system"""
-#     copy_environ = os.environ.copy()
-#     if "S3_ENDPOINT" not in os.environ:
-#         os.environ["S3_ENDPOINT"] = "dummy_s3_endpoint"
-#     fs = weave.config.get_file_system(file_system=selection)
-#     os.environ = copy_environ
-#     assert isinstance(fs, expected)
+@pytest.mark.parametrize("selection,expected",[("s3", s3fs.S3FileSystem),
+                                         ("local", LocalFileSystem),
+                                         ("other", LocalFileSystem)])
+@mock.patch.dict(os.environ, os.environ.copy(), clear=True)
+def test_config_filesystem(selection, expected):
+    """Test selecting FileSystem type from get_file_system"""
+    if "S3_ENDPOINT" not in os.environ:
+        os.environ["S3_ENDPOINT"] = "dummy_s3_endpoint"
+    fs = weave.config.get_file_system(file_system=selection)
+    assert isinstance(fs, expected)
 
 
 # # Skip tests if pymongo is not installed.
