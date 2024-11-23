@@ -3,6 +3,7 @@
 import os
 import sys
 import tempfile
+from unittest import mock
 
 import pytest
 from fsspec.implementations.local import LocalFileSystem
@@ -339,34 +340,31 @@ def test_check_file_already_exists(set_up):
         assert uuids[0] == 'file_already_exists_uuid'
 
 
-# @pytest.mark.skipif(
-#     _SKIP_PYMONGO, reason="Pymongo required for this test"
-# )
-# def test_check_file_exists_no_mongodb(set_up):
-#     """Make a file, upload it to the pantry, check if that file already exists.
-#     """
-#     pantry = set_up.pantry
-#     env_copy = os.environ.copy()
+@pytest.mark.skipif(
+    _SKIP_PYMONGO, reason="Pymongo required for this test"
+)
+@mock.patch.dict(os.environ, os.environ.copy(), clear=True)
+def test_check_file_exists_no_mongodb(set_up):
+    """Make a file, upload it to the pantry, check if that file already exists.
+    """
+    pantry = set_up.pantry
 
-#     try:
-#         with tempfile.NamedTemporaryFile() as tmp_file:
-#             tmp_file.write(b'This is my temporary file that we will hash')
-#             tmp_file.flush()
-#             pantry.upload_basket(
-#                 upload_items=[{'path':tmp_file.name, 'stub':False}],
-#                 basket_type='filealreadyexists',
-#                 unique_id='file_already_exists_uuid',
-#             )
+    with tempfile.NamedTemporaryFile() as tmp_file:
+        tmp_file.write(b'This is my temporary file that we will hash')
+        tmp_file.flush()
+        pantry.upload_basket(
+            upload_items=[{'path':tmp_file.name, 'stub':False}],
+            basket_type='filealreadyexists',
+            unique_id='file_already_exists_uuid',
+        )
 
-#             mongo_loader = MongoLoader(pantry=pantry)
-#             mongo_loader.load_mongo_supplement(
-#                 uuids=["file_already_exists_uuid"]
-#             )
-#             os.environ['MONGODB_HOST'] = "BAD_HOST"
-#             uuids = pantry.does_file_exist(tmp_file.name)
-#             assert len(uuids) == 0
-#     finally:
-#         os.environ = env_copy.copy()
+        mongo_loader = MongoLoader(pantry=pantry)
+        mongo_loader.load_mongo_supplement(
+            uuids=["file_already_exists_uuid"]
+        )
+        os.environ['MONGODB_HOST'] = "BAD_HOST"
+        uuids = pantry.does_file_exist(tmp_file.name)
+        assert len(uuids) == 0
 
 
 @pytest.mark.skipif(

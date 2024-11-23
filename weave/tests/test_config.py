@@ -34,45 +34,39 @@ def test_config_filesystem(selection, expected):
     assert isinstance(fs, expected)
 
 
-# # Skip tests if pymongo is not installed.
-# @pytest.mark.skipif(
-#     "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-#     reason="Pymongo required for this test",
-# )
-# def test_get_mongo_arg_timeout():
-#     """Verify the timeout works when can't connect to host."""
-#     env_copy = os.environ.copy()
-#     try:
-#         os.environ['MONGODB_HOST'] = "BAD_HOST"
-#         timeout = 500
-#         exc_type = pymongo.errors.ServerSelectionTimeoutError
-#         with pytest.raises(exc_type):
-#             start = time.time()
-#             weave.config.get_mongo_db(timeout=timeout)
-#         end = time.time()
+# Skip tests if pymongo is not installed.
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+    reason="Pymongo required for this test",
+)
+@mock.patch.dict(os.environ, os.environ.copy(), clear=True)
+def test_get_mongo_arg_timeout():
+    """Verify the timeout works when can't connect to host."""
+    os.environ['MONGODB_HOST'] = "BAD_HOST"
+    timeout = 500
+    exc_type = pymongo.errors.ServerSelectionTimeoutError
+    with pytest.raises(exc_type):
+        start = time.time()
+        weave.config.get_mongo_db(timeout=timeout)
+    end = time.time()
 
-#         assert abs(end-start - timeout/1000) < timeout/10
-#     finally:
-#         os.environ = env_copy
+    assert abs(end-start - timeout/1000) < timeout/10
 
 
-# # Skip tests if pymongo is not installed.
-# @pytest.mark.skipif(
-#     "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-#     reason="Pymongo required for this test",
-# )
-# def test_get_mongo_env_timeout():
-#     """Verify the timeout works when can't connect to host."""
-#     env_copy = os.environ.copy()
-#     try:
-#         timeout = 500
-#         os.environ['MONGODB_HOST'] = "BAD_HOST"
-#         os.environ['WEAVE_MONGODB_TIMEOUT'] = str(timeout)
-#         with pytest.raises(pymongo.errors.ServerSelectionTimeoutError):
-#             start = time.time()
-#             weave.config.get_mongo_db()
-#         end = time.time()
+# Skip tests if pymongo is not installed.
+@pytest.mark.skipif(
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
+    reason="Pymongo required for this test",
+)
+@mock.patch.dict(os.environ, os.environ.copy(), clear=True)
+def test_get_mongo_env_timeout():
+    """Verify the timeout works when can't connect to host."""
+    timeout = 500
+    os.environ['MONGODB_HOST'] = "BAD_HOST"
+    os.environ['WEAVE_MONGODB_TIMEOUT'] = str(timeout)
+    with pytest.raises(pymongo.errors.ServerSelectionTimeoutError):
+        start = time.time()
+        weave.config.get_mongo_db()
+    end = time.time()
 
-#         assert abs(end-start - timeout/1000) < timeout/10
-#     finally:
-#         os.environ = env_copy
+    assert abs(end-start - timeout/1000) < timeout/10
