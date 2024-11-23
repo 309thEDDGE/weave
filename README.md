@@ -9,7 +9,7 @@ Weave was created from a need to track the lineage of data products derived
 from multiple sources. Weave can be used to upload arbitrary data products to a
 datastore with options to store metadata and information about how data were
 derived. When Weave is used to upload the data, Weave can then be used to
-access the data using Pythonic API calls, as well as giving the user easy
+access the data using Pythonic API calls, as well as giving the user ready
 access to data provenance.
 
 ## Weave Vocabulary
