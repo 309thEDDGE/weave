@@ -54,12 +54,14 @@ class MongoLoader():
                 username=self.mongo_config["mongodb_username"],
                 password=self.mongo_config["mongodb_password"],
                 port=self.mongo_config.get("mongodb_port", 27017),
+                timeoutMS=self.mongo_config.get("mongodb_timeout", None)
             )
             self.mongo_client.server_info()
         # If we still don't have a valid mongo_client, use the weave config as
         # a last resort.
         if self.mongo_client is None:
-            self.mongo_client = get_mongo_db()
+            timeout = self.mongo_config.get("mongodb_timeout", None)
+            self.mongo_client = get_mongo_db(timeout=timeout)
 
         # Get the database. (Use MONGODB_DATABASE, defaulting to
         # pantry_path if it is not present.)

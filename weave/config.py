@@ -2,6 +2,7 @@
 
 import os
 
+from fsspec.implementations.local import LocalFileSystem
 import s3fs
 # Try-Except required to make pymongo an optional dependency.
 try:
@@ -96,19 +97,40 @@ def get_index_column_names():
             "weave_version", "address", "storage_type"]
 
 
-def get_file_system():
-    """Get the filesystem to be used for storing baskets."""
-    return s3fs.S3FileSystem(
-        client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
-    )
+def get_file_system(**kwargs):
+    """Get the filesystem to be used for storing baskets.
+
+    **file_system: str (default=s3)
+        Selection of file system type. Must be s3 or local. Can also be set
+        with the WEAVE_FILESYSTEM environment variable
+    """
+    file_system = kwargs.get("file_system", None)
+    if file_system is None:
+        file_system = os.environ.get("WEAVE_FILESYSTEM", "s3")
+    if file_system == "s3":
+        return s3fs.S3FileSystem(
+            client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+        )
+    return LocalFileSystem()
 
 
-def get_mongo_db():
-    """Get the mongodb client to be used for metadata search."""
+def get_mongo_db(**kwargs):
+    """Get the mongodb client to be used for metadata search.
+
+    Parameters:
+    -----------
+    **timeout: int (default=0)
+        Milliseconds to timeout the connection. Default of 0 means no timeout.
+        Can also be set with the MONGO_TIMEOUT environment variable.
+    """
 
     if not _HAS_PYMONGO:
         raise ImportError("Missing Dependency. The package 'pymongo' "
                           "is required to use this function")
+
+    timeout = kwargs.get("timeout", None)
+    if timeout is None:
+        timeout = int(os.environ.get("WEAVE_MONGODB_TIMEOUT", 0))
 
     # If MONGODB_HOST, USERNAME and PASSWORD are provided as environment
     # variables, initialize the mongo client with the provided
@@ -123,10 +145,11 @@ def get_mongo_db():
             username=os.environ["MONGODB_USERNAME"],
             password=os.environ["MONGODB_PASSWORD"],
             port=int(os.environ.get("MONGODB_PORT", 27017)),
+            timeoutMS=timeout,
         )
     else:
         client = pymongo.MongoClient(
-            "mongodb", username="root", password="example"
+            "mongodb", username="root",password="example", timeoutMS=timeout,
         )
 
     # Force a connection test before we return. This will raise an error if
