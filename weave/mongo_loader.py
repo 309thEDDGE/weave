@@ -251,12 +251,12 @@ class MongoLoader():
             )
 
     def remove_document(self, uuid, **kwargs):
-        """Delete a document using the uuid in the collections.
+        """Delete all documents containing the given uuid from all collections.
 
         Parameters
         ----------
         uuid: str
-            "uuid" will be used to locate and remove the document from MongoDB
+            "uuid" will be used to locate and remove the documents from MongoDB
             in the supplement, manifest, and metadata collections.
         **metadata_collection: str (default=self.metadata_collection)
             Metadata will be added to the Mongo collection specified.

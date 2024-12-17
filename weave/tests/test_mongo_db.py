@@ -482,7 +482,7 @@ def test_clear_mongo_works(set_up):
     _SKIP_PYMONGO, reason="Pymongo required for this test"
 )
 def test_mongo_loader_remove_document_works(set_up):
-    """Test duplicate manifest won't be uploaded to mongoDB, based on the UUID.
+    """Test remove document removes all documents containing the given uuid.
     """
     test_uuid = "1234"
 
