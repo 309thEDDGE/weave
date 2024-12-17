@@ -282,4 +282,4 @@ class MongoLoader():
                                 "must be a string")
 
         for collection in collection_names:
-            self.database[collection].delete_one({'uuid':uuid})
+            self.database[collection].delete_many({'uuid':uuid})

@@ -476,3 +476,52 @@ def test_clear_mongo_works(set_up):
     assert count == 3, "supplement collection not up to date"
     count = set_up.database[set_up.manifest_collection].count_documents({})
     assert count == 3, "manifest collection not up to date"
+
+
+@pytest.mark.skipif(
+    _SKIP_PYMONGO, reason="Pymongo required for this test"
+)
+def test_mongo_loader_remove_document_works(set_up):
+    """Test duplicate manifest won't be uploaded to mongoDB, based on the UUID.
+    """
+    test_uuid = "1234"
+
+    dummy_data = {
+        "uuid": test_uuid,
+        "dummy_data": "fake_data"
+    }
+
+    mongo_loader = MongoLoader(pantry=set_up.pantry)
+    mongo_loader.load_mongo(
+        uuids=[test_uuid],
+        metadata_collection=set_up.metadata_collection,
+        manifest_collection=set_up.manifest_collection,
+        supplement_collection=set_up.supplement_collection,
+    )
+
+    metadata_collection = set_up.database[set_up.metadata_collection]
+    manifest_collection = set_up.database[set_up.manifest_collection]
+    supplement_collection = set_up.database[set_up.supplement_collection]
+
+    # One record should exist in each collection after calling load_mongo.
+    assert 1 == metadata_collection.count_documents({"uuid": test_uuid})
+    assert 1 == manifest_collection.count_documents({"uuid": test_uuid})
+    assert 1 == supplement_collection.count_documents({"uuid": test_uuid})
+
+    # Manually insert a dummy record into each collection using the test uuid.
+    metadata_collection.insert_one(dummy_data)
+    supplement_collection.insert_one(dummy_data)
+    manifest_collection.insert_one(dummy_data)
+
+    # Check that the record was added successfully to each collection.
+    assert 2 == metadata_collection.count_documents({"uuid": test_uuid})
+    assert 2 == manifest_collection.count_documents({"uuid": test_uuid})
+    assert 2 == supplement_collection.count_documents({"uuid": test_uuid})
+
+    # Remove the test uuid from all the collections.
+    mongo_loader.remove_document(uuid=test_uuid)
+
+    # Every record (with that uuid) should be deleted from each collection.
+    assert 0 == metadata_collection.count_documents({"uuid": test_uuid})
+    assert 0 == manifest_collection.count_documents({"uuid": test_uuid})
+    assert 0 == supplement_collection.count_documents({"uuid": test_uuid})
