@@ -261,7 +261,7 @@ def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
 
 def test_pantry_creates_pantry_if_none(test_pantry):
     """Tests the pantry will be created if it doesn't exist."""
-    pantry_path = 'NoPantry'
+    pantry_path = 'nopantry'
     pantry = Pantry(
             IndexPandas,
             pantry_path=pantry_path,
