@@ -67,13 +67,15 @@ class Pantry():
         self.file_system = kwargs.pop("file_system", None)
         if self.file_system is None:
             self.file_system = get_file_system()
-        if not self.file_system.exists(pantry_path):
-            self.file_system.mkdir(pantry_path)
+        
+        # If using S3FileSystem, check the connection
         if isinstance(self.file_system, s3fs.S3FileSystem):
             try:
-                self.file_system.ls(pantry_path)
+                self.file_system.ls('s3://')
             except Exception as exc:
                 raise ConnectionError("Connection to s3fs failed.") from exc
+        if not self.file_system.exists(pantry_path):
+            self.file_system.mkdir(pantry_path)
 
         self.pantry_path = str(pantry_path)
         self.setup_config = {}
