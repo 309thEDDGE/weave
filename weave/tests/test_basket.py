@@ -8,7 +8,6 @@ import shutil
 from pathlib import Path
 
 import pytest
-import s3fs
 import pandas as pd
 import fsspec
 from fsspec.implementations.local import LocalFileSystem
