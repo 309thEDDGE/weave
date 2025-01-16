@@ -262,7 +262,7 @@ def test_pantry_fails_with_bad_path(test_pantry):
     """Tests the pantry will fail if a bad path is given."""
     bad_path = 'Bad/\/\\/0..\0??Path'# pylint: disable=anomalous-backslash-in-string
 
-    with pytest.raises(OSError, 
+    with pytest.raises(OSError,
                         match='Failed to create directory, Invalid Path'):
         Pantry(
             IndexPandas,
