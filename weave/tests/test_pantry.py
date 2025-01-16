@@ -260,9 +260,10 @@ def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
 
 def test_pantry_fails_with_bad_path(test_pantry):
     """Tests the pantry will fail if a bad path is given."""
-    bad_path = 'Bad/\/\\/0??Path'# pylint: disable=anomalous-backslash-in-string
+    bad_path = 'Bad/\/\\/0..\0??Path'# pylint: disable=anomalous-backslash-in-string
 
-    with pytest.raises(OSError, match='Failed to create directory, Invalid Path'):
+    with pytest.raises(OSError, 
+                        match='Failed to create directory, Invalid Path'):
         Pantry(
             IndexPandas,
             pantry_path=bad_path,
