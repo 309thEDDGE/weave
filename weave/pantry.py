@@ -77,10 +77,10 @@ class Pantry():
 
         try:
             if not self.file_system.exists(pantry_path):
-                    self.file_system.mkdir(pantry_path)
-        except Exception as e:
+                self.file_system.mkdir(pantry_path)
+        except Exception as exc:
             raise OSError("Failed to create directory, Invalid"
-                            f" Path {pantry_path}.\n{e}")
+                            f" Path {pantry_path}.\n{exc}") from exc
 
         self.pantry_path = str(pantry_path)
         self.setup_config = {}
