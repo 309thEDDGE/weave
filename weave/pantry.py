@@ -74,9 +74,13 @@ class Pantry():
                 self.file_system.ls('s3://')
             except Exception as exc:
                 raise ConnectionError("Connection to s3fs failed.") from exc
-        
+
         if not self.file_system.exists(pantry_path):
-            self.file_system.mkdir(pantry_path)
+            try:
+                self.file_system.mkdir(pantry_path)
+            except Exception as e:
+                raise OSError("Failed to create directory, Invalid"
+                              " Path {pantry_path}")
 
         self.pantry_path = str(pantry_path)
         self.setup_config = {}
