@@ -74,6 +74,7 @@ class Pantry():
                 self.file_system.ls('s3://')
             except Exception as exc:
                 raise ConnectionError("Connection to s3fs failed.") from exc
+        
         if not self.file_system.exists(pantry_path):
             self.file_system.mkdir(pantry_path)
 

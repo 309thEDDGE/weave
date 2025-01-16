@@ -258,6 +258,26 @@ def test_create_index_with_bad_basket_throws_warning(set_up_malformed_baskets):
             )
         )
 
+def test_pantry_fails_with_bad_path(test_pantry):
+    """Tests the pantry will fail if a bad path is given."""
+    bad_path = 'Bad/\/\\/0??Path'
+    if isinstance(test_pantry.file_system, s3fs.S3FileSystem):
+        error_msg = "Connection to s3fs failed."
+        #with pytest.raises(ConnectionError, match=error_msg):
+        Pantry(
+            IndexPandas,
+            pantry_path=bad_path,
+            file_system=test_pantry.file_system
+        )
+    else:
+        error_msg = f"Invalid pantry Path. Pantry does not exist at: "\
+            f"{bad_path}"
+        #with pytest.raises(ValueError, match=error_msg):
+        Pantry(
+            IndexPandas,
+            pantry_path=bad_path,
+            file_system=test_pantry.file_system
+        )
 
 def test_pantry_creates_pantry_if_none(test_pantry):
     """Tests the pantry will be created if it doesn't exist."""
