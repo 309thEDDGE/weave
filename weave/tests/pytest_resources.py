@@ -18,7 +18,8 @@ def get_file_systems():
     file_systems_ids = ["LocalFileSystem"]
     if "S3_ENDPOINT" in os.environ:
         s3 = s3fs.S3FileSystem(
-            client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+            client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"],
+                           "request_checksum_calculation": "when_supported"}
         )
         file_systems.append(s3)
         file_systems_ids.append("S3FileSystem")

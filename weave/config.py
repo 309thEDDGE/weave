@@ -109,7 +109,8 @@ def get_file_system(**kwargs):
         file_system = os.environ.get("WEAVE_FILESYSTEM", "s3")
     if file_system == "s3":
         return s3fs.S3FileSystem(
-            client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"]}
+            client_kwargs={"endpoint_url": os.environ["S3_ENDPOINT"],
+                           "request_checksum_calculation": "when_supported"}
         )
     return LocalFileSystem()
 
