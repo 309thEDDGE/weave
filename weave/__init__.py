@@ -27,7 +27,7 @@ from .pantry import Pantry
 from .pantry_factory import create_pantry
 from .mongo_loader import MongoLoader
 
-__version__ = "1.12.6"
+__version__ = "1.12.7"
 
 __all__ = [
     "Basket",
