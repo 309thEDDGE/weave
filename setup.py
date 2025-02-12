@@ -38,7 +38,7 @@ setup(
     ],
     install_requires=["pandas", "s3fs==2024.12.0", "fsspec==2024.12.0",
                       "jsonschema",
-                      "botocore==1.35.93", "aiobotocore==2.17.0"],
+                      "botocore<=1.35.93", "aiobotocore<=2.17.0"],
     extras_require={
         "extras": ["pymongo", "psycopg2-binary", "sqlalchemy"],
     },
