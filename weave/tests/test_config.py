@@ -36,8 +36,12 @@ def test_config_filesystem(selection, expected):
 
 # Skip tests if pymongo is not installed.
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False) or not os.environ.get("MONGODB_USERNAME", False) or not os.environ.get("MONGODB_PASSWORD", False),
-    reason="Pymongo, the environment variable MONGODB_HOST, the environment variable MONGODB_USERNAME, and the environment variable MONGODB_PASSWORD are required for this test",
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False)
+     or not os.environ.get("MONGODB_USERNAME", False) or not
+     os.environ.get("MONGODB_PASSWORD", False),
+    reason=("Pymongo, the environment variable MONGODB_HOST, "
+    "the environment variable MONGODB_USERNAME, and the environment "
+    "variable MONGODB_PASSWORD are required for this test"),
 )
 @mock.patch.dict(os.environ, os.environ.copy(), clear=True)
 def test_get_mongo_arg_timeout():
@@ -55,8 +59,12 @@ def test_get_mongo_arg_timeout():
 
 # Skip tests if pymongo is not installed.
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False) or not os.environ.get("MONGODB_USERNAME", False) or not os.environ.get("MONGODB_PASSWORD", False),
-    reason="Pymongo, the environment variable MONGODB_HOST, the environment variable MONGODB_USERNAME, and the environment variable MONGODB_PASSWORD are required for this test",
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False)
+     or not os.environ.get("MONGODB_USERNAME", False) or not
+     os.environ.get("MONGODB_PASSWORD", False),
+    reason=("Pymongo, the environment variable MONGODB_HOST, "
+    "the environment variable MONGODB_USERNAME, and the environment "
+    "variable MONGODB_PASSWORD are required for this test"),
 )
 @mock.patch.dict(os.environ, os.environ.copy(), clear=True)
 def test_get_mongo_env_timeout():

@@ -769,8 +769,12 @@ def test_s3fs_no_connection_error():
 
 # Skip tests if pymongo is not installed.
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False) or not os.environ.get("MONGODB_USERNAME", False) or not os.environ.get("MONGODB_PASSWORD", False),
-    reason="Pymongo, the environment variable MONGODB_HOST, the environment variable MONGODB_USERNAME, and the environment variable MONGODB_PASSWORD are required for this test",
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False)
+     or not os.environ.get("MONGODB_USERNAME", False) or not
+     os.environ.get("MONGODB_PASSWORD", False),
+    reason=("Pymongo, the environment variable MONGODB_HOST, "
+    "the environment variable MONGODB_USERNAME, and the environment "
+    "variable MONGODB_PASSWORD are required for this test"),
 )
 def test_upload_basket_mongo(test_pantry):
     """Testing pantry.upload_basket(), expected to update the collections.
@@ -805,8 +809,12 @@ def test_upload_basket_mongo(test_pantry):
 
 #Skip tests if pymongo is not installed.
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False) or not os.environ.get("MONGODB_USERNAME", False) or not os.environ.get("MONGODB_PASSWORD", False),
-    reason="Pymongo, the environment variable MONGODB_HOST, the environment variable MONGODB_USERNAME, and the environment variable MONGODB_PASSWORD are required for this test",
+    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False)
+     or not os.environ.get("MONGODB_USERNAME", False) or not
+     os.environ.get("MONGODB_PASSWORD", False),
+    reason=("Pymongo, the environment variable MONGODB_HOST, "
+    "the environment variable MONGODB_USERNAME, and the environment "
+    "variable MONGODB_PASSWORD are required for this test"),
 )
 def test_delete_basket_mongo(test_pantry):
     """Testing pantry.delete_basket(), expected to update the collections.
