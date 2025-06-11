@@ -21,7 +21,8 @@ from weave .config import get_mongo_db
 from weave.index.create_index import create_index_from_fs
 from weave.index.index_pandas import IndexPandas
 from weave.pantry import Pantry
-from weave.tests.pytest_resources import PantryForTest, get_file_systems
+from weave.tests.pytest_resources import (PantryForTest, get_file_systems,
+    get_pymongo_skip_condition, get_pymongo_skip_reason)
 from weave.__init__ import __version__ as weave_version
 
 
@@ -769,11 +770,8 @@ def test_s3fs_no_connection_error():
 
 # Skip tests if pymongo is not installed.
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False)
-     or not os.environ.get("MONGODB_USERNAME", False) or not
-     os.environ.get("MONGODB_PASSWORD", False),
-    reason=("Module: 'pymongo' required for this test AND "
-    "env variables: 'MONGODB_HOST', 'MONGODB_USERNAME', 'MONGODB_PASSWORD'"),
+    get_pymongo_skip_condition(),
+    reason=get_pymongo_skip_reason(),
 )
 def test_upload_basket_mongo(test_pantry):
     """Testing pantry.upload_basket(), expected to update the collections.
@@ -808,11 +806,8 @@ def test_upload_basket_mongo(test_pantry):
 
 #Skip tests if pymongo is not installed.
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False)
-     or not os.environ.get("MONGODB_USERNAME", False) or not
-     os.environ.get("MONGODB_PASSWORD", False),
-    reason=("Module: 'pymongo' required for this test AND "
-    "env variables: 'MONGODB_HOST', 'MONGODB_USERNAME', 'MONGODB_PASSWORD'"),
+    get_pymongo_skip_condition(),
+    reason=get_pymongo_skip_reason(),
 )
 def test_delete_basket_mongo(test_pantry):
     """Testing pantry.delete_basket(), expected to update the collections.
