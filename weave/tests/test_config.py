@@ -1,7 +1,6 @@
 """Test weave configuration functions"""
 
 import os
-import sys
 import time
 from unittest import mock
 
@@ -10,7 +9,7 @@ import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
 import weave
-from weave.tests.pytest_resources import (get_pymongo_skip_reason, 
+from weave.tests.pytest_resources import (get_pymongo_skip_reason,
     get_pymongo_skip_condition)
 
 # Ignore pylint duplicate code. Code here is used to explicitly show pymongo is

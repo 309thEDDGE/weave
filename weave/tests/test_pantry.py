@@ -3,7 +3,6 @@ import json
 import os
 import re
 import shutil
-import sys
 import tempfile
 import uuid as uuid_lib
 import warnings

@@ -1,7 +1,6 @@
 """Pytests for the metadata_db functionality."""
 
 import os
-import sys
 import tempfile
 from unittest import mock
 
@@ -11,7 +10,7 @@ from fsspec.implementations.local import LocalFileSystem
 import weave
 from weave import Pantry, IndexPandas
 from weave.mongo_loader import MongoLoader
-from weave.tests.pytest_resources import (PantryForTest, get_file_systems, 
+from weave.tests.pytest_resources import (PantryForTest, get_file_systems,
     get_pymongo_skip_reason, get_pymongo_skip_condition)
 
 class MongoForTest(PantryForTest):
