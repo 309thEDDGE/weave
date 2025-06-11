@@ -148,9 +148,9 @@ def get_mongo_db(**kwargs):
             timeoutMS=timeout,
         )
     else:
-        raise KeyError("One or more of the environment variables MONGODB_HOST, " 
-                       "MONGODB_USERNAME, and MONGODB_PASSWORD are not set. "
-                       "These are required to log into mongodb")
+        raise KeyError("One or more of the environment variables 'MONGODB_HOST', " 
+                       "'MONGODB_USERNAME', and 'MONGODB_PASSWORD' are not set. "
+                       "These are required to log into MongoDB")
 
     # Force a connection test before we return. This will raise an error if
     # the server is unreachable or has invalid credentials.
