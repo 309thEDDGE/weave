@@ -39,9 +39,8 @@ def test_config_filesystem(selection, expected):
     "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False)
      or not os.environ.get("MONGODB_USERNAME", False) or not
      os.environ.get("MONGODB_PASSWORD", False),
-    reason=("Pymongo, the environment variable MONGODB_HOST, "
-    "the environment variable MONGODB_USERNAME, and the environment "
-    "variable MONGODB_PASSWORD are required for this test"),
+    reason=("Module: 'pymongo' required for this test AND "
+    "env variables: 'MONGODB_HOST', 'MONGODB_USERNAME', 'MONGODB_PASSWORD'"),
 )
 @mock.patch.dict(os.environ, os.environ.copy(), clear=True)
 def test_get_mongo_arg_timeout():
@@ -62,9 +61,8 @@ def test_get_mongo_arg_timeout():
     "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False)
      or not os.environ.get("MONGODB_USERNAME", False) or not
      os.environ.get("MONGODB_PASSWORD", False),
-    reason=("Pymongo, the environment variable MONGODB_HOST, "
-    "the environment variable MONGODB_USERNAME, and the environment "
-    "variable MONGODB_PASSWORD are required for this test"),
+    reason=("Module: 'pymongo' required for this test AND "
+    "env variables: 'MONGODB_HOST', 'MONGODB_USERNAME', 'MONGODB_PASSWORD'"),
 )
 @mock.patch.dict(os.environ, os.environ.copy(), clear=True)
 def test_get_mongo_env_timeout():

@@ -772,9 +772,8 @@ def test_s3fs_no_connection_error():
     "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False)
      or not os.environ.get("MONGODB_USERNAME", False) or not
      os.environ.get("MONGODB_PASSWORD", False),
-    reason=("Pymongo, the environment variable MONGODB_HOST, "
-    "the environment variable MONGODB_USERNAME, and the environment "
-    "variable MONGODB_PASSWORD are required for this test"),
+    reason=("Module: 'pymongo' required for this test AND "
+    "env variables: 'MONGODB_HOST', 'MONGODB_USERNAME', 'MONGODB_PASSWORD'"),
 )
 def test_upload_basket_mongo(test_pantry):
     """Testing pantry.upload_basket(), expected to update the collections.
@@ -812,9 +811,8 @@ def test_upload_basket_mongo(test_pantry):
     "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False)
      or not os.environ.get("MONGODB_USERNAME", False) or not
      os.environ.get("MONGODB_PASSWORD", False),
-    reason=("Pymongo, the environment variable MONGODB_HOST, "
-    "the environment variable MONGODB_USERNAME, and the environment "
-    "variable MONGODB_PASSWORD are required for this test"),
+    reason=("Module: 'pymongo' required for this test AND "
+    "env variables: 'MONGODB_HOST', 'MONGODB_USERNAME', 'MONGODB_PASSWORD'"),
 )
 def test_delete_basket_mongo(test_pantry):
     """Testing pantry.delete_basket(), expected to update the collections.
