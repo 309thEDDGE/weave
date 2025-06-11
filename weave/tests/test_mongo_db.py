@@ -58,7 +58,9 @@ class MongoForTest(PantryForTest):
 
 
 _SKIP_PYMONGO = ("pymongo" not in sys.modules or
-                 "MONGODB_HOST" not in os.environ)
+                 "MONGODB_HOST" not in os.environ or
+                 "MONGODB_USERNAME" not in os.environ or
+                 "MONGODB_PASSWORD" not in os.environ)
 
 # Create fsspec objects to be tested, and add to file_systems list.
 file_systems, file_systems_ids = get_file_systems()
@@ -80,7 +82,7 @@ def set_up(request, tmpdir):
 # how pytest works when it comes to pytest fixtures.
 # pylint: disable=redefined-outer-name
 @pytest.mark.skipif(
-    _SKIP_PYMONGO, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo, the environment variable MONGODB_HOST, the environment variable MONGODB_USERNAME, and the environment variable MONGODB_PASSWORD are required for this test"
 )
 def test_load_mongo_metadata(set_up):
     """Test that load_mongo_metadata successfully loads valid metadata to
@@ -107,7 +109,7 @@ def test_load_mongo_metadata(set_up):
 
 
 @pytest.mark.skipif(
-    _SKIP_PYMONGO, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo, the environment variable MONGODB_HOST, the environment variable MONGODB_USERNAME, and the environment variable MONGODB_PASSWORD are required for this test"
 )
 def test_load_mongo_manifest(set_up):
     """Test that load_mongo_manifest successfully loads valid manifest to
@@ -139,7 +141,7 @@ def test_load_mongo_manifest(set_up):
 
 
 @pytest.mark.skipif(
-    _SKIP_PYMONGO, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo, the environment variable MONGODB_HOST, the environment variable MONGODB_USERNAME, and the environment variable MONGODB_PASSWORD are required for this test"
 )
 def test_load_mongo_supplement(set_up):
     """Test that load_mongo_supplement successfully loads valid supplement to
@@ -168,7 +170,7 @@ def test_load_mongo_supplement(set_up):
 
 
 @pytest.mark.skipif(
-    _SKIP_PYMONGO, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo, the environment variable MONGODB_HOST, the environment variable MONGODB_USERNAME, and the environment variable MONGODB_PASSWORD are required for this test"
 )
 def test_load_mongo(set_up):
     """Test that load_mongo successfully loads valid metadata, manifest, and
@@ -228,7 +230,7 @@ def test_load_mongo(set_up):
 
 
 @pytest.mark.skipif(
-    _SKIP_PYMONGO, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo, the environment variable MONGODB_HOST, the environment variable MONGODB_USERNAME, and the environment variable MONGODB_PASSWORD are required for this test"
 )
 def test_load_mongo_metadata_check_collection_for_string(set_up):
     """Test that load_mongo_metadata prevents loading data with an invalid
@@ -243,7 +245,7 @@ def test_load_mongo_metadata_check_collection_for_string(set_up):
 
 
 @pytest.mark.skipif(
-    _SKIP_PYMONGO, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo, the environment variable MONGODB_HOST, the environment variable MONGODB_USERNAME, and the environment variable MONGODB_PASSWORD are required for this test"
 )
 def test_load_mongo_metadata_check_for_duplicate_uuid(set_up):
     """Test duplicate metadata won't be uploaded to mongoDB, based on the UUID.
@@ -267,7 +269,7 @@ def test_load_mongo_metadata_check_for_duplicate_uuid(set_up):
 
 
 @pytest.mark.skipif(
-    _SKIP_PYMONGO, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo, the environment variable MONGODB_HOST, the environment variable MONGODB_USERNAME, and the environment variable MONGODB_PASSWORD are required for this test"
 )
 def test_load_mongo_manifest_check_for_duplicate_uuid(set_up):
     """Test duplicate manifest won't be uploaded to mongoDB, based on the UUID.
@@ -291,7 +293,7 @@ def test_load_mongo_manifest_check_for_duplicate_uuid(set_up):
 
 
 @pytest.mark.skipif(
-    _SKIP_PYMONGO, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo, the environment variable MONGODB_HOST, the environment variable MONGODB_USERNAME, and the environment variable MONGODB_PASSWORD are required for this test"
 )
 def test_load_mongo_supplement_check_for_duplicate_uuid(set_up):
     """Test duplicate supplement won't be uploaded to mongoDB, based on the
@@ -316,7 +318,7 @@ def test_load_mongo_supplement_check_for_duplicate_uuid(set_up):
 
 
 @pytest.mark.skipif(
-    _SKIP_PYMONGO, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo, the environment variable MONGODB_HOST, the environment variable MONGODB_USERNAME, and the environment variable MONGODB_PASSWORD are required for this test"
 )
 def test_check_file_already_exists(set_up):
     """Make a file, upload it to the pantry, check if that file already exists.
@@ -341,7 +343,7 @@ def test_check_file_already_exists(set_up):
 
 
 @pytest.mark.skipif(
-    _SKIP_PYMONGO, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo, the environment variable MONGODB_HOST, the environment variable MONGODB_USERNAME, and the environment variable MONGODB_PASSWORD are required for this test"
 )
 @mock.patch.dict(os.environ, os.environ.copy(), clear=True)
 def test_check_file_exists_no_mongodb(set_up):
@@ -368,7 +370,7 @@ def test_check_file_exists_no_mongodb(set_up):
 
 
 @pytest.mark.skipif(
-    _SKIP_PYMONGO, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo, the environment variable MONGODB_HOST, the environment variable MONGODB_USERNAME, and the environment variable MONGODB_PASSWORD are required for this test"
 )
 def test_check_pantries_have_discrete_mongodbs():
     """Create two pantries and check the databases are different
@@ -437,7 +439,7 @@ def test_check_pantries_have_discrete_mongodbs():
 
 
 @pytest.mark.skipif(
-    _SKIP_PYMONGO, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo, the environment variable MONGODB_HOST, the environment variable MONGODB_USERNAME, and the environment variable MONGODB_PASSWORD are required for this test"
 )
 def test_clear_mongo_works(set_up):
     """Test clear_mongo removed all mongo documents from the tracked DB and
@@ -479,7 +481,7 @@ def test_clear_mongo_works(set_up):
 
 
 @pytest.mark.skipif(
-    _SKIP_PYMONGO, reason="Pymongo required for this test"
+    _SKIP_PYMONGO, reason="Pymongo, the environment variable MONGODB_HOST, the environment variable MONGODB_USERNAME, and the environment variable MONGODB_PASSWORD are required for this test"
 )
 def test_mongo_loader_remove_document_works(set_up):
     """Test remove document removes all documents containing the given uuid.
