@@ -2,6 +2,7 @@
 
 import json
 import os
+import sys
 import io
 from pathlib import Path
 
@@ -193,3 +194,17 @@ def cleanup_sql_index(index):
         index.execute_sql(f"""
             DROP SCHEMA IF EXISTS {index.pantry_schema};
         """, commit=True)
+
+def get_pymongo_skip_reason():
+    """Move long string into shared function"""
+    return ("Module: 'pymongo' required for this test AND env "
+    "variables: 'MONGODB_HOST', 'MONGODB_USERNAME', 'MONGODB_PASSWORD'")
+
+def get_pymongo_skip_condition():
+    """Move long conditional into shared function"""
+    return not all([
+        "pymongo" in sys.modules,
+        "MONGODB_HOST" in os.environ,
+        "MONGODB_USERNAME" in os.environ,
+        "MONGODB_PASSWORD" in os.environ,
+    ])

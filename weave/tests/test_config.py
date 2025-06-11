@@ -1,7 +1,6 @@
 """Test weave configuration functions"""
 
 import os
-import sys
 import time
 from unittest import mock
 
@@ -10,6 +9,8 @@ import s3fs
 from fsspec.implementations.local import LocalFileSystem
 
 import weave
+from weave.tests.pytest_resources import (get_pymongo_skip_reason,
+    get_pymongo_skip_condition)
 
 # Ignore pylint duplicate code. Code here is used to explicitly show pymongo is
 # an optional dependency. Duplicate code is found in config.py (where pymongo
@@ -36,8 +37,8 @@ def test_config_filesystem(selection, expected):
 
 # Skip tests if pymongo is not installed.
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-    reason="Pymongo required for this test",
+    get_pymongo_skip_condition(),
+    reason=get_pymongo_skip_reason(),
 )
 @mock.patch.dict(os.environ, os.environ.copy(), clear=True)
 def test_get_mongo_arg_timeout():
@@ -55,8 +56,8 @@ def test_get_mongo_arg_timeout():
 
 # Skip tests if pymongo is not installed.
 @pytest.mark.skipif(
-    "pymongo" not in sys.modules or not os.environ.get("MONGODB_HOST", False),
-    reason="Pymongo required for this test",
+    get_pymongo_skip_condition(),
+    reason=get_pymongo_skip_reason(),
 )
 @mock.patch.dict(os.environ, os.environ.copy(), clear=True)
 def test_get_mongo_env_timeout():
