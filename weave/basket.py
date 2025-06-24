@@ -6,7 +6,7 @@ import os
 import uuid
 import importlib
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 
 import pandas as pd
 import s3fs
@@ -362,7 +362,7 @@ def create_basket_in_place(directory_path, **kwargs):
     # Create manifest file
     manifest = {
         "uuid": str(uuid.uuid1().hex),
-        "upload_time": datetime.now(timezone.utc).isoformat(),
+        "upload_time": datetime.now(UTC).isoformat(),
         "parent_uuids": parent_uuids or [],
         "basket_type": basket_type,
         "label": label,
