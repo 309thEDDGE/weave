@@ -319,6 +319,54 @@ warnings = validate.validate_pantry(pantry)
 pantry.validate()
 ```
 
+### Using A Mongo DB
+
+There are a couple of things to add when using mongo with weave. 
+You need to give a Pantry object a mongo client.
+
+```python
+# gets a connection to the mongo db
+client = weave.config.get_mongo_db()
+# giving the Pantry object the mongo client
+demo_pantry = weave.Pantry(
+    weave.IndexPandas,
+    pantry_path="mongodb-demo",
+    file_system=s3fs.S3FileSystem(client_kwargs = {'endpoint_url': os.environ['S3_ENDPOINT']}),
+    mongo_client=client,
+)
+```
+
+It is the same process as before expect adding teh mongo clinet to the Pantry object.
+Then you need to initalizing a mongo database object for the demo pantry so you can make pymongo calls. which can be done like so:
+
+```python
+# pantry is the patry_path from the weave.Pantry()
+# mongo_client is the same client as in the previous code block.
+mongo = MongoLoader(pantry="mongodb-demo", mongo_client=client)
+```
+
+One way to make sure everything is set up properly is to print the database name.
+
+```python
+# mongo is the object's variable name from the MongoLoader
+# database_name is a pymongo function
+print(mongo.database_name)
+```
+
+In this case it should print out "mongodb-demo" (the pantry path name).
+
+If a mongo_client was not used when creating a Pantry object you can get the uuids' from the data you wish to upload using the command 
+
+```python
+# mongo is the object's variable name from the MongoLoader
+# load_mongo is a weave function
+# uuids is a list of uuids (str) to add their data to the mongo db
+mongo.load_mongo(uuids) 
+```
+
+to load the data into the already instantiated database
+
+
 ## Contribution
 
 Anyone who desires to contribute to Weave is encouraged to create a branch,
