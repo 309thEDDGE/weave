@@ -1165,8 +1165,8 @@ def test_validate_deeply_nested(test_validate):
         new_dir_name="nest_level"
     )
 
-    # Create a 8 directory deep basket
-    for i in range(8):
+    # Create a 7 directory deep basket
+    for i in range(7):
         nested_dir_name = "nest_level_" + str(i)
         my_nested_dir = test_validate.add_lower_dir_to_temp_basket(
             tmp_basket_dir=my_nested_dir,
