@@ -30,10 +30,10 @@ jobs:
           - 5432:5432
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.11
+    - name: Set up Python 3.12
       uses: actions/setup-python@v3
       with:
-        python-version: "3.11"
+        python-version: "3.12"
     - name: Install minio
       run: |
         wget https://dl.min.io/server/minio/release/linux-amd64/archive/minio_20250408154124.0.0_amd64.deb -O minio.deb
@@ -75,10 +75,10 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.11
+    - name: Set up Python 3.12
       uses: actions/setup-python@v3
       with:
-        python-version: "3.11"
+        python-version: "3.12"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -101,16 +101,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.11
+    - name: Set up Python 3.12
       uses: actions/setup-python@v3
       with:
-        python-version: "3.11"
+        python-version: "3.12"
     - name: Install pylint
-      run: python3.11 -m pip install pylint
+      run: python3.12 -m pip install pylint
     - name: Install Weave and Dependencies
       run: |
-        python3.11 -m pip install .[extras]
-        python3.11 -m pip install pytest
+        python3.12 -m pip install .[extras]
+        python3.12 -m pip install pytest
     # If you do not install Weave's dependencies then it will fail PyLint due to import-errors
     - name: Run pylint
       run: pylint weave weave/tests/

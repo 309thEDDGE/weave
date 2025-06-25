@@ -40,5 +40,5 @@ setup(
     extras_require={
         "extras": ["pymongo", "psycopg2-binary", "sqlalchemy"],
     },
-    python_requires=">=3.11",
+    python_requires=">=3.12",
 )
