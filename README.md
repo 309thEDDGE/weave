@@ -3,7 +3,7 @@
 # Weave
 
 Weave is a custom package used to facilitate the creation and maintenance of
-complex data warehouses.
+complex data warehouses. h
 
 Weave was created from a need to track the lineage of data products derived
 from multiple sources. Weave can be used to upload arbitrary data products to a
