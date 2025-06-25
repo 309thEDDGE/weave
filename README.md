@@ -337,11 +337,11 @@ demo_pantry = weave.Pantry(
 ```
 
 It is the same process as before expect adding teh mongo clinet to the Pantry object.
-Then you need to initalizing a mongo database object for the demo pantry so you can make pymongo calls. which can be done like so:
+Then you need to initalizing a mongo database object for the demo pantry so you can make pymongo calls.
 
 ```python
 # pantry is the patry_path from the weave.Pantry()
-# mongo_client is the same client as in the previous code block.
+# mongo_client is the same client as in the previous code block
 mongo = MongoLoader(pantry="mongodb-demo", mongo_client=client)
 ```
 
@@ -355,7 +355,7 @@ print(mongo.database_name)
 
 In this case it should print out "mongodb-demo" (the pantry path name).
 
-If a mongo_client was not used when creating a Pantry object you can get the uuids' from the data you wish to upload using the command 
+If a mongo_client was not used when creating a Pantry object you can get the uuids' from the data you wish to upload into a already instantiated database.
 
 ```python
 # mongo is the object's variable name from the MongoLoader
@@ -363,9 +363,6 @@ If a mongo_client was not used when creating a Pantry object you can get the uui
 # uuids is a list of uuids (str) to add their data to the mongo db
 mongo.load_mongo(uuids) 
 ```
-
-to load the data into the already instantiated database
-
 
 ## Contribution
 
