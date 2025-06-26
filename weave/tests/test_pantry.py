@@ -279,6 +279,11 @@ def test_pantry_creates_pantry_if_none(test_pantry):
             file_system=test_pantry.file_system
         )
     assert len(pantry.index.to_pandas_df()) == 0
+    
+    #Clean up the pantry after the test is asserted
+    if os.path.exists(pantry_path):
+        shutil.rmtree(pantry_path)
+
 
 
 def test_delete_basket_stays_in_pantry(test_pantry):
