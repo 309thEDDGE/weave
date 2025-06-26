@@ -270,6 +270,11 @@ def test_pantry_fails_with_bad_path(test_pantry):
             file_system=test_pantry.file_system
         )
 
+    # In Windows the bad_path will still be created without the anomalous
+    # backslashes so we will remove it if it exists
+    if os.path.exists("Bad"):
+        shutil.rmtree("Bad")
+
 def test_pantry_creates_pantry_if_none(test_pantry):
     """Tests the pantry will be created if it doesn't exist."""
     pantry_path = 'nopantry'
