@@ -1847,12 +1847,11 @@ def test_index_abc_columns_in_df_are_same_as_config_index_columns(test_pantry):
 
     assert ind_df_columns == index_columns
 
-
+#DEBUG - creates a weave-c file
 def test_read_only_generate_index(test_pantry):
     """Show that weave is able to generate an index when using a read-only fs
     """
     _, index = test_pantry
-
     test_dir = None
     if os.name == "nt":
         test_dir = "."
@@ -1881,9 +1880,9 @@ def test_read_only_generate_index(test_pantry):
 
         read_only_pantry.index.generate_index()
         read_only_index = read_only_pantry.index.to_pandas_df()
-
+        
         remove_path = str(tmpdir).replace('/','-')
-
+        
         cleanup_sql_index(tmp_pantry.index)
         cleanup_sql_index(read_only_pantry.index)
 
@@ -1892,11 +1891,19 @@ def test_read_only_generate_index(test_pantry):
         read_only_pantry_path = read_only_pantry.pantry_path
         del read_only_pantry
         del read_only_fs
-
+    
+    
     if os.path.exists(f"weave-{remove_path}.db"):
         os.remove(f"weave-{remove_path}.db")
     if os.path.exists(f"weave-{read_only_pantry_path}.db"):
         os.remove(f"weave-{read_only_pantry_path}.db")
+        
+    
+
+        
+    
+    
+       
 
 
 def test_generate_index_when_pandas_index_exists(test_pantry):
