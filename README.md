@@ -319,6 +319,76 @@ warnings = validate.validate_pantry(pantry)
 pantry.validate()
 ```
 
+### Using A Mongo DB
+
+There are a couple of things to add when using mongo with weave. 
+Provide a pymongo client when intializing a pantry object.
+
+```python
+# gets a connection to the mongo db
+mongo_client = weave.config.get_mongo_db()
+# giving the Pantry object the mongo client
+pantry = weave.Pantry(
+    weave.IndexPandas,
+    pantry_path=pantry_path,
+    file_system=s3fs.S3FileSystem(client_kwargs = {'endpoint_url': os.environ['S3_ENDPOINT']}),
+    mongo_client=mongo_client,
+)
+```
+
+It is the same process as before expect adding the mongo client to the Pantry object.
+Instantiate a MongoLoader object to use pymongo calls on that object. 
+
+```python
+from weave.mongo_loader import MongoLoader
+# pantry_path is the same patry_path from weave.Pantry()
+# mongo_client is the same mongo_client as in the previous code block
+mongo_loader = MongoLoader(pantry=pantry_path, mongo_client=mongo_client)
+```
+
+One way to make sure everything is set up properly is to print the database name.
+
+```python
+print(mongo_loader.database_name)
+```
+
+In this case it should print out the pantry_path string representation.
+
+
+To get collection names of the database
+
+```python
+# setting a variable for the mongo database
+mongo_db = mongo_loader.database
+
+# will print a list of all the collection names in the mongo database
+print(mongo_db.list_collection_names())
+```
+A link to the official pymongo documentation about using collections can be found
+<a href="https://www.mongodb.com/docs/languages/python/pymongo-driver/current/databases-collections/">here</a>.
+
+An example of of how to get documents that satisfy a query from a collection
+
+```python
+# getting all documents' in the metadata collection that follows the query below
+# max_altitude > 10_000
+# max_speed < 1_450
+# fuel_burned >= 6_000 and <= 8_000
+query = {"max_altitude": {"$gt": 10_000}, "max_speed": {"$lt": 1_450}, "fuel_burned": {"$gte": 6_000, "$lte": 8_000}}
+documents = list(mongo_db[mongo_loader.metadata_collection].find(query))
+```
+
+More on how to query collections can be found
+<a href="https://www.w3schools.com/python/python_mongodb_query.asp">here</a>.
+
+
+If a mongo_client was not used when creating a Pantry object you can get the uuids' from the data you wish to upload into a already instantiated database.
+
+```python
+# uuids is a list of uuids (str) to add their data to the mongo db
+mongo_loader.load_mongo(uuids) 
+```
+
 ## Contribution
 
 Anyone who desires to contribute to Weave is encouraged to create a branch,
