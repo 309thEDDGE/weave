@@ -322,7 +322,7 @@ pantry.validate()
 ### Using A Mongo DB
 
 There are a couple of things to add when using mongo with weave. 
-Provide a pymongo client when intializing a pantry object.
+Provide a pymongo client when initializing a pantry object to utilize mongo with weave.
 
 ```python
 # gets a connection to the mongo db
@@ -337,7 +337,6 @@ pantry = weave.Pantry(
 ```
 
 It is the same process as before expect adding the mongo client to the Pantry object.
-Instantiate a MongoLoader object to use pymongo calls on that object. 
 
 ```python
 from weave.mongo_loader import MongoLoader
@@ -349,6 +348,7 @@ mongo_loader = MongoLoader(pantry=pantry_path, mongo_client=mongo_client)
 One way to make sure everything is set up properly is to print the database name.
 
 ```python
+# .database_name is part of  weave
 print(mongo_loader.database_name)
 ```
 
@@ -362,6 +362,7 @@ To get collection names of the database
 mongo_db = mongo_loader.database
 
 # will print a list of all the collection names in the mongo database
+# list_collection_names() is a pymongo function
 print(mongo_db.list_collection_names())
 ```
 A link to the official pymongo documentation about using collections can be found
@@ -382,7 +383,7 @@ More on how to query collections can be found
 <a href="https://www.w3schools.com/python/python_mongodb_query.asp">here</a>.
 
 
-If a mongo_client was not used when creating a Pantry object you can get the uuids' from the data you wish to upload into a already instantiated database.
+If a mongo_client was not used when creating a Pantry object you can get the uuids' from the data you wish to upload into an already instantiated database.
 
 ```python
 # uuids is a list of uuids (str) to add their data to the mongo db
