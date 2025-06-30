@@ -157,7 +157,7 @@ class IndexForTest:
 
         # This is only used in the sqlite implementation and will not affect
         # other implmentations.
-        self.db_path = f"weave-{self.pantry_path}.db"
+        self.db_path = f"{self.pantry_path}.db"
 
         self.index = index_constructor(
             file_system=self.file_system,
@@ -208,5 +208,3 @@ def get_pymongo_skip_condition():
         "MONGODB_USERNAME" in os.environ,
         "MONGODB_PASSWORD" in os.environ,
     ])
-    
-#TODO - Create/Add a function here that will deal with the removal of weave-C
