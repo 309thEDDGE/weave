@@ -1,22 +1,19 @@
 # Weave Demo: Single Python File Example
 # This script demonstrates how to use the Weave library for data management
 
-# This block of code imports necessary libraries and modules for the Weave demo.
+# This block of code imports necessary libraries and modules for the Weave demo
 # It includes imports for data manipulation with pandas, file system operations
 # with fsspec, and various Weave components for indexing and validation.
 # It also sets up the local file system for file operations.
 import os
 
-import numpy as np
 import pandas as pd
 pd.set_option('display.max_columns', None)  # Show all columns
 pd.set_option('display.width', 79)          # Narrower output for line length
 pd.set_option('display.colheader_justify', 'center')  # Center column headers
 
-import weave
 from weave.pantry import Pantry
 from weave.index.index_pandas import IndexPandas
-from weave.index import index_abc
 from weave.index.index_sqlite import IndexSQLite
 from weave import validate
 
@@ -61,7 +58,7 @@ pantry1.upload_basket(
     metadata={'Data Type': 'text'}
 )
 
-# Exporting the index to a pandas DataFrame for easier viewing and manipulation.
+# Exporting the index to a pandas DataFrame for easier viewing and manipulation
 # This DataFrame will contain information about the baskets in the pantry.
 pantry1_df = pantry1.index.to_pandas_df()
 print("Pantry Index DataFrame:")
@@ -81,7 +78,7 @@ print(pantry1_df['uuid'][0])
 basket = pantry1.get_basket(pantry1_df['uuid'][0])
 print("\nRetrieved Basket:", basket)
 
-# The basket manifest contains a concise description of the basket in dict form.
+# The basket manifest contains a concise description of the basket in dict form
 print("\nBasket Manifest:", basket.get_manifest())
 
 # The basket supplement contains additional details about the basket, including
@@ -101,7 +98,7 @@ print(basket_contents)
 print("\n")
 
 # ----- Data Provenance ----- #
-# Data provenance in Weave is tracked through the relationships between baskets.
+# Data provenance in Weave is tracked through the relationships between baskets
 # Each basket can have parent and child relationships, allowing for a clear
 # lineage of data.
 
