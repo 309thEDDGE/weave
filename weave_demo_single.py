@@ -51,7 +51,7 @@ print("\n")
 
 
 # ---- Create and Upload Baskets------#
-# A basket is a represenation of an atomic data product within a pantry.
+# A basket is a representation of an atomic data product within a pantry.
 
 # Here we create a basket with a single item, which is a text file.
 # The basket is uploaded to the pantry with a specific type and metadata.

@@ -515,6 +515,7 @@ def test_basket_from_uuid_with_many_baskets(test_pantry):
         basket_address=uuid,
         pantry=pantry,
     )
+    breakpoint() #DEBUG - how basket is made
     assert Path(test_basket.ls(f"temp_basket_{uuid}")[0]).match(
         os.path.join(
             test_pantry.pantry_path,
