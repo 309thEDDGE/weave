@@ -1879,9 +1879,9 @@ def test_read_only_generate_index(test_index_only):
 
         read_only_pantry.index.generate_index()
         read_only_index = read_only_pantry.index.to_pandas_df()
-        
+
         remove_path = str(tmpdir).replace(os.sep,'-')
-        
+
         cleanup_sql_index(tmp_pantry.index)
         cleanup_sql_index(read_only_pantry.index)
 
