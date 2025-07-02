@@ -12,12 +12,13 @@ pd.set_option('display.max_columns', None)  # Show all columns
 pd.set_option('display.width', 79)          # Narrower output for line length
 pd.set_option('display.colheader_justify', 'center')  # Center column headers
 
+from fsspec.implementations.local import LocalFileSystem
+
 from weave.pantry import Pantry
 from weave.index.index_pandas import IndexPandas
 from weave.index.index_sqlite import IndexSQLite
 from weave import validate
 
-from fsspec.implementations.local import LocalFileSystem
 
 
 # ----- Pantry Setup -----#
