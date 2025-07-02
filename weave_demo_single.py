@@ -14,7 +14,7 @@ import pandas as pd
 pd.set_option('display.max_columns', None)  # Show all columns
 pd.set_option('display.width', 120)         # Wider output
 pd.set_option('display.colheader_justify', 'center')  # Center column headers
-# ...existing code...
+
 
 import weave
 from weave.pantry import Pantry
@@ -59,7 +59,7 @@ print("\n")
 # Here we create a basket with a single item, which is a text file.
 # The basket is uploaded to the pantry with a specific type and metadata.
 pantry1.upload_basket(upload_items=[{'path':'WeaveDemoText.txt', 'stub':False}], basket_type="test-1", metadata = {'Data Type':'text'})
-# Follow up comment 
+
 
 # Exporting the index to a pandas DataFrame for easier viewing and manipulation.
 # This DataFrame will contain information about the baskets in the pantry.
@@ -92,11 +92,11 @@ print(basket.get_manifest())
 print("\nBasket Supplement:")
 print(basket.get_supplement())
 
-# The basket metadata is data the user ma add when uploading a basket to a pantry.
+# The basket metadata is data the user may add when uploading a basket to a pantry.
 print("\nBasket Metadata:")
 print(basket.get_metadata())
 
-# Weave's Is lists files and directories within the file system. 
+# Much like the Linux 'ls' command, Weave's ls lists files and directories within the file system.
 basket_contents = basket.ls()
 print("\nBasket Contents:")
 print(basket_contents)
@@ -158,15 +158,17 @@ print(pantry2_df.reset_index(drop=True))
 
 # This validates the pantry using the validate_pantry function.
 warnings = validate.validate_pantry(pantry1)
+print("\nValidation Warnings:")
+print(warnings)
 # Or validate using the pantry object.
-pantry1.validate()
+print(pantry1.validate())
 
 # Since the basket data is present we return an empty list. 
 # If the basket data was missing or corrupted, the warnings list would contain details about the issues found.
 
 # Deleting the basket manifest file to simulate a validation error.
 local_fs.rm(os.path.join('weave-demo-pantry','test-1',str(pantry1_df['uuid'][0]),'basket_manifest.json'))
-pantry1.validate()
+print(pantry1.validate())
 
 #-------Clean up and Remove-------# 
 # After completing the demo, it's important to clean up and remove the pantry and its contents.
