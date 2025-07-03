@@ -320,7 +320,7 @@ def test_check_file_already_exists(set_up):
     """
     pantry = set_up.pantry
 
-    with tempfile.NamedTemporaryFile() as tmp_file:
+    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
         tmp_file.write(b'This is my temporary file that we will hash')
         tmp_file.flush()
         pantry.upload_basket(
@@ -346,7 +346,7 @@ def test_check_file_exists_no_mongodb(set_up):
     """
     pantry = set_up.pantry
 
-    with tempfile.NamedTemporaryFile() as tmp_file:
+    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
         tmp_file.write(b'This is my temporary file that we will hash')
         tmp_file.flush()
         pantry.upload_basket(
@@ -394,10 +394,10 @@ def test_check_pantries_have_discrete_mongodbs():
     p1_mongo_loader = MongoLoader(pantry=pantry1)
     p2_mongo_loader = MongoLoader(pantry=pantry2)
 
-    with tempfile.NamedTemporaryFile() as tmp_file1:
+    with tempfile.NamedTemporaryFile(delete=False) as tmp_file1:
         tmp_file1.write(b'This is temporary file that we will hash for p1')
         tmp_file1.flush()
-        with tempfile.NamedTemporaryFile() as tmp_file2:
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_file2:
             tmp_file2.write(b'This is temporary file that we will hash for p2')
             tmp_file2.flush()
 
