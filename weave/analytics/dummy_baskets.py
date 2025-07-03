@@ -1,43 +1,39 @@
+import os
 import shutil
 from weave.pantry import Pantry
-from weave.index.index_pandas import IndexPandas
+from weave.index.index_sqlite import IndexSQLite
 from fsspec.implementations.local import LocalFileSystem
 
-#Creates a dummy pantry to store baskets
-def create_pantry(pantry_name):
+"""Generates a 1MB file of dummy data and uploads it to a pantry as 10 baskets.
+Used to test the time it takes to handle large files in the baskets.
+
+    Parameters:
+    -----------
+    file_path: str
+        Path to the dummy data file to be uploaded.
+    index_type: Object
+        Type of index to be used for the pantry.
+    basket_count: int
+        Number of baskets to be created (default is 1000).
+"""
+def generate_dummy_baskets(file_path, index_type, basket_count=1000): 
     
     # Set up the file path
     local_fs = LocalFileSystem()
-    folder_path = f"weave/analytics/{pantry_name}"
-
-    #Set up the pantry with its uuid, manifest, and supplement
-    pantry1 = Pantry(IndexPandas, pantry_path=folder_path, file_system=local_fs)
     
-    #return the pantry
-    return pantry1
-
-#Generates 10 baskets with 1MB file in each
-def generate_dummy_baskets(dummy_pantry, basket_name): 
+    #Set up the pantry with its index, path, uuid, manifest, and supplement
+    dummy_pantry = Pantry(index_type, pantry_path="dummy_pantry", file_system=local_fs)
     
-    #Generate 1MB of data for the basket 
-    with open("dummy_data.txt", 'w') as f:
-        
-        #each line is 100 bytes 10,000 lines = 1 MB
-        for i in range(10000):
-            f.write(f"Dummy metadata line {i:05d}: key=value; more=info; example=data\n")
-    
-    #Generate 10 baskets containing the 1MB file
-    for uuid in range(0):
+    #Generate 10 baskets containing the 1MB file dummy_data.txt
+    for uuid in range(basket_count):
         uuid = str(uuid)
-        dummy_pantry.upload_basket(upload_items=[{'path':'dummy_data.txt', 'stub':False}], basket_type="dummy_basket", metadata = {'Data Type':'text'})
+        dummy_pantry.upload_basket(upload_items=[{'path':file_path, 'stub':False}], basket_type="dummy_baskets", metadata = {'Data Type':'text'})
 
-#set the pantry and basket names
-pantry_name = "dummy_pantry"
-basket_name = "dummy_basket_1"
+    #Cleanup the pantry
+    shutil.rmtree("dummy_pantry")
     
-#generate dummy baskets in the pantry
-generate_dummy_baskets(create_pantry(pantry_name), basket_name)
+    #Cleanup the .db file if using SQLite index
+    if(index_type == IndexSQLite):
+        IndexSQLite.__del__(self=dummy_pantry.index)
+        os.remove("weave-dummy_pantry.db")
 
-#remove the pantry - Uncomment the breakpoint to see the pantry with the baskets
-#breakpoint()
-shutil.rmtree("weave/analytics/dummy_pantry")
