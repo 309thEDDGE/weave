@@ -319,12 +319,11 @@ class Basket(BasketInitializer):
             )
 
         if include_artifacts:
-            # If including artifacts, we can download the entire basket dir.
+            # If including artifacts, download the entire basket dir.
             self.file_system.get(self.basket_path, destination_path,
                                  recursive=True)
         else:
-            # If not including artifacts, we need to loop through only the files
-            # we want to download.
+            # If excluding artifacts, loop through basket ls results.
             destination_path = os.path.join(destination_path, self.uuid)
             os.makedirs(destination_path)
             for file in self.ls():
