@@ -17,8 +17,6 @@ from .validate import validate_basket_in_place_directory_backward
 from .upload import derive_integrity_data
 
 
-
-
 class BasketInitializer:
     """Initializes basket class. Validates input args."""
 
@@ -302,11 +300,42 @@ class Basket(BasketInitializer):
 
         return pd.DataFrame(data=[data], columns=columns)
 
+    def download(self, destination_path=os.getcwd(), include_artifacts=False):
+        """Download the basket's contents to a local directory.
+
+        Parameters
+        ----------
+        destination_path: str (default=os.getcwd())
+            The directory where the basket will be downloaded.
+        include_artifacts: bool (default=False)
+            If True, the basket's artifacts (manifest, supplement, metadata)
+            will be downloaded to the destination path.
+        """
+        destination_path = os.fspath(destination_path)
+        if os.path.exists(os.path.join(destination_path, self.uuid)):
+            raise FileExistsError(
+                f"Destination path {os.path.join(destination_path, self.uuid)} "
+                "already exists. Please choose a different destination path."
+            )
+
+        if include_artifacts:
+            # If including artifacts, we can download the entire basket dir.
+            self.file_system.get(self.basket_path, destination_path,
+                                 recursive=True)
+        else:
+            # If not including artifacts, we need to loop through only the files
+            # we want to download.
+            destination_path = os.path.join(destination_path, self.uuid)
+            os.makedirs(destination_path)
+            for file in self.ls():
+                self.file_system.get(file, destination_path, recursive=True)
+
+
 #Disabling pylint to keep basket in place to a single function for clarity.
 # pylint: disable-msg=too-many-locals
 def create_basket_in_place(directory_path, **kwargs):
     """Creates a basket in place.
-    
+
     Generates the manifest, supplement, and metadata files directly in the
     provided directory without moving or uploading any files.
 
