@@ -74,13 +74,6 @@ class PantryForTest:
     """Handles resources for much of weave testing."""
     def __init__(self, tmpdir, file_system, pantry_path=None):
 
-        warnings.filterwarnings(
-        "ignore",
-        message="datetime.datetime.utcnow() is deprecated and scheduled for" \
-                "removal in a future version",
-        category=DeprecationWarning,
-        )
-
         self.tmpdir = tmpdir
         self.file_system = file_system
         self.pantry_path = pantry_path
