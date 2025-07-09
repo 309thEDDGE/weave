@@ -55,9 +55,6 @@ jobs:
         pip install pytest
         pip install .[extras]
     - name: Test with pytest
-      #Ignoring the datetime utc depreciation in all of the tests because
-      # some python packages have not updated the new utc function and it
-      # is causing the github pytest runner to fail.
       run: |
         export WEAVE_SQL_HOST=localhost
         export WEAVE_SQL_USERNAME=postgres
@@ -70,8 +67,7 @@ jobs:
         export AWS_ACCESS_KEY_ID=minioadmin
         export AWS_SECRET_ACCESS_KEY=minioadmin
         export S3_ENDPOINT=http://172.17.0.1:9000/
-        pytest -vv weave/tests/ -W "ignore:datetime.datetime.utcnow() is "
-                                   "deprecated:DeprecationWarning"
+        pytest -vv weave/tests/
       env:
           POSTGRES_HOST: postgres
           POSTGRES_PORT: 5432
