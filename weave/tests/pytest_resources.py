@@ -18,8 +18,9 @@ from weave.upload import UploadBasket
 # the GitHub runner to fail
 warnings.filterwarnings(
     "ignore",
-    message="datetime.datetime.utcnow() is deprecated and "
-            "scheduled for removal in a future version",
+    message="datetime.datetime.utcnow() is deprecated and scheduled for "
+            "removal in a future version. Use timezone-aware objects to "
+            "represent datetimes in UTC: datetime.datetime.now(datetime.UTC).",
     category=DeprecationWarning,
 )
 
