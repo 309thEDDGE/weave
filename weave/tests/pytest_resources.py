@@ -4,6 +4,7 @@ import json
 import os
 import sys
 import io
+import warnings
 from pathlib import Path
 
 import pandas as pd
@@ -12,6 +13,15 @@ from fsspec.implementations.local import LocalFileSystem
 
 from weave.upload import UploadBasket
 
+#Ignoring the datetime utc warning because certain python packages have not
+# updated the new datetime utc command and it is causing pytests on
+# the GitHub runner to fail
+warnings.filterwarnings(
+    "ignore",
+    message="datetime.datetime.utcnow() is deprecated and "
+            "scheduled for removal in a future version",
+    category=DeprecationWarning,
+)
 
 def get_file_systems():
     """Returns a list of file systems and their display names."""
