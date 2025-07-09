@@ -48,8 +48,8 @@ def generate_dummy_baskets(index_type, file_name="dummy_data.txt", basket_count=
         uuid = str(uuid)
         
         dummy_pantry.upload_basket(upload_items=[{'path':file_name, 'stub':False}], basket_type="dummy_baskets", metadata = {'Data Type':'text'})
-        
-        
+
+        # Append metadata for each basket
         basket_metadata.append({
             'path': file_name,
             'basket_type': 'dummy_baskets',
@@ -79,6 +79,7 @@ def generate_dummy_baskets(index_type, file_name="dummy_data.txt", basket_count=
     #second list metadata
     #print( {"basket_count":basket_count, "size_of_file":size_in_bytes, "basket_path": "metadata":list_of_metadata} )
 
-    return basket_metadata
+    # Return the file path and the metadata file about the baskets
+    return list[file_name, basket_metadata]
     
 
