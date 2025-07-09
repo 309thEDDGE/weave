@@ -13,17 +13,6 @@ from fsspec.implementations.local import LocalFileSystem
 
 from weave.upload import UploadBasket
 
-#Ignoring the datetime utc warning because certain python packages have not
-# updated the new datetime utc command and it is causing pytests on
-# the GitHub runner to fail
-warnings.filterwarnings(
-    "ignore",
-    message="datetime.datetime.utcnow() is deprecated and scheduled for "
-            "removal in a future version. Use timezone-aware objects to "
-            "represent datetimes in UTC: datetime.datetime.now(datetime.UTC).",
-    category=DeprecationWarning,
-)
-
 def get_file_systems():
     """Returns a list of file systems and their display names."""
     file_systems = [LocalFileSystem()]
@@ -84,6 +73,14 @@ def file_path_in_list(search_path, search_list):
 class PantryForTest:
     """Handles resources for much of weave testing."""
     def __init__(self, tmpdir, file_system, pantry_path=None):
+
+        warnings.filterwarnings(
+        "ignore",
+        message="datetime.datetime.utcnow() is deprecated and scheduled for" \
+                "removal in a future version",
+        category=DeprecationWarning,
+        )
+
         self.tmpdir = tmpdir
         self.file_system = file_system
         self.pantry_path = pantry_path
