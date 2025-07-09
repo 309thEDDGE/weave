@@ -320,7 +320,7 @@ def test_check_file_already_exists(set_up):
     """
     pantry = set_up.pantry
 
-    with tempfile.NamedTemporaryFile() as tmp_file:
+    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
         tmp_file.write(b'This is my temporary file that we will hash')
         tmp_file.flush()
         pantry.upload_basket(
@@ -346,7 +346,7 @@ def test_check_file_exists_no_mongodb(set_up):
     """
     pantry = set_up.pantry
 
-    with tempfile.NamedTemporaryFile() as tmp_file:
+    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
         tmp_file.write(b'This is my temporary file that we will hash')
         tmp_file.flush()
         pantry.upload_basket(
@@ -394,10 +394,10 @@ def test_check_pantries_have_discrete_mongodbs():
     p1_mongo_loader = MongoLoader(pantry=pantry1)
     p2_mongo_loader = MongoLoader(pantry=pantry2)
 
-    with tempfile.NamedTemporaryFile() as tmp_file1:
+    with tempfile.NamedTemporaryFile(delete=False) as tmp_file1:
         tmp_file1.write(b'This is temporary file that we will hash for p1')
         tmp_file1.flush()
-        with tempfile.NamedTemporaryFile() as tmp_file2:
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_file2:
             tmp_file2.write(b'This is temporary file that we will hash for p2')
             tmp_file2.flush()
 
@@ -522,3 +522,91 @@ def test_mongo_loader_remove_document_works(set_up):
     assert 0 == metadata_collection.count_documents({"uuid": test_uuid})
     assert 0 == manifest_collection.count_documents({"uuid": test_uuid})
     assert 0 == supplement_collection.count_documents({"uuid": test_uuid})
+
+
+@pytest.mark.skipif(
+    get_pymongo_skip_condition(), reason=get_pymongo_skip_reason()
+)
+def test_mongo_query_returns_no_documents(set_up):
+    """Test that a mongo query will return no documents when no document
+    satisfies the query.
+    """
+    # Load the metadata, supplement, and manifests of the three baskets in
+    # the pantry (one has no metadata).
+    test_uuids = ["1234", "4321", "nometadata"]
+    mongo_loader = MongoLoader(pantry=set_up.pantry)
+    mongo_loader.load_mongo(uuids=test_uuids)
+
+    metadata_collection = set_up.database["metadata"]
+    manifest_collection = set_up.database["manifest"]
+    supplement_collection = set_up.database["supplement"]
+
+    #Check that each collection returns no documents
+    metadata_docs = metadata_collection.count_documents(
+        {"basket_type": 5}
+    )
+    assert metadata_docs == 0
+
+    manifest_docs = manifest_collection.count_documents(
+        {"label": {"$gt": 7}}
+    )
+    assert manifest_docs == 0
+
+    supplement_docs = supplement_collection.count_documents(
+        {"integrity.id": "Bad"}
+    )
+    assert supplement_docs == 0
+
+
+@pytest.mark.skipif(
+    get_pymongo_skip_condition(), reason=get_pymongo_skip_reason()
+)
+def test_mongo_query_returns_correct_documents(set_up):
+    """Test that a mongo query will return documents when certain documents
+    satisfy the query.
+    """
+    # Load the metadata, supplement, and manifests of the three baskets in
+    # the pantry (one has no metadata).
+    test_uuids = ["1234", "4321", "nometadata"]
+    mongo_loader = MongoLoader(pantry=set_up.pantry)
+    mongo_loader.load_mongo(uuids=test_uuids)
+
+    metadata_collection = set_up.database["metadata"]
+    manifest_collection = set_up.database["manifest"]
+    supplement_collection = set_up.database["supplement"]
+
+    #Check that each collection returns the correct number of documents
+    metadata_docs = metadata_collection.count_documents(
+        {"basket_type": "test_basket"}
+    )
+    assert metadata_docs == 2
+
+    manifest_docs = manifest_collection.count_documents(
+        {"label": ""}
+    )
+    assert manifest_docs == 3
+
+    supplement_docs = supplement_collection.count_documents(
+        {"integrity_data": {"$size": 2}}
+    )
+    assert supplement_docs == 2
+
+
+@pytest.mark.skipif(
+    get_pymongo_skip_condition(), reason=get_pymongo_skip_reason()
+)
+def test_bad_mongo_query_raises_error(set_up):
+    """Test that a mongo query will raise an error if a bad query is passed."""
+    #Load the manifest data of one basket
+    mongo_loader = MongoLoader(pantry=set_up.pantry)
+    mongo_loader.load_mongo_manifest(uuids=["1234"])
+
+    manifest_collection = set_up.database["manifest"]
+
+    #Check that the correct error is raised
+    with pytest.raises(
+        TypeError,
+        match="filter must be an instance of dict, bson.son.SON, or any " \
+              "other type that inherits from collections.Mapping"
+    ):
+        manifest_collection.find("basket_type = test_basket")
