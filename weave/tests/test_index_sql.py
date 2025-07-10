@@ -2,6 +2,7 @@
 correctly."""
 
 import os
+import dotenv
 from unittest import mock
 
 # Try-Except required to make sqlalchemy an optional dependency.
