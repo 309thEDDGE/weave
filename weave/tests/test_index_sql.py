@@ -4,6 +4,9 @@ correctly."""
 import os
 from unittest import mock
 
+from dotenv import load_dotenv
+load_dotenv(dotenv_path="c:/Users/EDDGE Intern/Documents/GitClone/.env")
+
 # Try-Except required to make sqlalchemy an optional dependency.
 try:
     import importlib
