@@ -3,83 +3,77 @@ import shutil
 import string
 import random
 import time
+import json
+from datetime import datetime, timedelta
 from weave.pantry import Pantry
+from weave.basket import Basket
+from weave.index.index_pandas import IndexPandas
 from weave.index.index_sqlite import IndexSQLite
 from fsspec.implementations.local import LocalFileSystem
 
+def generate_dummy_baskets(basket_count=10, file_count=10, file_size_mb=1, file_path="dummy_data"):
+    """Generates dummy files in the specified directory with random text content.
 
-def generate_dummy_baskets(index_type, file_name="dummy_data.txt", basket_count=1000, print_time=True):
-    """Generates a 1MB file of dummy data and uploads it to a pantry as a basket count.
-    Used to test the time it takes to handle large files in the baskets.
-
-    Parameters:
-    -----------
-    file_path: str
-        Path to the dummy data file to be uploaded.
-    index_type: Object
-        Type of index to be used for the pantry.
-    basket_count: int
-        Number of baskets to be created (default is 1000).
+        Parameters:
+        -----------
+        basket_count: int
+            Defaults to 1000.
+            Specifies the number of dummy baskets to create.
+        file_count: int
+            Defaults to 10.
+            Specifies the number of dummy files to create.
+        file_size_mb: int
+            Defaults to 1.
+            Specifies the size of each dummy file in megabytes.
+        file_path: str
+            Defaults to "weave/analytics/dummy".
+            Specifies the path where the dummy files will be created.
     """
-    #Create the 1MB random txt file
-    size_in_bytes = 1024 * 1024
-    chunk_size = 1024  # 1 KB chunks
-    characters = string.ascii_letters + string.digits
+    #List of all baskets created
+    basket_list = []
     
-    #List of metadata about the baskets
-    basket_metadata = []
+    # Create the dummy files using the file count, size, and path provided
+    for i in range(file_count):
+        dir_path = os.path.join(file_path)
+        os.makedirs(dir_path, exist_ok=True)
 
-    with open(file_name, "w") as f:
-        for _ in range(size_in_bytes // chunk_size):
-            random_text = ''.join(random.choices(characters, k=chunk_size))
-            f.write(random_text)
-
-    # Set up the file path
-    local_fs = LocalFileSystem()
-    
-    #Set up the pantry with its index, path, uuid, manifest, and supplement
-    dummy_pantry = Pantry(index_type, pantry_path="dummy_pantry", file_system=local_fs)
-    
-    if print_time:
-        start_time = time.time()
-
-    #Generate 10 baskets containing the 1MB file dummy_data.txt
-    for uuid in range(basket_count):
-        uuid = str(uuid)
+        # Create a dummy file of specified size
+        size_in_bytes = file_size_mb * 1024 * 1024
+        chunk_size = 1024
         
-        dummy_pantry.upload_basket(upload_items=[{'path':file_name, 'stub':False}], basket_type="dummy_baskets", metadata = {'Data Type':'text'})
+        # Generate metadata for the dummy file
+        with open(os.path.join(dir_path, f"dummy_file_{i}.txt"), "w") as f:
+            for _ in range(size_in_bytes // chunk_size):
+                flight_number = f"{random.choice(['UA', 'DL', 'AA', 'SW'])}{random.randint(100,9999)}"
+                now = datetime.now()
+                departure_time = now.strftime("%Y-%m-%d %H:%M")
+                arrival_time = (now + timedelta(hours=random.randint(1, 12))).strftime("%Y-%m-%d %H:%M")
+                origin = random.choice(['JFK', 'LAX', 'ORD', 'ATL', 'DFW'])
+                destination = random.choice(['SEA', 'MIA', 'DEN', 'PHX', 'SFO'])
+                aircraft_type = random.choice(['A320', 'B737', 'B777', 'A380'])
+                altitude = random.randint(30000, 41000)  # feet
+                speed = random.randint(400, 600)  # knots
+                status = random.choice(['Scheduled', 'Departed', 'Arrived', 'Delayed'])
 
-        # Append metadata for each basket
-        basket_metadata.append({
-            'path': file_name,
-            'basket_type': 'dummy_baskets',
-            'metadata': {'Data Type': 'text'},
-         })
+                metadata = {
+                    "flight_number": flight_number,
+                    "departure_time": departure_time,
+                    "arrival_time": arrival_time,
+                    "origin": origin,
+                    "destination": destination,
+                    "aircraft_type": aircraft_type,
+                    "altitude": altitude,
+                    "speed": speed,
+                    "status": status
+                }
+                                
+                json.dump(metadata, f)
+                
+    # Add a basket containing the dummy files to the basket list
+    for _ in range(basket_count):
+        basket_list.append({"upload_items": [{'path' :file_path, 'stub': False}], "basket_type": "dummy-baskets", "metadata": {'Data Type': 'text'}})
 
+    # Return the basket list
+    return basket_list
     
-    if print_time:
-        end_time = time.time()
     
-        time_elapsed = end_time - start_time
-        print(f"Time taken to generate {basket_count} dummy baskets for {index_type.__name__}: {time_elapsed} seconds")
-    breakpoint()
-    #Cleanup the pantry
-    shutil.rmtree(dummy_pantry.pantry_path)
-    
-    #Cleanup the .db file if using SQLite index
-    if(index_type == IndexSQLite):
-        dummy_pantry.index.drop_index()
-
-    #Delete the dummy txt if it exists
-    if os.path.exists(file_name):
-        os.remove(file_name)
-
-    #TODO: return a list of everything you need to know to upload one basket
-    #return 2 lists 1st list path and basket type
-    #second list metadata
-    #print( {"basket_count":basket_count, "size_of_file":size_in_bytes, "basket_path": "metadata":list_of_metadata} )
-
-    # Return the file path and the metadata file about the baskets
-    return list[file_name, basket_metadata]
-    
-
