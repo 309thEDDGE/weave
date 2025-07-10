@@ -2,8 +2,9 @@
 correctly."""
 
 import os
-import dotenv
 from unittest import mock
+
+from dotenv import load_dotenv
 
 # Try-Except required to make sqlalchemy an optional dependency.
 try:
@@ -24,7 +25,6 @@ from weave.tests.pytest_resources import IndexForTest, get_file_systems
 from weave.tests.pytest_resources import PantryForTest
 from weave.tests.pytest_resources import get_sample_basket_df
 
-from dotenv import load_dotenv
 load_dotenv(dotenv_path="weave/.env")
 
 # Create fsspec objects to be tested, and add to file_systems list.
