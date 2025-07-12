@@ -12,7 +12,6 @@ from fsspec.implementations.local import LocalFileSystem
 
 from weave.upload import UploadBasket
 
-
 def get_file_systems():
     """Returns a list of file systems and their display names."""
     file_systems = [LocalFileSystem()]
@@ -73,6 +72,7 @@ def file_path_in_list(search_path, search_list):
 class PantryForTest:
     """Handles resources for much of weave testing."""
     def __init__(self, tmpdir, file_system, pantry_path=None):
+
         self.tmpdir = tmpdir
         self.file_system = file_system
         self.pantry_path = pantry_path
@@ -157,7 +157,7 @@ class IndexForTest:
 
         # This is only used in the sqlite implementation and will not affect
         # other implmentations.
-        self.db_path = f"weave-{self.pantry_path}.db"
+        self.db_path = f"{self.pantry_path}.db"
 
         self.index = index_constructor(
             file_system=self.file_system,
