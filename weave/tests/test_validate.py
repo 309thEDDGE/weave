@@ -2,6 +2,7 @@
 
 import json
 import os
+from sys import version_info
 from pathlib import Path
 
 import pytest
@@ -536,9 +537,14 @@ def test_validate_invalid_manifest_json(test_validate):
     ) as err:
         validate.validate_pantry(pantry)
 
-    assert str(err.value) == ("Pantry could not be loaded into index: "
+    if (version_info[1] >= 13):
+        assert str(err.value) == ("Pantry could not be loaded into index: "
                               "Illegal trailing comma before end of "
                               "object: line 1 column 9 (char 8)")
+    else:
+        assert str(err.value) == ("Pantry could not be loaded into index: "
+                              "Expecting property name enclosed in double"
+                              " quotes: line 1 column 10 (char 9)")
 
 
 def test_validate_invalid_supplement_schema(test_validate):
