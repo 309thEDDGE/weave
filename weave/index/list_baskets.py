@@ -8,15 +8,15 @@ def _get_list_of_basket_jsons(root_dir, file_system):
     Parameters:
     -----------
     root_dir: str
-        Path to search for basket manifests (doesn't have to be the pantry root)
+        Path to search for basket manifests--doesn't have to be the pantry root
     file_system: fsspec object
         The file system to search in.
 
     Returns:
     ----------
-    A list of paths to basket_manifest.json files found under the given root_dir.
+    A list of paths to basket_manifest.json files found under the given dir
     """
-    # In some instances, root_dir may be the empty str and should be left as is.
+    # In some instances, root_dir may be the empty str and should be left as is
     root_dir = os.path.normpath(root_dir) if root_dir != '' else ''
     manifest_paths = []
     for path in file_system.find(root_dir):
