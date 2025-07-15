@@ -762,7 +762,7 @@ def test_basket_download_include_artifacts_arg(test_pantry):
         ]
 
         # Check that the basket directory and its contents are present.
-        assert (len(downloaded_paths) == 7)
+        assert len(downloaded_paths) == 7
         assert (
             os.path.join(tmp_download_dir, basket.uuid,
                          tmp_basket_dir_name) in downloaded_paths
@@ -804,7 +804,7 @@ def test_basket_download_include_artifacts_arg(test_pantry):
 
         # Check that the basket directory and its contents (excluding weave
         # artifacts) are present.
-        assert (len(downloaded_paths) == 4)
+        assert len(downloaded_paths) == 4
         assert (
             os.path.join(tmp_download_dir, basket.uuid,
                          tmp_basket_dir_name) in downloaded_paths

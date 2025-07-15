@@ -314,8 +314,8 @@ class Basket(BasketInitializer):
         destination_path = os.fspath(destination_path)
         if os.path.exists(os.path.join(destination_path, self.uuid)):
             raise FileExistsError(
-                f"Destination path {os.path.join(destination_path, self.uuid)} "
-                "already exists. Please choose a different destination path."
+                f"Destination path {os.path.join(destination_path, self.uuid)}"
+                " already exists. Please choose a different destination path."
             )
 
         if include_artifacts:
