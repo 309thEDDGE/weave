@@ -18,6 +18,8 @@ def _get_list_of_basket_jsons(root_dir, file_system):
     """
     # In some instances, root_dir may be the empty str and should be left as is
     root_dir = os.path.normpath(root_dir) if root_dir != '' else ''
+    # On Windows find() returns with forward slashes, the root dir must match.
+    root_dir = root_dir.replace(os.sep, '/')
     manifest_paths = []
     for path in file_system.find(root_dir):
         if path.endswith("basket_manifest.json"):
