@@ -537,7 +537,7 @@ def test_validate_invalid_manifest_json(test_validate):
     ) as err:
         validate.validate_pantry(pantry)
 
-    if (version_info[1] >= 13):
+    if version_info[1] >= 13:
         assert str(err.value) == ("Pantry could not be loaded into index: "
                               "Illegal trailing comma before end of "
                               "object: line 1 column 9 (char 8)")
