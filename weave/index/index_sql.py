@@ -80,7 +80,7 @@ class IndexSQL(IndexABC):
         # Set the schema name (defaults to pantry_path). If the schema does not
         # exist, it will be created.
         d_schema_name = self._pantry_path.replace(os.sep, "_")\
-            .replace("-", "_")
+            .replace("-", "_").replace(":", "_")
         if d_schema_name == "":
             d_schema_name = "weave"
         self._pantry_schema = kwargs.get("pantry_schema", d_schema_name)
