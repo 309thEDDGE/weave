@@ -1,15 +1,7 @@
 import os
-import shutil
-import string
 import random
-import time
 import json
 from datetime import datetime, timedelta
-from weave.pantry import Pantry
-from weave.basket import Basket
-from weave.index.index_pandas import IndexPandas
-from weave.index.index_sqlite import IndexSQLite
-from fsspec.implementations.local import LocalFileSystem
 
 def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1, file_path="dummy_data"):
     """Generates dummy files in the specified directory with random text content.
