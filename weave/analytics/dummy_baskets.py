@@ -37,7 +37,7 @@ def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1, fil
         
         # Generate data for the dummy file
         with open(os.path.join(dir_path, f"dummy_file_{i}.txt"), "w") as f:
-            for _ in range(size_in_bytes // chunk_size):
+            for _ in range(int((size_in_bytes // chunk_size))):
                 flight_number = f"{random.choice(['UA', 'DL', 'AA', 'SW'])}{random.randint(100,9999)}"
                 now = datetime.now()
                 departure_time = now.strftime("%Y-%m-%d %H:%M")
