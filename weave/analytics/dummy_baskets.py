@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1, file_path="dummy_data", num_basket_types=5):
     """Generates dummy files in the specified directory with random text content.
+        Each basket will contain the same list of dummy files from the dummy_data directory.
 
         Parameters:
         -----------
