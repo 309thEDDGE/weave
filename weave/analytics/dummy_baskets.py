@@ -1,9 +1,10 @@
 import os
 import random
 import json
+import uuid
 from datetime import datetime, timedelta
 
-def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1, file_path="dummy_data"):
+def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1, file_path="dummy_data", num_basket_types=5):
     """Generates dummy files in the specified directory with random text content.
 
         Parameters:
@@ -62,10 +63,14 @@ def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1, fil
                 json.dump(data, f)
                 
     # Add a basket containing the dummy files to the basket list
+    counter = 0
+    x = 1
     for _ in range(basket_count):
-        basket_list.append({"upload_items": [{'path' :file_path, 'stub': False}], "basket_type": "dummy-baskets", "metadata": {'Data Type': 'text'}})
+        basket_list.append({"upload_items": [{'path' :file_path, 'stub': False}], "basket_type": f"dummy-baskets-{x}", "metadata": {'Data Type': 'text'}})
+
+        counter += 1
+        if counter % int(basket_count / num_basket_types) == 0:
+            x += 1
 
     # Return the basket list
     return basket_list
-    
-    
