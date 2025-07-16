@@ -515,6 +515,7 @@ def test_basket_from_uuid_with_many_baskets(test_pantry):
         basket_address=uuid,
         pantry=pantry,
     )
+    breakpoint() #DEBUG - how basket is made
     assert Path(test_basket.ls(f"temp_basket_{uuid}")[0]).match(
         os.path.join(
             test_pantry.pantry_path,
@@ -703,6 +704,127 @@ def test_read_only_get_data():
         del read_only_pantry
         del read_only_fs
         del my_basket
+
+
+def test_basket_download_file_exists_error(test_pantry):
+    """Test that an error is raised when trying to download a basket to a local
+    dir that already has the basket downloaded.
+    """
+    # Create a temporary basket with a test file, and upload it.
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
+    basket_path = test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir)
+
+    basket = Basket(basket_path, file_system=test_pantry.file_system)
+    # Create a temporary directory to download the basket to
+    with tempfile.TemporaryDirectory() as tmp_download_dir:
+        # Download the basket to the temporary directory
+        basket.download(tmp_download_dir)
+
+        # Attempt to download the basket again to the same directory
+        with pytest.raises(
+            FileExistsError,
+            match=re.escape(
+                "Destination path "
+                f"{os.path.join(tmp_download_dir, basket.uuid)} "
+                "already exists. Please choose a different destination path."
+            ),
+        ):
+            basket.download(tmp_download_dir)
+
+    # Clean up the temporary directory
+    shutil.rmtree(tmp_download_dir, ignore_errors=True)
+
+
+def test_basket_download_include_artifacts_arg(test_pantry):
+    """Test that the basket download includes or excludes artifacts"""
+    # Create a temporary basket with a the following structure:
+    # test_basket_tmp_dir/
+    # ├── nested_dir/
+    # │   └── another_test.txt
+    # └── test.txt
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
+    tmp_basket_dir = test_pantry.add_lower_dir_to_temp_basket(tmp_basket_dir)
+    basket_path = test_pantry.upload_basket(
+        tmp_basket_dir=tmp_basket_dir,
+        metadata={"test": "data"},
+    )
+
+    basket = Basket(basket_path, file_system=test_pantry.file_system)
+
+    # Create a temporary directory to download the basket to
+    with tempfile.TemporaryDirectory() as tmp_download_dir:
+        # Download the basket to the temporary directory
+        basket.download(tmp_download_dir, include_artifacts=True)
+        downloaded_paths = [
+            str(f) for f
+            in Path(os.path.join(tmp_download_dir, basket.uuid)).rglob("*")
+        ]
+
+        # Check that the basket directory and its contents are present.
+        assert len(downloaded_paths) == 7
+        assert (
+            os.path.join(tmp_download_dir, basket.uuid,
+                         tmp_basket_dir_name) in downloaded_paths
+        )
+        assert (
+            os.path.join(tmp_download_dir, basket.uuid,
+                         tmp_basket_dir_name, "test.txt") in downloaded_paths
+        )
+        assert (
+            os.path.join(tmp_download_dir, basket.uuid, tmp_basket_dir_name,
+                         "nested_dir") in downloaded_paths
+        )
+        assert (
+            os.path.join(tmp_download_dir, basket.uuid, tmp_basket_dir_name,
+                         "nested_dir", "another_test.txt") in downloaded_paths
+        )
+        assert (
+            os.path.join(tmp_download_dir, basket.uuid,
+                         "basket_supplement.json") in downloaded_paths
+        )
+        assert (
+            os.path.join(tmp_download_dir, basket.uuid,
+                         "basket_manifest.json") in downloaded_paths
+        )
+        assert (
+            os.path.join(tmp_download_dir, basket.uuid,
+                         "basket_metadata.json") in downloaded_paths
+        )
+
+        # Clear the downloaded directory
+        shutil.rmtree(os.path.join(tmp_download_dir, basket.uuid))
+
+        # Download the basket again without artifacts
+        basket.download(tmp_download_dir, include_artifacts=False)
+        downloaded_paths = [
+            str(f) for f
+            in Path(os.path.join(tmp_download_dir, basket.uuid)).rglob("*")
+        ]
+
+        # Check that the basket directory and its contents (excluding weave
+        # artifacts) are present.
+        assert len(downloaded_paths) == 4
+        assert (
+            os.path.join(tmp_download_dir, basket.uuid,
+                         tmp_basket_dir_name) in downloaded_paths
+        )
+        assert (
+            os.path.join(tmp_download_dir, basket.uuid,
+                         tmp_basket_dir_name, "test.txt") in downloaded_paths
+        )
+        assert (
+            os.path.join(tmp_download_dir, basket.uuid, tmp_basket_dir_name,
+                         "nested_dir") in downloaded_paths
+        )
+        assert (
+            os.path.join(tmp_download_dir, basket.uuid, tmp_basket_dir_name,
+                         "nested_dir", "another_test.txt") in downloaded_paths
+        )
+
+    # Clean up the temporary directory
+    shutil.rmtree(tmp_download_dir, ignore_errors=True)
 
 
 def test_create_basket_in_place(test_pantry):
