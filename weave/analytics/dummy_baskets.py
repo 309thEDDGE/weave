@@ -11,23 +11,23 @@ from weave.index.index_pandas import IndexPandas
 from weave.index.index_sqlite import IndexSQLite
 from fsspec.implementations.local import LocalFileSystem
 
-def generate_dummy_baskets(basket_count=10, file_count=10, file_size_mb=1, file_path="dummy_data"):
+def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1, file_path="dummy_data"):
     """Generates dummy files in the specified directory with random text content.
 
         Parameters:
         -----------
-        basket_count: int
-            Defaults to 1000.
+        basket_count: int (default=1000)
             Specifies the number of dummy baskets to create.
-        file_count: int
-            Defaults to 10.
+        file_count: int (default=10)
             Specifies the number of dummy files to create.
-        file_size_mb: int
-            Defaults to 1.
+        file_size_mb: int (default=1)
             Specifies the size of each dummy file in megabytes.
-        file_path: str
-            Defaults to "weave/analytics/dummy".
+        file_path: str (default="dummy_data")
             Specifies the path where the dummy files will be created.
+            
+        Returns
+        ---------
+        a list of dictionaries, each representing a basket with dummy files.
     """
     #List of all baskets created
     basket_list = []
@@ -41,7 +41,7 @@ def generate_dummy_baskets(basket_count=10, file_count=10, file_size_mb=1, file_
         size_in_bytes = file_size_mb * 1024 * 1024
         chunk_size = 1024
         
-        # Generate metadata for the dummy file
+        # Generate data for the dummy file
         with open(os.path.join(dir_path, f"dummy_file_{i}.txt"), "w") as f:
             for _ in range(size_in_bytes // chunk_size):
                 flight_number = f"{random.choice(['UA', 'DL', 'AA', 'SW'])}{random.randint(100,9999)}"
@@ -55,7 +55,7 @@ def generate_dummy_baskets(basket_count=10, file_count=10, file_size_mb=1, file_
                 speed = random.randint(400, 600)  # knots
                 status = random.choice(['Scheduled', 'Departed', 'Arrived', 'Delayed'])
 
-                metadata = {
+                data = {
                     "flight_number": flight_number,
                     "departure_time": departure_time,
                     "arrival_time": arrival_time,
@@ -67,7 +67,7 @@ def generate_dummy_baskets(basket_count=10, file_count=10, file_size_mb=1, file_
                     "status": status
                 }
                                 
-                json.dump(metadata, f)
+                json.dump(data, f)
                 
     # Add a basket containing the dummy files to the basket list
     for _ in range(basket_count):
