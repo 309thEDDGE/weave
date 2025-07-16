@@ -331,18 +331,22 @@ mongo_client = weave.config.get_mongo_db()
 pantry = weave.Pantry(
     weave.IndexPandas,
     pantry_path=pantry_path,
-    file_system=s3fs.S3FileSystem(client_kwargs = {'endpoint_url': os.environ['S3_ENDPOINT']}),
+    file_system=weave.config.get_file_system(),
     mongo_client=mongo_client,
 )
 ```
 
-It is the same process as before expect adding the mongo client to the Pantry object.
+It is the same process as before except adding the mongo client to the Pantry object.
 
 ```python
 from weave.mongo_loader import MongoLoader
-# pantry_path is the same patry_path from weave.Pantry()
-# mongo_client is the same mongo_client as in the previous code block
-mongo_loader = MongoLoader(pantry=pantry_path, mongo_client=mongo_client)
+# pantry is the pantry object from weave.Pantry()
+# If the pantry already has a mongo_client attached to it
+# (if it was passed into the pantry constructor, or if it
+# was loaded during the factory constructor, the mongo client
+# does not need to be passed in explicitly,
+# it will retrieve the pantry's mongo_client
+mongo_loader = MongoLoader(pantry=pantry)
 ```
 
 One way to make sure everything is set up properly is to print the database name.
