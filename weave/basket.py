@@ -79,7 +79,7 @@ class BasketInitializer:
     def _set_up_basket_from_path(self, basket_address):
         """Attempts to set up a basket from a filepath.
 
-        Paramters
+        Parameters
         ---------
         basket_address: str
             Argument can take one of two forms: either a path to the basket

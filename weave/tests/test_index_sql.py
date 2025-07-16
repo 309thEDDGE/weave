@@ -4,6 +4,7 @@ correctly."""
 import os
 from unittest import mock
 
+
 # Try-Except required to make sqlalchemy an optional dependency.
 try:
     import importlib
@@ -22,6 +23,7 @@ from weave.index.index_sql import IndexSQL
 from weave.tests.pytest_resources import IndexForTest, get_file_systems
 from weave.tests.pytest_resources import PantryForTest
 from weave.tests.pytest_resources import get_sample_basket_df
+
 
 # Create fsspec objects to be tested, and add to file_systems list.
 file_systems, file_systems_ids = get_file_systems()
