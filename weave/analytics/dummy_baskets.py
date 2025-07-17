@@ -33,19 +33,28 @@ def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1,
         size_in_bytes = file_size_mb * 1024 * 1024
         chunk_size = 1024
         for i in range(file_count):
-            with open(os.path.join(dir_path, f"dummy_file_{i}.txt"), "w", encoding="utf-8") as f:
+            with open(os.path.join(dir_path, f"dummy_file_{i}.txt"), "w",
+                      encoding="utf-8") as f:
                 for _ in range(int((size_in_bytes // chunk_size))):
                     now = datetime.now()
                     data = {
-                        "flight_number": f"{random.choice(['UA', 'DL', 'AA', 'SW'])}{random.randint(100, 9999)}",
+                        "flight_number": f"{random.choice(
+                            ['UA', 'DL', 'AA', 'SW'])
+                            }{random.randint(100, 9999)}",
                         "departure_time": now.strftime("%Y-%m-%d %H:%M"),
-                        "arrival_time": (now + timedelta(hours=random.randint(1, 12))).strftime("%Y-%m-%d %H:%M"),
-                        "origin": random.choice(['JFK', 'LAX', 'ORD', 'ATL', 'DFW']),
-                        "destination": random.choice(['SEA', 'MIA', 'DEN', 'PHX', 'SFO']),
-                        "aircraft_type": random.choice(['A320', 'B737', 'B777', 'A380']),
+                        "arrival_time": (now + timedelta(
+                            hours=random.randint(1, 12)))
+                        .strftime("%Y-%m-%d %H:%M"),
+                        "origin": random.choice(
+                            ['JFK', 'LAX', 'ORD', 'ATL', 'DFW']),
+                        "destination": random.choice(
+                            ['SEA', 'MIA', 'DEN', 'PHX', 'SFO']),
+                        "aircraft_type": random.choice(
+                            ['A320', 'B737', 'B777', 'A380']),
                         "altitude": random.randint(30000, 41000),
                         "speed": random.randint(400, 600),
-                        "status": random.choice(['Scheduled', 'Departed', 'Arrived', 'Delayed'])
+                        "status": random.choice(
+                            ['Scheduled', 'Departed', 'Arrived', 'Delayed'])
                     }
                     json.dump(data, f)
     # Add a basket containing the dummy files to the basket list
@@ -56,6 +65,7 @@ def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1,
             "basket_type": f"dummy-baskets-{x}",
             "metadata": {'Data Type': 'text'}
         })
-        if num_basket_types > 0 and (i + 1) % int(basket_count / num_basket_types) == 0:
+        if num_basket_types > 0 and (i + 1) % int(
+            basket_count / num_basket_types) == 0:
             x += 1
     return basket_list
