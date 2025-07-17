@@ -23,7 +23,7 @@ from weave.index.index_pandas import IndexPandas
 from weave.index.create_index import create_index_from_fs
 from weave.tests.pytest_resources import PantryForTest, IndexForTest
 from weave.tests.pytest_resources import cleanup_sql_index, get_file_systems
-from weave.upload import UTC
+UTC = timezone.utc
 
 
 ###############################################################################
@@ -1629,7 +1629,7 @@ def test_index_abc_get_baskets_by_upload_time_start_works(test_pantry):
     test_pantry, ind = test_pantry
 
     # Save the current time, and set the 'end' time to 5 seconds ago.
-    start = datetime.now(UTC) - timedelta(seconds=5)
+    start = datetime.utcnow() - timedelta(seconds=5)
 
     # Get the index columns and instantiate with empty lists.
     columns = weave.config.get_index_column_names()
@@ -1676,7 +1676,7 @@ def test_index_abc_get_baskets_by_upload_time_end_works(test_pantry):
     ind.to_pandas_df()
 
     # Save the current time, and set the 'end' time to 5 seconds ago.
-    end = datetime.now(UTC) - timedelta(seconds=5)
+    end = datetime.utcnow() - timedelta(seconds=5)
 
     # Get the index columns and instantiate with empty lists.
     columns = weave.config.get_index_column_names()
@@ -1725,7 +1725,7 @@ def test_index_abc_get_baskets_by_upload_time_start_end_works(test_pantry):
     ind.to_pandas_df()
 
     # Save the current time, and set the 'start' time to now.
-    start = datetime.now(UTC)
+    start = datetime.utcnow()
 
     # Get the index columns and instantiate with empty lists.
     columns = weave.config.get_index_column_names()
@@ -1784,7 +1784,7 @@ def test_index_abc_get_baskets_by_upload_time_returns_empty_df(test_pantry):
 
     # Save the current time, and set the 'start' time to now.
     # Save the end time to 2 seconds after the start.
-    start = datetime.now(UTC)
+    start = datetime.utcnow()
     end = start + timedelta(seconds=2)
 
     # Get the index columns and instantiate with empty lists.

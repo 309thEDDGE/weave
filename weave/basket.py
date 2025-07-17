@@ -390,7 +390,7 @@ def create_basket_in_place(directory_path, **kwargs):
     # Create manifest file
     manifest = {
         "uuid": str(uuid.uuid1().hex),
-        "upload_time": datetime.now(UTC).isoformat(),
+        "upload_time": datetime.utcnow().isoformat(),
         "parent_uuids": parent_uuids or [],
         "basket_type": basket_type,
         "label": label,
