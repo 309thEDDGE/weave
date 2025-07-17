@@ -14,7 +14,7 @@ import s3fs
 from .config import get_file_system, prohibited_filenames
 from .validate import validate_basket_in_place_directory
 from .validate import validate_basket_in_place_directory_backward
-from .upload import derive_integrity_data
+from .upload import derive_integrity_data, UTC
 
 
 class BasketInitializer:
@@ -390,7 +390,7 @@ def create_basket_in_place(directory_path, **kwargs):
     # Create manifest file
     manifest = {
         "uuid": str(uuid.uuid1().hex),
-        "upload_time": datetime.now(timezone.utc).isoformat(),
+        "upload_time": datetime.now(UTC).isoformat(),
         "parent_uuids": parent_uuids or [],
         "basket_type": basket_type,
         "label": label,

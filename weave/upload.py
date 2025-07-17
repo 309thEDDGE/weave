@@ -10,9 +10,12 @@ import uuid
 from datetime import datetime, timezone as tz
 from pathlib import Path
 import s3fs
+from sys import version_info
 
 from fsspec.implementations.local import LocalFileSystem
 from .config import get_file_system, prohibited_filenames
+
+UTC = datetime.utc if version_info >= (3, 11) else tz.utc
 
 
 def validate_upload_item(upload_item, **kwargs):
@@ -126,7 +129,7 @@ def derive_integrity_data(file_path, byte_count=10**8, **kwargs):
     return {
         "file_size": file_size,
         "hash": sha256_hash,
-        "access_date": datetime.now(tz.utc).isoformat(),
+        "access_date": datetime.now(UTC).isoformat(),
         "source_path": file_path,
         "byte_count": byte_count,
     }
@@ -418,7 +421,7 @@ class UploadBasket:
         )
         basket_json = {}
         basket_json["uuid"] = self.kwargs.get("unique_id")
-        basket_json["upload_time"] = datetime.now(tz.utc).isoformat()
+        basket_json["upload_time"] = datetime.now(UTC).isoformat()
         basket_json["parent_uuids"] = self.kwargs.get("parent_ids", [])
         basket_json["basket_type"] = self.kwargs.get("basket_type")
         basket_json["label"] = self.kwargs.get("label", "")
