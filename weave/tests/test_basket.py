@@ -139,9 +139,7 @@ def test_basket_no_manifest_file(test_pantry):
     # Attempt to create a Basket from the malformed basket (missing manifest)
     with pytest.raises(
         FileNotFoundError,
-        match=re.escape(
-            "Invalid Basket, basket_manifest.json "
-            f"does not exist: {manifest_path}"
+        match=re.escape("Invalid Basket, basket_manifest.json " f"does not exist: {manifest_path}"
         ),
     ):
         Basket(Path(basket_path), file_system=test_pantry.file_system)
@@ -185,7 +183,7 @@ def test_basket_get_manifest(test_pantry):
     basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
     manifest = basket.get_manifest()
     assert manifest == {
-        "uuid": "0000",
+        "uui": "0000",
         "parent_uuids": [],
         "basket_type": "test_basket",
         "label": "",
