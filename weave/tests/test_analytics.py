@@ -167,6 +167,9 @@ def test_dummy_baskets_non_string_filepath():
     baskets = generate_dummy_baskets(basket_count=10, file_count=5,
         file_size_mb=1, file_path=file_path, num_basket_types=3)
     
+    assert len(baskets) == 10
+
+    
     if (os.path.exists(file_path)):
         assert False
     else:
