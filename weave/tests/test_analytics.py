@@ -1,17 +1,12 @@
+
 """ Pytest for the weave analytics related functionality. """
-import weave
-from weave.__init__ import __version__ as weave_version
-import shutil
-import sys
 import os
-from datetime import datetime, timedelta
+import shutil
+from fsspec.implementations.local import LocalFileSystem
 from weave.pantry import Pantry
-from weave.index.index_pandas import IndexPandas
 from weave.index.index_sqlite import IndexSQLite
 from weave.analytics.dummy_baskets import generate_dummy_baskets
-from fsspec.implementations.local import LocalFileSystem
-import pytest
-from pathlib import Path
+
 
 def cleanup_test_directory():
     """Cleanup the test directory by removing the dummy data 

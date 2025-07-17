@@ -1,8 +1,6 @@
 import os
 import random
 import json
-import uuid
-from pathlib import Path
 from datetime import datetime, timedelta
 
 def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1, 
