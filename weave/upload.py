@@ -15,7 +15,7 @@ from sys import version_info
 from fsspec.implementations.local import LocalFileSystem
 from .config import get_file_system, prohibited_filenames
 
-UTC = datetime.UTC if version_info >= (3, 11) else tz.utc
+# UTC = datetime.UTC if version_info >= (3, 11) else tz.utc
 
 
 def validate_upload_item(upload_item, **kwargs):
