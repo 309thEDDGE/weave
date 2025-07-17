@@ -5,9 +5,11 @@ import uuid
 from pathlib import Path
 from datetime import datetime, timedelta
 
-def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1, file_path="dummy_data", num_basket_types=5):
-    """Generates dummy files in the specified directory with random text content.
-        Each basket will contain the same list of dummy files from the dummy_data directory.
+def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1, 
+    file_path="dummy_data", num_basket_types=5):
+    """Generates dummy files in the specified directory with 
+        random text content. Each basket will contain the same list of 
+        dummy files from the dummy_data directory.
 
         Parameters:
         -----------
@@ -44,16 +46,29 @@ def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1, fil
             # Generate data for the dummy file
             with open(os.path.join(dir_path, f"dummy_file_{i}.txt"), "w") as f:
                 for _ in range(int((size_in_bytes // chunk_size))):
-                    flight_number = f"{random.choice(['UA', 'DL', 'AA', 'SW'])}{random.randint(100,9999)}"
+                    airline = random.choice(['UA', 'DL', 'AA', 'SW'])
+                    flight_num = random.randint(100, 9999)
+                    flight_number = f"{airline}{flight_num}"
                     now = datetime.now()
                     departure_time = now.strftime("%Y-%m-%d %H:%M")
-                    arrival_time = (now + timedelta(hours=random.randint(1, 12))).strftime("%Y-%m-%d %H:%M")
-                    origin = random.choice(['JFK', 'LAX', 'ORD', 'ATL', 'DFW'])
-                    destination = random.choice(['SEA', 'MIA', 'DEN', 'PHX', 'SFO'])
-                    aircraft_type = random.choice(['A320', 'B737', 'B777', 'A380'])
+                    hours = random.randint(1, 12)
+                    arrival_time = (
+                        now + timedelta(hours=hours)
+                    ).strftime("%Y-%m-%d %H:%M")
+                    origin = random.choice([
+                        'JFK', 'LAX', 'ORD', 'ATL', 'DFW'
+                    ])
+                    destination = random.choice([
+                        'SEA', 'MIA', 'DEN', 'PHX', 'SFO'
+                    ])
+                    aircraft_type = random.choice([
+                        'A320', 'B737', 'B777', 'A380'
+                    ])
                     altitude = random.randint(30000, 41000)  # feet
                     speed = random.randint(400, 600)  # knots
-                    status = random.choice(['Scheduled', 'Departed', 'Arrived', 'Delayed'])
+                    status = random.choice([
+                        'Scheduled', 'Departed', 'Arrived', 'Delayed'
+                    ])
 
                     data = {
                         "flight_number": flight_number,
@@ -66,14 +81,15 @@ def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1, fil
                         "speed": speed,
                         "status": status
                     }
-                                    
                     json.dump(data, f)
                     
     # Add a basket containing the dummy files to the basket list
     counter = 0
     x = 1
     for _ in range(basket_count):
-        basket_list.append({"upload_items": [{'path' :file_path, 'stub': False}], "basket_type": f"dummy-baskets-{x}", "metadata": {'Data Type': 'text'}})
+        basket_list.append({"upload_items": [{'path' :file_path, 'stub': False}
+            ], "basket_type": f"dummy-baskets-{x}", 
+            "metadata": {'Data Type': 'text'}})
 
         if(num_basket_types > 0):
             counter += 1
