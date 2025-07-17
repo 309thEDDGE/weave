@@ -1920,7 +1920,6 @@ def test_generate_index_when_pandas_index_exists(test_pantry):
     except IndexError:
         assert False
 
-
 def test_clear_index_works(test_pantry):
     """Test clear_index deletes the current index"""
     test_pantry, ind = test_pantry

@@ -67,6 +67,12 @@ class MongoLoader():
         # pantry_path if it is not present.)
         self.database_name = self.mongo_config.get(
             "mongodb_database", self.pantry.pantry_path)
+        for invalid_char in [" ", ".", "$", "/", "\\", "\x00", '"']:
+            if invalid_char in self.database_name:
+                self.database_name = self.database_name.replace(
+                    invalid_char,
+                    "",
+                )
         self.database = self.mongo_client[self.database_name]
 
         self.metadata_collection = self.mongo_config.get(
