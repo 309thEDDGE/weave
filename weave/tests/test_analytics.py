@@ -1,55 +1,57 @@
-
 """ Pytest for the weave analytics related functionality. """
 import os
 import shutil
 from fsspec.implementations.local import LocalFileSystem
 from weave.pantry import Pantry
-from weave.index.index_sqlite import IndexSQLite
+from weave.index.index_pandas import IndexPandas
 from weave.analytics.dummy_baskets import generate_dummy_baskets
+from fsspec.implementations.local import LocalFileSystem
+from weave.tests.pytest_resources import get_file_systems
+from weave.tests.pytest_resources import PantryForTest
+import pytest
+from pathlib import Path
 
 
-def cleanup_test_directory():
-    """Cleanup the test directory by removing the dummy data 
-    and pantry directories.
-    And remove the dummy_pantry.db file if it exists."""
-    if os.path.exists("weave/analytics/test_dummy_data"):
-        shutil.rmtree("weave/analytics/test_dummy_data")
-    if os.path.exists("weave/analytics/dummy_pantry"):
-        shutil.rmtree("weave/analytics/dummy_pantry")
-    db_path = "weave/analytics/dummy_pantry.db"
-    if os.path.exists(db_path):
-        try:
-            os.remove(db_path)
-        except PermissionError:
-            pass
+# Create fsspec objects to be tested, and add to file_systems list.
+file_systems, file_systems_ids = get_file_systems()
 
-def test_dummy_baskets_basket_count():
-    """Test the generate_dummy_baskets function to ensure it creates the 
-    expected number of baskets and files. 
+
+# Test with different fsspec file systems (above).
+@pytest.fixture(
+    name="test_pantry",
+    params=file_systems,
+    ids=file_systems_ids,
+)
+def fixture_test_pantry(request, tmpdir):
+    """Fixture to set up and tear down test_basket."""
+    file_system = request.param
+    test_pantry = PantryForTest(tmpdir, file_system)
+    yield test_pantry
+    test_pantry.cleanup_pantry()
+
+
+def test_dummy_baskets_basket_count(test_pantry):
+    """Test the generate_dummy_baskets function to ensure it creates the
+    expected number of baskets and files.
     Expected: 10 baskets with 5 files each"""
-    
-    file_path = "weave/analytics/test_dummy_data"
-    pantry_path = "weave/analytics/dummy_pantry"
-    baskets = generate_dummy_baskets(basket_count=10, file_count=5, 
+    file_path = os.path.join(test_pantry.pantry_path, "test_dummy_data")
+    pantry_path = os.path.join(test_pantry.pantry_path, "dummy_pantry")
+    baskets = generate_dummy_baskets(basket_count=10, file_count=5,
         file_size_mb=1, file_path=str(file_path), num_basket_types=3)
-    
+
     assert len(baskets) == 10
 
     #Create a new pantry
-    local_fs = LocalFileSystem()
-    test_pantry = Pantry(IndexSQLite, pantry_path=str(pantry_path), 
-                         file_system=local_fs)
+    test_pantry = Pantry(IndexPandas, pantry_path=str(pantry_path),
+                         file_system=test_pantry.file_system)
 
     #Use ** to unpack the dictionary returned by generate_dummy_files
     for basket in baskets:
         test_pantry.upload_basket(**basket)
     
-    files = [f for f in os.listdir(file_path) if 
+    files = [f for f in os.listdir(file_path) if
              os.path.isfile(os.path.join(file_path, f))]
-    
     assert len(files) == 5
-    
-    cleanup_test_directory()
 
 def test_dummy_baskets_empty_pantry():
     """Test the generate_dummy_baskets function with no baskets to ensure it 
