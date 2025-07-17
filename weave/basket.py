@@ -14,7 +14,7 @@ import s3fs
 from .config import get_file_system, prohibited_filenames
 from .validate import validate_basket_in_place_directory
 from .validate import validate_basket_in_place_directory_backward
-from .upload import derive_integrity_data, UTC
+from .upload import derive_integrity_data
 
 
 class BasketInitializer:
