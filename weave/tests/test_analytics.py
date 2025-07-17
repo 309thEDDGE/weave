@@ -144,7 +144,7 @@ def test_dummy_baskets_negative_values(test_pantry):
     else:
         # Directory does not exist, which is expected
         assert True
-def test_dummy_baskets_non_string_filepath(test_pantry):
+def test_dummy_baskets_non_string_filepath():
     """Test the generate_dummy_baskets function with a non-string file_path"""
     baskets = generate_dummy_baskets(basket_count=10, file_count=5,
         file_size_mb=1, file_path=123, num_basket_types=3)
