@@ -2,6 +2,7 @@ import os
 import random
 import json
 import uuid
+from pathlib import Path
 from datetime import datetime, timedelta
 
 def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1, file_path="dummy_data", num_basket_types=5):
@@ -28,7 +29,7 @@ def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1, fil
     basket_list = []
     
     #Set up the dummy directory
-    dir_path = os.path.join(file_path)
+    dir_path = os.path.join(str(file_path))
     if file_count > 0:
         os.makedirs(dir_path, exist_ok=True)
     
@@ -74,9 +75,10 @@ def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1, fil
     for _ in range(basket_count):
         basket_list.append({"upload_items": [{'path' :file_path, 'stub': False}], "basket_type": f"dummy-baskets-{x}", "metadata": {'Data Type': 'text'}})
 
-        counter += 1
-        if counter % int(basket_count / num_basket_types) == 0:
-            x += 1
+        if(num_basket_types > 0):
+            counter += 1
+            if counter % int(basket_count / num_basket_types) == 0:
+                x += 1
 
     # Return the basket list
     return basket_list
