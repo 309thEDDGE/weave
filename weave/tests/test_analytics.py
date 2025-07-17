@@ -35,7 +35,7 @@ def test_dummy_baskets_basket_count(test_pantry):
     expected number of baskets and files.
     Expected: 10 baskets with 5 files each"""
     file_path = os.path.join(test_pantry.pantry_path, "test_dummy_data")
-    pantry_path = os.path.join(test_pantry.pantry_path, "dummy_pantry")
+    pantry_path = os.path.join(test_pantry.pantry_path, "test_dummy_pantry")
     baskets = generate_dummy_baskets(basket_count=10, file_count=5,
         file_size_mb=1, file_path=str(file_path), num_basket_types=3)
 
