@@ -151,7 +151,7 @@ class IndexForTest:
 
         if self.pantry_path is None:
             self.pantry_path = (
-                "pytest-temp-pantry"
+                "weave-pytest-temp-pantry"
                 f"{os.environ.get('WEAVE_PYTEST_SUFFIX', '')}"
             )
 
