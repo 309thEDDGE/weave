@@ -80,7 +80,7 @@ class IndexSQL(IndexABC):
         # Set the schema name (defaults to pantry_path). If the schema does not
         # exist, it will be created.
         d_schema_name = self._pantry_path.replace(os.sep, "_")\
-            .replace("-", "_").replace(":", "_")
+            .replace("-", "_").replace(":", "_").replace(" ", "")
         if d_schema_name == "":
             d_schema_name = "weave"
         self._pantry_schema = kwargs.get("pantry_schema", d_schema_name)
@@ -266,16 +266,11 @@ class IndexSQL(IndexABC):
             raise FileNotFoundError("'pantry_path' does not exist: "
                                     f"'{self.pantry_path}'")
 
-        basket_jsons = [x for x in self.file_system.find(self.pantry_path)
-            if x.endswith("basket_manifest.json")
-        ]
-
-        for basket_json_address in basket_jsons:
-            entry = create_index_from_fs(basket_json_address,
-                                         file_system=self.file_system)
-            if not entry.empty:
-                if len(self.get_rows(entry['uuid'].iloc[0])) == 0:
-                    self.track_basket(entry)
+        # Batch generate the index from the file system.
+        # pylint: disable-next=fixme
+        # TODO: Split into multiple batches if the pantry is large.
+        index_df = create_index_from_fs(self.pantry_path, self.file_system)
+        self.track_basket(index_df)
 
     def clear_index(self, refresh=False, **kwargs):
         """Deletes/clears the previously populated index.
