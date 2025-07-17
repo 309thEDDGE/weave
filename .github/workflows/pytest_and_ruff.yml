@@ -4,9 +4,9 @@ name: Weave CI/CD
 
 on:
   push:
-    branches: [ "development" ]
+    branches: [ "development", "main" ]
   pull_request:
-    branches: [ "development" ]
+    branches: [ "development", "main" ]
 
 permissions:
   contents: read
