@@ -62,7 +62,7 @@ def test_dummy_baskets_basket_count(test_pantry):
 
     files = [f for f in os.listdir(file_path)
              if os.path.isfile(os.path.join(file_path, f))]
-    
+
     assert len(files) == 5
 
 
@@ -86,7 +86,7 @@ def test_dummy_baskets_empty_pantry(test_pantry):
 
     files = [f for f in os.listdir(file_path)
              if os.path.isfile(os.path.join(file_path, f))]
-    
+
     assert len(files) == 5
 
 
@@ -155,7 +155,7 @@ def test_dummy_baskets_no_basket_types(test_pantry):
     # make sure there is only one directory created in dummy_pantry
     directories = [d for d in os.listdir(pantry_path)
                    if os.path.isdir(os.path.join(pantry_path, d))]
-    
+
     assert len(directories) == 2
 
 
@@ -175,7 +175,7 @@ def test_dummy_baskets_negative_values(test_pantry):
         assert True
 
 
-def test_dummy_baskets_non_string_filepath(test_pantry):
+def test_dummy_baskets_non_string_filepath():
     """Test the generate_dummy_baskets function with a non-string file_path"""
     with pytest.raises(TypeError, match="expected str, bytes or os.PathLike " \
                                         "object, not int"):
