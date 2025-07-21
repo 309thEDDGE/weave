@@ -1,8 +1,8 @@
 
 """Pytest for the weave analytics related functionality."""
 import os
-import shutil
 import pytest
+
 from weave.pantry import Pantry
 from weave.index.index_pandas import IndexPandas
 from weave.analytics.dummy_baskets import generate_dummy_baskets
