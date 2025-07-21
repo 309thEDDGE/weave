@@ -65,7 +65,7 @@ def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1,
     # We just want to return an empty list if no basket types are desired
     if num_basket_types < 1 or basket_count < 1:
         return []
-    
+
     # Add a basket containing the dummy files to the basket list
     x = 1
     for i in range(basket_count):
