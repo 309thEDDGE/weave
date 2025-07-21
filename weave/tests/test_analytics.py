@@ -48,7 +48,7 @@ def test_dummy_baskets_basket_count(test_pantry):
     expected number of baskets and files.
     Expected: 10 baskets with 5 files each"""
     file_path = "test_dummy_data"
-    pantry_path = "test_dummy_pantry"
+    pantry_path = test_pantry.pantry_path
     baskets = generate_dummy_baskets(basket_count=10, file_count=5,
         file_size_mb=1, file_path=file_path, num_basket_types=3)
 
@@ -65,11 +65,9 @@ def test_dummy_baskets_basket_count(test_pantry):
 
     assert len(baskets) == 10
     assert len(files) == 5
-    assert len(upload_pantry.index) == 10
+    assert len(upload_pantry.index.to_pandas_df()) == 10
 
-    #Clean up the pantry and test files after the test is asserted
-    if os.path.exists(pantry_path):
-        shutil.rmtree(pantry_path)
+    #Clean up the test files after the test is asserted
     if os.path.exists(file_path):
         shutil.rmtree(file_path)
 
@@ -78,7 +76,7 @@ def test_dummy_baskets_empty_pantry(test_pantry):
     """Test the generate_dummy_baskets function with no baskets to ensure it
     handles empty cases correctly"""
     file_path = "test_dummy_data"
-    pantry_path = "test_dummy_pantry"
+    pantry_path = test_pantry.pantry_path
     baskets = generate_dummy_baskets(basket_count=0, file_count=5,
         file_size_mb=1, file_path=file_path, num_basket_types=3)
 
@@ -95,11 +93,9 @@ def test_dummy_baskets_empty_pantry(test_pantry):
 
     assert len(baskets) == 0
     assert len(files) == 5
-    assert len(upload_pantry.index) == 0
+    assert len(upload_pantry.index.to_pandas_df()) == 0
 
-    #Clean up the pantry and test files after the test is asserted
-    if os.path.exists(pantry_path):
-        shutil.rmtree(pantry_path)
+    #Clean up the test files after the test is asserted
     if os.path.exists(file_path):
         shutil.rmtree(file_path)
 
@@ -123,9 +119,8 @@ def test_dummy_baskets_no_files():
 def test_dummy_baskets_empty_files(test_pantry):
     """Test the generate_dummy_baskets function with empty files to
     ensure the correct number of empty files are generated"""
-    # file_path = os.path.join(test_pantry.pantry_path, "test_dummy_data")
     file_path = "test_dummy_data"
-    pantry_path = "test_dummy_pantry"
+    pantry_path = test_pantry.pantry_path
     baskets = generate_dummy_baskets(basket_count=10, file_count=5,
         file_size_mb=0, file_path=file_path, num_basket_types=3)
 
@@ -143,7 +138,7 @@ def test_dummy_baskets_empty_files(test_pantry):
     # Ensure the 5 files are created
     assert len(baskets) == 10
     assert len(files) == 5
-    assert len(upload_pantry.index) == 10
+    assert len(upload_pantry.index.to_pandas_df()) == 10
 
     # Check if the files are empty
     for f in os.listdir(file_path):
@@ -151,9 +146,7 @@ def test_dummy_baskets_empty_files(test_pantry):
         if os.path.isfile(full_path):
             assert os.path.getsize(full_path) == 0, f"{f} should be empty"
 
-    #Clean up the pantry and test files after the test is asserted
-    if os.path.exists(pantry_path):
-        shutil.rmtree(pantry_path)
+    #Clean up the test files after the test is asserted
     if os.path.exists(file_path):
         shutil.rmtree(file_path)
 
@@ -161,7 +154,7 @@ def test_dummy_baskets_empty_files(test_pantry):
 def test_dummy_baskets_no_basket_types(test_pantry):
     """Test the generate_dummy_baskets function with no basket types"""
     file_path = "test_dummy_data"
-    pantry_path = "test_dummy_pantry"
+    pantry_path = test_pantry.pantry_path
     baskets = generate_dummy_baskets(basket_count=10, file_count=5,
         file_size_mb=1, file_path=file_path, num_basket_types=0)
 
@@ -178,11 +171,9 @@ def test_dummy_baskets_no_basket_types(test_pantry):
 
     assert len(baskets) == 0
     assert len(files) == 5
-    assert len(upload_pantry.index) == 0
+    assert len(upload_pantry.index.to_pandas_df()) == 0
 
-    #Clean up the pantry and test files after the test is asserted
-    if os.path.exists(pantry_path):
-        shutil.rmtree(pantry_path)
+    #Clean up the test files after the test is asserted
     if os.path.exists(file_path):
         shutil.rmtree(file_path)
 
