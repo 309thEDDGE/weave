@@ -25,7 +25,7 @@ setup(
     version=get_version("weave/__init__.py"),
     description="Library to facilitate the creation and maintenance of " +
                 "complex data warehouses.",
-    packages=["weave", "weave/tests", "weave/index"],
+    packages=["weave", "weave/tests", "weave/index", "weave/analytics"],
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/309thEDDGE/weave",
