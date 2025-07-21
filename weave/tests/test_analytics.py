@@ -1,8 +1,9 @@
 
 """Pytest for the weave analytics related functionality."""
 import os
-import pytest
 import shutil
+
+import pytest
 
 from weave.pantry import Pantry
 from weave.index.index_pandas import IndexPandas
@@ -200,10 +201,6 @@ def test_dummy_baskets_negative_values():
     else:
         # Directory does not exist, which is expected
         assert True
-    
-    #Clean up the test files after the test is asserted
-    if os.path.exists(file_path):
-        shutil.rmtree(file_path)
 
 
 def test_dummy_baskets_non_string_filepath():
