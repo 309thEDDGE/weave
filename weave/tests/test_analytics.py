@@ -9,6 +9,21 @@ from weave.analytics.dummy_baskets import generate_dummy_baskets
 from weave.tests.pytest_resources import get_file_systems, PantryForTest
 
 
+###############################################################################
+#                      Pytest Fixtures Documentation:                         #
+#            https://docs.pytest.org/en/7.3.x/how-to/fixtures.html            #
+#                                                                             #
+#                  https://docs.pytest.org/en/7.3.x/how-to/                   #
+#          fixtures.html#teardown-cleanup-aka-fixture-finalization            #
+#                                                                             #
+#  https://docs.pytest.org/en/7.3.x/how-to/fixtures.html#fixture-parametrize  #
+###############################################################################
+
+# Pylint doesn't like redefining the test fixture here from
+# test_basket, but this is the right way to do it if at some
+# point in the future the two need to be differentiated.
+# pylint: disable=duplicate-code
+
 # Create fsspec objects to be tested, and add to file_systems list.
 file_systems, file_systems_ids = get_file_systems()
 
@@ -33,12 +48,12 @@ def test_dummy_baskets_basket_count(test_pantry):
     file_path = os.path.join(test_pantry.pantry_path, "test_dummy_data")
     pantry_path = os.path.join(test_pantry.pantry_path, "test_dummy_pantry")
     baskets = generate_dummy_baskets(basket_count=10, file_count=5,
-        file_size_mb=1, file_path=str(file_path), num_basket_types=3)
+        file_size_mb=1, file_path=file_path, num_basket_types=3)
 
     assert len(baskets) == 10
 
     # Create a new pantry
-    test_pantry = Pantry(IndexPandas, pantry_path=str(pantry_path),
+    test_pantry = Pantry(IndexPandas, pantry_path=pantry_path,
                         file_system=test_pantry.file_system)
 
     # Use ** to unpack the dictionary returned by generate_dummy_files
@@ -47,20 +62,22 @@ def test_dummy_baskets_basket_count(test_pantry):
 
     files = [f for f in os.listdir(file_path)
              if os.path.isfile(os.path.join(file_path, f))]
+    
     assert len(files) == 5
+
 
 def test_dummy_baskets_empty_pantry(test_pantry):
     """Test the generate_dummy_baskets function with no baskets to ensure it
     handles empty cases correctly"""
     file_path = os.path.join(test_pantry.pantry_path, "test_dummy_data")
-    pantry_path = os.path.join(test_pantry.pantry_path, "dummy_pantry")
+    pantry_path = os.path.join(test_pantry.pantry_path, "test_dummy_pantry")
     baskets = generate_dummy_baskets(basket_count=0, file_count=5,
-        file_size_mb=1, file_path=str(file_path), num_basket_types=3)
+        file_size_mb=1, file_path=file_path, num_basket_types=3)
 
     assert len(baskets) == 0
 
     # Create a new pantry
-    test_pantry = Pantry(IndexPandas, pantry_path=str(pantry_path),
+    test_pantry = Pantry(IndexPandas, pantry_path=pantry_path,
                         file_system=test_pantry.file_system)
 
     # Use ** to unpack the dictionary returned by generate_dummy_files
@@ -69,13 +86,16 @@ def test_dummy_baskets_empty_pantry(test_pantry):
 
     files = [f for f in os.listdir(file_path)
              if os.path.isfile(os.path.join(file_path, f))]
+    
     assert len(files) == 5
+
+
 def test_dummy_baskets_no_files(test_pantry):
     """Test the generate_dummy_baskets function
     with no files to ensure it handles empty cases correctly"""
     file_path = os.path.join(test_pantry.pantry_path, "test_dummy_data")
     baskets = generate_dummy_baskets(basket_count=10, file_count=0,
-        file_size_mb=1, file_path=str(file_path), num_basket_types=3)
+        file_size_mb=1, file_path=file_path, num_basket_types=3)
 
     assert len(baskets) == 10
 
@@ -84,16 +104,18 @@ def test_dummy_baskets_no_files(test_pantry):
         assert False
     else:
         assert True
+
+
 def test_dummy_baskets_empty_files(test_pantry):
     """Test the generate_dummy_baskets function with empty files to
     ensure the correct number of empty files are generated"""
     file_path = os.path.join(test_pantry.pantry_path, "test_dummy_data")
-    pantry_path = os.path.join(test_pantry.pantry_path, "dummy_pantry")
+    pantry_path = os.path.join(test_pantry.pantry_path, "test_dummy_pantry")
     baskets = generate_dummy_baskets(basket_count=10, file_count=5,
-        file_size_mb=0, file_path=str(file_path), num_basket_types=3)
+        file_size_mb=0, file_path=file_path, num_basket_types=3)
 
     #Create a new pantry
-    test_pantry = Pantry(IndexPandas, pantry_path=str(pantry_path),
+    test_pantry = Pantry(IndexPandas, pantry_path=pantry_path,
         file_system=test_pantry.file_system)
 
     #Use ** to unpack the dictionary returned by generate_dummy_files
@@ -102,25 +124,29 @@ def test_dummy_baskets_empty_files(test_pantry):
 
     files = [f for f in os.listdir(file_path)
              if os.path.isfile(os.path.join(file_path, f))]
-    assert len(files) == 5, "Ensure the 5 files are created"
+
+    # Ensure the 5 files are created
+    assert len(files) == 5
 
     # Check if the files are empty
     for f in os.listdir(file_path):
         full_path = os.path.join(file_path, f)
         if os.path.isfile(full_path):
             assert os.path.getsize(full_path) == 0, f"{f} should be empty"
+
+
 def test_dummy_baskets_no_basket_types(test_pantry):
     """Test the generate_dummy_baskets function with no basket types"""
     file_path = os.path.join(test_pantry.pantry_path, "test_dummy_data")
-    pantry_path = os.path.join(test_pantry.pantry_path, "dummy_pantry")
+    pantry_path = os.path.join(test_pantry.pantry_path, "test_dummy_pantry")
     baskets = generate_dummy_baskets(basket_count=10, file_count=5,
-        file_size_mb=1, file_path=str(file_path), num_basket_types=0)
+        file_size_mb=1, file_path=file_path, num_basket_types=0)
 
     assert len(baskets) == 10
 
     #Create a new pantry
     test_pantry = Pantry(IndexPandas,
-        pantry_path=str(pantry_path), file_system=test_pantry.file_system)
+        pantry_path=pantry_path, file_system=test_pantry.file_system)
 
     #Use ** to unpack the dictionary returned by generate_dummy_files
     for basket in baskets:
@@ -129,13 +155,16 @@ def test_dummy_baskets_no_basket_types(test_pantry):
     # make sure there is only one directory created in dummy_pantry
     directories = [d for d in os.listdir(pantry_path)
                    if os.path.isdir(os.path.join(pantry_path, d))]
+    
     assert len(directories) == 2
+
+
 def test_dummy_baskets_negative_values(test_pantry):
     """Test the generate_dummy_baskets function with negative values
     to ensure it handles them correctly"""
     file_path = os.path.join(test_pantry.pantry_path, "test_dummy_data")
     baskets = generate_dummy_baskets(basket_count=-10, file_count=-5,
-        file_size_mb=-1, file_path=str(file_path), num_basket_types=-3)
+        file_size_mb=-1, file_path=file_path, num_basket_types=-3)
 
     assert len(baskets) == 0
 
@@ -144,16 +173,11 @@ def test_dummy_baskets_negative_values(test_pantry):
     else:
         # Directory does not exist, which is expected
         assert True
-def test_dummy_baskets_non_string_filepath():
+
+
+def test_dummy_baskets_non_string_filepath(test_pantry):
     """Test the generate_dummy_baskets function with a non-string file_path"""
-    baskets = generate_dummy_baskets(basket_count=10, file_count=5,
-        file_size_mb=1, file_path=123, num_basket_types=3)
-
-    assert len(baskets) == 10
-
-    if os.path.exists(123):
-        assert False
-    else:
-        assert True
-    if os.path.exists(str(123)):
-        shutil.rmtree(str(123))
+    with pytest.raises(TypeError, match="expected str, bytes or os.PathLike " \
+                                        "object, not int"):
+        generate_dummy_baskets(basket_count=10, file_count=5,
+            file_size_mb=1, file_path=123, num_basket_types=3)
