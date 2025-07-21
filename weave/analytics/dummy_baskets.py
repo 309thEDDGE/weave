@@ -28,36 +28,44 @@ def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1,
     ---------
     A list of dictionaries, each representing a basket with dummy files.
     """
+    # We just want to return an empty list if no files are being created
+    if file_count < 1:
+        return []
+
     basket_list = []
-    if file_count > 0:
-        os.makedirs(file_path, exist_ok=True)
-        size_in_bytes = file_size_mb * 1024 * 1024
-        chunk_size = 1024
-        for i in range(file_count):
-            with open(os.path.join(file_path, f"dummy_file_{i}.txt"), "w",
-                      encoding="utf-8") as f:
-                for _ in range(int((size_in_bytes // chunk_size))):
-                    now = datetime.now()
-                    data = {
-                        "flight_number": f"{random.choice(
-                            ['UA', 'DL', 'AA', 'SW'])
-                            }{random.randint(100, 9999)}",
-                        "departure_time": now.strftime("%Y-%m-%d %H:%M"),
-                        "arrival_time": (now + timedelta(
-                            hours=random.randint(1, 12)))
-                        .strftime("%Y-%m-%d %H:%M"),
-                        "origin": random.choice(
-                            ['JFK', 'LAX', 'ORD', 'ATL', 'DFW']),
-                        "destination": random.choice(
-                            ['SEA', 'MIA', 'DEN', 'PHX', 'SFO']),
-                        "aircraft_type": random.choice(
-                            ['A320', 'B737', 'B777', 'A380']),
-                        "altitude": random.randint(30000, 41000),
-                        "speed": random.randint(400, 600),
-                        "status": random.choice(
-                            ['Scheduled', 'Departed', 'Arrived', 'Delayed'])
-                    }
-                    json.dump(data, f)
+    os.makedirs(file_path, exist_ok=True)
+    size_in_bytes = file_size_mb * 1024 * 1024
+    chunk_size = 1024
+    for i in range(file_count):
+        with open(os.path.join(file_path, f"dummy_file_{i}.txt"), "w",
+                    encoding="utf-8") as f:
+            for _ in range(int((size_in_bytes // chunk_size))):
+                now = datetime.now()
+                data = {
+                    "flight_number": f"{random.choice(
+                        ['UA', 'DL', 'AA', 'SW'])
+                        }{random.randint(100, 9999)}",
+                    "departure_time": now.strftime("%Y-%m-%d %H:%M"),
+                    "arrival_time": (now + timedelta(
+                        hours=random.randint(1, 12)))
+                    .strftime("%Y-%m-%d %H:%M"),
+                    "origin": random.choice(
+                        ['JFK', 'LAX', 'ORD', 'ATL', 'DFW']),
+                    "destination": random.choice(
+                        ['SEA', 'MIA', 'DEN', 'PHX', 'SFO']),
+                    "aircraft_type": random.choice(
+                        ['A320', 'B737', 'B777', 'A380']),
+                    "altitude": random.randint(30000, 41000),
+                    "speed": random.randint(400, 600),
+                    "status": random.choice(
+                        ['Scheduled', 'Departed', 'Arrived', 'Delayed'])
+                }
+                json.dump(data, f)
+
+    # We just want to return an empty list if no basket types are desired
+    if num_basket_types < 1 or basket_count < 1:
+        return []
+    
     # Add a basket containing the dummy files to the basket list
     x = 1
     for i in range(basket_count):

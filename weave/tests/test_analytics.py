@@ -50,20 +50,20 @@ def test_dummy_baskets_basket_count(test_pantry):
     baskets = generate_dummy_baskets(basket_count=10, file_count=5,
         file_size_mb=1, file_path=file_path, num_basket_types=3)
 
-    assert len(baskets) == 10
+    files = [f for f in os.listdir(file_path)
+            if os.path.isfile(os.path.join(file_path, f))]
 
     # Create a new pantry
-    test_pantry = Pantry(IndexPandas, pantry_path=pantry_path,
+    upload_pantry = Pantry(IndexPandas, pantry_path=pantry_path,
                         file_system=test_pantry.file_system)
 
     # Use ** to unpack the dictionary returned by generate_dummy_files
     for basket in baskets:
-        test_pantry.upload_basket(**basket)
+        upload_pantry.upload_basket(**basket)
 
-    files = [f for f in os.listdir(file_path)
-             if os.path.isfile(os.path.join(file_path, f))]
-
+    assert len(baskets) == 10
     assert len(files) == 5
+    assert upload_pantry.index.__len__() == 10
 
 
 def test_dummy_baskets_empty_pantry(test_pantry):
@@ -74,20 +74,20 @@ def test_dummy_baskets_empty_pantry(test_pantry):
     baskets = generate_dummy_baskets(basket_count=0, file_count=5,
         file_size_mb=1, file_path=file_path, num_basket_types=3)
 
-    assert len(baskets) == 0
-
+    files = [f for f in os.listdir(file_path)
+            if os.path.isfile(os.path.join(file_path, f))]
+    
     # Create a new pantry
-    test_pantry = Pantry(IndexPandas, pantry_path=pantry_path,
+    upload_pantry = Pantry(IndexPandas, pantry_path=pantry_path,
                         file_system=test_pantry.file_system)
 
     # Use ** to unpack the dictionary returned by generate_dummy_files
     for basket in baskets:
-        test_pantry.upload_basket(**basket)
+        upload_pantry.upload_basket(**basket)
 
-    files = [f for f in os.listdir(file_path)
-             if os.path.isfile(os.path.join(file_path, f))]
-
+    assert len(baskets) == 0
     assert len(files) == 5
+    assert upload_pantry.index.__len__() == 0
 
 
 def test_dummy_baskets_no_files(test_pantry):
@@ -97,7 +97,7 @@ def test_dummy_baskets_no_files(test_pantry):
     baskets = generate_dummy_baskets(basket_count=10, file_count=0,
         file_size_mb=1, file_path=file_path, num_basket_types=3)
 
-    assert len(baskets) == 10
+    assert len(baskets) == 0
 
     if os.path.exists(file_path):
         # Ensure no baskets are created when file_count is 0
@@ -114,19 +114,22 @@ def test_dummy_baskets_empty_files(test_pantry):
     baskets = generate_dummy_baskets(basket_count=10, file_count=5,
         file_size_mb=0, file_path=file_path, num_basket_types=3)
 
+    
+    files = [f for f in os.listdir(file_path)
+             if os.path.isfile(os.path.join(file_path, f))]
+
     #Create a new pantry
-    test_pantry = Pantry(IndexPandas, pantry_path=pantry_path,
+    upload_pantry = Pantry(IndexPandas, pantry_path=pantry_path,
         file_system=test_pantry.file_system)
 
     #Use ** to unpack the dictionary returned by generate_dummy_files
     for basket in baskets:
-        test_pantry.upload_basket(**basket)
-
-    files = [f for f in os.listdir(file_path)
-             if os.path.isfile(os.path.join(file_path, f))]
+        upload_pantry.upload_basket(**basket)
 
     # Ensure the 5 files are created
+    assert len(baskets) == 10
     assert len(files) == 5
+    assert upload_pantry.index.__len__() == 10
 
     # Check if the files are empty
     for f in os.listdir(file_path):
@@ -142,21 +145,20 @@ def test_dummy_baskets_no_basket_types(test_pantry):
     baskets = generate_dummy_baskets(basket_count=10, file_count=5,
         file_size_mb=1, file_path=file_path, num_basket_types=0)
 
-    assert len(baskets) == 10
+    files = [f for f in os.listdir(file_path)
+             if os.path.isfile(os.path.join(file_path, f))]
 
     #Create a new pantry
-    test_pantry = Pantry(IndexPandas,
+    upload_pantry = Pantry(IndexPandas,
         pantry_path=pantry_path, file_system=test_pantry.file_system)
 
     #Use ** to unpack the dictionary returned by generate_dummy_files
     for basket in baskets:
-        test_pantry.upload_basket(**basket)
+        upload_pantry.upload_basket(**basket)
 
-    # make sure there is only one directory created in dummy_pantry
-    directories = [d for d in os.listdir(pantry_path)
-                   if os.path.isdir(os.path.join(pantry_path, d))]
-
-    assert len(directories) == 2
+    assert len(baskets) == 0
+    assert len(files) == 5
+    assert upload_pantry.index.__len__() == 0
 
 
 def test_dummy_baskets_negative_values(test_pantry):
