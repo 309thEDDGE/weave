@@ -252,6 +252,13 @@ class Basket(BasketInitializer):
         """
 
         ls_path = os.fspath(Path(self.basket_path))
+        # Most fsspec implementations default detail to False, but explicitly
+        # set it to False as this is the expected behavior for this function.
+        ls_kwargs = {"detail": False}
+        if self.file_system.__class__.__name__ == "S3FileSystem":
+            # Note that S3FileSystem.ls can have unpredictable behavior if
+            # not passing refresh=True
+            ls_kwargs["refresh"] = True
 
         if relative_path is not None:
             relative_path = os.fspath(relative_path)
@@ -262,17 +269,13 @@ class Basket(BasketInitializer):
         if ls_path == os.fspath(Path(self.basket_path)):
             # Remove any prohibited files from the list if they exist
             # in the root directory
-            # Note that file_system.ls can have unpredictable behavior if
-            # not passing refresh=True
-            ls_results = self.file_system.ls(ls_path, refresh=True)
+            ls_results = self.file_system.ls(ls_path, **ls_kwargs)
             return [
                 x
                 for x in ls_results
                 if os.path.basename(Path(x)) not in prohibited_filenames
             ]
-        # Note that file_system.ls can have unpredictable behavior if
-        # not passing refresh=True
-        return self.file_system.ls(ls_path, refresh=True)
+        return self.file_system.ls(ls_path, **ls_kwargs)
 
     # pylint: disable-msg=duplicate-code
     def to_pandas_df(self):
