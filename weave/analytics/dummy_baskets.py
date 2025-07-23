@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 from fsspec.implementations.local import LocalFileSystem
 
 from weave.pantry import Pantry
-from fsspec.implementations.local import LocalFileSystem
 
 def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1,
     file_path="dummy_data", num_basket_types=1):
