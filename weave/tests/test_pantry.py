@@ -411,7 +411,7 @@ def test_upload_basket_updates_the_pantry(test_pantry):
     for _ in range(3):
         new_basket = pantry.upload_basket(
             upload_items=[
-                {"path": str(tmp_basket_dir_two.realpath()), "stub": False}
+                {"path": str(tmp_basket_dir_two), "stub": False}
             ],
             basket_type="test_basket",
         )
@@ -797,9 +797,9 @@ def test_upload_basket_mongo(test_pantry):
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
         uuid = pantry.upload_basket(
             upload_items=[{'path':temp_file.name,'stub':False}],
-                basket_type="test-1",
-                metadata = {'Data Type':'text'}
-                ).values.tolist()[0][0]
+            basket_type="test-1",
+            metadata = {'Data Type':'text'}
+        )["uuid"][0]
 
         temp_file.close()
         os.unlink(temp_file.name)
@@ -833,9 +833,9 @@ def test_delete_basket_mongo(test_pantry):
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
         uuid = pantry.upload_basket(
             upload_items=[{'path':temp_file.name,'stub':False}],
-                basket_type="test-1",
-                metadata = {'Data Type':'text'}
-                ).values.tolist()[0][0]
+            basket_type="test-1",
+            metadata = {'Data Type':'text'}
+        )["uuid"][0]
 
         temp_file.close()
         os.unlink(temp_file.name)
@@ -851,3 +851,38 @@ def test_delete_basket_mongo(test_pantry):
 
     for e in collections:
         assert mongo_db[e].find_one(query) is None
+
+
+@pytest.mark.skipif(
+    os.name != "posix",
+    reason="This test is only relevant for POSIX file systems."
+)
+def test_pantry_path_absolute_path_works():
+    """Test that a Pantry can use an absolute path."""
+    # Create a Pantry with an absolute path and upload a basket to it.
+    pantry_path = os.path.abspath("test_pantry_absolute_path")
+    assert pantry_path.startswith(os.path.sep)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=pantry_path,
+        file_system=LocalFileSystem()
+    )
+    assert pantry.pantry_path == pantry_path
+    assert pantry.file_system.exists(pantry_path)
+    with tempfile.NamedTemporaryFile() as temp_file:
+        temp_file.write(b"Test data for absolute path pantry.")
+        basket_df = pantry.upload_basket(
+            upload_items=[{'path': temp_file.name,'stub': False}],
+            basket_type="test",
+            metadata={'Data Type': 'text'},
+        )
+
+    # Test accessing the basket by uuid and address to ensure no exceptions
+    # are raised. These functions previously failed with absolute paths.
+    _ = pantry.get_basket(basket_df["uuid"][0])
+    _ = pantry.get_basket(basket_df["address"][0])
+    _ = pantry.index.get_parents(basket_df["uuid"][0])
+    _ = pantry.index.get_parents(basket_df["address"][0])
+    _ = pantry.index.get_children(basket_df["uuid"][0])
+    _ = pantry.index.get_children(basket_df["address"][0])
+    shutil.rmtree(pantry_path)  # Clean up after test.
