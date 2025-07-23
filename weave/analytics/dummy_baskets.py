@@ -1,3 +1,8 @@
+""" 
+This module provides utilities for generating and uploading dummy baskets
+containing synthetic data files for testing and benchmarking the Weave pantry 
+system.
+"""
 import os
 import random
 import time
@@ -12,7 +17,7 @@ def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1,
     """Generates dummy files in the specified directory with
     random text content. Each basket will contain the same list of
     dummy files from the dummy_data directory.
-    
+
     Parameters:
     -----------
     basket_count: int (default=1000)
@@ -29,7 +34,7 @@ def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1,
     ---------
     A list of dictionaries, each representing a basket with dummy files.
     """
-    
+
     # We just want to return an empty list if no files are being created
     if file_count < 1:
         return []
@@ -80,7 +85,6 @@ def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1,
             basket_count / num_basket_types) == 0:
             x += 1
     return basket_list
-    
 
 def run_index_basket_upload_test(basket_list, index,
                                  pantry_path="dummy-pantry", **kwargs):
@@ -102,7 +106,7 @@ def run_index_basket_upload_test(basket_list, index,
         The fsspec object which hosts the pantry we desire to index.
     **num_basket_uploads (default=len(basket_list))
         The number of baskets we want to upload for the test.
-    
+
     Returns
     ----------
     The total time in seconds for all of the baskets to be uploaded.
