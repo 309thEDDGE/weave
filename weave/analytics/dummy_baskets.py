@@ -12,7 +12,7 @@ def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1,
     """Generates dummy files in the specified directory with
     random text content. Each basket will contain the same list of
     dummy files from the dummy_data directory.
-
+    
     Parameters:
     -----------
     basket_count: int (default=1000)
@@ -25,11 +25,11 @@ def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1,
         Specifies the path where the dummy files will be created.
     num_basket_types: int (default=1)
         Specifies the number of number of basket types to create.
-
     Returns
     ---------
     A list of dictionaries, each representing a basket with dummy files.
     """
+    
     # We just want to return an empty list if no files are being created
     if file_count < 1:
         return []
