@@ -1,14 +1,11 @@
 import os
-import shutil
-import string
 import random
 import time
 import json
 from datetime import datetime, timedelta
+from fsspec.implementations.local import LocalFileSystem
+
 from weave.pantry import Pantry
-from weave.basket import Basket
-from weave.index.index_pandas import IndexPandas
-from weave.index.index_sqlite import IndexSQLite
 from fsspec.implementations.local import LocalFileSystem
 
 def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1,
@@ -86,7 +83,8 @@ def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1,
     return basket_list
     
 
-def run_index_basket_upload_test(basket_list, index, pantry_path="dummy-pantry", **kwargs):
+def run_index_basket_upload_test(basket_list, index,
+                                 pantry_path="dummy-pantry", **kwargs):
     """Runs an upload test for the index type and specified number of baskets
     and files. The toal time taken to upload all these baskets will be
     printed and returned.
