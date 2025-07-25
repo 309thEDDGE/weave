@@ -277,8 +277,10 @@ class Pantry():
         self.index.track_basket(single_indice_index)
 
         if self.mongo_client is not None:
-            MongoLoader(self).\
-                load_mongo(single_indice_index.iloc[0].uuid)
+            MongoLoader(self).load_mongo(
+                single_indice_index.iloc[0].uuid,
+                metadata_dict=metadata,
+            )
 
         return single_indice_index
 

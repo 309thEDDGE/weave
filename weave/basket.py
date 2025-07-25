@@ -1,6 +1,5 @@
 """Contains scripts concerning the Basket class.
 """
-
 import json
 import os
 import uuid
@@ -11,6 +10,7 @@ from datetime import datetime, timezone
 import pandas as pd
 import s3fs
 
+import weave
 from .config import get_file_system, prohibited_filenames
 from .validate import validate_basket_in_place_directory
 from .validate import validate_basket_in_place_directory_backward
@@ -38,6 +38,7 @@ class BasketInitializer:
 
         if "pantry" in kwargs:
             self.file_system = kwargs["pantry"].file_system
+            self.pantry = kwargs["pantry"]
         else:
             self.file_system = kwargs.get("file_system", None)
             if self.file_system is None:
@@ -230,16 +231,16 @@ class Basket(BasketInitializer):
     def ls(self, relative_path=None):
         """List directories and files in the basket.
 
-           Call filesystem.ls relative to the basket directory.
-           When relative_path = None, filesystem.ls is invoked
-           from the base directory of the basket. If there are folders
-           within the basket, relative path can be used to observe contents
-           within folders.
+        Call filesystem.ls relative to the basket directory.
+        When relative_path = None, filesystem.ls is invoked
+        from the base directory of the basket. If there are folders
+        within the basket, relative path can be used to observe contents
+        within folders.
 
-           Example: if there exists a folder with the
-           name 'folder1' within the basket, 'folder1' can be passed
-           as the relative path to get back the filesystem.ls results
-           of 'folder1'.
+        Example: if there exists a folder with the
+        name 'folder1' within the basket, 'folder1' can be passed
+        as the relative path to get back the filesystem.ls results
+        of 'folder1'.
 
         Parameters
         ----------
@@ -331,6 +332,58 @@ class Basket(BasketInitializer):
             os.makedirs(destination_path)
             for file in self.ls():
                 self.file_system.get(file, destination_path, recursive=True)
+
+    def update_metadata(self, metadata_updates, replace=False):
+        """Update the basket's metadata with new values.
+
+        Parameters
+        ----------
+        metadata_updates: dict
+            A dictionary containing the metadata updates to be applied.
+            Existing keys will be updated, and new keys will be added.
+        replace: bool (default=False)
+            If True, the existing metadata will be replaced with the new
+            metadata_updates dictionary. If False, the updates will be merged
+            with the existing metadata.
+        """
+        if not isinstance(metadata_updates, dict):
+            raise TypeError("metadata_updates must be a dictionary.")
+
+        # Load existing metadata and update or replace it based on the flag.
+        if replace:
+            metadata = metadata_updates
+        else:
+            metadata = self.get_metadata() or {}
+            metadata.update(metadata_updates)
+
+        # Write the updated metadata back to the basket_metadata.json file.
+        with self.file_system.open(self.metadata_path,
+                                   "w", encoding="utf-8") as f:
+            json.dump(metadata, f, indent=4)
+
+        # Update the metadata member variable.
+        self.metadata = metadata
+
+        if hasattr(self, "pantry"):
+            if hasattr(self.pantry, "mongo_client"):
+                mongo_loader = weave.MongoLoader(pantry=self.pantry)
+                mongo_loader.load_mongo_metadata(
+                    [self.uuid],
+                    replace=replace,
+                    metadata_dict=self.metadata,
+                )
+
+    def replace_metadata(self, new_metadata):
+        """Replace the basket's metadata with new metadata.
+
+        An alias for update_metadata with replace=True.
+
+        Parameters
+        ----------
+        new_metadata: dict
+            The new metadata to replace the existing metadata.
+        """
+        self.update_metadata(new_metadata, replace=True)
 
 
 #Disabling pylint to keep basket in place to a single function for clarity.
