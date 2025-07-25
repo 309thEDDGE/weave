@@ -147,7 +147,11 @@ class MongoLoader():
                 0 == self.database[self.metadata_collection]\
                     .count_documents({"uuid": basket.uuid})
             ):
-                self.database[collection].replace_one({"uuid": basket.uuid}, mongo_metadata, upsert=True)
+                self.database[collection].replace_one(
+                    {"uuid": basket.uuid},
+                    mongo_metadata,
+                    upsert=True,
+                )
 
     def load_mongo_manifest(self, uuids, **kwargs):
         """Load manifest from baskets into the mongo database.

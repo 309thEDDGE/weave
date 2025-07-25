@@ -374,7 +374,6 @@ def test_basket_replace_metadata_replaces_mongo_metadata(set_up):
 
     pantry = set_up.pantry
     basket = pantry.get_basket(test_uuid)
-    og_metadata = basket.get_metadata().copy()
     new_metadata = {"key3": "new_value", "key4": "new_value2"}
     basket.replace_metadata(new_metadata)
 
