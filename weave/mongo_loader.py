@@ -11,7 +11,6 @@ except ImportError:
 else:
     _HAS_PYMONGO = True
 
-from .basket import Basket
 from .config import get_mongo_db
 
 # pylint: disable-next=too-many-instance-attributes
@@ -128,7 +127,7 @@ class MongoLoader():
             "allowed.")
 
         for uuid in uuids:
-            basket = Basket(uuid, pantry=self.pantry)
+            basket = self.pantry.get_basket(uuid)
             if metadata_dict:
                 metadata = metadata_dict
             else:
@@ -180,7 +179,7 @@ class MongoLoader():
             raise TypeError("Invalid datatype for manifest collection: "
                             "must be a string")
         for uuid in uuids:
-            basket = Basket(uuid, pantry=self.pantry)
+            basket = self.pantry.get_basket(uuid)
             mongo_manifest = basket.get_manifest()
             if not mongo_manifest:
                 continue
@@ -220,7 +219,7 @@ class MongoLoader():
                             "must be a string")
 
         for uuid in uuids:
-            basket = Basket(uuid, pantry=self.pantry)
+            basket = self.pantry.get_basket(uuid)
             supplement = basket.get_supplement()
             if not supplement:
                 continue

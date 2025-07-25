@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 import pandas as pd
 import s3fs
 
-import weave
+from .mongo_loader import MongoLoader
 from .config import get_file_system, prohibited_filenames
 from .validate import validate_basket_in_place_directory
 from .validate import validate_basket_in_place_directory_backward
@@ -366,7 +366,7 @@ class Basket(BasketInitializer):
 
         if hasattr(self, "pantry"):
             if hasattr(self.pantry, "mongo_client"):
-                mongo_loader = weave.MongoLoader(pantry=self.pantry)
+                mongo_loader = MongoLoader(pantry=self.pantry)
                 mongo_loader.load_mongo_metadata(
                     [self.uuid],
                     replace=replace,
