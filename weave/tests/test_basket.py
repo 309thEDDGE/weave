@@ -291,6 +291,68 @@ def test_basket_get_metadata(test_pantry):
     assert metadata_in == metadata
 
 
+def test_basket_update_metadata(test_pantry):
+    """Test that the update_metadata function updates the metadata keys and
+    file"""
+    metadata_in = {"test": 1}
+
+    # Create a temporary basket with a test file, and upload it.
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
+    basket_path = test_pantry.upload_basket(
+        tmp_basket_dir, metadata=metadata_in
+    )
+
+    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
+
+    # Check get_metadata returns the same values used during the upload.
+    metadata = basket.get_metadata()
+    assert metadata_in == metadata
+
+    # Update the metadata with new values.
+    metadata_update = {"test": 2, "new": "value"}
+    basket.update_metadata(metadata_update)
+    metadata = basket.get_metadata()
+    assert metadata == {"test": 2, "new": "value"}
+
+    # Check that the metadata file was updated in the file system.
+    if basket.file_system.exists(basket.metadata_path):
+        with basket.file_system.open(basket.metadata_path, "rb") as file:
+            metadata = json.load(file)
+            assert metadata == {"test": 2, "new": "value"}
+
+
+def test_basket_replace_metadata(test_pantry):
+    """Test that the replace_metadata function replaces the metadata keys and
+    file (dropping old keys that are not in the new metadata)."""
+    metadata_in = {"test": 1}
+
+    # Create a temporary basket with a test file, and upload it.
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
+    basket_path = test_pantry.upload_basket(
+        tmp_basket_dir, metadata=metadata_in
+    )
+
+    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
+
+    # Check get_metadata returns the same values used during the upload.
+    metadata = basket.get_metadata()
+    assert metadata_in == metadata
+
+    # Replace the metadata with new values (replaces the test key with testing)
+    metadata_update = {"testing": 2, "new": "value"}
+    basket.replace_metadata(metadata_update)
+    metadata = basket.get_metadata()
+    assert metadata == {"testing": 2, "new": "value"}
+
+    # Check that the metadata file was updated in the file system.
+    if basket.file_system.exists(basket.metadata_path):
+        with basket.file_system.open(basket.metadata_path, "rb") as file:
+            metadata = json.load(file)
+            assert metadata == {"testing": 2, "new": "value"}
+
+
 def test_basket_get_metadata_cached(test_pantry):
     """Test that the get_metadata function retrieves cached copies of a
     basket's metadata.

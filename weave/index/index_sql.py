@@ -79,8 +79,15 @@ class IndexSQL(IndexABC):
 
         # Set the schema name (defaults to pantry_path). If the schema does not
         # exist, it will be created.
-        d_schema_name = self._pantry_path.replace(os.sep, "_")\
-            .replace("-", "_")
+        d_schema_name = self._pantry_path
+        # Postgres allows A-Za-z0-9_, while this list is not exhaustive, it
+        # will cover most commonly found invalid chars that could be in a path.
+        # In the future in may be worth looking into using quote_ident to
+        # safely quote *any* schema name. (This would potentially break
+        # existing schemas, so it is not done here.)
+        for invalid_char in [" ", ".", "$", "/", "\\", "\x00", '"', "-"]:
+            d_schema_name = d_schema_name.replace(invalid_char, "_")
+
         if d_schema_name == "":
             d_schema_name = "weave"
         self._pantry_schema = kwargs.get("pantry_schema", d_schema_name)
