@@ -86,8 +86,7 @@ def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1,
             x += 1
     return basket_list
 
-def run_index_basket_upload_test(basket_list, index,
-                                 pantry_path="dummy_pantry", **kwargs):
+def run_index_basket_upload_test(basket_list, pantry, **kwargs):
     """Runs an upload test for the index type and specified number of baskets
     and files. The toal time taken to upload all these baskets will be
     printed and returned.
@@ -111,10 +110,7 @@ def run_index_basket_upload_test(basket_list, index,
     ----------
     The total time in seconds for all of the baskets to be uploaded.
     """
-    file_system = kwargs.get("file_system", LocalFileSystem())
     num_basket_uploads = kwargs.get("num_basket_uploads", len(basket_list))
-
-    pantry = Pantry(index, pantry_path=pantry_path, file_system=file_system)
 
     #Extract the number of baskets we want to upload
     upload_baskets = basket_list[:num_basket_uploads]
