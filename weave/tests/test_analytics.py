@@ -1,4 +1,3 @@
-
 """Pytest for the weave analytics related functionality."""
 import os
 import shutil
