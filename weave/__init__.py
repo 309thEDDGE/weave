@@ -30,6 +30,7 @@ from .mongo_loader import MongoLoader
 
 __version__ = "1.15.0"
 
+
 __all__ = [
     "Basket",
     "IndexPandas",
