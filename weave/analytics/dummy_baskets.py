@@ -87,7 +87,7 @@ def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1,
     return basket_list
 
 def run_index_basket_upload_test(basket_list, index,
-                                 pantry_path="dummy-pantry", **kwargs):
+                                 pantry_path="dummy_pantry", **kwargs):
     """Runs an upload test for the index type and specified number of baskets
     and files. The toal time taken to upload all these baskets will be
     printed and returned.
@@ -127,7 +127,5 @@ def run_index_basket_upload_test(basket_list, index,
 
     end_time = time.time()
     total_upload_time = end_time - start_time
-    print(f"Time taken to upload {num_basket_uploads} baskets: " \
-          f"{total_upload_time} seconds.")
 
     return total_upload_time
