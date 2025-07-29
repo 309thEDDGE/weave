@@ -369,7 +369,7 @@ class Basket(BasketInitializer):
                 mongo_loader = MongoLoader(pantry=self.pantry)
                 mongo_loader.load_mongo_metadata(
                     [self.uuid],
-                    replace=replace,
+                    replace=True,
                     metadata_dict=self.metadata,
                 )
 
