@@ -8,9 +8,7 @@ import random
 import time
 import json
 from datetime import datetime, timedelta
-from fsspec.implementations.local import LocalFileSystem
 
-from weave.pantry import Pantry
 
 def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1,
     file_path="dummy_data", num_basket_types=1):
@@ -86,8 +84,7 @@ def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1,
             x += 1
     return basket_list
 
-def run_index_basket_upload_test(basket_list, index,
-                                 pantry_path="dummy-pantry", **kwargs):
+def run_index_basket_upload_test(basket_list, pantry, **kwargs):
     """Runs an upload test for the index type and specified number of baskets
     and files. The toal time taken to upload all these baskets will be
     printed and returned.
@@ -97,13 +94,8 @@ def run_index_basket_upload_test(basket_list, index,
     basket_list: [dict]
         The list of baskets returned by generate_dummy_baskets to be used
         to upload in the test.
-    index: IndexABC
-        The concrete implementation of an IndexABC. This is used to track
-        the contents within the pantry.
-    pantry_path: str (default="dummy-pantry")
-        The path to the pantry where we want to upload our basket_list.
-    **file_system: str (default=LocalFileSystem())
-        The fsspec object which hosts the pantry we desire to index.
+    pantry: weave.Pantry
+        Pantry object representing the pantry to upload baskets into.
     **num_basket_uploads (default=len(basket_list))
         The number of baskets we want to upload for the test.
 
@@ -111,10 +103,7 @@ def run_index_basket_upload_test(basket_list, index,
     ----------
     The total time in seconds for all of the baskets to be uploaded.
     """
-    file_system = kwargs.get("file_system", LocalFileSystem())
     num_basket_uploads = kwargs.get("num_basket_uploads", len(basket_list))
-
-    pantry = Pantry(index, pantry_path=pantry_path, file_system=file_system)
 
     #Extract the number of baskets we want to upload
     upload_baskets = basket_list[:num_basket_uploads]
@@ -127,7 +116,5 @@ def run_index_basket_upload_test(basket_list, index,
 
     end_time = time.time()
     total_upload_time = end_time - start_time
-    print(f"Time taken to upload {num_basket_uploads} baskets: " \
-          f"{total_upload_time} seconds.")
 
     return total_upload_time
