@@ -2,6 +2,7 @@
 """
 import json
 import os
+import uuid
 import warnings
 
 import s3fs
@@ -86,8 +87,17 @@ class Pantry():
         self.setup_config = {}
         self.load_setup_config()
 
-        # Check if file system is read-only.
-        self.is_read_only = not os.access(self.pantry_path, os.W_OK)
+        # Check if file system is read-only. If so, raise error.
+        try:
+            test_file = os.path.join(
+                self.pantry_path,
+                f"test_read_only_{uuid.uuid4().hex}.txt"
+            )
+            self.file_system.touch(test_file)
+            self.file_system.rm(test_file)
+            self.is_read_only = False
+        except (OSError, ValueError):
+            self.is_read_only = True
 
         self.index = index(
             file_system=self.file_system,
