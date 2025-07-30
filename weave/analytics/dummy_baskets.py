@@ -28,6 +28,7 @@ def generate_dummy_baskets(basket_count=1000, file_count=10, file_size_mb=1,
         Specifies the path where the dummy files will be created.
     num_basket_types: int (default=1)
         Specifies the number of number of basket types to create.
+
     Returns
     ---------
     A list of dictionaries, each representing a basket with dummy files.
