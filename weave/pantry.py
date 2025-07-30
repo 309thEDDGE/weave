@@ -87,14 +87,16 @@ class Pantry():
         self.load_setup_config()
 
         # Check if file system is read-only. If so, raise error.
-        try:
-            self.file_system.touch(os.path.join(self.pantry_path,
-                                                "test_read_only.txt"))
-            self.file_system.rm(os.path.join(self.pantry_path,
-                                                "test_read_only.txt"))
-            self.is_read_only = False
-        except (OSError, ValueError):
-            self.is_read_only = True
+        # try:
+        #     self.file_system.touch(os.path.join(self.pantry_path,
+        #                                         "test_read_only.txt"))
+        #     self.file_system.rm(os.path.join(self.pantry_path,
+        #                                         "test_read_only.txt"))
+        #     self.is_read_only = False
+        # except (OSError, ValueError):
+        #     self.is_read_only = True
+
+        self.is_read_only = not os.access(self.pantry_path, os.W_OK)
 
         self.index = index(
             file_system=self.file_system,
