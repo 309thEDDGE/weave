@@ -212,11 +212,11 @@ def test_run_index_basket_upload_test_works(test_pantry):
     # Create a new pantry
     upload_pantry = Pantry(IndexPandas, pantry_path=pantry_path,
                            file_system=test_pantry.file_system)
-    
+
     # Upload the test baskets
     _ = run_index_basket_upload_test(basket_list=baskets,
                                      pantry=upload_pantry)
-    
+
     # Check that 10 baskets are in the index
     assert len(upload_pantry.index.to_pandas_df()) == 10
 
@@ -234,11 +234,11 @@ def test_run_index_basket_upload_test_empty_list(test_pantry):
     # Create a new pantry
     upload_pantry = Pantry(IndexPandas, pantry_path=pantry_path,
                            file_system=test_pantry.file_system)
-    
+
     # Upload the test baskets
     _ = run_index_basket_upload_test(basket_list=[],
                                      pantry=upload_pantry)
-    
+
     # Check that 0 baskets are in the index
     assert len(upload_pantry.index.to_pandas_df()) == 0
 
@@ -253,12 +253,12 @@ def test_run_index_basket_upload_test_invalid_pantry():
 
     # Create a fake pantry from a string
     upload_pantry = "fake_pantry"
-    
+
     with pytest.raises(AttributeError, match="'str' object has no attribute "\
                                              "'upload_basket'"):
         _ = run_index_basket_upload_test(basket_list=baskets,
                                          pantry=upload_pantry)
-    
+
     #Clean up the test files after the test is asserted
     if os.path.exists(file_path):
         shutil.rmtree(file_path)
@@ -276,12 +276,12 @@ def test_run_index_basket_upload_test_num_basket_uploads(test_pantry):
     # Create a new pantry
     upload_pantry = Pantry(IndexPandas, pantry_path=pantry_path,
                            file_system=test_pantry.file_system)
-    
+
     # Upload the test baskets
     _ = run_index_basket_upload_test(basket_list=baskets,
                                      pantry=upload_pantry,
                                      num_basket_uploads=5)
-    
+
     # Check that 10 baskets are in the index
     assert len(upload_pantry.index.to_pandas_df()) == 5
 
