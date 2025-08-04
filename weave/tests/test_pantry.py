@@ -695,7 +695,7 @@ def test_validate_path_does_not_start_with_pantry_path(test_pantry):
     path = PurePosixPath(test_pantry.pantry_path, "test", "0001")
     address = str(path).split("/")
     address[0] += "-2"
-    new_address = str(PurePosixPath(("/").join(address))) 
+    new_address = str(PurePosixPath(("/").join(address)))
 
     error_msg = f"Attempting to access basket outside of pantry: {new_address}"
     with pytest.raises(ValueError, match=re.escape(error_msg)):
@@ -712,7 +712,11 @@ def test_validate_path_does_not_backtrack_from_pantry_path(tmpdir):
         file_system=test_pantry.file_system
     )
 
-    path = PurePosixPath(test_pantry.pantry_path, "..", "other-pantry", "test", "0001")
+    path = PurePosixPath(test_pantry.pantry_path,
+                         "..",
+                         "other-pantry",
+                         "test",
+                         "0001")
     address = str(path).split("/")
     new_address = str(PurePosixPath(("/").join(address)))
 
