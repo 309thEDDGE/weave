@@ -3,7 +3,7 @@
 import json
 import os
 import warnings
-from pathlib import PurePosixPath
+from pathlib import PurePosixPath, PurePath
 
 import s3fs
 # Ignore pylint duplicate code. Code here is used to explicitly show pymongo is
@@ -121,8 +121,8 @@ class Pantry():
             Path to verify.
         """
         valid = True
-        pantry_path = PurePosixPath(self.pantry_path)
-        path = PurePosixPath(path)
+        pantry_path = PurePosixPath(PurePath(self.pantry_path).as_posix())
+        path = PurePosixPath(PurePath(path).as_posix())
         if self.pantry_path:
             valid = path.is_relative_to(pantry_path)
         if valid and "zip" not in str(type(self.file_system)):
