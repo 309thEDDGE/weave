@@ -5,7 +5,7 @@ import os
 import re
 import tempfile
 import shutil
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import pytest
 import pandas as pd
@@ -108,10 +108,10 @@ def test_make_basket_with_uuid_stays_in_pantry(test_pantry):
     pantry.index.untrack_basket(index_df.iloc[0].uuid)
 
     # Modify the basket address to a new (fake) pantry.
-    address = index_df.iloc[0].address
-    address = address.split(os.path.sep)
+    address = Path(index_df.iloc[0].address).as_posix()
+    address = address.split("/")
     address[0] += "-2"
-    new_address = (os.path.sep).join(address)
+    new_address = str(PurePosixPath(("/").join(address)))
     index_df.at[0,"address"] = new_address
 
     # Track the new basket

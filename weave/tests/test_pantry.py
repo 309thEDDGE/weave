@@ -6,7 +6,7 @@ import shutil
 import tempfile
 import uuid as uuid_lib
 import warnings
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from unittest.mock import patch
 
 import pandas as pd
@@ -308,10 +308,10 @@ def test_delete_basket_stays_in_pantry(test_pantry):
     pantry.index.untrack_basket(index.iloc[0].uuid)
 
     # Modify the basket address to a new (fake) pantry.
-    address = index.iloc[0].address
-    address = address.split(os.path.sep)
+    address = PurePosixPath(Path(index.iloc[0].address).as_posix())
+    address = str(address).split("/")
     address[0] += "-2"
-    new_address = (os.path.sep).join(address)
+    new_address = str(PurePosixPath(("/").join(address)))
     index.at[0,"address"] = new_address
 
     # Track the new basket
@@ -553,10 +553,10 @@ def test_get_basket_stays_in_pantry(test_pantry):
     pantry.index.untrack_basket(index.iloc[0].uuid)
 
     # Modify the basket address to a new (fake) pantry.
-    address = index.iloc[0].address
-    address = address.split(os.path.sep)
+    address = PurePosixPath(Path(index.iloc[0].address).as_posix())
+    address = str(address).split("/")
     address[0] += "-2"
-    new_address = (os.path.sep).join(address)
+    new_address = str(PurePosixPath(("/").join(address)))
     index.at[0,"address"] = new_address
 
     # Track the new basket
@@ -692,10 +692,10 @@ def test_validate_path_does_not_start_with_pantry_path(test_pantry):
         file_system=test_pantry.file_system
     )
 
-    path = os.path.join(test_pantry.pantry_path,"test","0001")
-    address = path.split(os.path.sep)
+    path = PurePosixPath(test_pantry.pantry_path, "test", "0001")
+    address = str(path).split("/")
     address[0] += "-2"
-    new_address = (os.path.sep).join(address)
+    new_address = str(PurePosixPath(("/").join(address))) 
 
     error_msg = f"Attempting to access basket outside of pantry: {new_address}"
     with pytest.raises(ValueError, match=re.escape(error_msg)):
@@ -712,15 +712,9 @@ def test_validate_path_does_not_backtrack_from_pantry_path(tmpdir):
         file_system=test_pantry.file_system
     )
 
-    path = os.path.join(
-        test_pantry.pantry_path,
-        "..",
-        "other-pantry",
-        "test",
-        "0001"
-    )
-    address = path.split(os.path.sep)
-    new_address = (os.path.sep).join(address)
+    path = PurePosixPath(test_pantry.pantry_path, "..", "other-pantry", "test", "0001")
+    address = str(path).split("/")
+    new_address = str(PurePosixPath(("/").join(address)))
 
     error_msg = f"Attempting to access basket outside of pantry: {new_address}"
     with pytest.raises(ValueError, match=re.escape(error_msg)):
