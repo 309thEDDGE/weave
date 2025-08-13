@@ -1,7 +1,8 @@
 from azure.storage.blob import BlobClient, BlobServiceClient
+import os
 
 
-conn_str = "DefaultEndpointsProtocol=https;AccountName=weavetest;AccountKey=ZAdtwybngBHU10LK30m9WSZKLacA0VbOHe64af6FoD1Be8a7AmwSltRVv/OTOaXG/nDZ71R8Pq7Z+AStn5tQew==;EndpointSuffix=core.windows.net"
+conn_str = os.environ["AZURE_CONNECTION_STRING"]
 service_client = BlobServiceClient.from_connection_string(conn_str)
 
 # List containers
