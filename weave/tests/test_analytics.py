@@ -6,7 +6,8 @@ import pytest
 
 from weave.pantry import Pantry
 from weave.index.index_pandas import IndexPandas
-from weave.analytics.dummy_baskets import generate_dummy_baskets
+from weave.analytics.dummy_baskets import (generate_dummy_baskets,
+                                           run_index_basket_upload_test)
 from weave.tests.pytest_resources import get_file_systems, PantryForTest
 
 
@@ -199,3 +200,91 @@ def test_dummy_baskets_non_string_filepath():
                                         "object, not int"):
         generate_dummy_baskets(basket_count=10, file_count=5,
             file_size_mb=1, file_path=123, num_basket_types=3)
+
+
+def test_run_index_basket_upload_test_works(test_pantry):
+    """Test that the run_index_basket_upload_test function works as expected"""
+    file_path = "test_dummy_data"
+    pantry_path = test_pantry.pantry_path
+    baskets = generate_dummy_baskets(basket_count=10, file_count=5,
+        file_size_mb=1, file_path=file_path, num_basket_types=1)
+
+    # Create a new pantry
+    upload_pantry = Pantry(IndexPandas, pantry_path=pantry_path,
+                           file_system=test_pantry.file_system)
+
+    # Upload the test baskets
+    _ = run_index_basket_upload_test(basket_list=baskets,
+                                     pantry=upload_pantry)
+
+    # Check that 10 baskets are in the index
+    assert len(upload_pantry.index.to_pandas_df()) == 10
+
+    #Clean up the test files after the test is asserted
+    if os.path.exists(file_path):
+        shutil.rmtree(file_path)
+
+
+def test_run_index_basket_upload_test_empty_list(test_pantry):
+    """Test that the run_index_basket_upload_test function does not upload any
+    baskets when an empty basket_list is passed in
+    """
+    pantry_path = test_pantry.pantry_path
+
+    # Create a new pantry
+    upload_pantry = Pantry(IndexPandas, pantry_path=pantry_path,
+                           file_system=test_pantry.file_system)
+
+    # Upload the test baskets
+    _ = run_index_basket_upload_test(basket_list=[],
+                                     pantry=upload_pantry)
+
+    # Check that 0 baskets are in the index
+    assert len(upload_pantry.index.to_pandas_df()) == 0
+
+
+def test_run_index_basket_upload_test_invalid_pantry():
+    """Test that the correct error is raised when run_index_basket_upload_test
+    function is called when a bad pantry object is passed in
+    """
+    file_path = "test_dummy_data"
+    baskets = generate_dummy_baskets(basket_count=10, file_count=5,
+        file_size_mb=1, file_path=file_path, num_basket_types=1)
+
+    # Create a fake pantry from a string
+    upload_pantry = "fake_pantry"
+
+    with pytest.raises(AttributeError, match="'str' object has no attribute "\
+                                             "'upload_basket'"):
+        _ = run_index_basket_upload_test(basket_list=baskets,
+                                         pantry=upload_pantry)
+
+    #Clean up the test files after the test is asserted
+    if os.path.exists(file_path):
+        shutil.rmtree(file_path)
+
+
+def test_run_index_basket_upload_test_num_basket_uploads(test_pantry):
+    """Test that the run_index_basket_upload_test function only uploads the
+    specified number of basket uploads
+    """
+    file_path = "test_dummy_data"
+    pantry_path = test_pantry.pantry_path
+    baskets = generate_dummy_baskets(basket_count=10, file_count=1,
+        file_size_mb=1, file_path=file_path, num_basket_types=5)
+
+    # Create a new pantry
+    upload_pantry = Pantry(IndexPandas, pantry_path=pantry_path,
+                           file_system=test_pantry.file_system)
+
+    # Upload the test baskets
+    _ = run_index_basket_upload_test(basket_list=baskets,
+                                     pantry=upload_pantry,
+                                     num_basket_uploads=5)
+
+    # Check that 5 baskets are in the index
+    assert len(upload_pantry.index.to_pandas_df()) == 5
+
+    #Clean up the test files after the test is asserted
+    if os.path.exists(file_path):
+        shutil.rmtree(file_path)
