@@ -282,7 +282,7 @@ def test_run_index_basket_upload_test_num_basket_uploads(test_pantry):
                                      pantry=upload_pantry,
                                      num_basket_uploads=5)
 
-    # Check that 10 baskets are in the index
+    # Check that 5 baskets are in the index
     assert len(upload_pantry.index.to_pandas_df()) == 5
 
     #Clean up the test files after the test is asserted
