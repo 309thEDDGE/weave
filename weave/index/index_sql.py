@@ -101,6 +101,7 @@ class IndexSQL(IndexABC):
             database=self.database_name,
             query={},
             port=self._sql_connection['port'],
+            future=True,
         ))
 
         self._create_schema()
