@@ -92,16 +92,22 @@ class IndexSQL(IndexABC):
             d_schema_name = "weave"
         self._pantry_schema = kwargs.get("pantry_schema", d_schema_name)
         self._pantry_schema = self._pantry_schema.lower()
-        
-        self._engine = sqla.create_engine(sqla.engine.url.URL(
-            drivername="postgresql",
-            username=self._sql_connection['username'],
-            password=self._sql_connection['password'],
-            host=self._sql_connection['host'],
-            database=self.database_name,
-            query={},
-            port=self._sql_connection['port'],
-        ))
+
+        additional_engine_kwargs = {}
+        if sqla.__version__.startswith("1.4"):
+            additional_engine_kwargs["future"] = True
+        self._engine = sqla.create_engine(
+            sqla.engine.url.URL(
+                drivername="postgresql",
+                username=self._sql_connection['username'],
+                password=self._sql_connection['password'],
+                host=self._sql_connection['host'],
+                database=self.database_name,
+                query={},
+                port=self._sql_connection['port'],
+            ),
+            **additional_engine_kwargs,
+        )
 
         self._create_schema()
         self._create_tables()
