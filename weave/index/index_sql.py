@@ -92,7 +92,9 @@ class IndexSQL(IndexABC):
             d_schema_name = "weave"
         self._pantry_schema = kwargs.get("pantry_schema", d_schema_name)
         self._pantry_schema = self._pantry_schema.lower()
-
+        additional_kwargs = {}
+        if sqlalchemy.__version__.startswith("1.4"):
+            additional_kwargs["future"] = True
         self._engine = sqla.create_engine(sqla.engine.url.URL(
             drivername="postgresql",
             username=self._sql_connection['username'],
@@ -101,7 +103,7 @@ class IndexSQL(IndexABC):
             database=self.database_name,
             query={},
             port=self._sql_connection['port'],
-            future=True,
+            **additional_kwargs,
         ))
 
         self._create_schema()
@@ -159,7 +161,7 @@ class IndexSQL(IndexABC):
                     # Execute the SQL query without parameters
                     result = connection.execute(query)
 
-                if commit:
+                if commit and not sqlalchemy.__version__.startswith("1.4"):
                     connection.commit()
 
                 # Fetch and return the results
