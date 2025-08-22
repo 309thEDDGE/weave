@@ -93,7 +93,7 @@ class IndexSQL(IndexABC):
         self._pantry_schema = kwargs.get("pantry_schema", d_schema_name)
         self._pantry_schema = self._pantry_schema.lower()
         additional_kwargs = {}
-        if sqlalchemy.__version__.startswith("1.4"):
+        if sqla.__version__.startswith("1.4"):
             additional_kwargs["future"] = True
         self._engine = sqla.create_engine(sqla.engine.url.URL(
             drivername="postgresql",
@@ -161,7 +161,7 @@ class IndexSQL(IndexABC):
                     # Execute the SQL query without parameters
                     result = connection.execute(query)
 
-                if commit and not sqlalchemy.__version__.startswith("1.4"):
+                if commit and not sqla.__version__.startswith("1.4"):
                     connection.commit()
 
                 # Fetch and return the results
