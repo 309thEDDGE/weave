@@ -93,9 +93,6 @@ class IndexSQL(IndexABC):
         self._pantry_schema = kwargs.get("pantry_schema", d_schema_name)
         self._pantry_schema = self._pantry_schema.lower()
 
-        additional_engine_kwargs = {}
-        if sqla.__version__.startswith("1.4"):
-            additional_engine_kwargs["future"] = True
         self._engine = sqla.create_engine(
             sqla.engine.url.URL(
                 drivername="postgresql",
@@ -106,7 +103,6 @@ class IndexSQL(IndexABC):
                 query={},
                 port=self._sql_connection['port'],
             ),
-            **additional_engine_kwargs,
         )
 
         self._create_schema()
