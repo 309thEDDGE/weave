@@ -160,7 +160,11 @@ class IndexSQL(IndexABC):
                     # Execute the SQL query without parameters
                     result = connection.execute(query)
 
-                if commit and not sqla.__version__.startswith("1.4"):
+                # In older sqlalchemy versions (1.4.x) the commit function
+                # is not an attribute of the connection, thus do not call
+                # commit if the version is 1.4.x and instead rely on
+                # the built-in auto-commit.
+                if commit and not sqla.__version__.startswith("1.4."):
                     connection.commit()
 
                 # Fetch and return the results
