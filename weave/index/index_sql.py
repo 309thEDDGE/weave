@@ -93,15 +93,17 @@ class IndexSQL(IndexABC):
         self._pantry_schema = kwargs.get("pantry_schema", d_schema_name)
         self._pantry_schema = self._pantry_schema.lower()
 
-        self._engine = sqla.create_engine(sqla.engine.url.URL(
-            drivername="postgresql",
-            username=self._sql_connection['username'],
-            password=self._sql_connection['password'],
-            host=self._sql_connection['host'],
-            database=self.database_name,
-            query={},
-            port=self._sql_connection['port'],
-        ))
+        self._engine = sqla.create_engine(
+            sqla.engine.url.URL(
+                drivername="postgresql",
+                username=self._sql_connection['username'],
+                password=self._sql_connection['password'],
+                host=self._sql_connection['host'],
+                database=self.database_name,
+                query={},
+                port=self._sql_connection['port'],
+            ),
+        )
 
         self._create_schema()
         self._create_tables()
@@ -158,7 +160,11 @@ class IndexSQL(IndexABC):
                     # Execute the SQL query without parameters
                     result = connection.execute(query)
 
-                if commit:
+                # In older sqlalchemy versions (1.4.x) the commit function
+                # is not an attribute of the connection, thus do not call
+                # commit if the version is 1.4.x and instead rely on
+                # the built-in auto-commit.
+                if commit and not sqla.__version__.startswith("1.4."):
                     connection.commit()
 
                 # Fetch and return the results
