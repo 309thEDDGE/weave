@@ -353,7 +353,7 @@ mongo_loader = MongoLoader(pantry=pantry)
 One way to make sure everything is set up properly is to print the database name.
 
 ```python
-# .database_name is part of  weave
+# .database_name is part of weave
 print(mongo_loader.database_name)
 ```
 
