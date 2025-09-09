@@ -319,6 +319,81 @@ warnings = validate.validate_pantry(pantry)
 pantry.validate()
 ```
 
+### Using A Mongo DB
+
+There are a couple of things to add when using mongo with weave. 
+The metadata provided when uploading baskets can be uploaded to a mongo database for fast/flexible query.
+Provide a pymongo client when initializing a pantry object to utilize mongo with weave.
+
+```python
+# Gets a connection to the mongo db
+mongo_client = weave.config.get_mongo_db()
+# Provide the mongo client when initializing a pantry object
+pantry = weave.Pantry(
+    weave.IndexPandas,
+    pantry_path=pantry_path,
+    file_system=weave.config.get_file_system(),
+    mongo_client=mongo_client,
+)
+```
+
+It is the same process as before except adding the mongo client to the Pantry object.
+
+```python
+from weave.mongo_loader import MongoLoader
+# Pantry is the pantry object from weave.Pantry()
+# If the pantry already has a mongo_client attached to it (if it
+# was passed into the pantry constructor, or if it was loaded during
+# the factory constructor), the mongo client does not need to be
+# passed in explicitly, it will retrieve the pantry's mongo_client.
+mongo_loader = MongoLoader(pantry=pantry)
+```
+
+One way to make sure everything is set up properly is to print the database name.
+
+```python
+# .database_name is part of weave
+print(mongo_loader.database_name)
+```
+
+In this case it should print out the pantry_path string representation.
+
+
+To get collection names of the database
+
+```python
+# Get the pymongo database associated with the pantry
+mongo_db = mongo_loader.database
+
+# Will print a list of all the collection names in the mongo database
+# list_collection_names() is a pymongo function
+print(mongo_db.list_collection_names())
+```
+A link to the official pymongo documentation about using collections can be found
+<a href="https://www.mongodb.com/docs/languages/python/pymongo-driver/current/databases-collections/">here</a>.
+
+An example of of how to get documents that satisfy a query from a collection
+
+```python
+# Getting all documents' in the metadata collection that follows the query below
+# max_altitude > 10_000
+# max_speed < 1_450
+# fuel_burned >= 6_000 and <= 8_000
+query = {"max_altitude": {"$gt": 10_000}, "max_speed": {"$lt": 1_450}, "fuel_burned": {"$gte": 6_000, "$lte": 8_000}}
+documents = list(mongo_db[mongo_loader.metadata_collection].find(query))
+```
+
+More on how to query collections can be found
+<a href="https://www.w3schools.com/python/python_mongodb_query.asp">here</a>.
+
+
+If the metadata associated with an already uploaded basket has not been uploaded to mongo, basket uuids can be passed to mongo_loader.load_mongo as shown below to upload missing basket metadata.
+
+```python
+# uuids is a list of uuids (str) to add their data to the mongo db
+mongo_loader.load_mongo(uuids) 
+```
+
 ## Contribution
 
 Anyone who desires to contribute to Weave is encouraged to create a branch,
