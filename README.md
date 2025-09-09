@@ -322,12 +322,13 @@ pantry.validate()
 ### Using A Mongo DB
 
 There are a couple of things to add when using mongo with weave. 
+The metadata provided when uploading baskets can be uploaded to a mongo database for fast/flexible query.
 Provide a pymongo client when initializing a pantry object to utilize mongo with weave.
 
 ```python
-# gets a connection to the mongo db
+# Gets a connection to the mongo db
 mongo_client = weave.config.get_mongo_db()
-# giving the Pantry object the mongo client
+# Provide the mongo client when initializing a pantry object
 pantry = weave.Pantry(
     weave.IndexPandas,
     pantry_path=pantry_path,
@@ -340,7 +341,7 @@ It is the same process as before except adding the mongo client to the Pantry ob
 
 ```python
 from weave.mongo_loader import MongoLoader
-# pantry is the pantry object from weave.Pantry()
+# Pantry is the pantry object from weave.Pantry()
 # If the pantry already has a mongo_client attached to it
 # (if it was passed into the pantry constructor, or if it
 # was loaded during the factory constructor, the mongo client
@@ -362,10 +363,10 @@ In this case it should print out the pantry_path string representation.
 To get collection names of the database
 
 ```python
-# setting a variable for the mongo database
+# Get the pymongo database associated with the pantry
 mongo_db = mongo_loader.database
 
-# will print a list of all the collection names in the mongo database
+# Will print a list of all the collection names in the mongo database
 # list_collection_names() is a pymongo function
 print(mongo_db.list_collection_names())
 ```
@@ -375,7 +376,7 @@ A link to the official pymongo documentation about using collections can be foun
 An example of of how to get documents that satisfy a query from a collection
 
 ```python
-# getting all documents' in the metadata collection that follows the query below
+# Getting all documents' in the metadata collection that follows the query below
 # max_altitude > 10_000
 # max_speed < 1_450
 # fuel_burned >= 6_000 and <= 8_000
@@ -387,7 +388,7 @@ More on how to query collections can be found
 <a href="https://www.w3schools.com/python/python_mongodb_query.asp">here</a>.
 
 
-If a mongo_client was not used when creating a Pantry object you can get the uuids' from the data you wish to upload into an already instantiated database.
+If the metadata associated with an already uploaded basket has not been uploaded to mongo, basket uuids can be passed to mongo_loader.load_mongo as shown below to upload missing basket metadata.
 
 ```python
 # uuids is a list of uuids (str) to add their data to the mongo db
