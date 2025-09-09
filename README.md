@@ -342,11 +342,10 @@ It is the same process as before except adding the mongo client to the Pantry ob
 ```python
 from weave.mongo_loader import MongoLoader
 # Pantry is the pantry object from weave.Pantry()
-# If the pantry already has a mongo_client attached to it
-# (if it was passed into the pantry constructor, or if it
-# was loaded during the factory constructor, the mongo client
-# does not need to be passed in explicitly,
-# it will retrieve the pantry's mongo_client
+# If the pantry already has a mongo_client attached to it (if it
+# was passed into the pantry constructor, or if it was loaded during
+# the factory constructor), the mongo client does not need to be
+# passed in explicitly, it will retrieve the pantry's mongo_client.
 mongo_loader = MongoLoader(pantry=pantry)
 ```
 
