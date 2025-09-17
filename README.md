@@ -321,7 +321,6 @@ pantry.validate()
 
 ### Using A Mongo DB
 
-There are a couple of things to add when using mongo with weave. 
 The metadata provided when uploading baskets can be uploaded to a mongo database for fast/flexible query.
 Provide a pymongo client when initializing a pantry object to utilize mongo with weave.
 
@@ -372,7 +371,7 @@ print(mongo_db.list_collection_names())
 A link to the official pymongo documentation about using collections can be found
 <a href="https://www.mongodb.com/docs/languages/python/pymongo-driver/current/databases-collections/">here</a>.
 
-An example of of how to get documents that satisfy a query from a collection
+An example of how to get documents that satisfy a query from a collection
 
 ```python
 # Getting all documents' in the metadata collection that follows the query below
