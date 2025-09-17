@@ -91,8 +91,10 @@ def test_load_mongo_metadata(set_up):
     )
 
     truth_db = [
-        {"uuid": "1234", "basket_type": "test_basket", "key1": "value1"},
-        {"uuid": "4321", "basket_type": "test_basket", "key2": "value2"},
+        {"uuid": "1234", "basket_type": "test_basket",
+         "key1": "value1", "parent_uuids": []},
+        {"uuid": "4321", "basket_type": "test_basket",
+         "key2": "value2", "parent_uuids": []},
     ]
 
     db_data = list(set_up.database[set_up.metadata_collection].find({}))
@@ -181,8 +183,10 @@ def test_load_mongo(set_up):
     )
 
     metadata_truth_db = [
-        {"uuid": "1234", "basket_type": "test_basket", "key1": "value1"},
-        {"uuid": "4321", "basket_type": "test_basket", "key2": "value2"},
+        {"uuid": "1234", "basket_type": "test_basket",
+         "key1": "value1", "parent_uuids": []},
+        {"uuid": "4321", "basket_type": "test_basket",
+         "key2": "value2", "parent_uuids": []},
     ]
     metadata = list(set_up.database[set_up.metadata_collection].find({}))
     compared_metadata = []
@@ -266,6 +270,160 @@ def test_load_mongo_metadata_check_for_duplicate_uuid(set_up):
 @pytest.mark.skipif(
     get_pymongo_skip_condition(), reason=get_pymongo_skip_reason()
 )
+def test_load_mongo_metadata_replace_works_with_metadata_dict(set_up):
+    """Test replace metadata updates the right record and doesn't create a new
+    one.
+    """
+    test_uuid = "1234"
+
+    mongo_loader = MongoLoader(pantry=set_up.pantry)
+    mongo_loader.load_mongo_metadata(
+        [test_uuid],
+        collection=set_up.metadata_collection,
+    )
+    mongo_loader.load_mongo_metadata(
+        [test_uuid],
+        replace=True,
+        metadata_dict={"key3": "new_value"},
+        collection=set_up.metadata_collection,
+    )
+
+    count = set_up.database[set_up.metadata_collection].count_documents(
+        {"uuid": test_uuid}
+    )
+    assert count == 1, "duplicate uuid inserted"
+    metadata = set_up.database[set_up.metadata_collection].find_one(
+        {"uuid": test_uuid}
+    )
+    # Expected mongo returns: _id, uuid, basket_type, parent_uuids, key3
+    assert len(metadata) == 5, "expected 5 metadata keys after replace"
+    assert metadata["key3"] == "new_value", "metadata not replaced correctly"
+    assert metadata["basket_type"] == "test_basket", \
+        "basket_type not set correctly after replace"
+    assert metadata["parent_uuids"] == [], \
+        "parent_uuids not set correctly after replace"
+    assert metadata["uuid"] == test_uuid, \
+        "uuid not set correctly after replace"
+
+
+@pytest.mark.skipif(
+    get_pymongo_skip_condition(), reason=get_pymongo_skip_reason()
+)
+def test_load_mongo_metadata_no_replace_flag_doesnt_update(set_up):
+    """Test that the original metadata is not replaced if replace is not set to
+    True.
+    """
+    test_uuid = "1234"
+
+    mongo_loader = MongoLoader(pantry=set_up.pantry)
+    mongo_loader.load_mongo_metadata(
+        [test_uuid],
+        collection=set_up.metadata_collection,
+    )
+    mongo_loader.load_mongo_metadata(
+        [test_uuid],
+        replace=False, # Should not replace metadata
+        metadata_dict={"key3": "new_value"},
+        collection=set_up.metadata_collection,
+    )
+
+    count = set_up.database[set_up.metadata_collection].count_documents(
+        {"uuid": test_uuid}
+    )
+    assert count == 1, "duplicate uuid inserted"
+    metadata = set_up.database[set_up.metadata_collection].find_one(
+        {"uuid": test_uuid}
+    )
+    # Expected mongo returns: _id, uuid, basket_type, parent_uuids, key1
+    assert len(metadata) == 5, "expected 5 metadata keys"
+    assert metadata["key1"] == "value1", "metadata not replaced correctly"
+    assert "key3" not in metadata, \
+        "metadata should not have been updated without replace=True"
+
+
+@pytest.mark.skipif(
+    get_pymongo_skip_condition(), reason=get_pymongo_skip_reason()
+)
+def test_load_mongo_metadata_metadata_dict_exception(set_up):
+    """Test load mongo metadata raises the right exception when
+    metadata_dict is provided but more than one uuid is given.
+    """
+    test_uuid = "1234"
+
+    mongo_loader = MongoLoader(pantry=set_up.pantry)
+    with pytest.raises(
+        ValueError, match="If metadata_dict is provided only one uuid is "
+        "allowed."
+    ):
+        # Only one uuid allowed with metadata_dict kwarg.
+        mongo_loader.load_mongo_metadata(
+            [test_uuid, "4321"], # Only one uuid allowed with metadata_dict
+            replace=True,
+            metadata_dict={"key3": "new_value"},
+            collection=set_up.metadata_collection,
+        )
+
+
+@pytest.mark.skipif(
+    get_pymongo_skip_condition(), reason=get_pymongo_skip_reason()
+)
+def test_basket_replace_metadata_replaces_mongo_metadata(set_up):
+    """Test that the replace_metadata function replaces the metadata mongo
+    record"""
+    test_uuid = "1234"
+
+    pantry = set_up.pantry
+    basket = pantry.get_basket(test_uuid)
+    new_metadata = {"key3": "new_value", "key4": "new_value2"}
+    basket.replace_metadata(new_metadata)
+
+    # Check that the metadata was updated in mongo collection.
+    mongo_loader = MongoLoader(pantry=pantry)
+    mongo_metadata = mongo_loader.database[mongo_loader.metadata_collection]\
+        .find_one({"uuid": test_uuid})
+
+    assert mongo_metadata is not None, "Metadata should exist in mongo"
+    assert mongo_metadata["uuid"] == test_uuid
+    assert mongo_metadata["basket_type"] == "test_basket"
+    assert mongo_metadata["parent_uuids"] == basket.parent_uuids
+    assert "key1" not in mongo_metadata, \
+        "key1 should not be in metadata after replace_metadata"
+    assert mongo_metadata["key3"] == "new_value"
+    assert mongo_metadata["key4"] == "new_value2"
+
+
+@pytest.mark.skipif(
+    get_pymongo_skip_condition(), reason=get_pymongo_skip_reason()
+)
+def test_basket_update_metadata_updates_mongo_metadata(set_up):
+    """Test that the update_metadata function updates the metadata mongo record
+    """
+    test_uuid = "1234"
+
+    pantry = set_up.pantry
+    basket = pantry.get_basket(test_uuid)
+    og_metadata = basket.get_metadata().copy()
+    new_metadata = {"key3": "new_value", "key4": "new_value2"}
+    basket.update_metadata(new_metadata)
+
+    # Check that the metadata was updated in mongo collection.
+    mongo_loader = MongoLoader(pantry=pantry)
+    mongo_metadata = mongo_loader.database[mongo_loader.metadata_collection]\
+        .find_one({"uuid": test_uuid})
+
+    assert mongo_metadata is not None, "Metadata should exist in mongo"
+    assert mongo_metadata["uuid"] == test_uuid
+    assert mongo_metadata["basket_type"] == "test_basket"
+    assert mongo_metadata["parent_uuids"] == basket.parent_uuids
+    assert mongo_metadata["key1"] == og_metadata["key1"], \
+        "key1 should not be removed from metadata after update_metadata"
+    assert mongo_metadata["key3"] == "new_value"
+    assert mongo_metadata["key4"] == "new_value2"
+
+
+@pytest.mark.skipif(
+    get_pymongo_skip_condition(), reason=get_pymongo_skip_reason()
+)
 def test_load_mongo_manifest_check_for_duplicate_uuid(set_up):
     """Test duplicate manifest won't be uploaded to mongoDB, based on the UUID.
     """
@@ -320,7 +478,7 @@ def test_check_file_already_exists(set_up):
     """
     pantry = set_up.pantry
 
-    with tempfile.NamedTemporaryFile() as tmp_file:
+    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
         tmp_file.write(b'This is my temporary file that we will hash')
         tmp_file.flush()
         pantry.upload_basket(
@@ -346,7 +504,7 @@ def test_check_file_exists_no_mongodb(set_up):
     """
     pantry = set_up.pantry
 
-    with tempfile.NamedTemporaryFile() as tmp_file:
+    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
         tmp_file.write(b'This is my temporary file that we will hash')
         tmp_file.flush()
         pantry.upload_basket(
@@ -394,10 +552,10 @@ def test_check_pantries_have_discrete_mongodbs():
     p1_mongo_loader = MongoLoader(pantry=pantry1)
     p2_mongo_loader = MongoLoader(pantry=pantry2)
 
-    with tempfile.NamedTemporaryFile() as tmp_file1:
+    with tempfile.NamedTemporaryFile(delete=False) as tmp_file1:
         tmp_file1.write(b'This is temporary file that we will hash for p1')
         tmp_file1.flush()
-        with tempfile.NamedTemporaryFile() as tmp_file2:
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_file2:
             tmp_file2.write(b'This is temporary file that we will hash for p2')
             tmp_file2.flush()
 
@@ -522,3 +680,91 @@ def test_mongo_loader_remove_document_works(set_up):
     assert 0 == metadata_collection.count_documents({"uuid": test_uuid})
     assert 0 == manifest_collection.count_documents({"uuid": test_uuid})
     assert 0 == supplement_collection.count_documents({"uuid": test_uuid})
+
+
+@pytest.mark.skipif(
+    get_pymongo_skip_condition(), reason=get_pymongo_skip_reason()
+)
+def test_mongo_query_returns_no_documents(set_up):
+    """Test that a mongo query will return no documents when no document
+    satisfies the query.
+    """
+    # Load the metadata, supplement, and manifests of the three baskets in
+    # the pantry (one has no metadata).
+    test_uuids = ["1234", "4321", "nometadata"]
+    mongo_loader = MongoLoader(pantry=set_up.pantry)
+    mongo_loader.load_mongo(uuids=test_uuids)
+
+    metadata_collection = set_up.database["metadata"]
+    manifest_collection = set_up.database["manifest"]
+    supplement_collection = set_up.database["supplement"]
+
+    #Check that each collection returns no documents
+    metadata_docs = metadata_collection.count_documents(
+        {"basket_type": 5}
+    )
+    assert metadata_docs == 0
+
+    manifest_docs = manifest_collection.count_documents(
+        {"label": {"$gt": 7}}
+    )
+    assert manifest_docs == 0
+
+    supplement_docs = supplement_collection.count_documents(
+        {"integrity.id": "Bad"}
+    )
+    assert supplement_docs == 0
+
+
+@pytest.mark.skipif(
+    get_pymongo_skip_condition(), reason=get_pymongo_skip_reason()
+)
+def test_mongo_query_returns_correct_documents(set_up):
+    """Test that a mongo query will return documents when certain documents
+    satisfy the query.
+    """
+    # Load the metadata, supplement, and manifests of the three baskets in
+    # the pantry (one has no metadata).
+    test_uuids = ["1234", "4321", "nometadata"]
+    mongo_loader = MongoLoader(pantry=set_up.pantry)
+    mongo_loader.load_mongo(uuids=test_uuids)
+
+    metadata_collection = set_up.database["metadata"]
+    manifest_collection = set_up.database["manifest"]
+    supplement_collection = set_up.database["supplement"]
+
+    #Check that each collection returns the correct number of documents
+    metadata_docs = metadata_collection.count_documents(
+        {"basket_type": "test_basket"}
+    )
+    assert metadata_docs == 2
+
+    manifest_docs = manifest_collection.count_documents(
+        {"label": ""}
+    )
+    assert manifest_docs == 3
+
+    supplement_docs = supplement_collection.count_documents(
+        {"integrity_data": {"$size": 2}}
+    )
+    assert supplement_docs == 2
+
+
+@pytest.mark.skipif(
+    get_pymongo_skip_condition(), reason=get_pymongo_skip_reason()
+)
+def test_bad_mongo_query_raises_error(set_up):
+    """Test that a mongo query will raise an error if a bad query is passed."""
+    #Load the manifest data of one basket
+    mongo_loader = MongoLoader(pantry=set_up.pantry)
+    mongo_loader.load_mongo_manifest(uuids=["1234"])
+
+    manifest_collection = set_up.database["manifest"]
+
+    #Check that the correct error is raised
+    with pytest.raises(
+        TypeError,
+        match="filter must be an instance of dict, bson.son.SON, or any " \
+              "other type that inherits from collections.Mapping"
+    ):
+        manifest_collection.find("basket_type = test_basket")

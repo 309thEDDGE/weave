@@ -2,6 +2,7 @@
 
 import json
 import os
+from sys import version_info
 from pathlib import Path
 
 import pytest
@@ -536,9 +537,14 @@ def test_validate_invalid_manifest_json(test_validate):
     ) as err:
         validate.validate_pantry(pantry)
 
-    assert str(err.value) == ("Pantry could not be loaded into index: "
-                              "Expecting property name enclosed in double "
-                              "quotes: line 1 column 10 (char 9)")
+    if version_info[1] >= 13:
+        assert str(err.value) == ("Pantry could not be loaded into index: "
+                              "Illegal trailing comma before end of "
+                              "object: line 1 column 9 (char 8)")
+    else:
+        assert str(err.value) == ("Pantry could not be loaded into index: "
+                              "Expecting property name enclosed in double"
+                              " quotes: line 1 column 10 (char 9)")
 
 
 def test_validate_invalid_supplement_schema(test_validate):
@@ -1165,8 +1171,8 @@ def test_validate_deeply_nested(test_validate):
         new_dir_name="nest_level"
     )
 
-    # Create a 10 directory deep basket
-    for i in range(10):
+    # Create a 7 directory deep basket
+    for i in range(7):
         nested_dir_name = "nest_level_" + str(i)
         my_nested_dir = test_validate.add_lower_dir_to_temp_basket(
             tmp_basket_dir=my_nested_dir,

@@ -33,7 +33,7 @@ setup(
     license="GNU General Public",
     classifiers=[
         "License :: OSI Approved :: GNU General Public License (GPL)",
-        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.13",
         "Operating System :: OS Independent",
     ],
     install_requires=["pandas", "s3fs", "fsspec", "jsonschema"],

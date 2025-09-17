@@ -11,7 +11,6 @@ except ImportError:
 else:
     _HAS_PYMONGO = True
 
-from .basket import Basket
 from .config import get_mongo_db
 
 # pylint: disable-next=too-many-instance-attributes
@@ -67,6 +66,12 @@ class MongoLoader():
         # pantry_path if it is not present.)
         self.database_name = self.mongo_config.get(
             "mongodb_database", self.pantry.pantry_path)
+        for invalid_char in [" ", ".", "$", "/", "\\", "\x00", '"']:
+            if invalid_char in self.database_name:
+                self.database_name = self.database_name.replace(
+                    invalid_char,
+                    "",
+                )
         self.database = self.mongo_client[self.database_name]
 
         self.metadata_collection = self.mongo_config.get(
@@ -94,6 +99,17 @@ class MongoLoader():
             Metadata will be added to the Mongo collection specified. If not
             provided, populate using self.metadata_collection (which defaults
             to "metadata" if otherwise unspecified).
+        **replace: bool (optional; defaults to False)
+            If True, the metadata for the given uuids will be replaced in the
+            MongoDB collection. If False, the metadata will only be added if
+            it does not already exist in the MongoDB collection.
+        **metadata_dict: dict (optional)
+            A dictionary containing metadata for a single basket uuid to be
+            added to the MongoDB. This offers a way to add metadata that
+            perserves the original types of the metadata fields
+            (e.g. datetime, int, float, etc.). If provided, only one uuid
+            is allowed in the uuids list. If not provided, the metadata will be
+            retrieved from the basket's metadata.json file.
         """
         collection = kwargs.get("collection", self.metadata_collection)
         if not isinstance(uuids, list):
@@ -105,22 +121,36 @@ class MongoLoader():
             raise TypeError("Invalid datatype for metadata collection: "
                             "must be a string")
 
+        metadata_dict = kwargs.get("metadata_dict", None)
+        if metadata_dict and len(uuids) != 1:
+            raise ValueError("If metadata_dict is provided only one uuid is "
+            "allowed.")
+
         for uuid in uuids:
-            basket = Basket(uuid, pantry=self.pantry)
-            metadata = basket.get_metadata()
+            basket = self.pantry.get_basket(uuid)
+            if metadata_dict:
+                metadata = metadata_dict
+            else:
+                metadata = basket.get_metadata()
             if not metadata:
                 continue
             mongo_metadata = {}
             mongo_metadata["uuid"] = basket.uuid
             mongo_metadata["basket_type"] = basket.basket_type
-            mongo_metadata.update(metadata)
+            mongo_metadata["parent_uuids"] = basket.parent_uuids
+            mongo_metadata.update(metadata) # Prioritize the metadata provided
 
-            # If the UUID already has metadata loaded in MongoDB,
-            # the metadata should not be loaded to MongoDB again.
-            if 0 == self.database[
-                self.metadata_collection
-            ].count_documents({"uuid": basket.uuid}):
-                self.database[collection].insert_one(mongo_metadata)
+            # If the UUID already has metadata loaded in MongoDB, the metadata
+            # should not be loaded to MongoDB again unless replace is True.
+            if (kwargs.get("replace") or
+                0 == self.database[self.metadata_collection]\
+                    .count_documents({"uuid": basket.uuid})
+            ):
+                self.database[collection].replace_one(
+                    {"uuid": basket.uuid},
+                    mongo_metadata,
+                    upsert=True,
+                )
 
     def load_mongo_manifest(self, uuids, **kwargs):
         """Load manifest from baskets into the mongo database.
@@ -149,7 +179,7 @@ class MongoLoader():
             raise TypeError("Invalid datatype for manifest collection: "
                             "must be a string")
         for uuid in uuids:
-            basket = Basket(uuid, pantry=self.pantry)
+            basket = self.pantry.get_basket(uuid)
             mongo_manifest = basket.get_manifest()
             if not mongo_manifest:
                 continue
@@ -189,7 +219,7 @@ class MongoLoader():
                             "must be a string")
 
         for uuid in uuids:
-            basket = Basket(uuid, pantry=self.pantry)
+            basket = self.pantry.get_basket(uuid)
             supplement = basket.get_supplement()
             if not supplement:
                 continue
@@ -228,7 +258,9 @@ class MongoLoader():
         supplement_collection = kwargs.get("supplement_collection",
                                            self.supplement_collection)
 
-        self.load_mongo_metadata(uuids, collection=metadata_collection)
+        self.load_mongo_metadata(uuids,
+                                 collection=metadata_collection,
+                                 **kwargs)
         self.load_mongo_manifest(uuids, collection=manifest_collection)
         self.load_mongo_supplement(uuids, collection=supplement_collection)
 

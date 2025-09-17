@@ -6,7 +6,7 @@ import shutil
 import tempfile
 import uuid as uuid_lib
 import warnings
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from unittest.mock import patch
 
 import pandas as pd
@@ -270,6 +270,11 @@ def test_pantry_fails_with_bad_path(test_pantry):
             file_system=test_pantry.file_system
         )
 
+    # In Windows the bad_path will still be created without the anomalous
+    # backslashes so we will remove it if it exists
+    if os.path.exists("Bad"):
+        shutil.rmtree("Bad")
+
 def test_pantry_creates_pantry_if_none(test_pantry):
     """Tests the pantry will be created if it doesn't exist."""
     pantry_path = 'nopantry'
@@ -279,6 +284,11 @@ def test_pantry_creates_pantry_if_none(test_pantry):
             file_system=test_pantry.file_system
         )
     assert len(pantry.index.to_pandas_df()) == 0
+
+    #Clean up the pantry after the test is asserted
+    if os.path.exists(pantry_path):
+        shutil.rmtree(pantry_path)
+
 
 
 def test_delete_basket_stays_in_pantry(test_pantry):
@@ -298,10 +308,10 @@ def test_delete_basket_stays_in_pantry(test_pantry):
     pantry.index.untrack_basket(index.iloc[0].uuid)
 
     # Modify the basket address to a new (fake) pantry.
-    address = index.iloc[0].address
-    address = address.split(os.path.sep)
+    address = PurePosixPath(Path(index.iloc[0].address).as_posix())
+    address = str(address).split("/")
     address[0] += "-2"
-    new_address = (os.path.sep).join(address)
+    new_address = str(PurePosixPath(("/").join(address)))
     index.at[0,"address"] = new_address
 
     # Track the new basket
@@ -401,7 +411,7 @@ def test_upload_basket_updates_the_pantry(test_pantry):
     for _ in range(3):
         new_basket = pantry.upload_basket(
             upload_items=[
-                {"path": str(tmp_basket_dir_two.realpath()), "stub": False}
+                {"path": str(tmp_basket_dir_two), "stub": False}
             ],
             basket_type="test_basket",
         )
@@ -543,10 +553,10 @@ def test_get_basket_stays_in_pantry(test_pantry):
     pantry.index.untrack_basket(index.iloc[0].uuid)
 
     # Modify the basket address to a new (fake) pantry.
-    address = index.iloc[0].address
-    address = address.split(os.path.sep)
+    address = PurePosixPath(Path(index.iloc[0].address).as_posix())
+    address = str(address).split("/")
     address[0] += "-2"
-    new_address = (os.path.sep).join(address)
+    new_address = str(PurePosixPath(("/").join(address)))
     index.at[0,"address"] = new_address
 
     # Track the new basket
@@ -682,10 +692,10 @@ def test_validate_path_does_not_start_with_pantry_path(test_pantry):
         file_system=test_pantry.file_system
     )
 
-    path = os.path.join(test_pantry.pantry_path,"test","0001")
-    address = path.split(os.path.sep)
+    path = PurePosixPath(test_pantry.pantry_path, "test", "0001")
+    address = str(path).split("/")
     address[0] += "-2"
-    new_address = (os.path.sep).join(address)
+    new_address = str(PurePosixPath(("/").join(address)))
 
     error_msg = f"Attempting to access basket outside of pantry: {new_address}"
     with pytest.raises(ValueError, match=re.escape(error_msg)):
@@ -702,15 +712,13 @@ def test_validate_path_does_not_backtrack_from_pantry_path(tmpdir):
         file_system=test_pantry.file_system
     )
 
-    path = os.path.join(
-        test_pantry.pantry_path,
-        "..",
-        "other-pantry",
-        "test",
-        "0001"
-    )
-    address = path.split(os.path.sep)
-    new_address = (os.path.sep).join(address)
+    path = PurePosixPath(test_pantry.pantry_path,
+                         "..",
+                         "other-pantry",
+                         "test",
+                         "0001")
+    address = str(path).split("/")
+    new_address = str(PurePosixPath(("/").join(address)))
 
     error_msg = f"Attempting to access basket outside of pantry: {new_address}"
     with pytest.raises(ValueError, match=re.escape(error_msg)):
@@ -787,9 +795,9 @@ def test_upload_basket_mongo(test_pantry):
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
         uuid = pantry.upload_basket(
             upload_items=[{'path':temp_file.name,'stub':False}],
-                basket_type="test-1",
-                metadata = {'Data Type':'text'}
-                ).values.tolist()[0][0]
+            basket_type="test-1",
+            metadata = {'Data Type':'text'}
+        )["uuid"][0]
 
         temp_file.close()
         os.unlink(temp_file.name)
@@ -823,9 +831,9 @@ def test_delete_basket_mongo(test_pantry):
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
         uuid = pantry.upload_basket(
             upload_items=[{'path':temp_file.name,'stub':False}],
-                basket_type="test-1",
-                metadata = {'Data Type':'text'}
-                ).values.tolist()[0][0]
+            basket_type="test-1",
+            metadata = {'Data Type':'text'}
+        )["uuid"][0]
 
         temp_file.close()
         os.unlink(temp_file.name)
@@ -841,3 +849,38 @@ def test_delete_basket_mongo(test_pantry):
 
     for e in collections:
         assert mongo_db[e].find_one(query) is None
+
+
+@pytest.mark.skipif(
+    os.name != "posix",
+    reason="This test is only relevant for POSIX file systems."
+)
+def test_pantry_path_absolute_path_works():
+    """Test that a Pantry can use an absolute path."""
+    # Create a Pantry with an absolute path and upload a basket to it.
+    pantry_path = os.path.abspath("test_pantry_absolute_path")
+    assert pantry_path.startswith(os.path.sep)
+    pantry = Pantry(
+        IndexPandas,
+        pantry_path=pantry_path,
+        file_system=LocalFileSystem()
+    )
+    assert pantry.pantry_path == pantry_path
+    assert pantry.file_system.exists(pantry_path)
+    with tempfile.NamedTemporaryFile() as temp_file:
+        temp_file.write(b"Test data for absolute path pantry.")
+        basket_df = pantry.upload_basket(
+            upload_items=[{'path': temp_file.name,'stub': False}],
+            basket_type="test",
+            metadata={'Data Type': 'text'},
+        )
+
+    # Test accessing the basket by uuid and address to ensure no exceptions
+    # are raised. These functions previously failed with absolute paths.
+    _ = pantry.get_basket(basket_df["uuid"][0])
+    _ = pantry.get_basket(basket_df["address"][0])
+    _ = pantry.index.get_parents(basket_df["uuid"][0])
+    _ = pantry.index.get_parents(basket_df["address"][0])
+    _ = pantry.index.get_children(basket_df["uuid"][0])
+    _ = pantry.index.get_children(basket_df["address"][0])
+    shutil.rmtree(pantry_path)  # Clean up after test.

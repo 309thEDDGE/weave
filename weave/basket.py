@@ -1,22 +1,20 @@
 """Contains scripts concerning the Basket class.
 """
-
 import json
 import os
 import uuid
 import importlib
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pandas as pd
 import s3fs
 
+from .mongo_loader import MongoLoader
 from .config import get_file_system, prohibited_filenames
 from .validate import validate_basket_in_place_directory
 from .validate import validate_basket_in_place_directory_backward
 from .upload import derive_integrity_data
-
-
 
 
 class BasketInitializer:
@@ -40,6 +38,7 @@ class BasketInitializer:
 
         if "pantry" in kwargs:
             self.file_system = kwargs["pantry"].file_system
+            self.pantry = kwargs["pantry"]
         else:
             self.file_system = kwargs.get("file_system", None)
             if self.file_system is None:
@@ -232,16 +231,16 @@ class Basket(BasketInitializer):
     def ls(self, relative_path=None):
         """List directories and files in the basket.
 
-           Call filesystem.ls relative to the basket directory.
-           When relative_path = None, filesystem.ls is invoked
-           from the base directory of the basket. If there are folders
-           within the basket, relative path can be used to observe contents
-           within folders.
+        Call filesystem.ls relative to the basket directory.
+        When relative_path = None, filesystem.ls is invoked
+        from the base directory of the basket. If there are folders
+        within the basket, relative path can be used to observe contents
+        within folders.
 
-           Example: if there exists a folder with the
-           name 'folder1' within the basket, 'folder1' can be passed
-           as the relative path to get back the filesystem.ls results
-           of 'folder1'.
+        Example: if there exists a folder with the
+        name 'folder1' within the basket, 'folder1' can be passed
+        as the relative path to get back the filesystem.ls results
+        of 'folder1'.
 
         Parameters
         ----------
@@ -254,6 +253,13 @@ class Basket(BasketInitializer):
         """
 
         ls_path = os.fspath(Path(self.basket_path))
+        # Most fsspec implementations default detail to False, but explicitly
+        # set it to False as this is the expected behavior for this function.
+        ls_kwargs = {"detail": False}
+        if self.file_system.__class__.__name__ == "S3FileSystem":
+            # Note that S3FileSystem.ls can have unpredictable behavior if
+            # not passing refresh=True
+            ls_kwargs["refresh"] = True
 
         if relative_path is not None:
             relative_path = os.fspath(relative_path)
@@ -264,17 +270,13 @@ class Basket(BasketInitializer):
         if ls_path == os.fspath(Path(self.basket_path)):
             # Remove any prohibited files from the list if they exist
             # in the root directory
-            # Note that file_system.ls can have unpredictable behavior if
-            # not passing refresh=True
-            ls_results = self.file_system.ls(ls_path, refresh=True)
+            ls_results = self.file_system.ls(ls_path, **ls_kwargs)
             return [
                 x
                 for x in ls_results
                 if os.path.basename(Path(x)) not in prohibited_filenames
             ]
-        # Note that file_system.ls can have unpredictable behavior if
-        # not passing refresh=True
-        return self.file_system.ls(ls_path, refresh=True)
+        return self.file_system.ls(ls_path, **ls_kwargs)
 
     # pylint: disable-msg=duplicate-code
     def to_pandas_df(self):
@@ -302,11 +304,93 @@ class Basket(BasketInitializer):
 
         return pd.DataFrame(data=[data], columns=columns)
 
+    def download(self, destination_path=os.getcwd(), include_artifacts=False):
+        """Download the basket's contents to a local directory.
+
+        Parameters
+        ----------
+        destination_path: str (default=os.getcwd())
+            The directory where the basket will be downloaded.
+        include_artifacts: bool (default=False)
+            If True, the basket's artifacts (manifest, supplement, metadata)
+            will be downloaded to the destination path.
+        """
+        destination_path = os.fspath(destination_path)
+        if os.path.exists(os.path.join(destination_path, self.uuid)):
+            raise FileExistsError(
+                f"Destination path {os.path.join(destination_path, self.uuid)}"
+                " already exists. Please choose a different destination path."
+            )
+
+        if include_artifacts:
+            # If including artifacts, download the entire basket dir.
+            self.file_system.get(self.basket_path, destination_path,
+                                 recursive=True)
+        else:
+            # If excluding artifacts, loop through basket ls results.
+            destination_path = os.path.join(destination_path, self.uuid)
+            os.makedirs(destination_path)
+            for file in self.ls():
+                self.file_system.get(file, destination_path, recursive=True)
+
+    def update_metadata(self, metadata_updates, replace=False):
+        """Update the basket's metadata with new values.
+
+        Parameters
+        ----------
+        metadata_updates: dict
+            A dictionary containing the metadata updates to be applied.
+            Existing keys will be updated, and new keys will be added.
+        replace: bool (default=False)
+            If True, the existing metadata will be replaced with the new
+            metadata_updates dictionary. If False, the updates will be merged
+            with the existing metadata.
+        """
+        if not isinstance(metadata_updates, dict):
+            raise TypeError("metadata_updates must be a dictionary.")
+
+        # Load existing metadata and update or replace it based on the flag.
+        if replace:
+            metadata = metadata_updates
+        else:
+            metadata = self.get_metadata() or {}
+            metadata.update(metadata_updates)
+
+        # Write the updated metadata back to the basket_metadata.json file.
+        with self.file_system.open(self.metadata_path,
+                                   "w", encoding="utf-8") as f:
+            json.dump(metadata, f, indent=4)
+
+        # Update the metadata member variable.
+        self.metadata = metadata
+
+        if hasattr(self, "pantry"):
+            if hasattr(self.pantry, "mongo_client"):
+                mongo_loader = MongoLoader(pantry=self.pantry)
+                mongo_loader.load_mongo_metadata(
+                    [self.uuid],
+                    replace=True,
+                    metadata_dict=self.metadata,
+                )
+
+    def replace_metadata(self, new_metadata):
+        """Replace the basket's metadata with new metadata.
+
+        An alias for update_metadata with replace=True.
+
+        Parameters
+        ----------
+        new_metadata: dict
+            The new metadata to replace the existing metadata.
+        """
+        self.update_metadata(new_metadata, replace=True)
+
+
 #Disabling pylint to keep basket in place to a single function for clarity.
 # pylint: disable-msg=too-many-locals
 def create_basket_in_place(directory_path, **kwargs):
     """Creates a basket in place.
-    
+
     Generates the manifest, supplement, and metadata files directly in the
     provided directory without moving or uploading any files.
 
@@ -362,7 +446,7 @@ def create_basket_in_place(directory_path, **kwargs):
     # Create manifest file
     manifest = {
         "uuid": str(uuid.uuid1().hex),
-        "upload_time": datetime.utcnow().isoformat(),
+        "upload_time": datetime.now(timezone.utc).isoformat(),
         "parent_uuids": parent_uuids or [],
         "basket_type": basket_type,
         "label": label,

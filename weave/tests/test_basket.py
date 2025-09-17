@@ -5,7 +5,7 @@ import os
 import re
 import tempfile
 import shutil
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import pytest
 import pandas as pd
@@ -108,10 +108,10 @@ def test_make_basket_with_uuid_stays_in_pantry(test_pantry):
     pantry.index.untrack_basket(index_df.iloc[0].uuid)
 
     # Modify the basket address to a new (fake) pantry.
-    address = index_df.iloc[0].address
-    address = address.split(os.path.sep)
+    address = Path(index_df.iloc[0].address).as_posix()
+    address = address.split("/")
     address[0] += "-2"
-    new_address = (os.path.sep).join(address)
+    new_address = str(PurePosixPath(("/").join(address)))
     index_df.at[0,"address"] = new_address
 
     # Track the new basket
@@ -289,6 +289,68 @@ def test_basket_get_metadata(test_pantry):
     # Check get_metadata returns the same values used during the upload.
     metadata = basket.get_metadata()
     assert metadata_in == metadata
+
+
+def test_basket_update_metadata(test_pantry):
+    """Test that the update_metadata function updates the metadata keys and
+    file"""
+    metadata_in = {"test": 1}
+
+    # Create a temporary basket with a test file, and upload it.
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
+    basket_path = test_pantry.upload_basket(
+        tmp_basket_dir, metadata=metadata_in
+    )
+
+    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
+
+    # Check get_metadata returns the same values used during the upload.
+    metadata = basket.get_metadata()
+    assert metadata_in == metadata
+
+    # Update the metadata with new values.
+    metadata_update = {"test": 2, "new": "value"}
+    basket.update_metadata(metadata_update)
+    metadata = basket.get_metadata()
+    assert metadata == {"test": 2, "new": "value"}
+
+    # Check that the metadata file was updated in the file system.
+    if basket.file_system.exists(basket.metadata_path):
+        with basket.file_system.open(basket.metadata_path, "rb") as file:
+            metadata = json.load(file)
+            assert metadata == {"test": 2, "new": "value"}
+
+
+def test_basket_replace_metadata(test_pantry):
+    """Test that the replace_metadata function replaces the metadata keys and
+    file (dropping old keys that are not in the new metadata)."""
+    metadata_in = {"test": 1}
+
+    # Create a temporary basket with a test file, and upload it.
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
+    basket_path = test_pantry.upload_basket(
+        tmp_basket_dir, metadata=metadata_in
+    )
+
+    basket = Basket(Path(basket_path), file_system=test_pantry.file_system)
+
+    # Check get_metadata returns the same values used during the upload.
+    metadata = basket.get_metadata()
+    assert metadata_in == metadata
+
+    # Replace the metadata with new values (replaces the test key with testing)
+    metadata_update = {"testing": 2, "new": "value"}
+    basket.replace_metadata(metadata_update)
+    metadata = basket.get_metadata()
+    assert metadata == {"testing": 2, "new": "value"}
+
+    # Check that the metadata file was updated in the file system.
+    if basket.file_system.exists(basket.metadata_path):
+        with basket.file_system.open(basket.metadata_path, "rb") as file:
+            metadata = json.load(file)
+            assert metadata == {"testing": 2, "new": "value"}
 
 
 def test_basket_get_metadata_cached(test_pantry):
@@ -703,6 +765,127 @@ def test_read_only_get_data():
         del read_only_pantry
         del read_only_fs
         del my_basket
+
+
+def test_basket_download_file_exists_error(test_pantry):
+    """Test that an error is raised when trying to download a basket to a local
+    dir that already has the basket downloaded.
+    """
+    # Create a temporary basket with a test file, and upload it.
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
+    basket_path = test_pantry.upload_basket(tmp_basket_dir=tmp_basket_dir)
+
+    basket = Basket(basket_path, file_system=test_pantry.file_system)
+    # Create a temporary directory to download the basket to
+    with tempfile.TemporaryDirectory() as tmp_download_dir:
+        # Download the basket to the temporary directory
+        basket.download(tmp_download_dir)
+
+        # Attempt to download the basket again to the same directory
+        with pytest.raises(
+            FileExistsError,
+            match=re.escape(
+                "Destination path "
+                f"{os.path.join(tmp_download_dir, basket.uuid)} "
+                "already exists. Please choose a different destination path."
+            ),
+        ):
+            basket.download(tmp_download_dir)
+
+    # Clean up the temporary directory
+    shutil.rmtree(tmp_download_dir, ignore_errors=True)
+
+
+def test_basket_download_include_artifacts_arg(test_pantry):
+    """Test that the basket download includes or excludes artifacts"""
+    # Create a temporary basket with a the following structure:
+    # test_basket_tmp_dir/
+    # ├── nested_dir/
+    # │   └── another_test.txt
+    # └── test.txt
+    tmp_basket_dir_name = "test_basket_tmp_dir"
+    tmp_basket_dir = test_pantry.set_up_basket(tmp_basket_dir_name)
+    tmp_basket_dir = test_pantry.add_lower_dir_to_temp_basket(tmp_basket_dir)
+    basket_path = test_pantry.upload_basket(
+        tmp_basket_dir=tmp_basket_dir,
+        metadata={"test": "data"},
+    )
+
+    basket = Basket(basket_path, file_system=test_pantry.file_system)
+
+    # Create a temporary directory to download the basket to
+    with tempfile.TemporaryDirectory() as tmp_download_dir:
+        # Download the basket to the temporary directory
+        basket.download(tmp_download_dir, include_artifacts=True)
+        downloaded_paths = [
+            str(f) for f
+            in Path(os.path.join(tmp_download_dir, basket.uuid)).rglob("*")
+        ]
+
+        # Check that the basket directory and its contents are present.
+        assert len(downloaded_paths) == 7
+        assert (
+            os.path.join(tmp_download_dir, basket.uuid,
+                         tmp_basket_dir_name) in downloaded_paths
+        )
+        assert (
+            os.path.join(tmp_download_dir, basket.uuid,
+                         tmp_basket_dir_name, "test.txt") in downloaded_paths
+        )
+        assert (
+            os.path.join(tmp_download_dir, basket.uuid, tmp_basket_dir_name,
+                         "nested_dir") in downloaded_paths
+        )
+        assert (
+            os.path.join(tmp_download_dir, basket.uuid, tmp_basket_dir_name,
+                         "nested_dir", "another_test.txt") in downloaded_paths
+        )
+        assert (
+            os.path.join(tmp_download_dir, basket.uuid,
+                         "basket_supplement.json") in downloaded_paths
+        )
+        assert (
+            os.path.join(tmp_download_dir, basket.uuid,
+                         "basket_manifest.json") in downloaded_paths
+        )
+        assert (
+            os.path.join(tmp_download_dir, basket.uuid,
+                         "basket_metadata.json") in downloaded_paths
+        )
+
+        # Clear the downloaded directory
+        shutil.rmtree(os.path.join(tmp_download_dir, basket.uuid))
+
+        # Download the basket again without artifacts
+        basket.download(tmp_download_dir, include_artifacts=False)
+        downloaded_paths = [
+            str(f) for f
+            in Path(os.path.join(tmp_download_dir, basket.uuid)).rglob("*")
+        ]
+
+        # Check that the basket directory and its contents (excluding weave
+        # artifacts) are present.
+        assert len(downloaded_paths) == 4
+        assert (
+            os.path.join(tmp_download_dir, basket.uuid,
+                         tmp_basket_dir_name) in downloaded_paths
+        )
+        assert (
+            os.path.join(tmp_download_dir, basket.uuid,
+                         tmp_basket_dir_name, "test.txt") in downloaded_paths
+        )
+        assert (
+            os.path.join(tmp_download_dir, basket.uuid, tmp_basket_dir_name,
+                         "nested_dir") in downloaded_paths
+        )
+        assert (
+            os.path.join(tmp_download_dir, basket.uuid, tmp_basket_dir_name,
+                         "nested_dir", "another_test.txt") in downloaded_paths
+        )
+
+    # Clean up the temporary directory
+    shutil.rmtree(tmp_download_dir, ignore_errors=True)
 
 
 def test_create_basket_in_place(test_pantry):
