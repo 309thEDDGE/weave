@@ -350,7 +350,7 @@ The process is similar, but the mongo_client should be passed when creating the 
 from weave.mongo_loader import MongoLoader
 # Pantry is the pantry object from weave.Pantry()
 # If the pantry already has a mongo_client attached to it (if it was passed into the pantry constructor, or if it was loaded during
-# the factory constructor), the mongo client does not need to be passed in explicitly, it will retrieve the pantry's mongo_client.
+# the factory constructor), the mongo client does not need to be passed in explicitly.
 mongo_loader = MongoLoader(pantry=pantry)
 ```
 
@@ -393,7 +393,7 @@ More on how to query collections can be found
 If the metadata associated with an already uploaded basket has not been uploaded to mongo, basket uuids can be passed to mongo_loader.load_mongo as shown below to upload missing basket metadata.
 
 ```python
-# uuids (str) is a list of uuids that will add the data of their associated baskets to the mongo db
+# UUIDs of baskets whose metadata has not yet been loaded into MongoDB.
 mongo_loader.load_mongo(uuids)
 ```
 
