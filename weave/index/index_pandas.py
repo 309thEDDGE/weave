@@ -3,16 +3,22 @@
 import os
 import tempfile
 import warnings
+from datetime import datetime
 from time import time_ns
 import pandas as pd
 
+from fsspec import AbstractFileSystem
 from fsspec.implementations.local import LocalFileSystem
 
 from ..upload import UploadBasket
 from .create_index import create_index_from_fs
 from .index_abc import IndexABC
 
-def slice_df(df, max_rows=None, offset=0):
+def slice_df(
+    df: pd.DataFrame,
+    max_rows: int=None,
+    offset: int=0
+) -> pd.DataFrame:
     """Returns the pandas dataframe representation of the index.
 
     Parameters
@@ -38,7 +44,12 @@ def slice_df(df, max_rows=None, offset=0):
 class IndexPandas(IndexABC):
     """Handles Pandas based functionality of the Index."""
 
-    def __init__(self, file_system, pantry_path, **kwargs):
+    def __init__(
+        self,
+        file_system: AbstractFileSystem,
+        pantry_path: str,
+        **kwargs
+    ):
         """Initializes the Index class.
 
         Parameters
@@ -77,26 +88,26 @@ class IndexPandas(IndexABC):
         self.pantry_read_only = kwargs.get("pantry_read_only", False)
         self.auto_cleanup = kwargs.get("auto_cleanup", True)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Returns the number of baskets in the index."""
         self._sync_if_needed()
         return len(self.index_df)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Returns the str instantiation type of this Index (ie 'SQLIndex')."""
         return "IndexPandas"
 
     @property
-    def file_system(self):
+    def file_system(self) -> AbstractFileSystem:
         """The file system of the pantry referenced by this Index."""
         return self._file_system
 
     @property
-    def pantry_path(self):
+    def pantry_path(self) -> str:
         """The pantry path referenced by this Index."""
         return self._pantry_path
 
-    def _sync_if_needed(self):
+    def _sync_if_needed(self) -> bool:
         """Check if the index_df is up to date, and sync if necessary.
 
         Returns
@@ -111,7 +122,7 @@ class IndexPandas(IndexABC):
             return False
         return True
 
-    def generate_metadata(self, **kwargs):
+    def generate_metadata(self, **kwargs) -> dict:
         """(Deprecated) Generate the metadata for the index."""
         warnings.warn(
             UserWarning("This function is being deprecated in a future weave "
@@ -119,7 +130,7 @@ class IndexPandas(IndexABC):
         )
         return self.generate_config(**kwargs)
 
-    def generate_config(self, **kwargs):
+    def generate_config(self, **kwargs) -> dict:
         """Populates the metadata for the index.
 
         Parameters
@@ -154,12 +165,17 @@ class IndexPandas(IndexABC):
             self.file_system.open(latest_index_path), dtype = {"uuid": str}
         )
 
-    def _get_index_time_from_path(self, path):
+    def _get_index_time_from_path(self, path: str) -> int:
         """Returns time as int from index_json path."""
         path = str(path)
         return int(os.path.basename(path).replace("-index.json",""))
 
-    def to_pandas_df(self, max_rows=None, offset=0, **kwargs):
+    def to_pandas_df(
+        self,
+        max_rows: int=None,
+        offset: int=0,
+        **kwargs
+    ) -> pd.DataFrame:
         """Returns the pandas dataframe representation of the index.
 
         Parameters
@@ -181,7 +197,7 @@ class IndexPandas(IndexABC):
         self._sync_if_needed()
         return slice_df(self.index_df, max_rows, offset)
 
-    def clean_up_indices(self, n_keep=20):
+    def clean_up_indices(self, n_keep: int=20):
         """Deletes any index basket except the latest n index baskets.
 
         Parameters
@@ -214,7 +230,7 @@ class IndexPandas(IndexABC):
                 except ValueError as error:
                     warnings.warn(error)
 
-    def is_index_current(self):
+    def is_index_current(self) -> bool:
         """Checks to see if the index in memory is up to date with disk index.
 
         Returns True if index in memory is up to date, else False.
@@ -241,7 +257,7 @@ class IndexPandas(IndexABC):
         index = create_index_from_fs(self.pantry_path, self.file_system)
         self._upload_index(index=index)
 
-    def clear_index(self, refresh=False, **kwargs):
+    def clear_index(self, refresh: bool=False, **kwargs):
         """Clears out ALL pandas indexes in the pantry and generates a new one.
 
         THIS FUNCTION DOES NOT BEHAVE THE SAME AS THE OTHER CLEAR_INDEX METHODS
@@ -265,7 +281,7 @@ class IndexPandas(IndexABC):
         self.index_df = None
         self.generate_index()
 
-    def _upload_index(self, index):
+    def _upload_index(self, index: pd.DataFrame):
         """Upload a new index."""
         n_secs = time_ns()
         # If the pantry is read-only, don't upload the index.
@@ -285,7 +301,7 @@ class IndexPandas(IndexABC):
         self.index_df = index
         self.index_json_time = n_secs
 
-    def untrack_basket(self, basket_address, **kwargs):
+    def untrack_basket(self, basket_address: str, **kwargs):
         """Remove a basket from being tracked of given UUID or path.
 
         Parameters
@@ -322,7 +338,7 @@ class IndexPandas(IndexABC):
         if upload_index:
             self._upload_index(self.index_df)
 
-    def get_parents(self, basket_address, **kwargs):
+    def get_parents(self, basket_address: str, **kwargs) -> pd.DataFrame:
         """Recursively gathers all parents of basket and returns index.
 
         Parameters
@@ -421,7 +437,7 @@ class IndexPandas(IndexABC):
 
         return data
 
-    def get_children(self, basket_address, **kwargs):
+    def get_children(self, basket_address: str, **kwargs) -> pd.DataFrame:
         """Recursively gathers all the children of basket and returns an index.
 
         Parameters
@@ -518,7 +534,7 @@ class IndexPandas(IndexABC):
 
         return data
 
-    def track_basket(self, entry_df, **kwargs):
+    def track_basket(self, entry_df: pd.DataFrame, **kwargs):
         """Track a basket from the pantry referenced by the Index.
 
         Parameters
@@ -541,7 +557,7 @@ class IndexPandas(IndexABC):
                 )
             )
 
-    def get_rows(self, basket_address, **kwargs):
+    def get_rows(self, basket_address: str, **kwargs) -> pd.DataFrame:
         """Returns a pd.DataFrame row information of given UUID or path.
 
         Parameters
@@ -567,8 +583,13 @@ class IndexPandas(IndexABC):
                       ]
         return rows
 
-    def get_baskets_of_type(self, basket_type, max_rows=None,
-                            offset=0, **kwargs):
+    def get_baskets_of_type(
+        self,
+        basket_type: str,
+        max_rows: int=None,
+        offset: int=0,
+        **kwargs
+    ) -> pd.DataFrame:
         """Returns a pandas dataframe containing baskets of basket_type.
 
         Parameters
@@ -594,8 +615,13 @@ class IndexPandas(IndexABC):
             max_rows,
             offset)
 
-    def get_baskets_of_label(self, basket_label, max_rows=None,
-                             offset=0, **kwargs):
+    def get_baskets_of_label(
+        self,
+        basket_label: str,
+        max_rows: int=None,
+        offset: int=0,
+        **kwargs
+    ) -> pd.DataFrame:
         """Returns a pandas dataframe containing baskets with label.
 
         Parameters
@@ -622,8 +648,14 @@ class IndexPandas(IndexABC):
             max_rows,
             offset)
 
-    def get_baskets_by_upload_time(self, start_time=None, end_time=None,
-                                   max_rows=None, offset=0, **kwargs):
+    def get_baskets_by_upload_time(
+        self,
+        start_time: datetime=None,
+        end_time: datetime=None,
+        max_rows: int=None,
+        offset: int=0,
+        **kwargs
+    ) -> pd.DataFrame:
         """Returns a pandas dataframe of baskets uploaded between two times.
 
         Parameters

@@ -1,8 +1,12 @@
 """Wherein functionality concerning listing basket jsons is contained."""
 import os
 
+from fsspec import AbstractFileSystem
 
-def _get_list_of_basket_jsons(root_dir, file_system):
+def _get_list_of_basket_jsons(
+    root_dir: str,
+    file_system: AbstractFileSystem
+) -> list[str]:
     """Return a list of basket manifest paths in the given root dir.
 
     Parameters:
