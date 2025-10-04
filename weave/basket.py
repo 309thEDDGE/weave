@@ -12,7 +12,6 @@ import s3fs
 
 from .mongo_loader import MongoLoader
 from .config import get_file_system, prohibited_filenames
-from .pantry import Pantry
 from .validate import validate_basket_in_place_directory
 from .validate import validate_basket_in_place_directory_backward
 from .upload import derive_integrity_data
@@ -94,7 +93,7 @@ class BasketInitializer:
             self.basket_path = Path(basket_address).as_posix()
         self.validate_basket_path()
 
-    def set_up_basket_from_uuid(self, basket_address:str, pantry:Pantry):
+    def set_up_basket_from_uuid(self, basket_address:str, pantry):
         """Attempts to set up a basket from a uuid.
 
         Note that if the basket cannot be set up from a uuid then an attempt to

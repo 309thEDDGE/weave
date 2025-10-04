@@ -12,7 +12,6 @@ else:
     _HAS_PYMONGO = True
 
 from .config import get_mongo_db
-from .pantry import Pantry
 
 # pylint: disable-next=too-many-instance-attributes
 class MongoLoader():
@@ -21,7 +20,7 @@ class MongoLoader():
     mongo db based on the record type (ie supplement, manifest, metadata).
     """
 
-    def __init__(self, pantry: Pantry, mongo_client: pymongo.MongoClient=None, **kwargs):
+    def __init__(self, pantry, mongo_client: pymongo.MongoClient=None, **kwargs):
         """Creates the mongo loader and makes a reference to the pantry's DB.
 
         Parameters

@@ -7,14 +7,17 @@ import os
 import warnings
 
 import pandas as pd
+from fsspec import AbstractFileSystem
 
 from ..config import get_index_column_names
-from ..pantry import Pantry
 from .list_baskets import _get_list_of_basket_jsons
 from .validate_basket import validate_basket_dict
 
 
-def create_index_from_fs(root_dir: str, file_system: Pantry) -> pd.DataFrame    :
+def create_index_from_fs(
+    root_dir: str,
+    file_system: AbstractFileSystem
+) -> pd.DataFrame:
     """Recursively parse a pantry and create an index.
 
     Parameters

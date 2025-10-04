@@ -31,7 +31,7 @@ class IndexSQL(IndexABC):
     def __init__(
         self,
         file_system: AbstractFileSystem,
-        pantry_path: str, 
+        pantry_path: str,
         **kwargs
     ):
         """Initializes the Index class.
@@ -333,7 +333,7 @@ class IndexSQL(IndexABC):
     def to_pandas_df(
         self,
         max_rows: int=None,
-        offset: int=0, 
+        offset: int=0,
         **kwargs
     ) -> pd.DataFrame:
         """Returns the pandas dataframe representation of the index.
