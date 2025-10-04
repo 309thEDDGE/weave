@@ -21,13 +21,19 @@ except AssertionError:
     _HAS_REQUIRED_DEPS = False
 else:
     _HAS_REQUIRED_DEPS = True
+from fsspec import AbstractFileSystem
 
 from .index_abc import IndexABC
 from .create_index import create_index_from_fs
 
 class IndexSQL(IndexABC):
     """Concrete implementation of Index, using SQL."""
-    def __init__(self, file_system, pantry_path, **kwargs):
+    def __init__(
+        self,
+        file_system: AbstractFileSystem,
+        pantry_path: str, 
+        **kwargs
+    ):
         """Initializes the Index class.
 
         Parameters
@@ -110,16 +116,21 @@ class IndexSQL(IndexABC):
 
     # Create read-only properties for the database and schema names.
     @property
-    def database_name(self):
+    def database_name(self) -> str:
         """The database name of the index."""
         return self._database_name
 
     @property
-    def pantry_schema(self):
+    def pantry_schema(self) -> str:
         """The schema name of the index."""
         return self._pantry_schema
 
-    def execute_sql(self, sql_query, params=None, commit=False):
+    def execute_sql(
+        self,
+        sql_query: str,
+        params: dict=None,
+        commit: bool=False
+    ) -> tuple[list, list] | int | None:
         """Executes the given SQL query. Returns the results.
 
         Parameters
@@ -225,16 +236,16 @@ class IndexSQL(IndexABC):
             )
 
     @property
-    def file_system(self):
+    def file_system(self) -> AbstractFileSystem:
         """The file system of the pantry referenced by this Index."""
         return self._file_system
 
     @property
-    def pantry_path(self):
+    def pantry_path(self) -> str:
         """The pantry path referenced by this Index."""
         return self._pantry_path
 
-    def generate_metadata(self, **kwargs):
+    def generate_metadata(self, **kwargs) -> dict:
         """(Deprecated) Generate the metadata for the index."""
         warnings.warn(
             UserWarning("This function is being deprecated in a future weave "
@@ -242,7 +253,7 @@ class IndexSQL(IndexABC):
         )
         return self.generate_config(**kwargs)
 
-    def generate_config(self, **kwargs):
+    def generate_config(self, **kwargs) -> dict:
         """Populates the metadata for the index.
 
         Parameters
@@ -285,7 +296,7 @@ class IndexSQL(IndexABC):
         index_df = create_index_from_fs(self.pantry_path, self.file_system)
         self.track_basket(index_df)
 
-    def clear_index(self, refresh=False, **kwargs):
+    def clear_index(self, refresh: bool=False, **kwargs):
         """Deletes/clears the previously populated index.
 
         Deletes the index entirely (by dropping and re-creating the schema)
@@ -319,7 +330,12 @@ class IndexSQL(IndexABC):
             commit=True,
         )
 
-    def to_pandas_df(self, max_rows=None, offset=0, **kwargs):
+    def to_pandas_df(
+        self,
+        max_rows: int=None,
+        offset: int=0, 
+        **kwargs
+    ) -> pd.DataFrame:
         """Returns the pandas dataframe representation of the index.
 
         Parameters
@@ -364,7 +380,7 @@ class IndexSQL(IndexABC):
         )
         return ind_df
 
-    def track_basket(self, entry_df, **kwargs):
+    def track_basket(self, entry_df: pd.DataFrame, **kwargs):
         """Track a basket (or many baskets) from the pantry with the Index.
 
         Parameters
@@ -418,7 +434,7 @@ class IndexSQL(IndexABC):
             )
             self.execute_sql(sql, basket_dict, commit=True)
 
-    def untrack_basket(self, basket_address, **kwargs):
+    def untrack_basket(self, basket_address: str | list[str], **kwargs):
         """Remove a basket from being tracked of given UUID or path.
 
         Parameters
@@ -476,7 +492,11 @@ class IndexSQL(IndexABC):
         )
         self.execute_sql(query, {"uuids": uuids}, commit=True)
 
-    def get_rows(self, basket_address, **kwargs):
+    def get_rows(
+        self,
+        basket_address: str | list[str],
+        **kwargs
+    ) -> pd.DataFrame:
         """Returns a pd.DataFrame row information of given UUID or path.
 
         Parameters
@@ -520,7 +540,7 @@ class IndexSQL(IndexABC):
         )
         return ind_df
 
-    def get_parents(self, basket_address, **kwargs):
+    def get_parents(self, basket_address: str, **kwargs) -> pd.DataFrame:
         """Returns a pandas dataframe of all parents of a basket.
 
         Parameters
@@ -615,7 +635,7 @@ class IndexSQL(IndexABC):
 
         return parent_df
 
-    def get_children(self, basket_address, **kwargs):
+    def get_children(self, basket_address: str, **kwargs) -> pd.DataFrame:
         """Returns a pandas dataframe of all children of a basket.
 
         Parameters
@@ -708,8 +728,13 @@ class IndexSQL(IndexABC):
 
         return child_df
 
-    def get_baskets_of_type(self, basket_type, max_rows=None,
-                            offset=0, **kwargs):
+    def get_baskets_of_type(
+        self,
+        basket_type: str,
+        max_rows: int=None,
+        offset: int=0,
+        **kwargs
+        ) -> pd.DataFrame:
         """Returns a pandas dataframe containing baskets of basket_type.
 
         Parameters
@@ -758,8 +783,13 @@ class IndexSQL(IndexABC):
         )
         return ind_df
 
-    def get_baskets_of_label(self, basket_label, max_rows=None,
-                             offset=0, **kwargs):
+    def get_baskets_of_label(
+        self,
+        basket_label: str,
+        max_rows: int=None,
+        offset: int=0,
+        **kwargs
+    ) -> pd.DataFrame:
         """Returns a pandas dataframe containing baskets with label.
 
         Parameters
@@ -808,8 +838,14 @@ class IndexSQL(IndexABC):
         )
         return ind_df
 
-    def get_baskets_by_upload_time(self, start_time=None, end_time=None,
-                                   max_rows=None, offset=0, **kwargs):
+    def get_baskets_by_upload_time(
+        self,
+        start_time: datetime=None,
+        end_time: datetime=None,
+        max_rows: int=None,
+        offset: int=0,
+        **kwargs
+    ) -> pd.DataFrame:
         """Returns a pandas dataframe of baskets uploaded between two times.
 
         Parameters
@@ -888,7 +924,7 @@ class IndexSQL(IndexABC):
         )
         return ind_df
 
-    def query(self, expr, **kwargs):
+    def query(self, expr: str, **kwargs) -> pd.DataFrame:
         """Returns a pandas dataframe of the results of the expression.
 
         Parameters
@@ -909,13 +945,13 @@ class IndexSQL(IndexABC):
         results = [list(row) for row in results]
         return pd.DataFrame(results, columns=columns)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Returns the number of baskets in the index."""
         results, _ = self.execute_sql(
                 f"SELECT COUNT (*) FROM {self.pantry_schema}.pantry_index"
             )
         return results[0][0]
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Returns the str instantiation type of this Index (ie 'IndexSQL')."""
         return self.__class__.__name__

@@ -5,12 +5,19 @@ import abc
 import warnings
 from datetime import datetime
 
+import pandas as pd
+from fsspec import AbstractFileSystem
 
 class IndexABC(abc.ABC):
     """Abstract Base Class for the Index."""
 
     @abc.abstractmethod
-    def __init__(self, file_system, pantry_path, **kwargs):
+    def __init__(
+        self,
+        file_system: AbstractFileSystem,
+        pantry_path: str, 
+        **kwargs
+    ):
         """Initializes the Index class.
 
         Parameters
@@ -31,16 +38,16 @@ class IndexABC(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def file_system(self):
+    def file_system(self) -> AbstractFileSystem:
         """The file system of the pantry referenced by this Index."""
 
     @property
     @abc.abstractmethod
-    def pantry_path(self):
+    def pantry_path(self) -> str:
         """The pantry path referenced by this Index."""
 
     @abc.abstractmethod
-    def generate_metadata(self, **kwargs):
+    def generate_metadata(self, **kwargs) -> dict:
         """(Deprecated) Generate the metadata for the index."""
         warnings.warn(
             UserWarning("This function is being deprecated in a future weave "
@@ -49,7 +56,7 @@ class IndexABC(abc.ABC):
         return self.generate_config(**kwargs)
 
     @abc.abstractmethod
-    def generate_config(self, **kwargs):
+    def generate_config(self, **kwargs) -> dict:
         """Generate the setup config for the index.
 
         Parameters
@@ -75,7 +82,7 @@ class IndexABC(abc.ABC):
         """
 
     @abc.abstractmethod
-    def clear_index(self, refresh=False, **kwargs):
+    def clear_index(self, refresh: bool=False, **kwargs):
         """Deletes/clears the previously populated index.
 
         Delete the index entirely, optionally regenerating a new one
@@ -89,7 +96,12 @@ class IndexABC(abc.ABC):
         """
 
     @abc.abstractmethod
-    def to_pandas_df(self, max_rows=None, offset=0, **kwargs):
+    def to_pandas_df(
+        self,
+        max_rows: int=None,
+        offset: int=0, 
+        **kwargs
+    ) -> pd.DataFrame:
         """Returns the pandas dataframe representation of the index.
 
         Parameters
@@ -109,7 +121,7 @@ class IndexABC(abc.ABC):
         """
 
     @abc.abstractmethod
-    def track_basket(self, entry_df, **kwargs):
+    def track_basket(self, entry_df: pd.DataFrame, **kwargs):
         """Track a basket (or many baskets) from the pantry with the Index.
 
         Parameters
@@ -120,7 +132,7 @@ class IndexABC(abc.ABC):
         """
 
     @abc.abstractmethod
-    def untrack_basket(self, basket_address, **kwargs):
+    def untrack_basket(self, basket_address: str | list[str], **kwargs):
         """Remove a basket from being tracked of given UUID or path.
 
         Parameters
@@ -133,7 +145,11 @@ class IndexABC(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_rows(self, basket_address, **kwargs):
+    def get_rows(
+        self,
+        basket_address: str | list[str],
+        **kwargs
+    ) -> pd.DataFrame:
         """Returns a pd.DataFrame row information of given UUID or path.
 
         Parameters
@@ -151,7 +167,7 @@ class IndexABC(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_parents(self, basket_address, **kwargs):
+    def get_parents(self, basket_address: str, **kwargs) -> pd.DataFrame:
         """Returns a pandas dataframe of all parents of a basket.
 
         Parameters
@@ -168,7 +184,7 @@ class IndexABC(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_children(self, basket_address, **kwargs):
+    def get_children(self, basket_address: str, **kwargs) -> pd.DataFrame:
         """Returns a pandas dataframe of all children of a basket.
 
         Parameters
@@ -185,8 +201,13 @@ class IndexABC(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_baskets_of_type(self, basket_type, max_rows=None,
-                            offset=0, **kwargs):
+    def get_baskets_of_type(
+        self,
+        basket_type: str,
+        max_rows: int=None,
+        offset: int=0,
+        **kwargs
+        ) -> pd.DataFrame:
         """Returns a pandas dataframe containing baskets of basket_type.
 
         Parameters
@@ -207,8 +228,13 @@ class IndexABC(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_baskets_of_label(self, basket_label, max_rows=None,
-                             offset=0, **kwargs):
+    def get_baskets_of_label(
+        self,
+        basket_label: str,
+        max_rows: int=None,
+        offset: int=0,
+        **kwargs
+    ) -> pd.DataFrame:
         """Returns a pandas dataframe containing baskets with label.
 
         Parameters
@@ -230,8 +256,14 @@ class IndexABC(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_baskets_by_upload_time(self, start_time=None, end_time=None,
-                                   max_rows=None, offset=0, **kwargs):
+    def get_baskets_by_upload_time(
+        self,
+        start_time: datetime=None,
+        end_time: datetime=None,
+        max_rows: int=None,
+        offset: int=0,
+        **kwargs
+    ) -> pd.DataFrame:
         """Returns a pandas dataframe of baskets uploaded between two times.
 
         Parameters
@@ -262,7 +294,7 @@ class IndexABC(abc.ABC):
             raise ValueError("end_time is not datetime object.")
 
     @abc.abstractmethod
-    def query(self, expr, **kwargs):
+    def query(self, expr: str, **kwargs) -> pd.DataFrame:
         """Returns a pandas dataframe of the results of the query.
 
         Parameters
@@ -278,9 +310,9 @@ class IndexABC(abc.ABC):
         """
 
     @abc.abstractmethod
-    def __len__(self):
+    def __len__(self) -> int:
         """Returns the number of baskets in the index."""
 
     @abc.abstractmethod
-    def __str__(self):
+    def __str__(self) -> str:
         """Returns the str instantiation type of this Index (ie 'IndexSQL')."""

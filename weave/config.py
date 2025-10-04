@@ -2,6 +2,7 @@
 
 import os
 
+from fsspec import AbstractFileSystem
 from fsspec.implementations.local import LocalFileSystem
 import s3fs
 # Try-Except required to make pymongo an optional dependency.
@@ -91,13 +92,13 @@ supplement_schema = {
 }
 
 
-def get_index_column_names():
+def get_index_column_names() -> list[str]:
     """Return index column names."""
     return ["uuid", "upload_time", "parent_uuids", "basket_type", "label",
             "weave_version", "address", "storage_type"]
 
 
-def get_file_system(**kwargs):
+def get_file_system(**kwargs) -> AbstractFileSystem:
     """Get the filesystem to be used for storing baskets.
 
     **file_system: str (default=s3)
@@ -114,7 +115,7 @@ def get_file_system(**kwargs):
     return LocalFileSystem()
 
 
-def get_mongo_db(**kwargs):
+def get_mongo_db(**kwargs) -> pymongo.MongoClient:
     """Get the mongodb client to be used for metadata search.
 
     Parameters:

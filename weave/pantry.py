@@ -5,6 +5,7 @@ import os
 import warnings
 from pathlib import PurePosixPath, PurePath
 
+import pandas as pd
 import s3fs
 # Ignore pylint duplicate code. Code here is used to explicitly show pymongo is
 # an optional dependency. Duplicate code is found in config.py (where pymongo
@@ -35,8 +36,8 @@ class Pantry():
     """Facilitate user interaction with the index of a Weave data warehouse.
     """
 
-    def __init__(self, index: IndexABC, pantry_path="weave-test",
-                 mongo_client=None, **kwargs):
+    def __init__(self, index: IndexABC, pantry_path: str="weave-test",
+                 mongo_client: pymongo.MongoClient=None, **kwargs):
         """Initialize Pantry object.
 
         A pantry is a collection of baskets. This class facilitates the upload,
@@ -109,7 +110,7 @@ class Pantry():
         self.setup_config['index_setup_config'] = self.index.generate_config()
         self._generate_config()
 
-    def validate_path_in_pantry(self, path):
+    def validate_path_in_pantry(self, path: str):
         """Validate the given path is within the pantry.
 
         Check 1: Ensure the path begins with the pantry path.
@@ -183,7 +184,7 @@ class Pantry():
         ) as outfile:
             json.dump(self.setup_config, outfile)
 
-    def validate(self):
+    def validate(self) -> list[Warning | str]:
         """Convenient wrapper function to validate the pantry.
 
         Returns
@@ -194,7 +195,7 @@ class Pantry():
 
         return validate_pantry(self)
 
-    def delete_basket(self, basket_address, **kwargs):
+    def delete_basket(self, basket_address: str, **kwargs):
         """Deletes basket of given UUID or path.
 
         Note that the given basket will not be deleted if the basket is listed
@@ -226,7 +227,8 @@ class Pantry():
         if self.mongo_client is not None:
             MongoLoader(self).remove_document(remove_item.iloc[0].uuid)
 
-    def upload_basket(self, upload_items, basket_type, **kwargs):
+    def upload_basket(self, upload_items: str,
+                      basket_type: str, **kwargs) -> pd.DataFrame:
         """Upload a basket to the same pantry referenced by the Index
 
         Parameters
@@ -286,7 +288,7 @@ class Pantry():
 
         return single_indice_index
 
-    def get_basket(self, basket_address):
+    def get_basket(self, basket_address: str) -> Basket:
         """Retrieves a basket of given UUID or path.
 
         Parameters
@@ -309,7 +311,7 @@ class Pantry():
         self.validate_path_in_pantry(row.iloc[0].address)
         return Basket(row.iloc[0].address, pantry=self)
 
-    def does_file_exist(self, file_path, **kwargs):
+    def does_file_exist(self, file_path: str, **kwargs) -> list[str]:
         """Check if a file already exists inside the pantry and return
         the uuids where it does.
 

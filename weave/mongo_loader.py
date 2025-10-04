@@ -12,6 +12,7 @@ else:
     _HAS_PYMONGO = True
 
 from .config import get_mongo_db
+from .pantry import Pantry
 
 # pylint: disable-next=too-many-instance-attributes
 class MongoLoader():
@@ -20,7 +21,7 @@ class MongoLoader():
     mongo db based on the record type (ie supplement, manifest, metadata).
     """
 
-    def __init__(self, pantry, mongo_client=None, **kwargs):
+    def __init__(self, pantry: Pantry, mongo_client: pymongo.MongoClient=None, **kwargs):
         """Creates the mongo loader and makes a reference to the pantry's DB.
 
         Parameters
@@ -82,7 +83,7 @@ class MongoLoader():
             "supplement_collection", "supplement")
 
 
-    def load_mongo_metadata(self, uuids, **kwargs):
+    def load_mongo_metadata(self, uuids: list[str], **kwargs):
         """Load metadata from baskets into the mongo database.
 
         A metadata.json is created in baskets when the metadata
@@ -152,7 +153,7 @@ class MongoLoader():
                     upsert=True,
                 )
 
-    def load_mongo_manifest(self, uuids, **kwargs):
+    def load_mongo_manifest(self, uuids: list[str], **kwargs):
         """Load manifest from baskets into the mongo database.
 
         A manifest.json is created in baskets upon upload. This manifest is
@@ -191,7 +192,7 @@ class MongoLoader():
             ].count_documents({"uuid": basket.uuid}):
                 self.database[collection].insert_one(mongo_manifest)
 
-    def load_mongo_supplement(self, uuids, **kwargs):
+    def load_mongo_supplement(self, uuids: list[str], **kwargs):
         """Load supplement from baskets into the mongo database.
 
         A supplement.json is created in baskets upon upload. This supplement
@@ -236,7 +237,7 @@ class MongoLoader():
                 self.database[collection].insert_one(mongo_supplement)
 
 
-    def load_mongo(self, uuids, **kwargs):
+    def load_mongo(self, uuids: list[str], **kwargs):
         """Load metadata, manifest, and supplement from baskets into the
         mongo database.
 
@@ -264,7 +265,7 @@ class MongoLoader():
         self.load_mongo_manifest(uuids, collection=manifest_collection)
         self.load_mongo_supplement(uuids, collection=supplement_collection)
 
-    def clear_mongo(self, refresh=False):
+    def clear_mongo(self, refresh: bool=False):
         """Clear the metadata, manifest, and supplement collections optionally,
         refreshing them from the pantry.
 
@@ -282,7 +283,7 @@ class MongoLoader():
                 self.pantry.index.to_pandas_df(max_rows=None)['uuid'].to_list()
             )
 
-    def remove_document(self, uuid, **kwargs):
+    def remove_document(self, uuid: str, **kwargs):
         """Delete all documents containing the given uuid from all collections.
 
         Parameters

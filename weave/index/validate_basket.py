@@ -9,7 +9,7 @@ from ..config import manifest_schema
 
 
 # Validate basket keys and value data types on read in
-def validate_basket_dict(basket_dict):
+def validate_basket_dict(basket_dict: dict) -> bool:
     """Validate the basket_manifest.json has the correct structure.
 
     Parameters:

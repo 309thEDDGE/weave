@@ -15,7 +15,7 @@ from fsspec.implementations.local import LocalFileSystem
 from .config import get_file_system, prohibited_filenames
 
 
-def validate_upload_item(upload_item, **kwargs):
+def validate_upload_item(upload_item: dict[str, str | bool], **kwargs):
     """Validates an upload_item."""
     source_file_system = kwargs.get("source_file_system", LocalFileSystem())
     if not isinstance(upload_item, dict):
@@ -45,7 +45,7 @@ def validate_upload_item(upload_item, **kwargs):
         )
 
 
-def derive_integrity_data(file_path, byte_count=10**8, **kwargs):
+def derive_integrity_data(file_path: str, byte_count: int=10**8, **kwargs) -> dict:
     """Derives basic integrity data from a file.
 
     This function takes in a file path and calculates
@@ -370,7 +370,12 @@ class UploadBasket:
                 supplement_data["integrity_data"].append(file_int_dat)
         self.kwargs["supplement_data"] = supplement_data
 
-    def handle_file_integrity_data(self, local_path, upload_item, item_path):
+    def handle_file_integrity_data(
+        self,
+        local_path: str,
+        upload_item: dict[str, str | bool],
+        item_path: str
+    ) -> dict:
         """Gathers the file integrity data, handles stub logic"""
         file_int_dat = derive_integrity_data(
             str(local_path),
@@ -389,14 +394,18 @@ class UploadBasket:
             file_int_dat["upload_path"] = "stub"
         return file_int_dat
 
-    def construct_file_upload_path(self, local_path, item_path):
+    def construct_file_upload_path(
+        self,
+        local_path: str,
+        item_path: str
+    ) -> str:
         """Constructs the file_upload_path variable"""
         return os.path.join(
             self.kwargs.get("upload_directory"),
             os.path.relpath(local_path, os.path.split(item_path)[0]),
         )
 
-    def handle_file_upload(self, local_path, file_upload_path):
+    def handle_file_upload(self, local_path: str, file_upload_path: str):
         """Upload the file to fs.
 
         Depending on the input and output filesystems the behavior changes
@@ -462,7 +471,7 @@ class UploadBasket:
             ),
         )
 
-    def fs_upload_path_exists(self):
+    def fs_upload_path_exists(self) -> bool:
         """Returns True if FS upload_path has been created, else False."""
         return self.file_system.exists(self.kwargs.get("upload_directory"))
 
@@ -472,7 +481,7 @@ class UploadBasket:
             self.kwargs.get("upload_directory"), recursive=True
         )
 
-    def get_upload_path(self):
+    def get_upload_path(self) -> str:
         """Gets upload path from kwargs and returns it."""
         upload_path = self.kwargs.get("upload_directory")
         if upload_path is not None:

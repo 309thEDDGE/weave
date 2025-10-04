@@ -7,12 +7,14 @@ from pathlib import Path
 
 import jsonschema
 import s3fs
+from  fsspec import AbstractFileSystem
 from jsonschema import validate
 
 from .config import manifest_schema, supplement_schema, prohibited_filenames
+from .pantry import Pantry
 
 
-def validate_pantry(pantry):
+def validate_pantry(pantry: Pantry) -> list[Warning | str]:
     """Starts the validation process off based off the name of the pantry.
 
     Validates that the pantry actually exists at the location given.
@@ -55,7 +57,10 @@ def validate_pantry(pantry):
         return warning_list
 
 
-def validate_basket_in_place_directory(file_system, directory_path):
+def validate_basket_in_place_directory(
+    file_system: AbstractFileSystem,
+    directory_path: str
+) -> bool:
     """
     Validates the directory to ensure it can be a valid basket.
 
@@ -82,7 +87,10 @@ def validate_basket_in_place_directory(file_system, directory_path):
     return True
 
 
-def validate_basket_in_place_directory_backward(file_system, directory_path):
+def validate_basket_in_place_directory_backward(
+    file_system: AbstractFileSystem,
+    directory_path: str
+) -> bool:
     """
     Validates the directory to ensure it can be a valid basket.
     
@@ -119,7 +127,7 @@ def validate_basket_in_place_directory_backward(file_system, directory_path):
     return True
 
 
-def _check_level(current_dir, **kwargs):
+def _check_level(current_dir: str, **kwargs) -> bool:
     """Check all immediate subdirs in dir, check for manifest.
 
     Checks all the immediate subdirectories and files in the given directory
@@ -200,7 +208,7 @@ def _check_level(current_dir, **kwargs):
     return not in_basket
 
 
-def _validate_basket(basket_dir, pantry):
+def _validate_basket(basket_dir: str, pantry: Pantry) -> bool:
     """Takes the root directory of a basket and validates it.
 
     Validation means there is a required basket_manifest.json and
@@ -269,7 +277,7 @@ def _validate_basket(basket_dir, pantry):
     return True
 
 
-def _handle_manifest(file, pantry):
+def _handle_manifest(file: str, pantry: Pantry):
     """Handles case if manifest.
 
     Parameters:
@@ -303,7 +311,7 @@ def _handle_manifest(file, pantry):
         )
 
 
-def _handle_supplement(file, pantry):
+def _handle_supplement(file: str, pantry: Pantry):
     """Handles case if supplement.
 
     Parameters:
@@ -339,7 +347,7 @@ def _handle_supplement(file, pantry):
         )
 
 
-def _handle_metadata(file, pantry):
+def _handle_metadata(file: str, pantry: Pantry):
     """Handles case if metadata.
 
     Parameters:
@@ -363,7 +371,7 @@ def _handle_metadata(file, pantry):
         )
 
 
-def _handle_none_of_the_above(file, pantry):
+def _handle_none_of_the_above(file: str, pantry: Pantry):
     """Handles case if none of the above.
 
     Parameters:
@@ -387,7 +395,7 @@ def _handle_none_of_the_above(file, pantry):
             )
 
 
-def _check_metadata_only(files_in_basket, pantry):
+def _check_metadata_only(files_in_basket: list[str], pantry: Pantry):
     """Checks if a basket is a metadata-only basket.
 
     Parameters:
@@ -430,7 +438,7 @@ def _check_metadata_only(files_in_basket, pantry):
         )
 
 
-def _validate_parent_uuids(data, pantry):
+def _validate_parent_uuids(data: dict, pantry: Pantry):
     """Validate that all the parent_uuids from the manifest exist in the
     pantry.
 
@@ -462,7 +470,7 @@ def _validate_parent_uuids(data, pantry):
         )
 
 
-def _validate_supplement_files(basket_dir, data, pantry):
+def _validate_supplement_files(basket_dir: str, data: dict, pantry: Pantry):
     """Validate the files listed in the supplement's integrity_data.
 
     Parameters
