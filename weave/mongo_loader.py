@@ -20,7 +20,7 @@ class MongoLoader():
     mongo db based on the record type (ie supplement, manifest, metadata).
     """
 
-    def __init__(self, pantry, mongo_client: pymongo.MongoClient=None, **kwargs):
+    def __init__(self, pantry, mongo_client=None, **kwargs):
         """Creates the mongo loader and makes a reference to the pantry's DB.
 
         Parameters
