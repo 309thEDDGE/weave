@@ -115,7 +115,7 @@ def get_file_system(**kwargs) -> AbstractFileSystem:
     return LocalFileSystem()
 
 
-def get_mongo_db(**kwargs) -> pymongo.MongoClient:
+def get_mongo_db(**kwargs):
     """Get the mongodb client to be used for metadata search.
 
     Parameters:
