@@ -3,6 +3,7 @@ import os
 import sqlite3
 import warnings
 from datetime import datetime
+from typing import Optional
 
 import ast
 import pandas as pd
@@ -159,7 +160,7 @@ class IndexSQLite(IndexABC):
             os.remove(self.db_path)
 
     def to_pandas_df(
-        self, max_rows: int = None, offset: int = 0, **kwargs
+        self, max_rows: Optional[int] = None, offset: int = 0, **kwargs
     ) -> pd.DataFrame:
         """Returns the pandas dataframe representation of the index.
 
@@ -512,7 +513,11 @@ class IndexSQLite(IndexABC):
         return child_df
 
     def get_baskets_of_type(
-        self, basket_type: str, max_rows: int = None, offset: int = 0, **kwargs
+        self,
+        basket_type: str,
+        max_rows: Optional[int] = None,
+        offset: int = 0,
+        **kwargs,
     ) -> pd.DataFrame:
         """Returns a pandas dataframe containing baskets of basket_type.
 
@@ -559,7 +564,7 @@ class IndexSQLite(IndexABC):
     def get_baskets_of_label(
         self,
         basket_label: str,
-        max_rows: int = None,
+        max_rows: Optional[int] = None,
         offset: int = 0,
         **kwargs,
     ) -> pd.DataFrame:
@@ -607,9 +612,9 @@ class IndexSQLite(IndexABC):
 
     def get_baskets_by_upload_time(
         self,
-        start_time: datetime = None,
-        end_time: datetime = None,
-        max_rows: int = None,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+        max_rows: Optional[int] = None,
         offset: int = 0,
         **kwargs,
     ) -> pd.DataFrame:

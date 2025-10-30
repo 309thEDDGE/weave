@@ -6,6 +6,7 @@ import uuid
 import importlib
 from pathlib import Path
 from datetime import datetime, timezone
+from typing import Optional
 
 import pandas as pd
 import s3fs
@@ -228,7 +229,7 @@ class Basket(BasketInitializer):
     # for functions of it's type in the computing world. It makes
     # sense to continue to name this function ls.
     # pylint: disable-next=invalid-name
-    def ls(self, relative_path: str = None) -> list:
+    def ls(self, relative_path: Optional[str] = None) -> list:
         """List directories and files in the basket.
 
         Call filesystem.ls relative to the basket directory.

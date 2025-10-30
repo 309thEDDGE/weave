@@ -5,6 +5,7 @@
 import os
 import warnings
 from datetime import datetime
+from typing import Optional
 
 import ast
 import pandas as pd
@@ -124,7 +125,10 @@ class IndexSQL(IndexABC):
         return self._pantry_schema
 
     def execute_sql(
-        self, sql_query: str, params: dict = None, commit: bool = False
+        self,
+        sql_query: str,
+        params: Optional[dict] = None,
+        commit: bool = False,
     ) -> tuple[list, list] | int | None:
         """Executes the given SQL query. Returns the results.
 
@@ -326,7 +330,7 @@ class IndexSQL(IndexABC):
         )
 
     def to_pandas_df(
-        self, max_rows: int = None, offset: int = 0, **kwargs
+        self, max_rows: Optional[int] = None, offset: int = 0, **kwargs
     ) -> pd.DataFrame:
         """Returns the pandas dataframe representation of the index.
 
@@ -719,7 +723,11 @@ class IndexSQL(IndexABC):
         return child_df
 
     def get_baskets_of_type(
-        self, basket_type: str, max_rows: int = None, offset: int = 0, **kwargs
+        self,
+        basket_type: str,
+        max_rows: Optional[int] = None,
+        offset: int = 0,
+        **kwargs,
     ) -> pd.DataFrame:
         """Returns a pandas dataframe containing baskets of basket_type.
 
@@ -772,7 +780,7 @@ class IndexSQL(IndexABC):
     def get_baskets_of_label(
         self,
         basket_label: str,
-        max_rows: int = None,
+        max_rows: Optional[int] = None,
         offset: int = 0,
         **kwargs,
     ) -> pd.DataFrame:
@@ -826,9 +834,9 @@ class IndexSQL(IndexABC):
 
     def get_baskets_by_upload_time(
         self,
-        start_time: datetime = None,
-        end_time: datetime = None,
-        max_rows: int = None,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+        max_rows: Optional[int] = None,
         offset: int = 0,
         **kwargs,
     ) -> pd.DataFrame:

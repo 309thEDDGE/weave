@@ -5,8 +5,9 @@ import tempfile
 import warnings
 from datetime import datetime
 from time import time_ns
-import pandas as pd
+from typing import Optional
 
+import pandas as pd
 from fsspec import AbstractFileSystem
 from fsspec.implementations.local import LocalFileSystem
 
@@ -15,7 +16,7 @@ from .create_index import create_index_from_fs
 from .index_abc import IndexABC
 
 def slice_df(
-    df: pd.DataFrame, max_rows: int = None, offset: int = 0
+    df: pd.DataFrame, max_rows: Optional[int] = None, offset: int = 0
 ) -> pd.DataFrame:
     """Returns the pandas dataframe representation of the index.
 
@@ -166,7 +167,7 @@ class IndexPandas(IndexABC):
         return int(os.path.basename(path).replace("-index.json",""))
 
     def to_pandas_df(
-        self, max_rows: int = None, offset: int = 0, **kwargs
+        self, max_rows: Optional[int] = None, offset: int = 0, **kwargs
     ) -> pd.DataFrame:
         """Returns the pandas dataframe representation of the index.
 
@@ -576,7 +577,11 @@ class IndexPandas(IndexABC):
         return rows
 
     def get_baskets_of_type(
-        self, basket_type: str, max_rows: int = None, offset: int = 0, **kwargs
+        self,
+        basket_type: str,
+        max_rows: Optional[int] = None,
+        offset: int = 0,
+        **kwargs,
     ) -> pd.DataFrame:
         """Returns a pandas dataframe containing baskets of basket_type.
 
@@ -606,7 +611,7 @@ class IndexPandas(IndexABC):
     def get_baskets_of_label(
         self,
         basket_label: str,
-        max_rows: int = None,
+        max_rows: Optional[int] = None,
         offset: int = 0,
         **kwargs,
     ) -> pd.DataFrame:
@@ -638,9 +643,9 @@ class IndexPandas(IndexABC):
 
     def get_baskets_by_upload_time(
         self,
-        start_time: datetime = None,
-        end_time: datetime = None,
-        max_rows: int = None,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+        max_rows: Optional[int] = None,
         offset: int = 0,
         **kwargs,
     ) -> pd.DataFrame:
