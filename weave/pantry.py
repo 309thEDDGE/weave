@@ -36,8 +36,13 @@ class Pantry():
     """Facilitate user interaction with the index of a Weave data warehouse.
     """
 
-    def __init__(self, index: IndexABC, pantry_path: str="weave-test",
-                 mongo_client=None, **kwargs):
+    def __init__(
+        self,
+        index: IndexABC,
+        pantry_path: str = "weave-test",
+        mongo_client=None,
+        **kwargs,
+    ):
         """Initialize Pantry object.
 
         A pantry is a collection of baskets. This class facilitates the upload,

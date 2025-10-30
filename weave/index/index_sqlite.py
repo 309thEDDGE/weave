@@ -15,11 +15,9 @@ from .create_index import create_index_from_fs
 
 class IndexSQLite(IndexABC):
     """Concrete implementation of Index, using SQLite."""
+
     def __init__(
-        self,
-        file_system: AbstractFileSystem,
-        pantry_path: str,
-        **kwargs
+        self, file_system: AbstractFileSystem, pantry_path: str, **kwargs
     ):
         """Initializes the Index class.
 
@@ -123,7 +121,7 @@ class IndexSQLite(IndexABC):
 
         self.con.commit()
 
-    def clear_index(self, refresh: bool=False, **kwargs):
+    def clear_index(self, refresh: bool = False, **kwargs):
         """Deletes/clears the previously populated index.
 
         Deletes the index entirely (by deleting and recreating the sqlite file)
@@ -161,10 +159,7 @@ class IndexSQLite(IndexABC):
             os.remove(self.db_path)
 
     def to_pandas_df(
-        self,
-        max_rows: int=None,
-        offset: int=0,
-        **kwargs
+        self, max_rows: int = None, offset: int = 0, **kwargs
     ) -> pd.DataFrame:
         """Returns the pandas dataframe representation of the index.
 
@@ -291,9 +286,7 @@ class IndexSQLite(IndexABC):
         self.con.commit()
 
     def get_rows(
-        self,
-        basket_address: str | list[str],
-        **kwargs
+        self, basket_address: str | list[str], **kwargs
     ) -> pd.DataFrame:
         """Returns a pd.DataFrame row information of given UUID or path.
 
@@ -519,12 +512,8 @@ class IndexSQLite(IndexABC):
         return child_df
 
     def get_baskets_of_type(
-        self,
-        basket_type: str,
-        max_rows: int=None,
-        offset: int=0,
-        **kwargs
-        ) -> pd.DataFrame:
+        self, basket_type: str, max_rows: int = None, offset: int = 0, **kwargs
+    ) -> pd.DataFrame:
         """Returns a pandas dataframe containing baskets of basket_type.
 
         Parameters
@@ -570,9 +559,9 @@ class IndexSQLite(IndexABC):
     def get_baskets_of_label(
         self,
         basket_label: str,
-        max_rows: int=None,
-        offset: int=0,
-        **kwargs
+        max_rows: int = None,
+        offset: int = 0,
+        **kwargs,
     ) -> pd.DataFrame:
         """Returns a pandas dataframe containing baskets with label.
 
@@ -618,11 +607,11 @@ class IndexSQLite(IndexABC):
 
     def get_baskets_by_upload_time(
         self,
-        start_time: datetime=None,
-        end_time: datetime=None,
-        max_rows: int=None,
-        offset: int=0,
-        **kwargs
+        start_time: datetime = None,
+        end_time: datetime = None,
+        max_rows: int = None,
+        offset: int = 0,
+        **kwargs,
     ) -> pd.DataFrame:
         """Returns a pandas dataframe of baskets uploaded between two times.
 

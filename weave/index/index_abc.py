@@ -13,10 +13,7 @@ class IndexABC(abc.ABC):
 
     @abc.abstractmethod
     def __init__(
-        self,
-        file_system: AbstractFileSystem,
-        pantry_path: str,
-        **kwargs
+        self, file_system: AbstractFileSystem, pantry_path: str, **kwargs
     ):
         """Initializes the Index class.
 
@@ -82,7 +79,7 @@ class IndexABC(abc.ABC):
         """
 
     @abc.abstractmethod
-    def clear_index(self, refresh: bool=False, **kwargs):
+    def clear_index(self, refresh: bool = False, **kwargs):
         """Deletes/clears the previously populated index.
 
         Delete the index entirely, optionally regenerating a new one
@@ -97,10 +94,7 @@ class IndexABC(abc.ABC):
 
     @abc.abstractmethod
     def to_pandas_df(
-        self,
-        max_rows: int=None,
-        offset: int=0,
-        **kwargs
+        self, max_rows: int = None, offset: int = 0, **kwargs
     ) -> pd.DataFrame:
         """Returns the pandas dataframe representation of the index.
 
@@ -146,9 +140,7 @@ class IndexABC(abc.ABC):
 
     @abc.abstractmethod
     def get_rows(
-        self,
-        basket_address: str | list[str],
-        **kwargs
+        self, basket_address: str | list[str], **kwargs
     ) -> pd.DataFrame:
         """Returns a pd.DataFrame row information of given UUID or path.
 
@@ -202,12 +194,8 @@ class IndexABC(abc.ABC):
 
     @abc.abstractmethod
     def get_baskets_of_type(
-        self,
-        basket_type: str,
-        max_rows: int=None,
-        offset: int=0,
-        **kwargs
-        ) -> pd.DataFrame:
+        self, basket_type: str, max_rows: int = None, offset: int = 0, **kwargs
+    ) -> pd.DataFrame:
         """Returns a pandas dataframe containing baskets of basket_type.
 
         Parameters
@@ -231,9 +219,9 @@ class IndexABC(abc.ABC):
     def get_baskets_of_label(
         self,
         basket_label: str,
-        max_rows: int=None,
-        offset: int=0,
-        **kwargs
+        max_rows: int = None,
+        offset: int = 0,
+        **kwargs,
     ) -> pd.DataFrame:
         """Returns a pandas dataframe containing baskets with label.
 
@@ -258,11 +246,11 @@ class IndexABC(abc.ABC):
     @abc.abstractmethod
     def get_baskets_by_upload_time(
         self,
-        start_time: datetime=None,
-        end_time: datetime=None,
-        max_rows: int=None,
-        offset: int=0,
-        **kwargs
+        start_time: datetime = None,
+        end_time: datetime = None,
+        max_rows: int = None,
+        offset: int = 0,
+        **kwargs,
     ) -> pd.DataFrame:
         """Returns a pandas dataframe of baskets uploaded between two times.
 

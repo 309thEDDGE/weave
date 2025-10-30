@@ -57,8 +57,7 @@ def validate_pantry(pantry) -> list[Warning | str]:
 
 
 def validate_basket_in_place_directory(
-    file_system: AbstractFileSystem,
-    directory_path: str
+    file_system: AbstractFileSystem, directory_path: str
 ) -> bool:
     """
     Validates the directory to ensure it can be a valid basket.
@@ -87,8 +86,7 @@ def validate_basket_in_place_directory(
 
 
 def validate_basket_in_place_directory_backward(
-    file_system: AbstractFileSystem,
-    directory_path: str
+    file_system: AbstractFileSystem, directory_path: str
 ) -> bool:
     """
     Validates the directory to ensure it can be a valid basket.

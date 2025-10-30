@@ -93,7 +93,7 @@ class BasketInitializer:
             self.basket_path = Path(basket_address).as_posix()
         self.validate_basket_path()
 
-    def set_up_basket_from_uuid(self, basket_address:str, pantry):
+    def set_up_basket_from_uuid(self, basket_address: str, pantry):
         """Attempts to set up a basket from a uuid.
 
         Note that if the basket cannot be set up from a uuid then an attempt to
@@ -228,7 +228,7 @@ class Basket(BasketInitializer):
     # for functions of it's type in the computing world. It makes
     # sense to continue to name this function ls.
     # pylint: disable-next=invalid-name
-    def ls(self, relative_path:str=None) -> list:
+    def ls(self, relative_path: str = None) -> list:
         """List directories and files in the basket.
 
         Call filesystem.ls relative to the basket directory.
@@ -304,9 +304,11 @@ class Basket(BasketInitializer):
 
         return pd.DataFrame(data=[data], columns=columns)
 
-    def download(self,
-                 destination_path:str=os.getcwd(),
-                 include_artifacts:bool=False):
+    def download(
+        self,
+        destination_path: str = os.getcwd(),
+        include_artifacts: bool = False,
+    ):
         """Download the basket's contents to a local directory.
 
         Parameters
@@ -335,7 +337,7 @@ class Basket(BasketInitializer):
             for file in self.ls():
                 self.file_system.get(file, destination_path, recursive=True)
 
-    def update_metadata(self, metadata_updates:dict, replace:bool=False):
+    def update_metadata(self, metadata_updates: dict, replace: bool = False):
         """Update the basket's metadata with new values.
 
         Parameters
@@ -375,7 +377,7 @@ class Basket(BasketInitializer):
                     metadata_dict=self.metadata,
                 )
 
-    def replace_metadata(self, new_metadata:dict):
+    def replace_metadata(self, new_metadata: dict):
         """Replace the basket's metadata with new metadata.
 
         An alias for update_metadata with replace=True.
@@ -388,9 +390,9 @@ class Basket(BasketInitializer):
         self.update_metadata(new_metadata, replace=True)
 
 
-#Disabling pylint to keep basket in place to a single function for clarity.
+# Disabling pylint to keep basket in place to a single function for clarity.
 # pylint: disable-msg=too-many-locals
-def create_basket_in_place(directory_path:str, **kwargs) -> pd.DataFrame:
+def create_basket_in_place(directory_path: str, **kwargs) -> pd.DataFrame:
     """Creates a basket in place.
 
     Generates the manifest, supplement, and metadata files directly in the

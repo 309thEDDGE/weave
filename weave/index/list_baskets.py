@@ -4,8 +4,7 @@ import os
 from fsspec import AbstractFileSystem
 
 def _get_list_of_basket_jsons(
-    root_dir: str,
-    file_system: AbstractFileSystem
+    root_dir: str, file_system: AbstractFileSystem
 ) -> list[str]:
     """Return a list of basket manifest paths in the given root dir.
 

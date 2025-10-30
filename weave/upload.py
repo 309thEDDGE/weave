@@ -45,7 +45,9 @@ def validate_upload_item(upload_item: dict[str, str | bool], **kwargs):
         )
 
 
-def derive_integrity_data(file_path: str, byte_count: int=10**8, **kwargs) -> dict:
+def derive_integrity_data(
+    file_path: str, byte_count: int = 10**8, **kwargs
+) -> dict:
     """Derives basic integrity data from a file.
 
     This function takes in a file path and calculates
@@ -374,7 +376,7 @@ class UploadBasket:
         self,
         local_path: str,
         upload_item: dict[str, str | bool],
-        item_path: str
+        item_path: str,
     ) -> dict:
         """Gathers the file integrity data, handles stub logic"""
         file_int_dat = derive_integrity_data(
@@ -395,9 +397,7 @@ class UploadBasket:
         return file_int_dat
 
     def construct_file_upload_path(
-        self,
-        local_path: str,
-        item_path: str
+        self, local_path: str, item_path: str
     ) -> str:
         """Constructs the file_upload_path variable"""
         return os.path.join(

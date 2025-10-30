@@ -15,8 +15,7 @@ from .validate_basket import validate_basket_dict
 
 
 def create_index_from_fs(
-    root_dir: str,
-    file_system: AbstractFileSystem
+    root_dir: str, file_system: AbstractFileSystem
 ) -> pd.DataFrame:
     """Recursively parse a pantry and create an index.
 

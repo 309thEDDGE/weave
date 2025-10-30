@@ -15,9 +15,7 @@ from .create_index import create_index_from_fs
 from .index_abc import IndexABC
 
 def slice_df(
-    df: pd.DataFrame,
-    max_rows: int=None,
-    offset: int=0
+    df: pd.DataFrame, max_rows: int = None, offset: int = 0
 ) -> pd.DataFrame:
     """Returns the pandas dataframe representation of the index.
 
@@ -45,10 +43,7 @@ class IndexPandas(IndexABC):
     """Handles Pandas based functionality of the Index."""
 
     def __init__(
-        self,
-        file_system: AbstractFileSystem,
-        pantry_path: str,
-        **kwargs
+        self, file_system: AbstractFileSystem, pantry_path: str, **kwargs
     ):
         """Initializes the Index class.
 
@@ -171,10 +166,7 @@ class IndexPandas(IndexABC):
         return int(os.path.basename(path).replace("-index.json",""))
 
     def to_pandas_df(
-        self,
-        max_rows: int=None,
-        offset: int=0,
-        **kwargs
+        self, max_rows: int = None, offset: int = 0, **kwargs
     ) -> pd.DataFrame:
         """Returns the pandas dataframe representation of the index.
 
@@ -197,7 +189,7 @@ class IndexPandas(IndexABC):
         self._sync_if_needed()
         return slice_df(self.index_df, max_rows, offset)
 
-    def clean_up_indices(self, n_keep: int=20):
+    def clean_up_indices(self, n_keep: int = 20):
         """Deletes any index basket except the latest n index baskets.
 
         Parameters
@@ -257,7 +249,7 @@ class IndexPandas(IndexABC):
         index = create_index_from_fs(self.pantry_path, self.file_system)
         self._upload_index(index=index)
 
-    def clear_index(self, refresh: bool=False, **kwargs):
+    def clear_index(self, refresh: bool = False, **kwargs):
         """Clears out ALL pandas indexes in the pantry and generates a new one.
 
         THIS FUNCTION DOES NOT BEHAVE THE SAME AS THE OTHER CLEAR_INDEX METHODS
@@ -584,11 +576,7 @@ class IndexPandas(IndexABC):
         return rows
 
     def get_baskets_of_type(
-        self,
-        basket_type: str,
-        max_rows: int=None,
-        offset: int=0,
-        **kwargs
+        self, basket_type: str, max_rows: int = None, offset: int = 0, **kwargs
     ) -> pd.DataFrame:
         """Returns a pandas dataframe containing baskets of basket_type.
 
@@ -618,9 +606,9 @@ class IndexPandas(IndexABC):
     def get_baskets_of_label(
         self,
         basket_label: str,
-        max_rows: int=None,
-        offset: int=0,
-        **kwargs
+        max_rows: int = None,
+        offset: int = 0,
+        **kwargs,
     ) -> pd.DataFrame:
         """Returns a pandas dataframe containing baskets with label.
 
@@ -650,11 +638,11 @@ class IndexPandas(IndexABC):
 
     def get_baskets_by_upload_time(
         self,
-        start_time: datetime=None,
-        end_time: datetime=None,
-        max_rows: int=None,
-        offset: int=0,
-        **kwargs
+        start_time: datetime = None,
+        end_time: datetime = None,
+        max_rows: int = None,
+        offset: int = 0,
+        **kwargs,
     ) -> pd.DataFrame:
         """Returns a pandas dataframe of baskets uploaded between two times.
 

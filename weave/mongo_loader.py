@@ -264,7 +264,7 @@ class MongoLoader():
         self.load_mongo_manifest(uuids, collection=manifest_collection)
         self.load_mongo_supplement(uuids, collection=supplement_collection)
 
-    def clear_mongo(self, refresh: bool=False):
+    def clear_mongo(self, refresh: bool = False):
         """Clear the metadata, manifest, and supplement collections optionally,
         refreshing them from the pantry.
 
