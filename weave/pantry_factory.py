@@ -22,7 +22,7 @@ from .index.index_sqlite import IndexSQLite
 from .index.index_sql import IndexSQL
 
 
-def create_pantry(**kwargs):
+def create_pantry(**kwargs) -> Pantry:
     """Create a weave.Pantry object using regular params or a config file.
 
     Three options to create a pantry:
@@ -99,7 +99,7 @@ def create_pantry(**kwargs):
     return pantry
 
 # pylint: disable-next=too-many-branches
-def _create_pantry_from_config(config, **kwargs):
+def _create_pantry_from_config(config: dict, **kwargs) -> Pantry:
     """Create the weave.pantry object from a pre-existing config file.
 
     Parameters:

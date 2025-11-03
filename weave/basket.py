@@ -6,6 +6,7 @@ import uuid
 import importlib
 from pathlib import Path
 from datetime import datetime, timezone
+from typing import Optional
 
 import pandas as pd
 import s3fs
@@ -20,7 +21,7 @@ from .upload import derive_integrity_data
 class BasketInitializer:
     """Initializes basket class. Validates input args."""
 
-    def __init__(self, basket_address, **kwargs):
+    def __init__(self, basket_address: str, **kwargs):
         """Handles set up of basket. Calls validation.
 
         Parameters
@@ -77,7 +78,7 @@ class BasketInitializer:
             )
         self.validate()
 
-    def _set_up_basket_from_path(self, basket_address):
+    def _set_up_basket_from_path(self, basket_address: str):
         """Attempts to set up a basket from a filepath.
 
         Paramters
@@ -93,7 +94,7 @@ class BasketInitializer:
             self.basket_path = Path(basket_address).as_posix()
         self.validate_basket_path()
 
-    def set_up_basket_from_uuid(self, basket_address, pantry):
+    def set_up_basket_from_uuid(self, basket_address: str, pantry):
         """Attempts to set up a basket from a uuid.
 
         Note that if the basket cannot be set up from a uuid then an attempt to
@@ -152,7 +153,7 @@ class Basket(BasketInitializer):
     """This class provides convenience functions for accessing basket contents.
     """
 
-    def __init__(self, basket_address, **kwargs):
+    def __init__(self, basket_address: str, **kwargs):
         """Initializes the Basket_Class.
 
         If basket_address is a path, the basket will be loaded directly using
@@ -191,7 +192,7 @@ class Basket(BasketInitializer):
         self.address = self.basket_path
         self.storage_type = self.file_system.__class__.__name__
 
-    def get_manifest(self):
+    def get_manifest(self) -> dict:
         """Return basket_manifest.json as a python dictionary."""
         if self.manifest is not None:
             return self.manifest
@@ -200,7 +201,7 @@ class Basket(BasketInitializer):
             self.manifest = json.load(file)
             return self.manifest
 
-    def get_supplement(self):
+    def get_supplement(self) -> dict:
         """Return basket_supplement.json as a python dictionary."""
         if self.supplement is not None:
             return self.supplement
@@ -209,7 +210,7 @@ class Basket(BasketInitializer):
             self.supplement = json.load(file)
             return self.supplement
 
-    def get_metadata(self):
+    def get_metadata(self) -> dict:
         """Return basket_metadata.json as a python dictionary.
 
         Return None if metadata doesn't exist.
@@ -228,7 +229,7 @@ class Basket(BasketInitializer):
     # for functions of it's type in the computing world. It makes
     # sense to continue to name this function ls.
     # pylint: disable-next=invalid-name
-    def ls(self, relative_path=None):
+    def ls(self, relative_path: Optional[str] = None) -> list:
         """List directories and files in the basket.
 
         Call filesystem.ls relative to the basket directory.
@@ -279,7 +280,7 @@ class Basket(BasketInitializer):
         return self.file_system.ls(ls_path, **ls_kwargs)
 
     # pylint: disable-msg=duplicate-code
-    def to_pandas_df(self):
+    def to_pandas_df(self) -> pd.DataFrame:
         """Return a dataframe of the basket member variables."""
         data = [
             self.uuid,
@@ -304,7 +305,11 @@ class Basket(BasketInitializer):
 
         return pd.DataFrame(data=[data], columns=columns)
 
-    def download(self, destination_path=os.getcwd(), include_artifacts=False):
+    def download(
+        self,
+        destination_path: str = os.getcwd(),
+        include_artifacts: bool = False,
+    ):
         """Download the basket's contents to a local directory.
 
         Parameters
@@ -333,7 +338,7 @@ class Basket(BasketInitializer):
             for file in self.ls():
                 self.file_system.get(file, destination_path, recursive=True)
 
-    def update_metadata(self, metadata_updates, replace=False):
+    def update_metadata(self, metadata_updates: dict, replace: bool = False):
         """Update the basket's metadata with new values.
 
         Parameters
@@ -373,7 +378,7 @@ class Basket(BasketInitializer):
                     metadata_dict=self.metadata,
                 )
 
-    def replace_metadata(self, new_metadata):
+    def replace_metadata(self, new_metadata: dict):
         """Replace the basket's metadata with new metadata.
 
         An alias for update_metadata with replace=True.
@@ -386,9 +391,9 @@ class Basket(BasketInitializer):
         self.update_metadata(new_metadata, replace=True)
 
 
-#Disabling pylint to keep basket in place to a single function for clarity.
+# Disabling pylint to keep basket in place to a single function for clarity.
 # pylint: disable-msg=too-many-locals
-def create_basket_in_place(directory_path, **kwargs):
+def create_basket_in_place(directory_path: str, **kwargs) -> pd.DataFrame:
     """Creates a basket in place.
 
     Generates the manifest, supplement, and metadata files directly in the
