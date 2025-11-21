@@ -97,7 +97,7 @@ class Pantry():
         # Check if file system is read-only. If so, raise error.
         try:
             test_file_path = os.path.join(
-                self.pantry,
+                self.pantry_path,
                 f"test_read_only_{uuid.uuid4().hex}.txt"
             )
             self.file_system.touch(test_file_path)
