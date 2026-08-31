@@ -11,6 +11,7 @@ from datetime import datetime, timezone as tz
 from pathlib import Path
 import s3fs
 
+from blake3 import blake3
 from fsspec.implementations.local import LocalFileSystem
 from .config import get_file_system, prohibited_filenames
 
@@ -72,7 +73,7 @@ def derive_integrity_data(
     Dictionary
      {
       'file_size': bytes (int),
-      'hash': sha256 hash (string),
+      'hash': blake3 hash (string),
       'access_date': current date/time (string),
       'source_path': path to the original source of data (string),
       'byte_count': byte count used for generated checksum (int)
@@ -111,9 +112,9 @@ def derive_integrity_data(
 
     if file_size <= byte_count * 3:
         with source_file_system.open(file_path, "rb") as file:
-            sha256_hash = hashlib.sha256(file.read()).hexdigest()
+            blake3_hash = blake3(file.read()).hexdigest()
     else:
-        hasher = hashlib.sha256()
+        hasher = blake3()
         midpoint = file_size / 2.0
         midpoint_seek_position = math.floor(midpoint - byte_count / 2.0)
         end_seek_position = file_size - byte_count
@@ -123,11 +124,11 @@ def derive_integrity_data(
             hasher.update(file.read(byte_count))
             file.seek(end_seek_position)
             hasher.update(file.read(byte_count))
-        sha256_hash = hasher.hexdigest()
+        blake3_hash = hasher.hexdigest()
 
     return {
         "file_size": file_size,
-        "hash": sha256_hash,
+        "hash": blake3_hash,
         "access_date": datetime.now(tz.utc).isoformat(),
         "source_path": file_path,
         "byte_count": byte_count,

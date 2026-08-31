@@ -391,8 +391,8 @@ def test_derive_integrity_data_large_byte_count(tmp_path):
     test_file.write_text(text_file_content)
 
     # Expected sha256 hash of the string "0123456789". The whole file is used
-    # as the file size is > 3*byte_count.
-    e_hash = "84d89877f0d4041efb6bf91a16f0248f2fd573e6af05c19f96bedb9f882f7882"
+    # as the file size is < 3*byte_count.
+    e_hash = "53b63a6fc8605d0c0ce559317a00177d72adb24d669235e4c914f443a8831ca1"
     assert e_hash == derive_integrity_data(str(test_file), 10**6)["hash"]
 
 
@@ -407,10 +407,10 @@ def test_derive_integrity_data_small_byte_count(tmp_path):
     test_file = tmp_path / text_file_name
     test_file.write_text(text_file_content)
 
-    # Expected sha256 hash of the string "014589". This string is used as the
-    # file size is <= 3*byte_count. So checksum is generated using bytes from
+    # Expected sha256 hash of the string "0123456789". This string is used as the
+    # file size is > 3*byte_count. So checksum is generated using bytes from
     # beginning, middle, and end (instead of whole file content).
-    e_hash = "a2a7cb1d7fc8f79e33b716b328e19bb381c3ec96a2dca02a3d1183e7231413bb"
+    e_hash = "4169cdc647f6a08fa4faf0cb731a18a1be41a82813f6261a810be698caddb359"
     assert e_hash == derive_integrity_data(str(test_file), 2)["hash"]
 
 

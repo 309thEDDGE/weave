@@ -36,7 +36,7 @@ setup(
         "Programming Language :: Python :: 3.13",
         "Operating System :: OS Independent",
     ],
-    install_requires=["pandas", "s3fs", "fsspec", "jsonschema"],
+    install_requires=["pandas", "s3fs", "fsspec", "jsonschema", "blake3"],
     extras_require={
         "extras": ["pymongo", "psycopg2-binary", "sqlalchemy"],
     },
