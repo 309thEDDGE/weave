@@ -1,6 +1,5 @@
 """Contains functions and classes concerning the upload functionality."""
 
-import hashlib
 from importlib import metadata
 import json
 import math
@@ -112,8 +111,10 @@ def derive_integrity_data(
 
     if file_size <= byte_count * 3:
         with source_file_system.open(file_path, "rb") as file:
+            # pylint: disable-next=not-callable
             blake3_hash = blake3(file.read()).hexdigest()
     else:
+        # pylint: disable-next=not-callable
         hasher = blake3()
         midpoint = file_size / 2.0
         midpoint_seek_position = math.floor(midpoint - byte_count / 2.0)
