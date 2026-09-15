@@ -219,8 +219,10 @@ class IndexSQLite(IndexABC):
 
         entry_df["parent_uuids"] = entry_df["parent_uuids"].astype(str)
         entry_df["upload_time"] = (
-            entry_df["upload_time"].astype('int64') // 1e9
-        ).astype('int64')
+            pd.to_datetime(entry_df["upload_time"], utc=True)
+            .map(lambda t: int(t.timestamp()))
+            .astype("int64")
+        )
         # Bulk insert into pantry_index.
         entry_df.to_sql("pantry_index", self.con,
                         if_exists="append", method="multi", index=False)

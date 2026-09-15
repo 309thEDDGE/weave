@@ -34,15 +34,9 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: "3.13"
-    - name: Install minio
+    - name: Start RustFS
       run: |
-        wget https://dl.min.io/server/minio/release/linux-amd64/archive/minio_20250408154124.0.0_amd64.deb -O minio.deb
-        sudo dpkg -i minio.deb
-    - name: Launch minio
-      continue-on-error: true
-      run: |
-        mkdir ~/minio
-        minio server ~/minio --console-address :9090 &!
+        docker run -d --name rustfs -p 9000:9000 -e RUSTFS_ACCESS_KEY=minioadmin -e RUSTFS_SECRET_KEY=minioadmin rustfs/rustfs:latest
     - name: Start MongoDB
       uses: supercharge/mongodb-github-action@1.8.0
       with:

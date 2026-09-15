@@ -413,8 +413,10 @@ class IndexSQL(IndexABC):
         # Convert the parent_uuids to a string, and the upload_time to an int.
         entry_df.loc[:,"parent_uuids"] = entry_df["parent_uuids"].astype(str)
         entry_df["upload_time"] = (
-            entry_df["upload_time"].astype(int) // 1e9
-        ).astype(int)
+            pd.to_datetime(entry_df["upload_time"], utc=True)
+            .map(lambda t: int(t.timestamp()))
+            .astype("int64")
+        )
 
         for basket_dict in entry_df.to_dict(orient="records"):
             index_columns = list(basket_dict.keys())
