@@ -34,14 +34,9 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: "3.13"
-    - name: Install RustFS
+    - name: Start RustFS
       run: |
-        curl -O https://rustfs.com/install_rustfs.sh && bash install_rustfs.sh
-    - name: Launch RustFS
-      continue-on-error: true
-      run: |
-        mkdir ~/rustfs_data
-        RUSTFS_ACCESS_KEY=minioadmin RUSTFS_SECRET_KEY=minioadmin rustfs server ~/rustfs_data --address :9000 --console-address :9090 &!
+        docker run -d --name rustfs -p 9000:9000 -e RUSTFS_ACCESS_KEY=minioadmin -e RUSTFS_SECRET_KEY=minioadmin rustfs/rustfs:latest
     - name: Start MongoDB
       uses: supercharge/mongodb-github-action@1.8.0
       with:
